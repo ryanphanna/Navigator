@@ -34,7 +34,7 @@ export const getResumes = (): ResumeProfile[] => {
                     };
                     return [{ id: 'master', name: 'Master Experience', blocks: [legacyBlock] }];
                 }
-            } catch (e) {
+            } catch {
                 // ignore legacy parse errors
             }
         }
@@ -44,7 +44,7 @@ export const getResumes = (): ResumeProfile[] => {
     try {
         const parsed = JSON.parse(stored);
         return parsed.length > 0 ? parsed : defaultState;
-    } catch (e) {
+    } catch {
         return defaultState;
     }
 };

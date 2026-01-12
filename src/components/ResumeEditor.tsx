@@ -39,7 +39,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         if (resumes.length > 0) {
             setBlocks(resumes[0].blocks);
         }
-    }, [importTrigger]);
+    }, [importTrigger, resumes]);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -47,6 +47,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
             onSave([updatedProfile]);
         }, 500);
         return () => clearTimeout(handler);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [blocks, initialResume.id]);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

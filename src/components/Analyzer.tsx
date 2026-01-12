@@ -90,7 +90,7 @@ const Analyzer: React.FC<AnalyzerProps> = ({ resumes }) => {
             const bestResume = resumes.find(r => r.id === result.bestResumeProfileId) || resumes[0];
             const letter = await generateCoverLetter(jobText, bestResume, result.tailoringInstructions);
             setCoverLetter(letter);
-        } catch (e) {
+        } catch {
             setError("Failed to generate cover letter.");
         } finally {
             setStatus('idle');

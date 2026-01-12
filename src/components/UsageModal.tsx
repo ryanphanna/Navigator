@@ -12,7 +12,9 @@ interface UsageModalProps {
 
 export const UsageModal: React.FC<UsageModalProps> = ({ isOpen, onClose, apiStatus, quotaStatus, cooldownSeconds }) => {
     // API Key State
-    const [apiKey, setApiKey] = useState('');
+    const [apiKey, setApiKey] = useState(() => {
+        return isOpen ? (localStorage.getItem('gemini_api_key') || '') : '';
+    });
     const [showKey, setShowKey] = useState(false);
     const [status, setStatus] = useState<'idle' | 'validating' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
@@ -20,11 +22,17 @@ export const UsageModal: React.FC<UsageModalProps> = ({ isOpen, onClose, apiStat
 
     useEffect(() => {
         if (isOpen) {
-            // Load key
+            // Load key if not already loaded by lazy init (lazy init runs once per mount, but modal might be unmounted? No, likely conditionally rendered or hidden)
+            // If component is always mounted but hidden, lazy init only runs once. 
+            // We should rely on effect for updates if isOpen changes, but avoid immediate set if unnecessary.
+
             const storedKey = localStorage.getItem('gemini_api_key');
+            if (storedKey && storedKey !== apiKey) {
+                setTimeout(() => setApiKey(storedKey), 0);
+            }
             if (storedKey) {
-                setApiKey(storedKey);
-                setStatus('idle');
+                // If we have a key, we can assume status is idle or valid?
+                // setStatus('idle'); // status default is idle
             }
 
             // Load daily usage
@@ -32,15 +40,15 @@ export const UsageModal: React.FC<UsageModalProps> = ({ isOpen, onClose, apiStat
                 const usageData = JSON.parse(localStorage.getItem('jobfit_daily_usage') || '{}');
                 const today = new Date().toISOString().split('T')[0];
                 if (usageData.date === today) {
-                    setDailyUsage(usageData.count || 0);
+                    setTimeout(() => setDailyUsage(usageData.count || 0), 0);
                 } else {
-                    setDailyUsage(0);
+                    setTimeout(() => setDailyUsage(0), 0);
                 }
-            } catch (e) {
-                setDailyUsage(0);
+            } catch {
+                setTimeout(() => setDailyUsage(0), 0);
             }
         }
-    }, [isOpen]);
+    }, [isOpen, apiKey]);
 
     const handleSaveKey = async () => {
         if (!apiKey.trim()) {
@@ -183,8 +191,8 @@ export const UsageModal: React.FC<UsageModalProps> = ({ isOpen, onClose, apiStat
                     {/* Quota Status */}
                     <div className="flex items-start gap-4">
                         <div className={`p-2 rounded-lg ${quotaStatus === 'normal' ? 'bg-blue-100 text-blue-600' :
-                                quotaStatus === 'daily_limit' ? 'bg-red-100 text-red-600' :
-                                    'bg-orange-100 text-orange-600'
+                            quotaStatus === 'daily_limit' ? 'bg-red-100 text-red-600' :
+                                'bg-orange-100 text-orange-600'
                             }`}>
                             {quotaStatus === 'normal' ? <Activity className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
                         </div>

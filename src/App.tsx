@@ -6,7 +6,7 @@ import ResumeEditor from './components/ResumeEditor';
 import HomeInput from './components/HomeInput';
 import History from './components/History';
 import JobDetail from './components/JobDetail';
-import { Briefcase, Settings, LayoutGrid, History as HistoryIcon, Activity } from 'lucide-react';
+import { Briefcase, Settings, LayoutGrid, History as HistoryIcon, Activity, AlertTriangle } from 'lucide-react';
 import { SettingsModal } from './components/SettingsModal';
 import { UsageModal } from './components/UsageModal';
 
@@ -77,10 +77,9 @@ const App: React.FC = () => {
           } else {
             localStorage.removeItem('jobfit_quota_status');
             setQuotaStatus('normal');
-            setCooldownSeconds(0);
           }
         }
-      } catch (e) {
+      } catch {
         setQuotaStatus('normal');
       }
     };
@@ -160,11 +159,12 @@ const App: React.FC = () => {
           } else {
             setImportError("No content parsed from resume.");
           }
-        } catch (parseErr: any) {
+        } catch (parseErr: unknown) {
           console.error("Error parsing resume file:", parseErr);
+          const err = parseErr as Error;
 
-          let friendlyError = `Failed to parse resume: ${parseErr.message || 'Unknown error'}`;
-          const errMsg = parseErr.message || '';
+          let friendlyError = `Failed to parse resume: ${err.message || 'Unknown error'}`;
+          const errMsg = err.message || '';
 
           if (errMsg.includes("DAILY_QUOTA_EXCEEDED")) {
             friendlyError = "Daily Quota Exceeded. You have reached your free tier limit for today.";
@@ -189,9 +189,10 @@ const App: React.FC = () => {
         }
       };
       reader.readAsDataURL(file);
-    } catch (fileReadErr: any) {
+    } catch (fileReadErr: unknown) {
       console.error("Error reading file:", fileReadErr);
-      setImportError(`Failed to read file: ${fileReadErr.message || 'Unknown error'}`);
+      const err = fileReadErr as Error;
+      setImportError(`Failed to read file: ${err.message || 'Unknown error'}`);
       setIsParsingResume(false);
     }
   };
@@ -287,7 +288,7 @@ const App: React.FC = () => {
                   {quotaStatus === 'daily_limit' ? 'Daily Limit Reached' : 'Limit Reached'}
                 </span>
               </>
-              )}
+              }
             </button>
             <button
               onClick={() => setShowSettings(true)}

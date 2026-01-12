@@ -19,7 +19,8 @@ export const validateApiKey = async (key: string): Promise<{ isValid: boolean; e
         const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
         await model.generateContent("Test");
         return { isValid: true };
-    } catch (e: any) {
+    } catch (error: unknown) {
+        const e = error as Error;
         console.error("API Key Validation Error:", e);
 
         // If Quota Exceeded (429), the key IS valid, just exhausted. 
@@ -48,8 +49,9 @@ const callWithRetry = async <T>(fn: () => Promise<T>, retries = 3, initialDelay 
     for (let i = 0; i < retries; i++) {
         try {
             return await fn();
-        } catch (error: any) {
-            const errorMessage = error.message || '';
+        } catch (error: unknown) {
+            const err = error as Error;
+            const errorMessage = err.message || '';
 
             // Check for specific quota violations
             const isDailyQuota = errorMessage.includes("PerDay");
@@ -69,13 +71,12 @@ const callWithRetry = async <T>(fn: () => Promise<T>, retries = 3, initialDelay 
                 // Try to parse "retry in X s"
                 const match = errorMessage.match(/retry in ([0-9.]+)s/);
                 let waitTime = currentDelay;
-                let userFriendlyWait = "";
 
                 if (match && match[1]) {
                     const statusDelay = Math.ceil(parseFloat(match[1]) * 1000);
                     // Add a small buffer (1s)
                     waitTime = Math.max(currentDelay, statusDelay + 1000);
-                    userFriendlyWait = `(Wait ${match[1]}s)`;
+                    // userFriendlyWait removed as it was unused
                     console.warn(`API requested wait: ${match[1]}s. Adjusting delay to ${waitTime}ms.`);
                 }
 
