@@ -79,8 +79,7 @@ const HomeInput: React.FC<HomeInputProps> = ({ resumes, onJobCreated, onJobUpdat
             if (input.type === 'url') {
                 try {
                     textToAnalyze = await fetchJobContent(input.content);
-                } catch (scrapeError) {
-                    console.error("Scrape failed:", scrapeError);
+                } catch {
                     const failedJob: SavedJob = { ...newJob, status: 'error' };
                     onJobUpdated(failedJob);
                     return; // Stop processing
@@ -97,8 +96,7 @@ const HomeInput: React.FC<HomeInputProps> = ({ resumes, onJobCreated, onJobUpdat
             };
 
             onJobUpdated(updatedJob);
-        } catch (e) {
-            console.error(e);
+        } catch {
             const failedJob: SavedJob = {
                 ...newJob,
                 status: 'error',

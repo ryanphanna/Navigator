@@ -43,8 +43,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                 Storage.updateJob(updatedJob);
                 setLocalJob(updatedJob);
                 onUpdateJob(updatedJob);
-            } catch (e) {
-                console.error(e);
+            } catch {
                 alert("Analysis failed again. Please try with different text.");
             } finally {
                 setRetrying(false);
@@ -140,8 +139,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
             Storage.updateJob(updated);
             setLocalJob(updated);
             onUpdateJob(updated);
-        } catch (e) {
-            console.error(e);
+        } catch {
             alert("Failed to generate cover letter");
         } finally {
             setGenerating(false);
@@ -160,7 +158,6 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
             setLocalJob(updated);
             onUpdateJob(updated);
         } catch (e) {
-            console.error(e);
             alert("Failed to critique letter: " + (e as Error).message);
         } finally {
             setGenerating(false);

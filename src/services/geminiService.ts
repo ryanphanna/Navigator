@@ -21,12 +21,10 @@ export const validateApiKey = async (key: string): Promise<{ isValid: boolean; e
         return { isValid: true };
     } catch (error: unknown) {
         const e = error as Error;
-        console.error("API Key Validation Error:", e);
 
-        // If Quota Exceeded (429), the key IS valid, just exhausted. 
+        // If Quota Exceeded (429), the key IS valid, just exhausted.
         // We should allow the user to save it.
         if (e.message && (e.message.includes("429") || e.message.includes("Quota") || e.message.includes("quota"))) {
-            console.warn("Key is valid but quota exceeded. Allowing save.");
             return { isValid: true, error: "High traffic. Please wait a moment." };
         }
 
@@ -76,11 +74,7 @@ const callWithRetry = async <T>(fn: () => Promise<T>, retries = 3, initialDelay 
                     const statusDelay = Math.ceil(parseFloat(match[1]) * 1000);
                     // Add a small buffer (1s)
                     waitTime = Math.max(currentDelay, statusDelay + 1000);
-                    // userFriendlyWait removed as it was unused
-                    console.warn(`API requested wait: ${match[1]}s. Adjusting delay to ${waitTime}ms.`);
                 }
-
-                console.warn(`Quota hit. Retrying in ${waitTime}ms... (Attempt ${i + 1}/${retries})`);
                 await new Promise(resolve => setTimeout(resolve, waitTime));
 
                 // Exponential backoff for next time
@@ -216,7 +210,6 @@ export const analyzeJobFit = async (
             return JSON.parse(text) as JobAnalysis;
 
         } catch (error) {
-            console.error("Analysis failed", error);
             throw error; // Re-throw to trigger retry
         }
     });
@@ -269,7 +262,6 @@ export const generateCoverLetter = async (
             });
             return response.response.text() || "Could not generate cover letter.";
         } catch (error) {
-            console.error("Cover letter generation failed", error);
             throw error;
         }
     });
@@ -328,7 +320,6 @@ export const critiqueCoverLetter = async (
             if (!text) throw new Error("No response");
             return JSON.parse(text);
         } catch (error) {
-            console.error("Critique failed", error);
             throw error;
         }
     });
@@ -404,7 +395,6 @@ export const parseResumeFile = async (
             }));
 
         } catch (error) {
-            console.error("File parsing failed", error);
             throw error;
         }
     });

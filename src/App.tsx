@@ -9,6 +9,7 @@ import JobDetail from './components/JobDetail';
 import { Briefcase, Settings, LayoutGrid, History as HistoryIcon, Activity, AlertTriangle } from 'lucide-react';
 import { SettingsModal } from './components/SettingsModal';
 import { UsageModal } from './components/UsageModal';
+import { PrivacyNotice } from './components/PrivacyNotice';
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
@@ -29,6 +30,11 @@ const App: React.FC = () => {
   const [showUsage, setShowUsage] = useState(false);
   const [quotaStatus, setQuotaStatus] = useState<'normal' | 'high_traffic' | 'daily_limit'>('normal');
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
+  // Privacy Notice State
+  const [showPrivacyNotice, setShowPrivacyNotice] = useState(() => {
+    return !localStorage.getItem('jobfit_privacy_accepted');
+  });
 
   useEffect(() => {
     const storedResumes = Storage.getResumes();
@@ -160,7 +166,6 @@ const App: React.FC = () => {
             setImportError("No content parsed from resume.");
           }
         } catch (parseErr: unknown) {
-          console.error("Error parsing resume file:", parseErr);
           const err = parseErr as Error;
 
           let friendlyError = `Failed to parse resume: ${err.message || 'Unknown error'}`;
@@ -190,7 +195,6 @@ const App: React.FC = () => {
       };
       reader.readAsDataURL(file);
     } catch (fileReadErr: unknown) {
-      console.error("Error reading file:", fileReadErr);
       const err = fileReadErr as Error;
       setImportError(`Failed to read file: ${err.message || 'Unknown error'}`);
       setIsParsingResume(false);
@@ -209,9 +213,15 @@ const App: React.FC = () => {
   const { activeJobId } = state;
   const activeJob = activeJobId ? state.jobs.find(j => j.id === activeJobId) : null;
 
+  const handlePrivacyAccept = () => {
+    localStorage.setItem('jobfit_privacy_accepted', 'true');
+    setShowPrivacyNotice(false);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
 
+      <PrivacyNotice isOpen={showPrivacyNotice} onAccept={handlePrivacyAccept} />
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
       <UsageModal
         isOpen={showUsage}
