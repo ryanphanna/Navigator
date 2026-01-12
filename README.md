@@ -1,73 +1,71 @@
-# React + TypeScript + Vite
+# JobFit Minimalist
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A minimalist, AI-powered tool to analyze job compatibility, suggest resume tailoring, and generate cover letters using Google Gemini.
 
-Currently, two official plugins are available:
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## React Compiler
+*   **Job Analysis**: Paste a job description or URL (manual text fallback) to get a compatibility score (0-100%).
+*   **Resume "Blocks" System**: Manage your experience as discrete blocks (work, projects, skills).
+*   **Tailoring Suggestions**: AI recommends exactly which blocks to include/exclude for a specific job.
+*   **Gap Analysis**: Identifies strengths and missing skills based on the job requirements.
+*   **Cover Letter Generator**: Auto-generates professional cover letters, weaving in your specific experience.
+*   **Contextual Notes**: Add job-specific context (e.g., "I'm currently learning X") that gets included in the cover letter.
+*   **Local Storage**: All data stays in your browser's `localStorage`. No database required.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Tech Stack
 
-## Expanding the ESLint configuration
+*   **Frontend**: React, TypeScript, Vite
+*   **Styling**: Tailwind CSS, Lucide React (Icons)
+*   **AI**: Google Gemini API (`gemini-3-flash-preview` for analysis, `gemini-flash-latest` for parsing)
+*   **Persistence**: LocalStorage
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚦 Getting Started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Prerequisites
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+*   Node.js (v18+)
+*   A Google Gemini API Key ([Get one here](https://aistudio.google.com/app/apikey))
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Installation
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/ryanphanna/JobFit.git
+    cd JobFit
+    ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3.  Set up Environment Variables:
+    *   Create a `.env` file in the root directory.
+    *   Add your API key:
+        ```bash
+        VITE_API_KEY=your_gemini_api_key_here
+        ```
+
+4.  Run the development server:
+    ```bash
+    npm run dev
+    ```
+
+## 📦 Deployment
+
+This project is optimized for deployment on **Vercel** or **Netlify**.
+
+### Vercel (Recommended)
+
+1.  Push your code to GitHub.
+2.  Import the project in Vercel.
+3.  Add the `VITE_API_KEY` environment variable in the Vercel dashboard.
+4.  Deploy.
+
+For more details, see [DEPLOYMENT.md](file:///Users/ryan/.gemini/antigravity/brain/5a71455a-f084-4ab2-af33-99ccdf623932/deployment.md).
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
