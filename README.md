@@ -2,8 +2,6 @@
 
 A minimalist, AI-powered tool to analyze job compatibility, suggest resume tailoring, and generate cover letters using Google Gemini.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-
 ## 🚀 Features
 
 *   **Job Analysis**: Paste a job description or URL (manual text fallback) to get a compatibility score (0-100%).
