@@ -1,0 +1,5 @@
+{
+    "name": "Copy of JobFit Minimalist",
+    "description": "A minimalist tool to analyze job compatibility, suggest resume tailoring, and generate cover letters using Gemini.",
+    "requestFramePermissions": []
+}
