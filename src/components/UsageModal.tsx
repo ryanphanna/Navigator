@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { X, Activity, Server, Zap, AlertTriangle, Key, Loader2, Check, AlertCircle as AlertIcon, Eye, EyeOff } from 'lucide-react';
-import { validateApiKey } from '../services/geminiService';
+import { X, Activity, Server, Zap, AlertTriangle } from 'lucide-react';
+import { ApiKeyInput } from './ApiKeyInput';
 
 interface UsageModalProps {
     isOpen: boolean;
@@ -11,30 +11,10 @@ interface UsageModalProps {
 }
 
 export const UsageModal: React.FC<UsageModalProps> = ({ isOpen, onClose, apiStatus, quotaStatus, cooldownSeconds }) => {
-    // API Key State
-    const [apiKey, setApiKey] = useState(() => {
-        return isOpen ? (localStorage.getItem('gemini_api_key') || '') : '';
-    });
-    const [showKey, setShowKey] = useState(false);
-    const [status, setStatus] = useState<'idle' | 'validating' | 'success' | 'error'>('idle');
-    const [message, setMessage] = useState('');
     const [dailyUsage, setDailyUsage] = useState(0);
 
     useEffect(() => {
         if (isOpen) {
-            // Load key if not already loaded by lazy init (lazy init runs once per mount, but modal might be unmounted? No, likely conditionally rendered or hidden)
-            // If component is always mounted but hidden, lazy init only runs once. 
-            // We should rely on effect for updates if isOpen changes, but avoid immediate set if unnecessary.
-
-            const storedKey = localStorage.getItem('gemini_api_key');
-            if (storedKey && storedKey !== apiKey) {
-                setTimeout(() => setApiKey(storedKey), 0);
-            }
-            if (storedKey) {
-                // If we have a key, we can assume status is idle or valid?
-                // setStatus('idle'); // status default is idle
-            }
-
             // Load daily usage
             try {
                 const usageData = JSON.parse(localStorage.getItem('jobfit_daily_usage') || '{}');
@@ -48,39 +28,7 @@ export const UsageModal: React.FC<UsageModalProps> = ({ isOpen, onClose, apiStat
                 setTimeout(() => setDailyUsage(0), 0);
             }
         }
-    }, [isOpen, apiKey]);
-
-    const handleSaveKey = async () => {
-        if (!apiKey.trim()) {
-            setMessage('Please enter a valid API Key');
-            setStatus('error');
-            return;
-        }
-
-        setStatus('validating');
-        setMessage('Verifying key works...');
-
-        const result = await validateApiKey(apiKey.trim());
-
-        if (result.isValid) {
-            localStorage.setItem('gemini_api_key', apiKey);
-            if (result.error) {
-                setStatus('success'); // Still success
-                setMessage(result.error);
-            } else {
-                setStatus('success');
-                setMessage('Key verified & saved');
-            }
-            // Clear message after delay
-            setTimeout(() => {
-                setStatus('idle');
-                setMessage('');
-            }, 3000);
-        } else {
-            setStatus('error');
-            setMessage(result.error || 'Invalid API Key');
-        }
-    };
+    }, [isOpen]);
 
 
     if (!isOpen) return null;
@@ -106,67 +54,7 @@ export const UsageModal: React.FC<UsageModalProps> = ({ isOpen, onClose, apiStat
                             <h4 className="font-medium text-slate-900 text-sm">API Connection</h4>
                         </div>
 
-                        <div className="relative">
-                            <input
-                                type={showKey ? 'text' : 'password'}
-                                value={apiKey}
-                                onChange={(e) => {
-                                    setApiKey(e.target.value);
-                                    setStatus('idle');
-                                    setMessage('');
-                                }}
-                                placeholder="Paste Gemini API Key..."
-                                className={`w-full pl-9 pr-20 py-2 rounded-lg border text-sm font-mono transition-all outline-none focus:ring-2
-                                    ${status === 'error'
-                                        ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20 bg-rose-50'
-                                        : status === 'success'
-                                            ? 'border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500/20 bg-emerald-50'
-                                            : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'
-                                    } `}
-                            />
-                            <div className="absolute left-2.5 top-2.5 text-slate-400">
-                                <Key className="w-4 h-4" />
-                            </div>
-
-                            <div className="absolute right-1 top-1 bottom-1 flex gap-1">
-                                {apiKey && (
-                                    <button
-                                        onClick={() => setShowKey(!showKey)}
-                                        className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
-                                    >
-                                        {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                    </button>
-                                )}
-                                <button
-                                    onClick={handleSaveKey}
-                                    disabled={status === 'validating' || !apiKey}
-                                    className={`px-3 flex items-center justify-center rounded-md font-medium text-xs transition-all
-                                        ${status === 'success'
-                                            ? 'bg-emerald-500 text-white'
-                                            : 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50'
-                                        } `}
-                                >
-                                    {status === 'validating' ? <Loader2 className="w-3 h-3 animate-spin" /> : status === 'success' ? <Check className="w-3 h-3" /> : 'Save'}
-                                </button>
-                            </div>
-                        </div>
-
-                        {message && (
-                            <div className={`text-xs flex items-center gap-1.5 
-                                ${status === 'error' ? 'text-rose-600' : 'text-emerald-600'} `}>
-                                {status === 'error' ? <AlertIcon className="w-3 h-3" /> : status === 'success' ? <Check className="w-3 h-3" /> : null}
-                                {message}
-                            </div>
-                        )}
-
-                        <a
-                            href="https://aistudio.google.com/app/apikey"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[10px] text-slate-400 hover:text-indigo-600 hover:underline block text-right"
-                        >
-                            Get free key ↗
-                        </a>
+                        <ApiKeyInput />
                     </div>
 
                     <div className="h-px bg-slate-100" />
@@ -202,6 +90,10 @@ export const UsageModal: React.FC<UsageModalProps> = ({ isOpen, onClose, apiStat
                                 {quotaStatus === 'normal' && 'Operating within normal limits'}
                                 {quotaStatus === 'high_traffic' && `High traffic detected (Retry in ${cooldownSeconds}s)`}
                                 {quotaStatus === 'daily_limit' && 'Daily Free Tier Limit Reached'}
+                            </p>
+                            <p className="text-[10px] text-slate-400 mt-1">
+                                Free Tier: 1,500 requests / day.<br />
+                                Paid Tier: Higher limits available via Google AI Studio.
                             </p>
                             {quotaStatus === 'high_traffic' && (
                                 <p className="text-xs text-orange-600 mt-1 font-medium">Auto-queue active (Cooling down)</p>

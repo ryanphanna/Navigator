@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import type { SavedJob, ResumeProfile } from '../types';
 import { generateCoverLetter, analyzeJobFit, critiqueCoverLetter } from '../services/geminiService';
 import * as Storage from '../services/storageService';
-import { ArrowLeft, CheckCircle, Copy, Loader2, ThumbsUp, AlertTriangle, Briefcase, Users, XCircle, PenTool, Sparkles, AlertCircle, FileText } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Copy, Loader2, ThumbsUp, AlertTriangle, Briefcase, Users, XCircle, PenTool, Sparkles, AlertCircle, FileText, Activity } from 'lucide-react';
+import { UsageModal } from './UsageModal';
 
 interface JobDetailProps {
     job: SavedJob;
@@ -17,6 +18,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
     const [activeTab, setActiveTab] = useState<Tab>('analysis');
     const [generating, setGenerating] = useState(false);
     const [localJob, setLocalJob] = useState(job);
+    const [showUsage, setShowUsage] = useState(false);
 
     // Retry / Manual Entry State
     const [manualText, setManualText] = useState('');
@@ -43,8 +45,9 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                 Storage.updateJob(updatedJob);
                 setLocalJob(updatedJob);
                 onUpdateJob(updatedJob);
-            } catch {
-                alert("Analysis failed again. Please try with different text.");
+            } catch (e) {
+                console.error(e);
+                alert(`Analysis failed: ${(e as Error).message}`);
             } finally {
                 setRetrying(false);
             }
@@ -139,8 +142,9 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
             Storage.updateJob(updated);
             setLocalJob(updated);
             onUpdateJob(updated);
-        } catch {
-            alert("Failed to generate cover letter");
+        } catch (e) {
+            console.error(e);
+            alert(`Failed to generate cover letter: ${(e as Error).message}`);
         } finally {
             setGenerating(false);
         }
@@ -197,6 +201,13 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
 
     return (
         <div className="bg-white h-full flex flex-col">
+            <UsageModal
+                isOpen={showUsage}
+                onClose={() => setShowUsage(false)}
+                apiStatus="ok"
+                quotaStatus="normal"
+                cooldownSeconds={0}
+            />
             {/* Header */}
             <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-10">
                 <div className="flex items-center gap-4">
@@ -222,6 +233,14 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                 </div>
 
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setShowUsage(true)}
+                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-colors"
+                        title="Check Usage"
+                    >
+                        <Activity className="w-5 h-5" />
+                    </button>
+                    <div className="h-6 w-px bg-slate-200 mx-2" />
                     <select
                         value={localJob.status}
                         onChange={(e) => handleStatusChange(e.target.value as SavedJob['status'])}
