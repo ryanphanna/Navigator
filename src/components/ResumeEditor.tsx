@@ -117,8 +117,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Experience Profile</h1>
-                    <p className="text-slate-500 text-sm">Manage your master list of experience blocks.</p>
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Resume</h1>
+                    <p className="text-slate-500 text-sm">Manage your experience blocks.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <input
