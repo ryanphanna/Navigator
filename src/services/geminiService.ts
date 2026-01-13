@@ -65,31 +65,22 @@ const callWithRetry = async <T>(fn: () => Promise<T>, retries = 3, initialDelay 
                 errorMessage.includes("High traffic")
             );
 
-            if (isQuotaError && i < retries - 1) {
-                // Try to parse "retry in X s"
-                const match = errorMessage.match(/retry in ([0-9.]+)s/);
-                let waitTime = currentDelay;
+            // DON'T RETRY on quota errors - just fail immediately
+            // Retrying was causing us to hit the 15 RPM limit by making multiple requests too quickly
+            if (isQuotaError) {
+                throw new Error(`RATE_LIMIT_EXCEEDED: Rate limit reached. Please wait a minute and try again.`);
+            }
 
-                if (match && match[1]) {
-                    const statusDelay = Math.ceil(parseFloat(match[1]) * 1000);
-                    // Add a small buffer (1s)
-                    waitTime = Math.max(currentDelay, statusDelay + 1000);
-                }
-                await new Promise(resolve => setTimeout(resolve, waitTime));
-
-                // Exponential backoff for next time
-                currentDelay = waitTime * 1.5;
+            // Only retry on other types of errors (network issues, etc.)
+            if (i < retries - 1) {
+                await new Promise(resolve => setTimeout(resolve, currentDelay));
+                currentDelay = currentDelay * 1.5;
             } else {
-                // If we've run out of retries or it's not a retryable error, throw it.
-                // If it was a quota error that failed all retries, make it clear.
-                if (isQuotaError) {
-                    throw new Error(`RATE_LIMIT_EXCEEDED: System is busy. ${errorMessage.match(/retry in [0-9.]+s/)?.[0] || 'Please try again later.'}`);
-                }
                 throw error;
             }
         }
     }
-    throw new Error("Request failed after max retries due to high traffic.");
+    throw new Error("Request failed after max retries.");
 };
 
 // Helper to turn blocks back into a readable string for the AI
