@@ -391,7 +391,7 @@ export const parseResumeFile = async (
     return callWithRetry(async () => {
         try {
             const model = getAI().getGenerativeModel({
-                model: 'gemini-2.0-flash', // Updated to 2.0-flash
+                model: 'gemini-1.5-flash', // Using 1.5-flash for better free tier compatibility
             });
 
             const response = await model.generateContent({
