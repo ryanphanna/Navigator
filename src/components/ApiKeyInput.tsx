@@ -113,15 +113,6 @@ export const ApiKeyInput: React.FC = () => {
                     {message}
                 </div>
             )}
-
-            <a
-                href="https://aistudio.google.com/app/apikey"
-                target="_blank"
-                rel="noreferrer"
-                className="text-[10px] text-slate-400 hover:text-indigo-600 hover:underline block text-right"
-            >
-                Get free key ↗
-            </a>
         </div>
     );
 };
