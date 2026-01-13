@@ -42,7 +42,7 @@ export const validateApiKey = async (key: string): Promise<{ isValid: boolean; e
 
 // Helper for exponential backoff retries on 429 errors
 // User requested more conservative polling and detailed error surfacing
-const callWithRetry = async <T>(fn: () => Promise<T>, retries = 3, initialDelay = 10000): Promise<T> => {
+const callWithRetry = async <T>(fn: () => Promise<T>, retries = 3, initialDelay = 2000): Promise<T> => {
     let currentDelay = initialDelay;
     for (let i = 0; i < retries; i++) {
         try {
@@ -65,17 +65,15 @@ const callWithRetry = async <T>(fn: () => Promise<T>, retries = 3, initialDelay 
                 errorMessage.includes("High traffic")
             );
 
-            // DON'T RETRY on quota errors - just fail immediately
-            // Retrying was causing us to hit the 15 RPM limit by making multiple requests too quickly
-            if (isQuotaError) {
-                throw new Error(`RATE_LIMIT_EXCEEDED: Rate limit reached. Please wait a minute and try again.`);
-            }
-
-            // Only retry on other types of errors (network issues, etc.)
-            if (i < retries - 1) {
+            if (isQuotaError && i < retries - 1) {
+                // Shared Quota/Traffic Jam - Retry with backoff
+                console.log(`Hit rate limit. Retrying in ${currentDelay / 1000}s...`);
                 await new Promise(resolve => setTimeout(resolve, currentDelay));
-                currentDelay = currentDelay * 1.5;
+                currentDelay = currentDelay * 2; // Exponential backoff (5s -> 10s -> 20s)
             } else {
+                if (isQuotaError) {
+                    throw new Error(`RATE_LIMIT_EXCEEDED: Server is busy (High Traffic). Please try again in a minute.`);
+                }
                 throw error;
             }
         }
@@ -391,7 +389,7 @@ export const parseResumeFile = async (
     return callWithRetry(async () => {
         try {
             const model = getAI().getGenerativeModel({
-                model: 'gemini-1.5-flash', // Using 1.5-flash for better free tier compatibility
+                model: 'gemini-1.5-flash-8b', // Using cheapest model to avoid rate limits
             });
 
             const response = await model.generateContent({
