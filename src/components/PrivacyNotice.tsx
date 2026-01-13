@@ -73,7 +73,7 @@ export const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({ isOpen, onAccept }
                         onClick={onAccept}
                         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-medium transition-colors shadow-sm hover:shadow"
                     >
-                        I Understand, Continue
+                        Continue
                     </button>
                 </div>
             </div>

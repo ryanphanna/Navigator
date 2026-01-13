@@ -103,6 +103,23 @@ export const UsageModal: React.FC<UsageModalProps> = ({ isOpen, onClose, apiStat
                             )}
                         </div>
                     </div>
+
+                    {/* Clear Quota Status Button - only show if there's a quota issue */}
+                    {quotaStatus !== 'normal' && (
+                        <>
+                            <div className="h-px bg-slate-100" />
+                            <button
+                                onClick={() => {
+                                    localStorage.removeItem('jobfit_quota_status');
+                                    window.dispatchEvent(new CustomEvent('quotaStatusCleared'));
+                                }}
+                                className="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 transition-colors text-sm font-medium"
+                            >
+                                <Activity className="w-4 h-4" />
+                                Clear Quota Status
+                            </button>
+                        </>
+                    )}
                 </div>
 
                 <div className="bg-slate-50 px-6 py-3 text-center border-t border-slate-100">

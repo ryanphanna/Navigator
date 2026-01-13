@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Moon, LogOut, AlertTriangle, Activity } from 'lucide-react';
+import { X, Moon, LogOut, AlertTriangle } from 'lucide-react';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -48,26 +48,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                             <span className="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition" />
                         </button>
                     </div>
-
-                    <div className="h-px bg-slate-100" />
-
-                    {/* Clear Quota Status */}
-                    <button
-                        onClick={() => {
-                            localStorage.removeItem('jobfit_quota_status');
-                            window.dispatchEvent(new CustomEvent('quotaStatusCleared'));
-                            onClose();
-                        }}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-50 text-indigo-600 transition-colors text-left"
-                    >
-                        <div className="p-2 bg-indigo-100 rounded-lg">
-                            <Activity className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h4 className="font-medium">Clear Quota Status</h4>
-                            <p className="text-xs opacity-80">Reset rate limit warnings</p>
-                        </div>
-                    </button>
 
                     <div className="h-px bg-slate-100" />
 

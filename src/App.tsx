@@ -10,6 +10,7 @@ import { Briefcase, Settings, LayoutGrid, History as HistoryIcon, Activity } fro
 import { SettingsModal } from './components/SettingsModal';
 import { UsageModal } from './components/UsageModal';
 import { PrivacyNotice } from './components/PrivacyNotice';
+import { ApiKeySetup } from './components/ApiKeySetup';
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
@@ -35,6 +36,9 @@ const App: React.FC = () => {
   const [showPrivacyNotice, setShowPrivacyNotice] = useState(() => {
     return !localStorage.getItem('jobfit_privacy_accepted');
   });
+
+  // API Key Setup State (show after privacy notice if no key exists)
+  const [showApiKeySetup, setShowApiKeySetup] = useState(false);
 
   useEffect(() => {
     const storedResumes = Storage.getResumes();
@@ -102,9 +106,15 @@ const App: React.FC = () => {
     };
     window.addEventListener('quotaStatusCleared', handleQuotaCleared);
 
+    const handleApiKeySaved = () => {
+      setShowApiKeySetup(false); // Close setup modal when key is saved
+    };
+    window.addEventListener('apiKeySaved', handleApiKeySaved);
+
     return () => {
       clearInterval(interval);
       window.removeEventListener('quotaStatusCleared', handleQuotaCleared);
+      window.removeEventListener('apiKeySaved', handleApiKeySaved);
     };
   }, []);
 
@@ -226,12 +236,19 @@ const App: React.FC = () => {
   const handlePrivacyAccept = () => {
     localStorage.setItem('jobfit_privacy_accepted', 'true');
     setShowPrivacyNotice(false);
+
+    // Check if API key exists, if not show setup screen
+    const hasApiKey = localStorage.getItem('gemini_api_key');
+    if (!hasApiKey) {
+      setShowApiKeySetup(true);
+    }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
 
       <PrivacyNotice isOpen={showPrivacyNotice} onAccept={handlePrivacyAccept} />
+      <ApiKeySetup isOpen={showApiKeySetup} onComplete={() => setShowApiKeySetup(false)} />
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
       <UsageModal
         isOpen={showUsage}

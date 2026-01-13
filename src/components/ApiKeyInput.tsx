@@ -34,6 +34,9 @@ export const ApiKeyInput: React.FC = () => {
         // Dispatch a custom event to notify App.tsx to re-check quota status immediately
         window.dispatchEvent(new CustomEvent('quotaStatusCleared'));
 
+        // Dispatch event to close the API key setup modal if it's open
+        window.dispatchEvent(new CustomEvent('apiKeySaved'));
+
         setStatus('success');
         setMessage('Key saved successfully');
 
