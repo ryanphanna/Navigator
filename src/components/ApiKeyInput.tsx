@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Key, Eye, EyeOff, Loader2, Check, AlertCircle as AlertIcon, X } from 'lucide-react';
-import { validateApiKey } from '../services/geminiService';
 
 export const ApiKeyInput: React.FC = () => {
     const [apiKey, setApiKey] = useState('');
@@ -22,42 +21,26 @@ export const ApiKeyInput: React.FC = () => {
         }
 
         setStatus('validating');
-        setMessage('Verifying key works...');
+        setMessage('Saving key...');
 
-        const result = await validateApiKey(apiKey.trim());
+        // Save the key without validation - first real use will validate it
+        localStorage.setItem('gemini_api_key', apiKey);
 
-        if (result.isValid) {
-            localStorage.setItem('gemini_api_key', apiKey);
-            // Force a reload if the key changed? Or just let the app pick it up?
-            // The service reads from localStorage on every request, so it's fine.
+        // Clear any existing quota/limit errors so the user is unblocked immediately
+        localStorage.removeItem('jobfit_quota_status');
+        // We also clear daily usage stats to give the new key a fresh start locally
+        localStorage.removeItem('jobfit_daily_usage');
 
-            // Clear any existing quota/limit errors so the user is unblocked immediately
-            localStorage.removeItem('jobfit_quota_status');
-            // We also clear daily usage stats to give the new key a fresh start locally
-            localStorage.removeItem('jobfit_daily_usage');
+        // Dispatch a custom event to notify App.tsx to re-check quota status immediately
+        window.dispatchEvent(new CustomEvent('quotaStatusCleared'));
 
-            // Dispatch a custom event to notify App.tsx to re-check quota status immediately
-            window.dispatchEvent(new CustomEvent('quotaStatusCleared'));
+        setStatus('success');
+        setMessage('Key saved successfully');
 
-            // But we might want to trigger a re-render elsewhere? 
-            // For now, simple localStorage update is enough as geminiService reads on demand.
-
-            if (result.error) {
-                setStatus('success');
-                setMessage(result.error);
-            } else {
-                setStatus('success');
-                setMessage('Key verified & saved');
-            }
-
-            setTimeout(() => {
-                setStatus('idle');
-                setMessage('');
-            }, 3000);
-        } else {
-            setStatus('error');
-            setMessage(result.error || 'Invalid API Key');
-        }
+        setTimeout(() => {
+            setStatus('idle');
+            setMessage('');
+        }, 3000);
     };
 
     return (
@@ -72,7 +55,7 @@ export const ApiKeyInput: React.FC = () => {
                         setMessage('');
                     }}
                     placeholder="Paste Gemini API Key..."
-                    className={`w-full pl-9 pr-20 py-2 rounded-lg border text-sm font-mono transition-all outline-none focus:ring-2
+                    className={`w-full pl-9 pr-32 py-2 rounded-lg border text-sm font-mono transition-all outline-none focus:ring-2
                         ${status === 'error'
                             ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20 bg-rose-50'
                             : status === 'success'
