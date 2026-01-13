@@ -322,7 +322,7 @@ const App: React.FC = () => {
                   ${quotaStatus === 'daily_limit' ? 'text-rose-500 hover:bg-rose-50' :
                     quotaStatus === 'high_traffic' ? 'text-orange-500 hover:bg-orange-50' :
                       'text-slate-400 hover:text-indigo-600 hover:bg-slate-100'}`}
-                title="System Status"
+                title="Usage"
               >
                 <Activity className="w-5 h-5" />
                 {quotaStatus !== 'normal' && (
