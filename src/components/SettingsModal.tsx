@@ -64,7 +64,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                     <LogOut className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <h4 className="font-medium">Reset & Log Out</h4>
+                                    <h4 className="font-medium">Reset</h4>
                                     <p className="text-xs opacity-80">Clears all data and keys</p>
                                 </div>
                             </button>
