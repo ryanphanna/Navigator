@@ -30,6 +30,12 @@ export const ApiKeyInput: React.FC = () => {
             localStorage.setItem('gemini_api_key', apiKey);
             // Force a reload if the key changed? Or just let the app pick it up?
             // The service reads from localStorage on every request, so it's fine.
+
+            // Clear any existing quota/limit errors so the user is unblocked immediately
+            localStorage.removeItem('jobfit_quota_status');
+            // We also clear daily usage stats to give the new key a fresh start locally
+            localStorage.removeItem('jobfit_daily_usage');
+
             // But we might want to trigger a re-render elsewhere? 
             // For now, simple localStorage update is enough as geminiService reads on demand.
 
