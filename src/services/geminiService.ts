@@ -1,16 +1,47 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, SchemaType } from "@google/generative-ai";
+import { supabase } from "./supabase";
 import type { JobAnalysis, ResumeProfile, ExperienceBlock } from "../types";
 
 const getApiKey = () => {
     return localStorage.getItem('gemini_api_key') || import.meta.env.VITE_API_KEY;
 };
 
-const getAI = () => {
+// Helper: Get Model (Direct or Proxy)
+const getModel = (params: any) => {
     const key = getApiKey();
-    if (!key) {
-        throw new Error("API Key missing. Please add your Gemini API Key in Settings.");
+
+    // 1. BYOK Mode (Direct to Google)
+    if (key) {
+        const genAI = new GoogleGenerativeAI(key);
+        return genAI.getGenerativeModel(params);
     }
-    return new GoogleGenerativeAI(key);
+
+    // 2. Pro Mode (Proxy via Supabase)
+    // Returns an object that mimics the `model` interface
+    return {
+        generateContent: async (payload: any) => {
+            console.log("Using Gemini Proxy (Edge Function)...");
+
+            // Construct request body for the Edge Function
+            const { data, error } = await supabase.functions.invoke('gemini-proxy', {
+                body: {
+                    payload: payload,
+                    modelName: params.model,
+                    generationConfig: params.generationConfig
+                }
+            });
+
+            if (error) throw new Error(`Proxy Error: ${error.message}`);
+            if (data?.error) throw new Error(`AI Error: ${data.error}`);
+
+            // Return compatible response object
+            return {
+                response: {
+                    text: () => data.text
+                }
+            };
+        }
+    };
 };
 
 export const validateApiKey = async (key: string): Promise<{ isValid: boolean; error?: string }> => {
@@ -20,6 +51,7 @@ export const validateApiKey = async (key: string): Promise<{ isValid: boolean; e
         await model.generateContent("Test");
         return { isValid: true };
     } catch (error: unknown) {
+        //...
         const e = error as Error;
 
         // If Quota Exceeded (429), the key IS valid, just exhausted.
@@ -131,7 +163,7 @@ export const analyzeJobFit = async (
 
     return callWithRetry(async () => {
         try {
-            const model = getAI().getGenerativeModel({
+            const model = getModel({
                 model: "gemini-2.0-flash", // Use 2.0-flash for structured data extraction
                 safetySettings: [
                     {
@@ -250,7 +282,7 @@ export const generateCoverLetter = async (
 
     return callWithRetry(async () => {
         try {
-            const response = await getAI().getGenerativeModel({
+            const response = await getModel({
                 model: 'gemini-2.0-flash', // Use 2.0 Flash for high-quality cover letter writing
             }).generateContent({
                 contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -290,8 +322,8 @@ export const generateTailoredSummary = async (
 
     return callWithRetry(async () => {
         try {
-            const response = await getAI().getGenerativeModel({
-                model: 'gemini-2.0-flash', // Use 2.0 Flash for consistency/availability
+            const response = await getModel({
+                model: 'gemini-2.0-flash', // Use 2.0 Flash for high-quality cover letter writing
             }).generateContent({
                 contents: [{ role: "user", parts: [{ text: prompt }] }],
             });
@@ -339,7 +371,7 @@ export const critiqueCoverLetter = async (
 
     return callWithRetry(async () => {
         try {
-            const model = getAI().getGenerativeModel({
+            const model = getModel({
                 model: 'gemini-2.0-flash',
                 generationConfig: {
                     temperature: 0.0,
@@ -377,6 +409,10 @@ export const parseResumeFile = async (
     Analyze this resume image/document. 
     Break it down into discrete "Experience Blocks". 
     For each job, education, or project, create a block.
+
+    CRITICAL SAFETY CHECK:
+    If this document is NOT a resume/CV (e.g. it is a receipt, a random photo, spam, hate speech, or offensive content), 
+    return a single block with type="other", title="INVALID_DOCUMENT", and put the reason in the bullets.
     
     Return a JSON Array of objects with this schema:
     {
@@ -390,21 +426,8 @@ export const parseResumeFile = async (
 
     return callWithRetry(async () => {
         try {
-            const model = getAI().getGenerativeModel({
+            const model = getModel({
                 model: 'gemini-2.0-flash', // Using 2.0-flash as standard model
-            });
-
-            const response = await model.generateContent({
-                contents: [
-                    {
-                        role: "user",
-                        parts: [
-                            { inlineData: { mimeType, data: fileBase64 } },
-                            { text: prompt }
-                        ]
-                    }
-                ],
-                // ... (generationConfig) ...
                 generationConfig: { // re-inserted since I truncated it in my mental model
                     responseMimeType: "application/json",
                     responseSchema: {
@@ -424,11 +447,29 @@ export const parseResumeFile = async (
                 }
             });
 
+            const response = await model.generateContent({
+                contents: [
+                    {
+                        role: "user",
+                        parts: [
+                            { inlineData: { mimeType, data: fileBase64 } },
+                            { text: prompt }
+                        ]
+                    }
+                ]
+            });
+
             const text = response.response.text();
             if (!text) return [];
 
             // Add IDs to the parsed blocks
             const parsed = JSON.parse(text) as Omit<ExperienceBlock, 'id' | 'isVisible'>[];
+
+            // Safety Check
+            if (parsed.length > 0 && parsed[0].title === 'INVALID_DOCUMENT') {
+                throw new Error(`Upload rejected: ${parsed[0].bullets[0] || "File does not appear to be a resume."}`);
+            }
+
             return parsed.map(p => ({
                 ...p,
                 id: crypto.randomUUID(),

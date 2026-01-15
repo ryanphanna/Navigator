@@ -18,7 +18,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ isOpen, onContinue
                         <Sparkles className="w-10 h-10 text-white" />
                     </div>
                     <h1 className="text-5xl font-bold text-slate-900 mb-3">
-                        JobFit AI
+                        JobFit
                     </h1>
                     <p className="text-xl text-slate-600">
                         Your AI-powered job application assistant

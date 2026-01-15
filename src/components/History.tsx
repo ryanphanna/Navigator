@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { SavedJob } from '../types';
 import { Calendar, Building, ArrowRight, Trash2, Loader2, AlertCircle, Send, Users, Star, XCircle, Search, X } from 'lucide-react';
 
@@ -8,7 +8,9 @@ interface HistoryProps {
     onDeleteJob: (id: string) => void;
 }
 
-const History: React.FC<HistoryProps> = ({ jobs, onSelectJob, onDeleteJob }) => {
+
+
+export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps) {
     const [searchQuery, setSearchQuery] = useState('');
 
     if (jobs.length === 0) {
@@ -76,7 +78,7 @@ const History: React.FC<HistoryProps> = ({ jobs, onSelectJob, onDeleteJob }) => 
                     filteredJobs.map((job) => (
                         <div
                             key={job.id}
-                            className={`group relative bg-white p-4 rounded-xl border border-slate-200 shadow-sm transition-all ${job.status === 'analyzing' ? 'opacity-90' : 'hover:shadow-md hover:border-indigo-200 cursor-pointer'}`}
+                            className={`group relative bg - white p - 4 rounded - xl border border - slate - 200 shadow - sm transition - all ${job.status === 'analyzing' ? 'opacity-90' : 'hover:shadow-md hover:border-indigo-200 cursor-pointer'} `}
                             onClick={() => job.status !== 'analyzing' && onSelectJob(job.id)}
                         >
                             <div className="flex items-start justify-between gap-4">
@@ -99,7 +101,7 @@ const History: React.FC<HistoryProps> = ({ jobs, onSelectJob, onDeleteJob }) => 
                                                     {job.analysis?.distilledJob.roleTitle || 'Unknown Role'}
                                                 </h3>
                                                 {job.analysis && (
-                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getScoreColor(job.analysis.compatibilityScore)}`}>
+                                                    <span className={`text - xs font - bold px - 2 py - 0.5 rounded - full border ${getScoreColor(job.analysis.compatibilityScore)} `}>
                                                         {job.analysis.compatibilityScore}%
                                                     </span>
                                                 )}
@@ -116,10 +118,14 @@ const History: React.FC<HistoryProps> = ({ jobs, onSelectJob, onDeleteJob }) => 
                                             <span className="text-xs text-red-400">Click to retry manual entry</span>
                                         ) : (
                                             <>
-                                                <span className="flex items-center gap-1.5 truncate" title={job.analysis?.distilledJob.companyName}>
-                                                    <Building className="w-3.5 h-3.5" />
-                                                    {job.analysis?.distilledJob.companyName || 'Unknown Company'}
-                                                </span>
+                                                <div className="flex justify-between items-start w-full">
+                                                    <div>
+                                                        <span className="flex items-center gap-1.5 truncate" title={job.analysis?.distilledJob.companyName}>
+                                                            <Building className="w-3.5 h-3.5" />
+                                                            {job.analysis?.distilledJob.companyName || 'Unknown Company'}
+                                                        </span>
+                                                    </div>
+                                                </div>
                                                 {job.analysis?.distilledJob.applicationDeadline && (
                                                     <span className="flex items-center gap-1.5 text-orange-600 font-medium bg-orange-50 px-2 py-0.5 rounded">
                                                         <Calendar className="w-3.5 h-3.5" />
@@ -165,4 +171,3 @@ const History: React.FC<HistoryProps> = ({ jobs, onSelectJob, onDeleteJob }) => 
     );
 };
 
-export default History;

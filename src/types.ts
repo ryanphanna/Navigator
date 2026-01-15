@@ -43,17 +43,27 @@ export interface CoverLetterCritique {
 
 export interface SavedJob {
     id: string;
-    url?: string;
-    originalText?: string;
+    company: string;
+    position: string;
+    description: string;
     dateAdded: number;
+
+    // Legacy / Full Analysis
     analysis?: JobAnalysis;
-    status: 'new' | 'applied' | 'interview' | 'offer' | 'rejected' | 'analyzing' | 'error';
+
+    // Analysis & Content
+    fitScore?: number;
+    fitAnalysis?: string;
+    resumeId: string; // The resume used for this application
+
+    // Application Assets
+    contextNotes?: string;
     coverLetter?: string;
-    tailoredResume?: {
-        summary: string;
-    };
-    contextNotes?: string; // New: optional user context for this specific job
-    coverLetterCritique?: CoverLetterCritique;
+    customInstructions?: string; // "Make it punchy"
+    coverLetterCritique?: string | CoverLetterCritique;
+
+    // Outcome Tracking
+    status?: 'saved' | 'applied' | 'interview' | 'offer' | 'rejected' | 'ghosted' | 'analyzing' | 'error';
 }
 
 export interface AppState {
@@ -62,4 +72,5 @@ export interface AppState {
     apiStatus: 'ok' | 'error' | 'checking';
     currentView: 'home' | 'history' | 'resumes' | 'job-detail' | 'pro';
     activeJobId: string | null;
+    importError?: string | null;
 }

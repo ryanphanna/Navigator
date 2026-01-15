@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
-    Sparkles, Zap, CheckCircle, ArrowRight, Rss,
-    Infinity, Smartphone, Database, Check, Link as LinkIcon,
+    Sparkles, Zap, CheckCircle, ArrowRight,
+    Check, Link as LinkIcon,
     FileText, X, Bell, Compass, Loader2, AlertCircle, CheckCircle2
 } from 'lucide-react';
 

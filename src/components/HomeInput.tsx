@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ArrowRight, AlertCircle, Link as LinkIcon, FileText, CheckCircle } from 'lucide-react';
+import { ArrowRight, AlertCircle, Link as LinkIcon, FileText, CheckCircle, Lock, Sparkles, Zap, Check, Plus, Shield } from 'lucide-react';
 import { analyzeJobFit } from '../services/geminiService';
 import type { ResumeProfile, SavedJob } from '../types';
-import * as Storage from '../services/storageService';
+import { Storage } from '../services/storageService';
+import { WaitlistModal } from './WaitlistModal';
 
 interface HomeInputProps {
     resumes: ResumeProfile[];
@@ -19,13 +20,16 @@ const HomeInput: React.FC<HomeInputProps> = ({
     onJobUpdated,
     onImportResume,
     isParsing,
-    importError
+    importError,
 }) => {
     const [url, setUrl] = useState('');
     const [manualText, setManualText] = useState('');
     const [isManualMode, setIsManualMode] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [lastSubmittedId, setLastSubmittedId] = useState<string | null>(null);
+    const [showResumePrompt, setShowResumePrompt] = useState(false);
+    const [pendingJobInput, setPendingJobInput] = useState<{ type: 'url' | 'text', content: string } | null>(null);
+    const [showWaitlist, setShowWaitlist] = useState(false);
 
     const fetchJobContent = async (targetUrl: string): Promise<string> => {
         // Use allorigins as a CORS proxy
@@ -62,14 +66,16 @@ const HomeInput: React.FC<HomeInputProps> = ({
         // 1. Create the placeholder job immediately
         const newJob: SavedJob = {
             id: jobId,
-            url: input.type === 'url' ? input.content : undefined,
-            originalText: input.type === 'text' ? input.content : undefined,
+            company: 'Analyzing...',
+            position: 'Analyzing...',
+            description: '',
+            resumeId: resumes[0]?.id || 'master', // Default to first resume
             dateAdded: Date.now(),
             status: 'analyzing',
         };
 
         // 2. Add to state immediately
-        Storage.addJob(newJob);
+        await Storage.addJob(newJob);
         onJobCreated(newJob);
         setLastSubmittedId(jobId);
 
@@ -89,7 +95,8 @@ const HomeInput: React.FC<HomeInputProps> = ({
             if (input.type === 'url') {
                 try {
                     textToAnalyze = await fetchJobContent(input.content);
-                } catch {
+                } catch (scrapeError) {
+                    console.error("Scraping failed:", scrapeError);
                     const failedJob: SavedJob = { ...newJob, status: 'error', analysis: undefined };
                     onJobUpdated(failedJob);
                     return; // Stop processing
@@ -100,8 +107,8 @@ const HomeInput: React.FC<HomeInputProps> = ({
 
             const updatedJob: SavedJob = {
                 ...newJob,
-                originalText: textToAnalyze, // Save the text we successfully got
-                status: 'new',
+                description: textToAnalyze, // Save the text we successfully got
+                status: 'analyzing',
                 analysis: analysis
             };
 
@@ -116,113 +123,86 @@ const HomeInput: React.FC<HomeInputProps> = ({
         }
     };
 
+    const handleJobSubmission = (input: { type: 'url' | 'text', content: string }) => {
+        if (resumes.length === 0) {
+            setPendingJobInput(input);
+            setShowResumePrompt(true);
+        } else {
+            processJobInBackground(input);
+        }
+    };
+
     const handleUrlSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!url.trim()) return;
-        processJobInBackground({ type: 'url', content: url });
+        handleJobSubmission({ type: 'url', content: url });
     };
 
     const handleManualKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             if (!manualText.trim()) return;
-            processJobInBackground({ type: 'text', content: manualText });
+            handleJobSubmission({ type: 'text', content: manualText });
         }
     };
+
+    // Auto-resume processing if a resume is uploaded and we have pending input
+    React.useEffect(() => {
+        if (resumes.length > 0 && pendingJobInput && showResumePrompt) {
+            // Slight delay to allow UI to settle/close modal nicely if needed, or just go immediately
+            setShowResumePrompt(false);
+            processJobInBackground(pendingJobInput);
+            setPendingJobInput(null);
+        }
+    }, [resumes, pendingJobInput, showResumePrompt]);
 
     const switchToManual = () => {
         setError(null);
         setIsManualMode(true);
     };
 
-    // --- Onboarding / Empty State ---
-    if (resumes.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] animate-in fade-in zoom-in-95 duration-500">
-                <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8 text-center">
-                    <div className="h-16 w-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                        <FileText className="w-8 h-8" />
-                    </div>
-
-                    <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome to JobFit</h2>
-                    <p className="text-slate-500 mb-8">
-                        To tailor your applications, we first need to understand your experience. Upload your current resume to get started.
-                    </p>
-
-                    <label className={`
-                        block w-full border-2 border-dashed rounded-xl p-8 cursor-pointer transition-all
-                        ${isParsing
-                            ? 'border-indigo-300 bg-indigo-50 cursor-wait'
-                            : 'border-slate-200 hover:border-indigo-400 hover:bg-slate-50'
-                        }
-                    `}>
-                        <input
-                            type="file"
-                            accept=".pdf,.txt" // Limitation: Text extraction from PDF is complex in browser, assuming handled by parent or just text/parsing logic
-                            className="hidden"
-                            onChange={(e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                    onImportResume(e.target.files[0]);
-                                }
-                            }}
-                            disabled={isParsing}
-                        />
-
-                        {isParsing ? (
-                            <div className="flex flex-col items-center gap-3">
-                                <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                                <span className="text-sm font-medium text-indigo-600">Analyzing Resume...</span>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center gap-2">
-                                <span className="text-sm font-semibold text-slate-700">Upload PDF or Text</span>
-                                <span className="text-xs text-slate-400">We'll extract your experience blocks locally.</span>
-                            </div>
-                        )}
-                    </label>
-
-                    {importError && (
-                        <div className="mt-4 p-3 bg-rose-50 border border-rose-100 rounded-lg flex items-center gap-2 text-rose-600 text-sm text-left">
-                            <AlertCircle className="w-4 h-4 shrink-0" />
-                            <p>{importError}</p>
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in duration-700">
-            <div className="w-full max-w-xl px-4">
-                <h2 className="text-3xl font-bold text-center text-slate-900 mb-2 tracking-tight">
-                    What job are you applying for?
+        <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in duration-700 relative">
+            {/* Ambient Background Glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-full pointer-events-none -z-10">
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl mix-blend-multiply animate-blob" />
+                <div className="absolute top-40 right-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl mix-blend-multiply animate-blob animation-delay-2000" />
+                <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl mix-blend-multiply animate-blob animation-delay-4000" />
+            </div>
+
+            <div className="w-full max-w-xl px-4 relative">
+                <h2 className="text-4xl sm:text-5xl font-extrabold text-center text-slate-900 dark:text-white mb-4 tracking-tight leading-tight">
+                    Land your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 animate-gradient-x">dream job</span>
                 </h2>
-                <p className="text-center text-slate-500 mb-8 text-sm">
-                    Paste a link or text. We'll analyze it in the background.
+                <p className="text-center text-slate-500 dark:text-slate-400 mb-10 text-lg leading-relaxed max-w-md mx-auto">
+                    We'll tailor your resume and write your cover letter in seconds.
                 </p>
 
                 {!isManualMode ? (
                     <>
-                        <form onSubmit={handleUrlSubmit} className="relative group">
-                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                                <LinkIcon className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                        <form onSubmit={handleUrlSubmit} className="relative group perspective-1000">
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 via-indigo-500 to-violet-500 rounded-2xl blur opacity-30 group-hover:opacity-75 transition duration-1000 group-focus-within:opacity-100"></div>
+                            <div className="relative bg-white dark:bg-slate-900 rounded-2xl p-1 shadow-xl">
+                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none pl-2">
+                                    <LinkIcon className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                                </div>
+                                <input
+                                    type="url"
+                                    value={url}
+                                    onChange={(e) => setUrl(e.target.value)}
+                                    placeholder="Paste job URL here..."
+                                    className="w-full pl-14 pr-16 py-4 bg-transparent border-none rounded-xl text-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-0 focus:outline-none"
+                                    autoFocus
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={!url.trim()}
+                                    className="absolute inset-y-2 right-2 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:scale-105 active:scale-95 disabled:opacity-0 disabled:translate-x-4 transition-all duration-300 font-medium flex items-center gap-2 shadow-lg shadow-indigo-500/20"
+                                >
+                                    <span>Start</span>
+                                    <ArrowRight className="h-4 w-4" />
+                                </button>
                             </div>
-                            <input
-                                type="url"
-                                value={url}
-                                onChange={(e) => setUrl(e.target.value)}
-                                placeholder="Paste job posting URL and press Enter..."
-                                className="w-full pl-12 pr-12 py-5 bg-white border-2 border-slate-200 rounded-2xl shadow-sm text-lg focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all placeholder:text-slate-400"
-                                autoFocus
-                            />
-                            <button
-                                type="submit"
-                                disabled={!url.trim()}
-                                className="absolute inset-y-2 right-2 p-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 disabled:opacity-0 disabled:translate-x-2 transition-all duration-300"
-                            >
-                                <ArrowRight className="h-5 w-5" />
-                            </button>
                         </form>
 
                         <div className="mt-6 flex justify-center">
@@ -279,6 +259,210 @@ const HomeInput: React.FC<HomeInputProps> = ({
                     )}
                 </div>
             </div>
+
+            {/* Resume Upload Modal */}
+            {showResumePrompt && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8 text-center animate-in zoom-in-95 duration-200 relative">
+                        <button
+                            onClick={() => { setShowResumePrompt(false); setPendingJobInput(null); }}
+                            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1"
+                        >
+                            <ArrowRight className="w-4 h-4 rotate-45" />
+                        </button>
+
+                        <div className="h-16 w-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <FileText className="w-8 h-8" />
+                        </div>
+
+                        <h2 className="text-2xl font-bold text-slate-900 mb-2">One last step!</h2>
+                        <p className="text-slate-500 mb-8">
+                            To tailor your application for this job, we need your resume.
+                        </p>
+
+                        <label className={`
+                            block w-full border-2 border-dashed rounded-xl p-8 cursor-pointer transition-all
+                            ${isParsing
+                                ? 'border-indigo-300 bg-indigo-50 cursor-wait'
+                                : 'border-slate-200 hover:border-indigo-400 hover:bg-slate-50'
+                            }
+                        `}>
+                            <input
+                                type="file"
+                                accept=".pdf,.txt"
+                                className="hidden"
+                                onChange={(e) => {
+                                    if (e.target.files && e.target.files[0]) {
+                                        onImportResume(e.target.files[0]);
+                                    }
+                                }}
+                                disabled={isParsing}
+                            />
+
+                            {isParsing ? (
+                                <div className="flex flex-col items-center gap-3">
+                                    <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                                    <span className="text-sm font-medium text-indigo-600">Analyzing Resume...</span>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center gap-2">
+                                    <span className="text-sm font-semibold text-slate-700">Upload PDF or Text</span>
+                                    <span className="text-xs text-slate-400">We'll extract your experience blocks locally.</span>
+                                </div>
+                            )}
+                        </label>
+
+                        {importError && (
+                            <div className="mt-4 p-3 bg-rose-50 border border-rose-100 rounded-lg flex items-center gap-2 text-rose-600 text-sm text-left">
+                                <AlertCircle className="w-4 h-4 shrink-0" />
+                                <p>{importError}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Bento Grid Features */}
+            <div className="mt-10 w-full max-w-[1600px] mx-auto px-6 lg:px-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-10">
+                    {/* Card 1: Speed (Flash) */}
+                    <div className="bg-blue-50 dark:bg-slate-900 rounded-3xl p-8 border border-blue-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col">
+                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 group-hover:rotate-12 transition-transform">
+                            <Zap className="w-6 h-6" />
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                            JobFit Score
+                        </h3>
+                        <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-8 flex-grow">
+                            Stop guessing. Get an instant 0-100 compatibility rating for any job description.
+                        </p>
+                        {/* Visual for Score */}
+                        <div className="bg-white dark:bg-slate-950 rounded-2xl p-6 border border-blue-100 dark:border-slate-800 shadow-sm flex items-center justify-center h-40 relative overflow-hidden group-hover:border-blue-200 transition-colors">
+                            <div className="absolute inset-0 bg-blue-50/50 dark:bg-blue-900/10"></div>
+
+                            {/* Animated Circle */}
+                            <div className="relative z-10 w-24 h-24 flex items-center justify-center">
+                                <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                    {/* Background Track */}
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="8" className="text-blue-100 dark:text-blue-900/30" />
+                                    {/* Animated Progress */}
+                                    <circle
+                                        cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="8"
+                                        strokeLinecap="round"
+                                        strokeDasharray="251.2"
+                                        strokeDashoffset="251.2"
+                                        className="text-blue-500 animate-[dash_3s_ease-in-out_infinite]"
+                                        style={{ '--tw-animate-dash': '5' } as React.CSSProperties}
+                                    />
+                                    <style>{`
+                                        @keyframes dash {
+                                            0%, 100% { stroke-dashoffset: 251.2; }
+                                            50% { stroke-dashoffset: 5; }
+                                        }
+                                    `}</style>
+                                </svg>
+
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                    <div className="text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tighter">
+                                        98<span className="text-sm align-top">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card 2: Tailoring (Sparkles) */}
+                    <div className="bg-violet-50 dark:bg-slate-900 rounded-3xl p-8 border border-violet-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group relative overflow-hidden flex flex-col">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+                        <div className="w-12 h-12 bg-violet-100 dark:bg-violet-900/30 rounded-2xl flex items-center justify-center text-violet-600 dark:text-violet-400 mb-6 group-hover:scale-110 transition-transform">
+                            <Sparkles className="w-6 h-6" />
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                            Keyword Targeting
+                        </h3>
+                        <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-8 flex-grow">
+                            Beat the ATS. We identify exactly which skills and keywords your resume is missing.
+                        </p>
+                        {/* Visual for Keywords */}
+                        <div className="bg-white dark:bg-slate-950 rounded-2xl p-6 border border-violet-100 dark:border-slate-800 shadow-sm flex flex-col justify-center h-40 gap-3 group-hover:border-violet-200 transition-colors">
+                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                                <Zap className="w-3 h-3 text-violet-400" /> Detected Keywords
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                <span className="px-2.5 py-1 rounded-md bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-sm font-medium flex items-center gap-1.5 border border-green-100 dark:border-green-800 animate-[pulse_2s_infinite]">
+                                    <Check className="w-3 h-3" /> React
+                                </span>
+                                <span className="px-2.5 py-1 rounded-md bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-sm font-medium flex items-center gap-1.5 border border-green-100 dark:border-green-800 animate-[pulse_2s_infinite] delay-700">
+                                    <Check className="w-3 h-3" /> TypeScript
+                                </span>
+                                <span className="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 text-sm font-medium flex items-center gap-1.5 border border-rose-100 dark:border-rose-800 animate-[pulse_2s_infinite] delay-1000">
+                                    <Plus className="w-3 h-3" /> Node.js
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card 3: Privacy (Lock) */}
+                    <div className="bg-emerald-50 dark:bg-slate-900 rounded-3xl p-8 border border-emerald-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col">
+                        <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-6 group-hover:rotate-y-180 transition-transform duration-700">
+                            <Lock className="w-6 h-6" />
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                            Private Vault
+                        </h3>
+                        <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-8 flex-grow">
+                            Your data stays yours. Encrypted local storage that we can't access or train on.
+                        </p>
+                        {/* Visual for Privacy */}
+                        <div className="bg-white dark:bg-slate-950 rounded-2xl p-6 border border-emerald-100 dark:border-slate-800 shadow-sm flex items-center justify-center h-40 group-hover:border-emerald-200 transition-colors overflow-hidden relative">
+                            {/* Scanning Beam */}
+                            <div className="absolute top-0 bottom-0 w-16 bg-gradient-to-r from-transparent via-emerald-100/50 to-transparent skew-x-12 animate-[shimmer_2s_infinite] -translate-x-full"></div>
+
+                            <div className="relative">
+                                <div className="absolute -inset-4 bg-emerald-100 dark:bg-emerald-900/20 rounded-full blur-xl animate-pulse"></div>
+                                <Shield className="w-16 h-16 text-emerald-500 relative z-10" />
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+                                    <Lock className="w-6 h-6 text-white" />
+                                </div>
+                            </div>
+                            <div className="ml-6 relative z-10">
+                                <div className="text-sm font-bold text-slate-900 dark:text-white">AES-256</div>
+                                <div className="flex items-center gap-1 text-xs text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full mt-1">
+                                    <Check className="w-3 h-3" /> Encrypted
+                                </div>
+                            </div>
+
+                            <style>{`
+                                @keyframes shimmer {
+                                    100% { transform: translateX(200%); }
+                                }
+                             `}</style>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* CTA Section */}
+            <div className="mt-32 pb-20 text-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-sm font-medium mb-6">
+                    <Sparkles className="w-4 h-4" />
+                    <span>JobFit Pro is coming soon</span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-6">
+                    Ready to automate your job search?
+                </h2>
+                <div className="flex justify-center">
+                    <button
+                        onClick={() => setShowWaitlist(true)}
+                        className="px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-lg hover:scale-105 transition-all shadow-xl shadow-indigo-500/20 flex items-center gap-2"
+                    >
+                        <span>Get Early Access</span>
+                        <ArrowRight className="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
+
+            <WaitlistModal isOpen={showWaitlist} onClose={() => setShowWaitlist(false)} />
         </div>
     );
 };

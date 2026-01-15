@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import type { SavedJob, ResumeProfile } from '../types';
-import { generateCoverLetter, analyzeJobFit, critiqueCoverLetter, generateTailoredSummary } from '../services/geminiService';
-import * as Storage from '../services/storageService';
+import { generateCoverLetter, analyzeJobFit, critiqueCoverLetter } from '../services/geminiService';
+import { Storage } from '../services/storageService';
 import {
-    ArrowLeft, CheckCircle, Copy, Loader2, ThumbsUp, AlertTriangle,
-    Briefcase, Users, XCircle, PenTool, Sparkles, AlertCircle,
-    FileText, Activity, BookOpen, Check, ExternalLink
+    ArrowLeft, Loader2, Sparkles, AlertCircle, Briefcase, ThumbsUp, CheckCircle, AlertTriangle, XCircle, FileText, Check, Copy, PenTool, BookOpen, Users, ThumbsDown
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { UsageModal } from './UsageModal';
 
 interface JobDetailProps {
@@ -14,18 +13,18 @@ interface JobDetailProps {
     resumes: ResumeProfile[];
     onBack: () => void;
     onUpdateJob: (job: SavedJob) => void;
+    userTier?: 'free' | 'pro' | 'admin';
 }
 
 type Tab = 'analysis' | 'resume' | 'cover-letter' | 'job-post';
 
-const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob }) => {
+const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob, userTier = 'free' }) => {
     const [activeTab, setActiveTab] = useState<Tab>('analysis');
     const [generating, setGenerating] = useState(false);
     const [localJob, setLocalJob] = useState(job);
     const [showUsage, setShowUsage] = useState(false);
-    const [showCritique, setShowCritique] = useState(false);
-    const [isAutoFixing, setIsAutoFixing] = useState(false);
-    const [copiedState, setCopiedState] = useState<'resume' | 'cover-letter' | null>(null);
+    const [copiedState, setCopiedState] = useState<'summary' | 'cl' | null>(null);
+    const [rated, setRated] = useState<1 | -1 | null>(null);
 
     // Retry / Manual Entry State
     const [manualText, setManualText] = useState('');
@@ -33,7 +32,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
 
     const analysis = localJob.analysis;
 
-    const handleCopy = async (text: string, type: 'resume' | 'cover-letter') => {
+    const handleCopy = async (text: string, type: 'summary' | 'cl') => {
         try {
             await navigator.clipboard.writeText(text);
             setCopiedState(type);
@@ -44,32 +43,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
     };
 
     // Auto-generate summary when entering Resume tab
-    React.useEffect(() => {
-        const generateSummaryIfNeeded = async () => {
-            if (activeTab === 'resume' && !localJob.tailoredResume?.summary && !generating && analysis) {
-                // Don't set global generating=true to avoid blocking other interactions completely, 
-                // just let the UI show the loading state implied by missing summary
-                try {
-                    const bestResume = resumes.find(r => r.id === analysis.bestResumeProfileId) || resumes[0];
-                    const textToUse = localJob.originalText || `Role: ${analysis.distilledJob.roleTitle} at ${analysis.distilledJob.companyName}`;
 
-                    const summary = await generateTailoredSummary(textToUse, [bestResume]);
-
-                    const updated = {
-                        ...localJob,
-                        tailoredResume: { ...(localJob.tailoredResume || {}), summary }
-                    };
-                    Storage.updateJob(updated);
-                    setLocalJob(updated);
-                    onUpdateJob(updated);
-                } catch (e) {
-                    console.error("Failed to auto-generate summary", e);
-                }
-            }
-        };
-
-        generateSummaryIfNeeded();
-    }, [activeTab, localJob.tailoredResume, generating, resumes, analysis, localJob, onUpdateJob]);
 
     // Guard clause for Missing / Error state -> Show Retry UI
     if (!analysis || localJob.status === 'error') {
@@ -80,8 +54,8 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                 const result = await analyzeJobFit(manualText, resumes);
                 const updatedJob: SavedJob = {
                     ...localJob,
-                    status: 'new',
-                    originalText: manualText,
+                    status: 'analyzing',
+                    description: manualText,
                     analysis: result
                 };
                 Storage.updateJob(updatedJob);
@@ -89,7 +63,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                 onUpdateJob(updatedJob);
             } catch (e) {
                 console.error(e);
-                alert(`Analysis failed: ${(e as Error).message}`);
+                alert(`Analysis failed: ${(e as Error).message} `);
             } finally {
                 setRetrying(false);
             }
@@ -132,19 +106,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                                 <li className="flex gap-3 items-center">
                                     <span className="flex-shrink-0 w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold">1</span>
                                     <span>
-                                        Open the
-                                        {localJob.url ? (
-                                            <a
-                                                href={localJob.url}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="text-indigo-600 font-medium hover:underline mx-1"
-                                            >
-                                                job posting
-                                            </a>
-                                        ) : (
-                                            <span className="mx-1">job posting</span>
-                                        )}
+                                        Open the job posting in another tab.
                                     </span>
                                 </li>
                                 <li className="flex gap-3 items-center">
@@ -204,10 +166,9 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
 
     const handleGenerateCoverLetter = async (critiqueContext?: string) => {
         setGenerating(true);
-        if (critiqueContext) setIsAutoFixing(true);
         try {
             const bestResume = resumes.find(r => r.id === analysis.bestResumeProfileId) || resumes[0];
-            const textToUse = localJob.originalText || `Role: ${analysis.distilledJob.roleTitle} at ${analysis.distilledJob.companyName}`;
+            const textToUse = localJob.description || `Role: ${analysis.distilledJob.roleTitle} at ${analysis.distilledJob.companyName} `;
 
             // Combine user context with critique instructions if strictly fixing
             let finalContext = localJob.contextNotes;
@@ -236,13 +197,12 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
             Storage.updateJob(updated);
             setLocalJob(updated);
             onUpdateJob(updated);
-            if (critiqueContext) setShowCritique(false); // Close critique modal if fixed
+            onUpdateJob(updated);
         } catch (e) {
             console.error(e);
-            alert(`Failed to generate cover letter: ${(e as Error).message}`);
+            alert(`Failed to generate cover letter: ${(e as Error).message} `);
         } finally {
             setGenerating(false);
-            setIsAutoFixing(false);
         }
     };
 
@@ -250,7 +210,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
         if (!localJob.coverLetter) return;
         setGenerating(true);
         try {
-            const textToUse = localJob.originalText || `Role: ${analysis.distilledJob.roleTitle} at ${analysis.distilledJob.companyName}`;
+            const textToUse = localJob.description || `Role: ${analysis.distilledJob.roleTitle} at ${analysis.distilledJob.companyName}`;
             const critique = await critiqueCoverLetter(textToUse, localJob.coverLetter);
 
             const updated = { ...localJob, coverLetterCritique: critique };
@@ -272,28 +232,16 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
     };
 
     const handleCopyResume = async () => {
+        if (!analysis || !analysis.bestResumeProfileId) return;
         setGenerating(true);
         try {
             const bestResume = resumes.find(r => r.id === analysis.bestResumeProfileId) || resumes[0];
+            if (!bestResume) throw new Error("Resume not found");
 
-            // 1. Get/Generate Summary
-            let summary = localJob.tailoredResume?.summary;
-            if (!summary) {
-                const textToUse = localJob.originalText || `Role: ${analysis.distilledJob.roleTitle} at ${analysis.distilledJob.companyName}`;
-                summary = await generateTailoredSummary(textToUse, [bestResume]);
-                // Save it
-                const updated = {
-                    ...localJob,
-                    tailoredResume: { summary }
-                };
-                Storage.updateJob(updated);
-                setLocalJob(updated);
-                onUpdateJob(updated);
-            }
-
-            // 2. Assemble Resume
-            const blocks = bestResume.blocks
-                .filter(b => analysis.recommendedBlockIds?.includes(b.id));
+            // Used recommended blocks or fallback to all active blocks
+            const blocks = bestResume.blocks.filter(b =>
+                analysis.recommendedBlockIds ? analysis.recommendedBlockIds.includes(b.id) : b.isVisible
+            );
 
             // Organize blocks by type
             const experience = blocks.filter(b => b.type === 'work');
@@ -301,16 +249,17 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
             const education = blocks.filter(b => b.type === 'education');
 
             // Format Function
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const formatBlock = (b: any) => {
-                return `**${b.title}** | ${b.organization}\n${b.dateRange}\n${b.bullets.map((bull: string) => `- ${bull}`).join('\n')}`;
+                return `** ${b.title}** | ${b.organization} \n${b.dateRange} \n${b.bullets.map((bull: string) => `- ${bull}`).join('\n')} `;
             };
 
             const resumeText = [
-                `# ${bestResume.name}`,
+                `# ${bestResume.name} `,
                 `[Email] | [Phone] | [LinkedIn]`,
-                `\n## Professional Summary\n${summary}`,
+                `\n## Professional Summary\n${analysis.distilledJob.roleTitle ? `Targeting: ${analysis.distilledJob.roleTitle}` : ''} `,
                 `\n## Core Competencies`,
-                `${analysis.distilledJob.keySkills.join(' • ')}`,
+                `${analysis.distilledJob.keySkills.join(' • ')} `,
                 experience.length > 0 ? `\n## Experience` : '',
                 experience.map(formatBlock).join('\n\n'),
                 projects.length > 0 ? `\n## Projects` : '',
@@ -411,11 +360,12 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as Tab)}
                             className={`
-                                py-4 text-sm font-medium border-b-2 transition-all flex items-center gap-2
+py - 4 text - sm font - medium border - b - 2 transition - all flex items - center gap - 2
                                 ${activeTab === tab.id
                                     ? 'border-indigo-600 text-indigo-600'
-                                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}
-                            `}
+                                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                                }
+`}
                         >
                             <tab.icon className="w-4 h-4" />
                             {tab.label}
@@ -436,12 +386,12 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-bold text-slate-900">AI Compatibility Analysis</h3>
                                     <div className="flex items-center gap-3">
-                                        <div className={`px-3 py-1 rounded-full text-sm font-bold bg-slate-100 ${getScoreColor(analysis.compatibilityScore).split(' ')[0]}`}>
+                                        <div className={`px - 3 py - 1 rounded - full text - sm font - bold bg - slate - 100 ${getScoreColor(analysis.compatibilityScore).split(' ')[0]} `}>
                                             {analysis.compatibilityScore >= 90 ? 'Excellent Match' :
                                                 analysis.compatibilityScore >= 75 ? 'Strong Match' :
                                                     analysis.compatibilityScore >= 50 ? 'Fair Match' : 'Weak Match'}
                                         </div>
-                                        <span className={`text-3xl font-bold ${getScoreColor(analysis.compatibilityScore).split(' ')[0]}`}>
+                                        <span className={`text - 3xl font - bold ${getScoreColor(analysis.compatibilityScore).split(' ')[0]} `}>
                                             {analysis.compatibilityScore}%
                                         </span>
                                     </div>
@@ -450,11 +400,11 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                                 {/* Progress Bar */}
                                 <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden mb-6">
                                     <div
-                                        className={`h-full rounded-full transition-all duration-1000 ease-out ${analysis.compatibilityScore >= 90 ? 'bg-green-500' :
+                                        className={`h - full rounded - full transition - all duration - 1000 ease - out ${analysis.compatibilityScore >= 90 ? 'bg-green-500' :
                                             analysis.compatibilityScore >= 70 ? 'bg-indigo-500' :
                                                 analysis.compatibilityScore >= 50 ? 'bg-yellow-500' : 'bg-red-500'
-                                            }`}
-                                        style={{ width: `${analysis.compatibilityScore}%` }}
+                                            } `}
+                                        style={{ width: `${analysis.compatibilityScore}% ` }}
                                     />
                                 </div>
 
@@ -507,32 +457,11 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                     {activeTab === 'job-post' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                {/* Metadata Header (URL & Deadline) - No duplicate Title/Company */}
+                                {/* Metadata Header */}
                                 <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center min-h-[52px]">
                                     <div className="flex items-center gap-3">
                                         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Source</span>
-                                        {localJob.url ? (
-                                            <a
-                                                href={localJob.url}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 text-sm font-medium group transition-colors"
-                                            >
-                                                <ExternalLink className="w-3.5 h-3.5" />
-                                                <span className="hover:underline underline-offset-2">
-                                                    {(() => {
-                                                        try {
-                                                            const urlObj = new URL(localJob.url);
-                                                            return urlObj.hostname;
-                                                        } catch {
-                                                            return 'Link to Job';
-                                                        }
-                                                    })()}
-                                                </span>
-                                            </a>
-                                        ) : (
-                                            <span className="text-sm text-slate-500 italic">Manual Entry</span>
-                                        )}
+                                        <span className="text-sm text-slate-500 italic">Manual Entry / Pasted</span>
                                     </div>
 
                                     {analysis.distilledJob.applicationDeadline && (
@@ -573,20 +502,16 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                                         </ul>
                                     </div>
 
-                                    {/* Original Raw Text Toggle (Optional - keeping it accessible but collapsed could be nice, or just removing it as requested) 
-                                        User said "meant the distilled version... not the raw one", implying replacement.
-                                        I will add a small "Show Original" section at the bottom just in case.
-                                    */}
                                     <div className="pt-8 border-t border-slate-100">
                                         <details className="group">
                                             <summary className="flex items-center gap-2 text-sm text-slate-400 font-medium cursor-pointer hover:text-slate-600 transition-colors list-none">
                                                 <div className="p-1 bg-slate-100 rounded group-hover:bg-slate-200 transition-colors">
                                                     <FileText className="w-3 h-3" />
                                                 </div>
-                                                Show Original Raw Text
+                                                Show Description
                                             </summary>
                                             <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-500 font-mono whitespace-pre-wrap leading-relaxed">
-                                                {localJob.originalText}
+                                                {localJob.description}
                                             </div>
                                         </details>
                                     </div>
@@ -600,37 +525,6 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
                             {/* Main Content */}
                             <div className="space-y-6">
-                                {/* Resume Summary Text */}
-                                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                                    <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                                        <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                                            <FileText className="w-5 h-5 text-indigo-600" />
-                                            Resume Preview
-                                        </h3>
-                                        <button
-                                            onClick={() => handleCopy(localJob.tailoredResume?.summary || '', 'resume')}
-                                            className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors"
-                                        >
-                                            {copiedState === 'resume' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                            {copiedState === 'resume' ? 'Copied!' : 'Copy'}
-                                        </button>
-                                    </div>
-                                    <div className="p-6">
-                                        <div className="prose prose-slate max-w-none">
-                                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Professional Summary</h4>
-                                            {localJob.tailoredResume?.summary ? (
-                                                <p className="text-slate-700 leading-relaxed bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50 text-sm">
-                                                    {localJob.tailoredResume.summary}
-                                                </p>
-                                            ) : (
-                                                <div className="flex items-center gap-2 text-slate-400 italic bg-slate-50 p-4 rounded-xl text-sm">
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                    Generating summary...
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
 
                                 {/* Recommended Blocks */}
                                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -665,8 +559,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                                                             <h5 className="font-medium text-slate-900 text-sm">{block.title}</h5>
                                                             <div className="text-xs text-slate-500 flex gap-2 mt-0.5">
                                                                 <span className="font-medium text-slate-700">{block.organization}</span>
-                                                                <span>•</span>
-                                                                <span>{block.dateRange}</span>
+                                                                <span>Open the job posting in another tab.</span>
                                                             </div>
                                                         </div>
                                                         <span className="text-[10px] uppercase tracking-wider font-bold text-slate-300 bg-slate-100 px-2 py-0.5 rounded">
@@ -773,25 +666,48 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                                             </h3>
                                             <div className="flex gap-2">
                                                 <button
-                                                    onClick={() => handleCopy(localJob.coverLetter!, 'cover-letter')}
+                                                    onClick={() => handleCopy(localJob.coverLetter!, 'cl')}
                                                     className="text-xs flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
                                                 >
-                                                    {copiedState === 'cover-letter' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                                                    {copiedState === 'cover-letter' ? 'Copied' : 'Copy'}
+                                                    {copiedState === 'cl' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                                                    {copiedState === 'cl' ? 'Copied' : 'Copy'}
                                                 </button>
-                                                <button
-                                                    onClick={() => handleGenerateCoverLetter()}
-                                                    disabled={generating}
-                                                    className="text-xs flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
-                                                >
-                                                    {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                                                    Regenerate
-                                                </button>
+                                                {userTier !== 'free' && (
+                                                    <button
+                                                        onClick={() => handleGenerateCoverLetter()}
+                                                        disabled={generating}
+                                                        className="text-xs flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+                                                    >
+                                                        {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                                                        Regenerate
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="flex-1 overflow-y-auto p-8 md:p-10 bg-white">
                                             <div className="text-slate-800 leading-relaxed font-serif whitespace-pre-wrap selection:bg-indigo-100 selection:text-indigo-900">
                                                 {localJob.coverLetter}
+                                            </div>
+                                        </div>
+                                        {/* Feedback Footer */}
+                                        <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center text-xs text-slate-500">
+                                            <span>Values provided by AI. Check for accuracy.</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="mr-1">Rate this draft:</span>
+                                                <button
+                                                    onClick={() => { Storage.submitFeedback(localJob.id, 1, 'cover_letter'); setRated(1); }}
+                                                    className={`p-1.5 rounded hover:bg-slate-200 transition-colors ${rated === 1 ? 'text-green-600 bg-green-50 ring-1 ring-green-200' : ''} `}
+                                                    disabled={!!rated}
+                                                >
+                                                    <ThumbsUp className="w-3.5 h-3.5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => { Storage.submitFeedback(localJob.id, -1, 'cover_letter'); setRated(-1); }}
+                                                    className={`p-1.5 rounded hover:bg-slate-200 transition-colors ${rated === -1 ? 'text-red-600 bg-red-50 ring-1 ring-red-200' : ''} `}
+                                                    disabled={!!rated}
+                                                >
+                                                    <ThumbsDown className="w-3.5 h-3.5" />
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -801,55 +717,52 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                                         {localJob.coverLetterCritique ? (
                                             <div className="bg-slate-900 text-slate-200 rounded-xl p-6 shadow-xl border border-slate-700 h-full overflow-y-auto animate-in fade-in slide-in-from-right-4">
                                                 <div className="flex items-start justify-between mb-6">
-                                                    <div>
-                                                        <h4 className="text-white font-semibold text-lg flex items-center gap-2">
-                                                            <div className="bg-indigo-500 p-1 rounded text-white">
-                                                                <Users className="w-4 h-4" />
-                                                            </div>
-                                                            Hiring Manager Review
-                                                        </h4>
-                                                        <p className="text-slate-400 text-sm mt-1">AI assessment of your letter</p>
-                                                    </div>
-                                                    <div className={`text-right px-4 py-2 rounded-lg font-bold border ${localJob.coverLetterCritique.score >= 8 ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400' : 'bg-amber-500/10 border-amber-500/50 text-amber-400'}`}>
-                                                        <div className="text-2xl">{localJob.coverLetterCritique.score}/10</div>
-                                                        <div className="text-[10px] uppercase tracking-wider opacity-80">{localJob.coverLetterCritique.decision}</div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-6 mb-6">
-                                                    <div>
-                                                        <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Strengths</h5>
-                                                        <ul className="space-y-2">
-                                                            {localJob.coverLetterCritique.strengths.map((s: string, i: number) => (
-                                                                <li key={i} className="text-sm flex gap-2 items-start text-emerald-200/80">
-                                                                    <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                                                                    {s}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                    <div>
-                                                        <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Improvements Needed</h5>
-                                                        <ul className="space-y-2">
-                                                            {localJob.coverLetterCritique.feedback.map((s: string, i: number) => (
-                                                                <li key={i} className="text-sm flex gap-2 items-start text-rose-200/80">
-                                                                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                                                                    {s}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                </div>
-
-                                                <div className="border-t border-slate-700 pt-5 flex justify-end gap-3 sticky bottom-0 bg-slate-900 pb-2">
+                                                    <h3 className="font-semibold text-white flex items-center gap-2">
+                                                        <Sparkles className="w-4 h-4 text-indigo-400" />
+                                                        Latest Critique
+                                                    </h3>
                                                     <button
-                                                        onClick={() => handleGenerateCoverLetter(localJob.coverLetterCritique?.feedback.join('\n'))}
-                                                        disabled={generating}
-                                                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                                        onClick={() => { /* Close logic if needed, or remove button */ }}
+                                                        className="p-1 hover:bg-slate-800 rounded transition-colors"
                                                     >
-                                                        {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                                                        Auto-Fix (Apply Feedback)
+                                                        <XCircle className="w-4 h-4 text-slate-500" />
                                                     </button>
+                                                </div>
+                                                <div className="prose prose-invert prose-sm max-w-none">
+                                                    {typeof localJob.coverLetterCritique === 'string' ? (
+                                                        <ReactMarkdown>{localJob.coverLetterCritique}</ReactMarkdown>
+                                                    ) : (
+                                                        <div className="space-y-4">
+                                                            <div className="flex items-center justify-between border-b border-slate-700 pb-4">
+                                                                <span className="text-sm font-medium text-slate-400">Match Score</span>
+                                                                <span className={`text-2xl font-bold ${localJob.coverLetterCritique!.score >= 80 ? 'text-green-400' : localJob.coverLetterCritique!.score >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                                                    {localJob.coverLetterCritique!.score}/100
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="font-medium text-slate-300 mb-2 flex items-center gap-2">
+                                                                    <AlertTriangle className="w-4 h-4 text-amber-400" />
+                                                                    Improvements Needed
+                                                                </h4>
+                                                                <ul className="list-disc pl-5 space-y-2 text-slate-400 text-sm">
+                                                                    {localJob.coverLetterCritique!.feedback.map((point: string, i: number) => (
+                                                                        <li key={i}>{point}</li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                            <div className="pt-4 border-t border-slate-700">
+                                                                <h4 className="font-medium text-slate-300 mb-2 flex items-center gap-2">
+                                                                    <ThumbsUp className="w-4 h-4 text-green-400" />
+                                                                    Strengths
+                                                                </h4>
+                                                                <ul className="list-disc pl-5 space-y-2 text-slate-400 text-sm">
+                                                                    {localJob.coverLetterCritique!.strengths.map((point: string, i: number) => (
+                                                                        <li key={i}>{point}</li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         ) : (
@@ -880,7 +793,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 
