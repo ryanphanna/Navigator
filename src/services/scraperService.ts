@@ -103,49 +103,25 @@ export const ScraperService = {
     },
 
     async scrapeJobContent(targetUrl: string): Promise<string> {
-        // 1. Try Edge Function (Primary, Robust)
+        // Use Supabase Edge Function for secure, server-side scraping
         try {
             const { data, error } = await supabase.functions.invoke('scrape-jobs', {
                 body: { url: targetUrl, mode: 'text' }
             });
 
-            if (!error && data?.text && data.text.length > 50) {
-                return data.text;
-            }
-            console.warn("Edge scraping returned empty/error, trying fallback...", error || data);
-        } catch (e) {
-            console.warn("Edge scraping failed, trying fallback...", e);
-        }
-
-        // 2. Fallback to CORS Proxy (Legacy)
-        try {
-            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-            const response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error('Failed to connect to proxy');
-
-            const htmlContent = await response.text();
-            if (!htmlContent) throw new Error('Empty response from URL');
-
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(htmlContent, 'text/html');
-
-            // Clean up
-            const unwanted = ['script', 'style', 'noscript', 'iframe', 'header', 'footer', 'nav', 'aside'];
-            unwanted.forEach(tag => {
-                doc.querySelectorAll(tag).forEach(el => el.remove());
-            });
-
-            const text = doc.body.textContent || "";
-            const cleanText = text.replace(/\s+/g, ' ').trim();
-
-            if (cleanText.length < 50) {
-                throw new Error("Extracted text is too short.");
+            if (error) {
+                console.error("Edge function error:", error);
+                throw new Error(`Failed to scrape job content: ${error.message || 'Unknown error'}`);
             }
 
-            return cleanText;
+            if (!data?.text || data.text.length < 50) {
+                throw new Error("Scraped content is too short or empty. The job posting may not be accessible.");
+            }
+
+            return data.text;
         } catch (error) {
-            console.error("All scraping methods failed:", error);
-            throw error;
+            console.error("Job scraping failed:", error);
+            throw error instanceof Error ? error : new Error("Failed to scrape job content");
         }
     },
 

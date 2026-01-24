@@ -1,14 +1,34 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, SchemaType } from "@google/generative-ai";
 import { supabase } from "./supabase";
 import type { JobAnalysis, ResumeProfile, ExperienceBlock } from "../types";
+import { getSecureItem, setSecureItem, removeSecureItem, migrateToSecureStorage } from "../utils/secureStorage";
 
-const getApiKey = () => {
-    return localStorage.getItem('gemini_api_key') || import.meta.env.VITE_API_KEY;
+// Migrate old unencrypted API key to secure storage on first load
+let migrationDone = false;
+const migrateApiKeyIfNeeded = async () => {
+    if (!migrationDone) {
+        await migrateToSecureStorage('gemini_api_key', 'api_key');
+        migrationDone = true;
+    }
+};
+
+const getApiKey = async (): Promise<string | null> => {
+    await migrateApiKeyIfNeeded();
+    return (await getSecureItem('api_key')) || import.meta.env.VITE_API_KEY || null;
+};
+
+// Export functions for API key management
+export const saveApiKey = async (key: string): Promise<void> => {
+    await setSecureItem('api_key', key);
+};
+
+export const clearApiKey = (): void => {
+    removeSecureItem('api_key');
 };
 
 // Helper: Get Model (Direct or Proxy)
-const getModel = (params: any) => {
-    const key = getApiKey();
+const getModel = async (params: any) => {
+    const key = await getApiKey();
 
     // 1. BYOK Mode (Direct to Google)
     if (key) {
@@ -163,7 +183,7 @@ export const analyzeJobFit = async (
 
     return callWithRetry(async () => {
         try {
-            const model = getModel({
+            const model = await getModel({
                 model: "gemini-2.0-flash", // Use 2.0-flash for structured data extraction
                 safetySettings: [
                     {
@@ -315,9 +335,10 @@ export const generateCoverLetter = async (
 
     return callWithRetry(async () => {
         try {
-            const response = await getModel({
+            const model = await getModel({
                 model: selectedVariant.model,
-            }).generateContent({
+            });
+            const response = await model.generateContent({
                 contents: [{ role: "user", parts: [{ text: prompt }] }],
             });
             const text = response.response.text() || "Could not generate cover letter.";
@@ -356,9 +377,10 @@ export const generateTailoredSummary = async (
 
     return callWithRetry(async () => {
         try {
-            const response = await getModel({
+            const model = await getModel({
                 model: 'gemini-2.0-flash', // Use 2.0 Flash for high-quality cover letter writing
-            }).generateContent({
+            });
+            const response = await model.generateContent({
                 contents: [{ role: "user", parts: [{ text: prompt }] }],
             });
             return response.response.text() || "Experienced professional with relevant skills.";
@@ -405,7 +427,7 @@ export const critiqueCoverLetter = async (
 
     return callWithRetry(async () => {
         try {
-            const model = getModel({
+            const model = await getModel({
                 model: 'gemini-2.0-flash',
                 generationConfig: {
                     temperature: 0.0,
@@ -506,7 +528,7 @@ export const parseResumeFile = async (
 
     return callWithRetry(async () => {
         try {
-            const model = getModel({
+            const model = await getModel({
                 model: 'gemini-2.0-flash', // Using 2.0-flash as standard model
                 generationConfig: {
                     responseMimeType: "application/json",
@@ -603,7 +625,7 @@ export const parseJobListing = async (
 
     return callWithRetry(async () => {
         try {
-            const model = getModel({
+            const model = await getModel({
                 model: 'gemini-2.0-flash',
                 generationConfig: {
                     responseMimeType: "application/json",
@@ -676,7 +698,7 @@ export const tailorExperienceBlock = async (
 
     return callWithRetry(async () => {
         try {
-            const model = getModel({
+            const model = await getModel({
                 model: 'gemini-2.0-flash',
                 generationConfig: {
                     temperature: 0.3, // Little bit of creativity allowed for phrasing

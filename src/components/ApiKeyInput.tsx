@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Key, Eye, EyeOff, Loader2, Check, AlertCircle as AlertIcon, X } from 'lucide-react';
+import { getSecureItem, setSecureItem } from '../utils/secureStorage';
 
 export const ApiKeyInput: React.FC = () => {
     const [apiKey, setApiKey] = useState('');
@@ -8,9 +9,12 @@ export const ApiKeyInput: React.FC = () => {
     const [message, setMessage] = useState('');
 
     useEffect(() => {
-        // Load initially
-        const stored = localStorage.getItem('gemini_api_key');
-        if (stored) setApiKey(stored);
+        // Load initially from secure storage
+        const loadKey = async () => {
+            const stored = await getSecureItem('api_key');
+            if (stored) setApiKey(stored);
+        };
+        loadKey();
     }, []);
 
     const handleSaveKey = async () => {
@@ -23,8 +27,8 @@ export const ApiKeyInput: React.FC = () => {
         setStatus('validating');
         setMessage('Saving key...');
 
-        // Save the key without validation - first real use will validate it
-        localStorage.setItem('gemini_api_key', apiKey);
+        // Save the key securely with encryption
+        await setSecureItem('api_key', apiKey);
 
         // Clear any existing quota/limit errors so the user is unblocked immediately
         localStorage.removeItem('jobfit_quota_status');
@@ -38,7 +42,7 @@ export const ApiKeyInput: React.FC = () => {
         window.dispatchEvent(new CustomEvent('apiKeySaved'));
 
         setStatus('success');
-        setMessage('Key saved successfully');
+        setMessage('Key saved securely');
 
         setTimeout(() => {
             setStatus('idle');
