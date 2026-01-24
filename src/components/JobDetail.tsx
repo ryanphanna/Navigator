@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { UsageModal } from './UsageModal';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface JobDetailProps {
     job: SavedJob;
@@ -19,7 +20,7 @@ interface JobDetailProps {
 type Tab = 'analysis' | 'resume' | 'cover-letter' | 'job-post';
 
 const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob, userTier = 'free' }) => {
-    const [activeTab, setActiveTab] = useState<Tab>('analysis');
+    const [activeTab, setActiveTab] = useLocalStorage<Tab>('jobfit_active_tab', 'analysis');
     const [generating, setGenerating] = useState(false);
     const [localJob, setLocalJob] = useState(job);
     const [showUsage, setShowUsage] = useState(false);

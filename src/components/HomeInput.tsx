@@ -5,6 +5,7 @@ import { analyzeJobFit } from '../services/geminiService';
 import type { ResumeProfile, SavedJob } from '../types';
 import { Storage } from '../services/storageService';
 import type { User } from '@supabase/supabase-js';
+import { getUserFriendlyError } from '../utils/errorMessages';
 
 
 interface HomeInputProps {
@@ -30,6 +31,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
     const [manualText, setManualText] = useState('');
     const [isManualMode, setIsManualMode] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [statusMessage, setStatusMessage] = useState<string | null>(null);
     const [lastSubmittedId, setLastSubmittedId] = useState<string | null>(null);
     const [showResumePrompt, setShowResumePrompt] = useState(false);
     const [pendingJobInput, setPendingJobInput] = useState<{ type: 'url' | 'text', content: string } | null>(null);
@@ -114,7 +116,13 @@ const HomeInput: React.FC<HomeInputProps> = ({
                 }
             }
 
-            const analysis = await analyzeJobFit(textToAnalyze, resumes);
+            const analysis = await analyzeJobFit(
+                textToAnalyze,
+                resumes,
+                (message) => setStatusMessage(message)  // Show retry progress
+            );
+
+            setStatusMessage(null);  // Clear status after success
 
             const updatedJob: SavedJob = {
                 ...newJob,
@@ -124,7 +132,11 @@ const HomeInput: React.FC<HomeInputProps> = ({
             };
 
             onJobUpdated(updatedJob);
-        } catch {
+        } catch (err) {
+            setStatusMessage(null);
+            const friendlyError = getUserFriendlyError(err as Error);
+            setError(friendlyError);
+
             const failedJob: SavedJob = {
                 ...newJob,
                 status: 'error',
@@ -259,7 +271,13 @@ const HomeInput: React.FC<HomeInputProps> = ({
                 )}
 
                 <div className="mt-8 text-center h-6">
-                    {lastSubmittedId && !manualText && !url && (
+                    {statusMessage && (
+                        <div className="flex items-center justify-center gap-2 text-sm text-amber-600 font-medium animate-in fade-in slide-in-from-bottom-2">
+                            <Sparkles className="w-4 h-4 animate-spin" />
+                            {statusMessage}
+                        </div>
+                    )}
+                    {!statusMessage && lastSubmittedId && !manualText && !url && (
                         <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium animate-in fade-in slide-in-from-bottom-2">
                             <CheckCircle className="w-4 h-4" />
                             Job added to processing queue

@@ -2,6 +2,10 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, SchemaType } from
 import { supabase } from "./supabase";
 import type { JobAnalysis, ResumeProfile, ExperienceBlock } from "../types";
 import { getSecureItem, setSecureItem, removeSecureItem, migrateToSecureStorage } from "../utils/secureStorage";
+import { getUserFriendlyError, getRetryMessage } from "../utils/errorMessages";
+
+// Callback type for retry progress
+export type RetryProgressCallback = (message: string, attempt: number, maxAttempts: number) => void;
 
 // Migrate old unencrypted API key to secure storage on first load
 let migrationDone = false;
@@ -94,7 +98,12 @@ export const validateApiKey = async (key: string): Promise<{ isValid: boolean; e
 
 // Helper for exponential backoff retries on 429 errors
 // User requested more conservative polling and detailed error surfacing
-const callWithRetry = async <T>(fn: () => Promise<T>, retries = 3, initialDelay = 2000): Promise<T> => {
+const callWithRetry = async <T>(
+    fn: () => Promise<T>,
+    retries = 3,
+    initialDelay = 2000,
+    onProgress?: RetryProgressCallback
+): Promise<T> => {
     let currentDelay = initialDelay;
     for (let i = 0; i < retries; i++) {
         try {
@@ -107,7 +116,8 @@ const callWithRetry = async <T>(fn: () => Promise<T>, retries = 3, initialDelay 
             const isDailyQuota = errorMessage.includes("PerDay");
             if (isDailyQuota) {
                 // If we hit the daily limit, no point in retrying immediately
-                throw new Error("DAILY_QUOTA_EXCEEDED: You have reached your free tier limit for the day.");
+                const friendlyError = getUserFriendlyError("DAILY_QUOTA_EXCEEDED");
+                throw new Error(friendlyError);
             }
 
             const isQuotaError = (
@@ -119,18 +129,28 @@ const callWithRetry = async <T>(fn: () => Promise<T>, retries = 3, initialDelay 
 
             if (isQuotaError && i < retries - 1) {
                 // Shared Quota/Traffic Jam - Retry with backoff
-                console.log(`Hit rate limit. Retrying in ${currentDelay / 1000}s...`);
+                const delaySeconds = currentDelay / 1000;
+                const retryMsg = getRetryMessage(i + 1, retries, delaySeconds);
+                console.log(retryMsg);
+
+                // Notify UI of retry progress
+                if (onProgress) {
+                    onProgress(retryMsg, i + 1, retries);
+                }
+
                 await new Promise(resolve => setTimeout(resolve, currentDelay));
-                currentDelay = currentDelay * 2; // Exponential backoff (5s -> 10s -> 20s)
+                currentDelay = currentDelay * 2; // Exponential backoff (2s -> 4s -> 8s)
             } else {
                 if (isQuotaError) {
-                    throw new Error(`RATE_LIMIT_EXCEEDED: Server is busy (High Traffic). Please try again in a minute.`);
+                    const friendlyError = getUserFriendlyError("RATE_LIMIT_EXCEEDED");
+                    throw new Error(friendlyError);
                 }
-                throw error;
+                // Convert technical error to friendly message
+                throw new Error(getUserFriendlyError(err));
             }
         }
     }
-    throw new Error("Request failed after max retries.");
+    throw new Error("Request failed after multiple attempts. Please try again later.");
 };
 
 // Helper to turn blocks back into a readable string for the AI
@@ -152,7 +172,8 @@ ${b.bullets.map(bull => `- ${bull}`).join('\n')}
 
 export const analyzeJobFit = async (
     jobDescription: string,
-    resumes: ResumeProfile[]
+    resumes: ResumeProfile[],
+    onProgress?: RetryProgressCallback
 ): Promise<JobAnalysis> => {
 
     const resumeContext = resumes
@@ -254,7 +275,7 @@ export const analyzeJobFit = async (
         } catch (error) {
             throw error; // Re-throw to trigger retry
         }
-    });
+    }, 3, 2000, onProgress);
 };
 
 

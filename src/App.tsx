@@ -6,6 +6,7 @@ import { Storage } from './services/storageService';
 import { parseResumeFile, analyzeJobFit } from './services/geminiService';
 import { ScraperService } from './services/scraperService';
 import { getSecureItem } from './utils/secureStorage';
+import { useLocalStorage } from './hooks/useLocalStorage';
 import ResumeEditor from './components/ResumeEditor';
 import HomeInput from './components/HomeInput';
 import History from './components/History';
@@ -24,10 +25,13 @@ import { NudgeCard } from './components/NudgeCard';
 
 // Main App Component
 const App: React.FC = () => {
+  // Persist current view in localStorage
+  const [currentView, setCurrentView] = useLocalStorage<AppState['currentView']>('jobfit_current_view', 'home');
+
   const [state, setState] = useState<AppState>({
     resumes: [],
     jobs: [],
-    currentView: 'home',
+    currentView: currentView,
     activeJobId: null,
     apiStatus: 'checking',
   });
@@ -152,6 +156,53 @@ const App: React.FC = () => {
     const timer = setTimeout(findNudge, 1500);
     return () => clearTimeout(timer);
   }, [state.jobs]);
+
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const modKey = isMac ? e.metaKey : e.ctrlKey;
+
+      // Ignore if user is typing in an input/textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      // Cmd/Ctrl + K: Go to history (like search)
+      if (modKey && e.key === 'k') {
+        e.preventDefault();
+        setView('history');
+      }
+
+      // Cmd/Ctrl + H: Go to history
+      if (modKey && e.key === 'h') {
+        e.preventDefault();
+        setView('history');
+      }
+
+      // Cmd/Ctrl + R: Go to resumes
+      if (modKey && e.key === 'r') {
+        e.preventDefault();
+        setView('resumes');
+      }
+
+      // Cmd/Ctrl + N: Go to home (new analysis)
+      if (modKey && e.key === 'n') {
+        e.preventDefault();
+        setView('home');
+      }
+
+      // Cmd/Ctrl + P: Go to Pro feed (if available)
+      if (modKey && e.key === 'p' && (isTester || isAdmin || userTier === 'pro')) {
+        e.preventDefault();
+        setView('pro');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isTester, isAdmin, userTier]);
 
 
   // --- Handlers ---
@@ -307,6 +358,7 @@ const App: React.FC = () => {
   };
 
   const setView = (view: AppState['currentView']) => {
+    setCurrentView(view);  // Persist to localStorage
     setState(prev => ({ ...prev, currentView: view }));
   };
 

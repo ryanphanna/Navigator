@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../services/supabase';
 import { X, Mail, Lock, Loader2, ArrowRight, AlertCircle, CheckCircle, Sparkles } from 'lucide-react';
+import { getUserFriendlyError } from '../utils/errorMessages';
 
 interface AuthModalProps {
     isOpen: boolean;
@@ -73,7 +74,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 onClose(); // Close on successful login
             }
         } catch (err: any) {
-            setError(err.message || "Authentication failed");
+            setError(getUserFriendlyError(err));
         } finally {
             setLoading(false);
         }
