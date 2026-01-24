@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import type { SavedJob, ResumeProfile } from '../types';
-import { generateCoverLetter, analyzeJobFit, critiqueCoverLetter } from '../services/geminiService';
+import { generateCoverLetter, analyzeJobFit, critiqueCoverLetter, tailorExperienceBlock } from '../services/geminiService';
 import { Storage } from '../services/storageService';
 import {
-    ArrowLeft, Loader2, Sparkles, AlertCircle, Briefcase, ThumbsUp, CheckCircle, AlertTriangle, XCircle, FileText, Check, Copy, PenTool, BookOpen, Users, ThumbsDown
+    ArrowLeft, Loader2, Sparkles, AlertCircle, Briefcase, ThumbsUp, CheckCircle, AlertTriangle, XCircle, FileText, Check, Copy, PenTool, BookOpen, Users, ThumbsDown, Lock
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { UsageModal } from './UsageModal';
@@ -13,7 +13,7 @@ interface JobDetailProps {
     resumes: ResumeProfile[];
     onBack: () => void;
     onUpdateJob: (job: SavedJob) => void;
-    userTier?: 'free' | 'pro' | 'admin';
+    userTier?: 'free' | 'pro' | 'admin' | 'tester';
 }
 
 type Tab = 'analysis' | 'resume' | 'cover-letter' | 'job-post';
@@ -30,11 +30,35 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
     const [manualText, setManualText] = useState('');
     const [retrying, setRetrying] = useState(false);
 
+    // Hyper-Tailoring State
+    const [tailoringBlock, setTailoringBlock] = useState<string | null>(null); // Block ID currently being rewritten
+
+
+    // Handle Escape Key (Back) - Only if no modals are open
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                // If sub-modal is open, don't go back (let modal handle it)
+                if (!showUsage) {
+                    onBack();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onBack, showUsage]);
+
     const analysis = localJob.analysis;
 
     const handleCopy = async (text: string, type: 'summary' | 'cl') => {
         try {
             await navigator.clipboard.writeText(text);
+
+            // Log optimization event on copy (this is a "vote" for the content)
+            if (type === 'cl' && localJob.initialCoverLetter && localJob.promptVersion) {
+                Storage.logOptimizationEvent(localJob.id, localJob.promptVersion, localJob.initialCoverLetter, text);
+            }
+
             setCopiedState(type);
             setTimeout(() => setCopiedState(null), 2000);
         } catch (err) {
@@ -181,7 +205,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                 finalContext = localJob.contextNotes;
             }
 
-            const letter = await generateCoverLetter(
+            const { text: letter, promptVersion } = await generateCoverLetter(
                 textToUse,
                 bestResume,
                 instructions,
@@ -191,7 +215,9 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
             const updated = {
                 ...localJob,
                 coverLetter: letter,
-                coverLetterCritique: undefined // Clear old critique so user can re-review
+                initialCoverLetter: letter, // Save original for diffing
+                promptVersion: promptVersion,
+                coverLetterCritique: undefined
             };
 
             Storage.updateJob(updated);
@@ -281,9 +307,50 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
 
     const handleStatusChange = (newStatus: SavedJob['status']) => {
         const updated = { ...localJob, status: newStatus };
+
+        // Log optimization if applying
+        if (newStatus === 'applied' && localJob.initialCoverLetter && localJob.coverLetter && localJob.promptVersion) {
+            Storage.logOptimizationEvent(localJob.id, localJob.promptVersion, localJob.initialCoverLetter, localJob.coverLetter);
+        }
+
         Storage.updateJob(updated);
         setLocalJob(updated);
         onUpdateJob(updated);
+    };
+
+
+
+    const handleHyperTailor = async (block: any) => {
+        if (userTier === 'free') return; // Should be blocked by UI, but safety check
+
+        setTailoringBlock(block.id);
+        try {
+            const textToUse = localJob.description || `Role: ${analysis.distilledJob.roleTitle}`;
+
+            // Find relevant instructions for this specific block type/content
+            // (Simple heuristic: pass all instructions for now, let AI pick)
+            const instructions = analysis.tailoringInstructions;
+
+            const newBullets = await tailorExperienceBlock(block, textToUse, instructions);
+
+            const updatedJob = {
+                ...localJob,
+                tailoredResumes: {
+                    ...(localJob.tailoredResumes || {}),
+                    [block.id]: newBullets
+                }
+            };
+
+            Storage.updateJob(updatedJob);
+            setLocalJob(updatedJob);
+            onUpdateJob(updatedJob);
+
+        } catch (e) {
+            console.error("Hyper-tailor failed", e);
+            alert("Failed to rewrite bullets. Please try again.");
+        } finally {
+            setTailoringBlock(null);
+        }
     };
 
     const getScoreColor = (score: number) => {
@@ -552,29 +619,91 @@ py - 4 text - sm font - medium border - b - 2 transition - all flex items - cent
                                         {resumes
                                             .find(r => r.id === analysis.bestResumeProfileId)
                                             ?.blocks.filter((b: { id: string }) => analysis.recommendedBlockIds?.includes(b.id))
-                                            .map((block: { id: string; title: string; organization: string; dateRange: string; type: string; bullets: string[] }) => (
-                                                <div key={block.id} className="p-6 hover:bg-slate-50 transition-colors group">
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <div>
-                                                            <h5 className="font-medium text-slate-900 text-sm">{block.title}</h5>
-                                                            <div className="text-xs text-slate-500 flex gap-2 mt-0.5">
-                                                                <span className="font-medium text-slate-700">{block.organization}</span>
-                                                                <span>Open the job posting in another tab.</span>
+                                            .map((block: { id: string; title: string; organization: string; dateRange: string; type: string; bullets: string[] }) => {
+                                                const tailoredBullets = localJob.tailoredResumes?.[block.id];
+                                                const isTailoring = tailoringBlock === block.id;
+
+                                                return (
+                                                    <div key={block.id} className="p-6 hover:bg-slate-50 transition-colors group relative">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <div>
+                                                                <h5 className="font-medium text-slate-900 text-sm">{block.title}</h5>
+                                                                <div className="text-xs text-slate-500 flex gap-2 mt-0.5">
+                                                                    <span className="font-medium text-slate-700">{block.organization}</span>
+                                                                    <span>{block.dateRange}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex gap-2 items-center">
+                                                                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-300 bg-slate-100 px-2 py-0.5 rounded">
+                                                                    {block.type}
+                                                                </span>
                                                             </div>
                                                         </div>
-                                                        <span className="text-[10px] uppercase tracking-wider font-bold text-slate-300 bg-slate-100 px-2 py-0.5 rounded">
-                                                            {block.type}
-                                                        </span>
+
+                                                        {/* Main Bullets */}
+                                                        <div className="mt-3">
+                                                            {tailoredBullets ? (
+                                                                <div className="bg-indigo-50/50 rounded-lg p-3 border border-indigo-100 mb-2">
+                                                                    <div className="flex items-center gap-2 mb-2 text-xs font-bold text-indigo-600 uppercase tracking-wider">
+                                                                        <Sparkles className="w-3 h-3" /> Hyper-Tailored
+                                                                    </div>
+                                                                    <ul className="space-y-1.5">
+                                                                        {tailoredBullets.map((b: string, i: number) => (
+                                                                            <li key={i} className="text-xs text-indigo-900 pl-3 border-l-2 border-indigo-400">
+                                                                                {b}
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            // Revert capability
+                                                                            const updated = { ...localJob };
+                                                                            if (updated.tailoredResumes) delete updated.tailoredResumes[block.id];
+                                                                            setLocalJob(updated);
+                                                                        }}
+                                                                        className="mt-2 text-[10px] text-indigo-400 hover:text-indigo-600 underline"
+                                                                    >
+                                                                        Revert to Original
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <ul className="space-y-1.5">
+                                                                    {block.bullets.map((b: string, i: number) => (
+                                                                        <li key={i} className="text-xs text-slate-600 pl-3 border-l-2 border-slate-200 group-hover:border-indigo-300 transition-colors">
+                                                                            {b}
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Hyper Tailor Action */}
+                                                        <div className="mt-3 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            {userTier === 'free' ? (
+                                                                <div className="group/tooltip relative">
+                                                                    <button disabled className="text-xs flex items-center gap-1 text-slate-400 cursor-not-allowed">
+                                                                        <Lock className="w-3 h-3" /> Rewrite with AI
+                                                                    </button>
+                                                                    <div className="absolute bottom-full right-0 mb-2 w-48 bg-slate-900 text-white text-[10px] p-2 rounded shadow-lg pointer-events-none opacity-0 group-hover/tooltip:opacity-100 transition-opacity z-20">
+                                                                        Upgrade to Pro to auto-rewrite bullets for this job.
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                !tailoredBullets && (
+                                                                    <button
+                                                                        onClick={() => handleHyperTailor(block)}
+                                                                        disabled={isTailoring}
+                                                                        className="text-xs flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors font-medium disabled:opacity-50"
+                                                                    >
+                                                                        {isTailoring ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                                                        {isTailoring ? 'Rewriting...' : 'Hyper-Tailor'}
+                                                                    </button>
+                                                                )
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <ul className="space-y-1.5 mt-3">
-                                                        {block.bullets.map((b: string, i: number) => (
-                                                            <li key={i} className="text-xs text-slate-600 pl-3 border-l-2 border-slate-200 group-hover:border-indigo-300 transition-colors">
-                                                                {b}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                     </div>
                                 </div>
                             </div>
@@ -685,9 +814,26 @@ py - 4 text - sm font - medium border - b - 2 transition - all flex items - cent
                                             </div>
                                         </div>
                                         <div className="flex-1 overflow-y-auto p-8 md:p-10 bg-white">
-                                            <div className="text-slate-800 leading-relaxed font-serif whitespace-pre-wrap selection:bg-indigo-100 selection:text-indigo-900">
+                                            <div
+                                                className="text-slate-800 leading-relaxed font-serif whitespace-pre-wrap selection:bg-indigo-100 selection:text-indigo-900 outline-none focus:bg-slate-50 transition-colors rounded p-2 -ml-2"
+                                                contentEditable
+                                                suppressContentEditableWarning
+                                                onBlur={(e) => {
+                                                    const newText = e.currentTarget.innerText;
+                                                    if (newText !== localJob.coverLetter) {
+                                                        const updated = { ...localJob, coverLetter: newText };
+                                                        setLocalJob(updated);
+                                                        Storage.updateJob(updated);
+                                                    }
+                                                }}
+                                            >
                                                 {localJob.coverLetter}
                                             </div>
+                                            {localJob.promptVersion && (
+                                                <div className="mt-4 text-[10px] text-slate-300 font-mono">
+                                                    Ver: {localJob.promptVersion}
+                                                </div>
+                                            )}
                                         </div>
                                         {/* Feedback Footer */}
                                         <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center text-xs text-slate-500">

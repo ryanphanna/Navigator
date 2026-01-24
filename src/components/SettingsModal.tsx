@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { X, Moon, LogOut, AlertTriangle } from 'lucide-react';
 
+import type { User } from '@supabase/supabase-js';
+
 interface SettingsModalProps {
     isOpen: boolean;
     onClose: () => void;
+    user: User | null;
+    userTier: 'free' | 'pro' | 'admin';
+    isTester: boolean;
+    isAdmin: boolean;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, userTier, isTester, isAdmin }) => {
     const [confirmReset, setConfirmReset] = useState(false);
     const [isDark, setIsDark] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -39,6 +45,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         window.location.reload(); // Force reload to reset state
     };
 
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        if (isOpen) {
+            window.addEventListener('keydown', handleKeyDown);
+        }
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isOpen, onClose]);
+
     if (!isOpen) return null;
 
     return (
@@ -52,6 +74,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 </div>
 
                 <div className="p-6 space-y-8">
+                    {/* Account Status */}
+                    {user && (
+                        <div>
+                            <h4 className="font-bold text-xs text-slate-400 uppercase tracking-wider mb-4">Account</h4>
+                            <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-between">
+                                <div>
+                                    <div className="text-sm font-semibold text-slate-900">{user.email}</div>
+                                    <div className="text-xs text-slate-500 mt-0.5">
+                                        {isAdmin ? 'Administrator' :
+                                            isTester ? 'Beta Tester (Early Access)' :
+                                                userTier === 'pro' ? 'Pro Subscriber' : 'Free Plan'}
+                                    </div>
+                                </div>
+                                <span className={`px-3 py-1 text-xs font-bold rounded-full border ${isAdmin ? 'bg-indigo-100 text-indigo-700 border-indigo-200' :
+                                    isTester ? 'bg-purple-100 text-purple-700 border-purple-200' :
+                                        userTier === 'pro' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
+                                            'bg-slate-100 text-slate-600 border-slate-200'
+                                    }`}>
+                                    {isAdmin ? 'Admin' : isTester ? 'Beta' : userTier === 'pro' ? 'Pro' : 'Free'}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="h-px bg-slate-100" />
+
                     {/* Appearance */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">

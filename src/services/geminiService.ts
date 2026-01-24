@@ -243,12 +243,54 @@ export const generateCoverLetter = async (
     selectedResume: ResumeProfile,
     tailoringInstructions: string[],
     additionalContext?: string
-): Promise<string> => {
+): Promise<{ text: string; promptVersion: string }> => {
     // ... (prompt definition) ...
     const resumeText = stringifyProfile(selectedResume);
 
+    const PROMPT_VARIANTS = {
+        'v1_direct': {
+            model: 'gemini-2.0-flash',
+            template: `
+            You are an expert copywriter. Write a professional cover letter.
+            
+            INSTRUCTIONS:
+            - Structure:
+              1. THE HOOK: Open strong. Mention the specific role/company and ONE key reason you fit.
+              2. THE EVIDENCE: Connect 1-2 specific achievements from my resume directly to their hardest requirements.
+              3. THE CLOSE: Brief, confident call to action.
+            - Tone: Professional but conversational (human), not robotic.
+            - Avoid cliches like "I am writing to apply..." start fresher.
+            `
+        },
+        'v2_storytelling': {
+            model: 'gemini-2.0-flash',
+            template: `
+            You are a career coach helping a candidate stand out. Write a cover letter that tells a compelling story.
+            
+            INSTRUCTIONS:
+            - DO NOT start with "I am writing to apply". Start with a statement about the company's mission or a specific problem they are solving.
+            - Narrative Arc: "I've always been passionate about [Industry/Problem]... which is why [Company] caught my eye."
+            - Then pivot to: "In my role at [Previous Org], I faced a similar challenge..." (Insert Resume Evidence).
+            - Ending: "I'd love to bring this energy to [Company]."
+            - Tone: Enthusiastic, genuine, slightly less formal than a standard corporate letter.
+            `
+        },
+        'v3_experimental_pro': {
+            model: 'gemini-1.5-pro', // Testing a stronger model
+            template: `
+            You are a senior executive writing a cover letter. Write a sophisticated, high-level strategic letter.
+            Focus on value proposition and ROI, not just skills.
+            `
+        }
+    };
+
+    // A/B Test Selection (Random)
+    const keys = Object.keys(PROMPT_VARIANTS);
+    const promptVersion = keys[Math.floor(Math.random() * keys.length)];
+    const selectedVariant = PROMPT_VARIANTS[promptVersion as keyof typeof PROMPT_VARIANTS];
+
     const prompt = `
-    You are an expert copywriter. Write a professional cover letter.
+    ${selectedVariant.template}
 
     JOB DESCRIPTION:
     ${jobDescription}
@@ -269,25 +311,17 @@ export const generateCoverLetter = async (
     ${additionalContext} 
     (Note: The text above is the critique feedback, not personal context in this case).
     ` : ''}
-
-    INSTRUCTIONS:
-    - Structure:
-      1. THE HOOK: Open strong. Mention the specific role/company and ONE key reason you fit (not generic).
-      2. THE EVIDENCE: Connect 1-2 specific achievements from my resume directly to their hardest requirements. "You need X, I did X at [Company] by..."
-      3. THE CLOSE: Brief, confident call to action.
-    - Constraint: Do NOT just repeat resume bullets. Tell the "story" or context behind the achievement. Show *how* you work.
-    - Tone: Professional but conversational (human), not robotic.
-    - Avoid cliches like "I am writing to apply..." start fresher.
   `;
 
     return callWithRetry(async () => {
         try {
             const response = await getModel({
-                model: 'gemini-2.0-flash', // Use 2.0 Flash for high-quality cover letter writing
+                model: selectedVariant.model,
             }).generateContent({
                 contents: [{ role: "user", parts: [{ text: prompt }] }],
             });
-            return response.response.text() || "Could not generate cover letter.";
+            const text = response.response.text() || "Could not generate cover letter.";
+            return { text, promptVersion };
         } catch (error) {
             throw error;
         }
@@ -399,14 +433,57 @@ export const critiqueCoverLetter = async (
     });
 };
 
+// Helper to extract text from PDF (Client Side) to avoid 6MB payload limit
+const extractPdfText = async (base64: string): Promise<string> => {
+    try {
+        // Use global PDF.js from CDN
+        const pdfjsLib = (window as any).pdfjsLib;
+        if (!pdfjsLib) {
+            console.error("PDF.js library not found on window");
+            return "";
+        };
+
+        const loadingTask = pdfjsLib.getDocument({ data: atob(base64) });
+        const pdf = await loadingTask.promise;
+        let fullText = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map((item: any) => item.str).join(' ');
+            fullText += pageText + '\n';
+        }
+        return fullText;
+    } catch (e) {
+        console.warn("Client-side PDF extraction failed", e);
+        return "";
+    }
+}
+
 // New function to parse PDF/Image into structured blocks
 export const parseResumeFile = async (
     fileBase64: string,
     mimeType: string
 ): Promise<ExperienceBlock[]> => {
 
+    // 1. Optimize Payload: Process PDF client-side if possible
+    let promptParts: any[] = [];
+
+    if (mimeType === 'application/pdf') {
+        const extractedText = await extractPdfText(fileBase64);
+        if (extractedText.length > 50) {
+            console.log("PDF Text Extracted Client-Side", extractedText.length, "chars");
+            promptParts = [{ text: `RESUME CONTENT:\n${extractedText}` }];
+        } else {
+            throw new Error("Could not extract text from PDF. Please upload a text-based PDF, not an image scan.");
+        }
+    } else {
+        // Images must go as binary
+        promptParts = [{ inlineData: { mimeType, data: fileBase64 } }];
+    }
+
     const prompt = `
-    Analyze this resume image/document. 
+    Analyze this resume content. 
     Break it down into discrete "Experience Blocks". 
     For each job, education, or project, create a block.
 
@@ -424,11 +501,14 @@ export const parseResumeFile = async (
     }
   `;
 
+    // Add prompt instructions
+    promptParts.push({ text: prompt });
+
     return callWithRetry(async () => {
         try {
             const model = getModel({
                 model: 'gemini-2.0-flash', // Using 2.0-flash as standard model
-                generationConfig: { // re-inserted since I truncated it in my mental model
+                generationConfig: {
                     responseMimeType: "application/json",
                     responseSchema: {
                         type: SchemaType.ARRAY,
@@ -451,10 +531,7 @@ export const parseResumeFile = async (
                 contents: [
                     {
                         role: "user",
-                        parts: [
-                            { inlineData: { mimeType, data: fileBase64 } },
-                            { text: prompt }
-                        ]
+                        parts: promptParts
                     }
                 ]
             });
@@ -477,8 +554,152 @@ export const parseResumeFile = async (
                 dateRange: p.dateRange || ''
             }));
 
-        } catch (error) {
+        } catch (error: any) {
+            console.error("Parse Resume Failed:", error);
+            // Return empty array or throw? UI expects void or array.
             throw error;
+        }
+    });
+};
+
+// New function to parse raw HTML into JobFeedItems (Client-Side Fallback)
+export const parseJobListing = async (
+    html: string,
+    baseUrl: string
+): Promise<any[]> => {
+    // Truncate HTML to save tokens
+    const cleanHtml = html
+        .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "")
+        .replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gim, "")
+        .replace(/\s+/g, " ")
+        .substring(0, 20000);
+
+    const prompt = `
+    You are a smart scraper. Extract job listings from this HTML. 
+    
+    CRITICAL INSTRUCTIONS:
+    1. Look for lists of jobs, tables, or repeated "card" elements.
+    2. For TTC/SAP sites, jobs might be in a "current opportunities" section or a search results table.
+    3. Tables often have "Job Title", "Date", "Location" columns.
+    4. If you see a "Search Jobs" button but NO results, return an empty array (do not hallucinate).
+    5. Extract the REAL link (href). Resolving relative URLs against "${baseUrl}".
+    
+    Return ONLY a JSON array. No markdown.
+    
+    Schema:
+    [
+      {
+        "title": "string (The clear job title)",
+        "url": "string (The absolute URL to the specific job details)",
+        "company": "string (Default to 'TTC' if not found)",
+        "location": "string (e.g. Toronto)",
+        "postedDate": "string (ISO date or 'Recently')"
+      }
+    ]
+
+    HTML Content:
+    ${cleanHtml}
+  `;
+
+    return callWithRetry(async () => {
+        try {
+            const model = getModel({
+                model: 'gemini-2.0-flash',
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: SchemaType.ARRAY,
+                        items: {
+                            type: SchemaType.OBJECT,
+                            properties: {
+                                title: { type: SchemaType.STRING },
+                                url: { type: SchemaType.STRING },
+                                company: { type: SchemaType.STRING },
+                                location: { type: SchemaType.STRING },
+                                postedDate: { type: SchemaType.STRING }
+                            },
+                            required: ["title", "url", "company"]
+                        }
+                    }
+                }
+            });
+
+            const response = await model.generateContent({
+                contents: [{ role: "user", parts: [{ text: prompt }] }]
+            });
+
+            const text = response.response.text();
+            if (!text) return [];
+
+            return JSON.parse(text);
+        } catch (error) {
+            console.error("Client-side parse failed:", error);
+            return [];
+        }
+    });
+};
+
+export const tailorExperienceBlock = async (
+    block: ExperienceBlock,
+    jobDescription: string,
+    instructions: string[]
+): Promise<string[]> => {
+
+    // Safety check for empty/invalid blocks
+    if (!block.bullets || block.bullets.length === 0) return [];
+
+    const prompt = `
+    You are an expert resume writer. 
+    Rewrite the bullet points for this specific job experience to perfectly match the target job description.
+
+    TARGET JOB:
+    ${jobDescription.substring(0, 3000)}
+
+    MY EXPERIENCE BLOCK:
+    Title: ${block.title}
+    Company: ${block.organization}
+    Original Bullets:
+    ${block.bullets.map(b => `- ${b}`).join('\n')}
+
+    TAILORING INSTRUCTIONS (Strategy):
+    ${instructions.join('\n')}
+
+    TASKS:
+    1. Rewrite the bullets to use keywords from the Target Job.
+    2. Shift the focus to relevant skills (e.g. if job needs "Leadership", emphasize leading the team).
+    3. Quantify impact where possible.
+    4. Keep the same number of bullets (or fewer if some are irrelevant).
+    5. Tone: Action-oriented, professional, high-impact.
+
+    Return ONLY a JSON array of strings: ["bullet 1", "bullet 2"]
+    `;
+
+    return callWithRetry(async () => {
+        try {
+            const model = getModel({
+                model: 'gemini-2.0-flash',
+                generationConfig: {
+                    temperature: 0.3, // Little bit of creativity allowed for phrasing
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: SchemaType.ARRAY,
+                        items: { type: SchemaType.STRING }
+                    }
+                }
+            });
+
+            const response = await model.generateContent({
+                contents: [{ role: "user", parts: [{ text: prompt }] }]
+            });
+
+            const text = response.response.text();
+            if (!text) return block.bullets; // Fallback
+
+            return JSON.parse(text);
+        } catch (error) {
+            console.error("Tailoring failed:", error);
+            // Fallback to original bullets on error
+            return block.bullets;
         }
     });
 };

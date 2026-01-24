@@ -30,6 +30,23 @@ export const UsageModal: React.FC<UsageModalProps> = ({ isOpen, onClose, apiStat
         }
     }, [isOpen]);
 
+    // Handle Escape Key
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        if (isOpen) {
+            window.addEventListener('keydown', handleKeyDown);
+        }
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isOpen, onClose]);
+
 
     if (!isOpen) return null;
 

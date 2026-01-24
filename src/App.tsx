@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import type { AppState, SavedJob, ResumeProfile } from './types';
+import { Analytics } from '@vercel/analytics/react';
 
 import { Storage } from './services/storageService';
-import { parseResumeFile } from './services/geminiService';
+import { parseResumeFile, analyzeJobFit } from './services/geminiService';
+import { ScraperService } from './services/scraperService';
 import ResumeEditor from './components/ResumeEditor';
 import HomeInput from './components/HomeInput';
 import History from './components/History';
 import JobDetail from './components/JobDetail';
 import { JobFitPro } from './components/JobFitPro';
-import { Briefcase, Settings, History as HistoryIcon } from 'lucide-react';
+import { Briefcase, Settings, History as HistoryIcon, Zap } from 'lucide-react';
 import { SettingsModal } from './components/SettingsModal';
 import { UsageModal } from './components/UsageModal';
 import { WelcomeScreen } from './components/WelcomeScreen';
@@ -36,55 +38,19 @@ const App: React.FC = () => {
 
   // Auth State
   const [user, setUser] = useState<User | null>(null);
-  const [userTier, setUserTier] = useState<'free' | 'pro' | 'admin'>('free');
+  const [userTier, setUserTier] = useState<'free' | 'pro' | 'admin'>('free'); // Billing Tier
+  const [isTester, setIsTester] = useState(false); // Beta Tester Flag
+  const [isAdmin, setIsAdmin] = useState(false); // Admin Flag
   const [showAuth, setShowAuth] = useState(false);
 
   // Nudge State
   const [nudgeJob, setNudgeJob] = useState<SavedJob | null>(null);
 
-  // Nudge Logic: Find one "High Value" job to ask about
-  useEffect(() => {
-    // Only check if we haven't already nudged this session (simple check)
-    if (sessionStorage.getItem('nudgeSeen')) return;
-
-    const findNudge = () => {
-      const now = Date.now();
-      const THREE_WEEKS = 21 * 24 * 60 * 60 * 1000;
-
-      // Find candidates: High score, Old enough, No outcome yet
-      const candidates = state.jobs.filter(job => {
-        const isOldEnough = (now - new Date(job.dateAdded).getTime()) > THREE_WEEKS;
-        const isHighQuality = (job.fitScore || 0) >= 80;
-        const isPending = !job.status || ['saved', 'applied', 'analyzing'].includes(job.status);
-
-        return isOldEnough && isHighQuality && isPending;
-      });
-
-      if (candidates.length > 0) {
-        // Pick random to keep it fresh
-        const randomJob = candidates[Math.floor(Math.random() * candidates.length)];
-        setNudgeJob(randomJob);
-        sessionStorage.setItem('nudgeSeen', 'true');
-      }
-    };
-
-    // Small delay so it doesn't pop instantly on load
-    const timer = setTimeout(findNudge, 1500);
-    return () => clearTimeout(timer);
-  }, [state.jobs]);
-
-  const handleNudgeResponse = async (status: 'interview' | 'rejected' | 'ghosted') => {
-    if (!nudgeJob) return;
-
-    await handleUpdateJob({ ...nudgeJob, status });
-    setNudgeJob(null); // Dismiss
-  };
-
   // Settings & Usage State
   const [showSettings, setShowSettings] = useState(false);
   const [showUsage, setShowUsage] = useState(false);
-  const [quotaStatus, setQuotaStatus] = useState<'normal' | 'high_traffic' | 'daily_limit'>('normal');
-  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const [quotaStatus] = useState<'normal' | 'high_traffic' | 'daily_limit'>('normal');
+  const [cooldownSeconds] = useState(0);
 
   // Onboarding flow states
   const [showWelcome, setShowWelcome] = useState(() => {
@@ -94,6 +60,7 @@ const App: React.FC = () => {
   const [showPrivacyNotice, setShowPrivacyNotice] = useState(false);
   const [showApiKeySetup, setShowApiKeySetup] = useState(false);
 
+  // Load Data
   useEffect(() => {
     const loadData = async () => {
       const storedResumes = await Storage.getResumes();
@@ -120,219 +87,220 @@ const App: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
 
-    // Auth
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        const { data } = await supabase.from('profiles').select('subscription_tier').eq('id', session.user.id).single();
+    // Helper to process user profile
+    const processUser = async (user: User | null) => {
+      setUser(user);
+      if (user) {
+        // 1. Get Billing Tier from DB
+        const { data } = await supabase.from('profiles').select('subscription_tier').eq('id', user.id).single();
         if (data) setUserTier(data.subscription_tier as 'free' | 'pro' | 'admin');
-      }
-    });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        const { data } = await supabase.from('profiles').select('subscription_tier').eq('id', session.user.id).single();
-        if (data) setUserTier(data.subscription_tier as 'free' | 'pro' | 'admin');
+        // 2. Beta Override: All invite-code users are marked as Testers
+        // In future, this could come from a DB column 'is_tester'
+        setIsTester(true);
+
+        // 3. Admin Check (Hardcoded for beta owner)
+        if (user.email === 'rhanna@live.com') {
+          setIsAdmin(true);
+          setUserTier('admin'); // Sync tier for convenience
+        }
       } else {
         setUserTier('free');
+        setIsTester(false);
+        setIsAdmin(false);
       }
+    };
+
+    // Auth
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      processUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      processUser(session?.user ?? null);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // Monitor Quota Status & Cooldown
+  // Nudge Logic
   useEffect(() => {
-    const checkStatus = () => {
-      const statusStr = localStorage.getItem('jobfit_quota_status');
-      if (!statusStr) {
-        setQuotaStatus('normal');
-        setCooldownSeconds(0);
-        return;
-      }
+    if (sessionStorage.getItem('nudgeSeen')) return;
 
-      try {
-        const data = JSON.parse(statusStr);
-        const now = Date.now();
-        const age = now - data.timestamp;
+    const findNudge = () => {
+      const now = Date.now();
+      const THREE_WEEKS = 21 * 24 * 60 * 60 * 1000;
+      const candidates = state.jobs.filter(job => {
+        const isOldEnough = (now - new Date(job.dateAdded).getTime()) > THREE_WEEKS;
+        const isHighQuality = (job.fitScore || 0) >= 80;
+        const isPending = !job.status || ['saved', 'applied', 'analyzing'].includes(job.status);
+        return isOldEnough && isHighQuality && isPending;
+      });
 
-        if (data.type === 'daily') {
-          // Reset daily limit visually after 24 hours
-          if (age < 24 * 60 * 60 * 1000) {
-            setQuotaStatus('daily_limit');
-          } else {
-            localStorage.removeItem('jobfit_quota_status');
-            setQuotaStatus('normal');
-          }
-          setCooldownSeconds(0);
-        } else if (data.type === 'rate_limit') {
-          // Calculate remaining cooldown if explicitly set, otherwise default 60s
-          const cooldownUntil = data.cooldownUntil || (data.timestamp + 60000);
-          const remaining = Math.ceil((cooldownUntil - now) / 1000);
-
-          if (remaining > 0) {
-            setQuotaStatus('high_traffic');
-            setCooldownSeconds(remaining);
-          } else {
-            localStorage.removeItem('jobfit_quota_status');
-            setQuotaStatus('normal');
-          }
-        }
-      } catch {
-        setQuotaStatus('normal');
+      if (candidates.length > 0) {
+        const randomJob = candidates[Math.floor(Math.random() * candidates.length)];
+        setNudgeJob(randomJob);
+        sessionStorage.setItem('nudgeSeen', 'true');
       }
     };
 
-    // Check immediately
-    checkStatus();
+    const timer = setTimeout(findNudge, 1500);
+    return () => clearTimeout(timer);
+  }, [state.jobs]);
 
-    // Poll every second for countdown and status updates
-    const interval = setInterval(checkStatus, 1000);
 
-    // Listen for custom event when API key is changed
-    const handleQuotaCleared = () => {
-      checkStatus(); // Immediately re-check when notified
-    };
-    window.addEventListener('quotaStatusCleared', handleQuotaCleared);
+  // --- Handlers ---
 
-    const handleApiKeySaved = () => {
-      setShowApiKeySetup(false); // Close setup modal when key is saved
-    };
-    window.addEventListener('apiKeySaved', handleApiKeySaved);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('quotaStatusCleared', handleQuotaCleared);
-      window.removeEventListener('apiKeySaved', handleApiKeySaved);
-    };
-  }, []);
-
-  const handleSaveResumes = (updatedResumes: ResumeProfile[]) => {
-    Storage.saveResumes(updatedResumes);
-    setState((prev: AppState) => ({ ...prev, resumes: updatedResumes }));
-  };
-
-  const handleJobCreated = (job: SavedJob) => {
-    setState((prev: AppState) => ({
+  const handleJobCreated = (newJob: SavedJob) => {
+    Storage.saveJob(newJob);
+    setState(prev => ({
       ...prev,
-      jobs: [job, ...prev.jobs],
+      jobs: [newJob, ...prev.jobs],
+      currentView: 'job-detail',
+      activeJobId: newJob.id
     }));
-  };
-
-  const handleDeleteJob = async (jobId: string) => {
-    const updatedJobs = await Storage.deleteJob(jobId);
-    setState(prev => ({ ...prev, jobs: updatedJobs }));
-
-    if (state.activeJobId === jobId) {
-      setActiveJobId(null);
-      setView('history');
-    }
   };
 
   const handleUpdateJob = (updatedJob: SavedJob) => {
     Storage.updateJob(updatedJob);
-    setState((prev: AppState) => ({
+    setState(prev => ({
       ...prev,
-      jobs: prev.jobs.map((j: SavedJob) => j.id === updatedJob.id ? updatedJob : j)
+      jobs: prev.jobs.map(j => j.id === updatedJob.id ? updatedJob : j)
     }));
+  };
+
+  const handleDeleteJob = (id: string) => {
+    if (confirm('Are you sure you want to delete this job?')) {
+      Storage.deleteJob(id);
+      setState(prev => ({
+        ...prev,
+        jobs: prev.jobs.filter(j => j.id !== id),
+        activeJobId: null,
+        currentView: 'history'
+      }));
+    }
   };
 
   const handleImportResume = async (file: File) => {
     setIsParsingResume(true);
     setImportError(null);
-
     try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64String = reader.result as string;
-        // Handle cases where result might be null
-        if (!base64String) {
-          setImportError("Failed to read file.");
-          setIsParsingResume(false);
-          return;
-        }
-        const base64Data = base64String.split(',')[1];
+      const base64Str = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      // Strip prefix (e.g. "data:application/pdf;base64,")
+      const base64Data = base64Str.split(',')[1];
 
-        try {
-          const newBlocks = await parseResumeFile(base64Data, file.type);
-          if (newBlocks && newBlocks.length > 0) {
-            setState(prev => {
-              // Get current master or create default
-              const master = prev.resumes[0] || { id: 'master', name: 'My Resume', blocks: [] };
+      const blocks = await parseResumeFile(base64Data, file.type);
 
-              // Check for duplicates before appending
-              // We compare based on content (title, organization) to avoid adding the exact same block twice
-              // This handles cases where the API might hallucinate duplicates or the event handler fires twice
-              const existingSignatures = new Set(master.blocks.map(b => `${b.title}|${b.organization}|${b.dateRange}`));
-              const uniqueNewBlocks = newBlocks.filter(b => {
-                const signature = `${b.title}|${b.organization}|${b.dateRange}`;
-                if (existingSignatures.has(signature)) return false;
-                existingSignatures.add(signature);
-                return true;
-              }).map(b => ({
-                ...b,
-                id: crypto.randomUUID() // FORCE NEW ID for every added block to prevent ID collisions
-              }));
-
-              if (uniqueNewBlocks.length === 0) {
-                return prev; // No new unique blocks to add
-              }
-
-              // Append new unique blocks
-              const updatedMaster = {
-                ...master,
-                blocks: [...master.blocks, ...uniqueNewBlocks]
-              };
-
-              const updatedResumes = master.id === 'master' && prev.resumes.length === 0
-                ? [updatedMaster] // If no master existed, add it
-                : prev.resumes.map(r => r.id === 'master' ? updatedMaster : r); // Update existing master
-
-              handleSaveResumes(updatedResumes);
-              setImportTrigger(prev => prev + 1); // Trigger re-render in ResumeEditor
-              return { ...prev, resumes: updatedResumes };
-            });
-          } else {
-            setImportError("No content parsed from resume.");
-          }
-        } catch (parseErr: unknown) {
-          const err = parseErr as Error;
-
-          let friendlyError = `Failed to parse resume: ${err.message || 'Unknown error'}`;
-          const errMsg = err.message || '';
-
-          if (errMsg.includes("DAILY_QUOTA_EXCEEDED")) {
-            friendlyError = "Daily Quota Exceeded. You have reached your free tier limit for today.";
-            localStorage.setItem('jobfit_quota_status', JSON.stringify({ type: 'daily', timestamp: Date.now() }));
-          } else if (errMsg.includes("RATE_LIMIT_EXCEEDED") || errMsg.includes("429")) {
-            // Try to extract wait time from error message "(Wait 28s)"
-            const waitMatch = errMsg.match(/Wait ([0-9.]+)s/);
-            const waitSecs = waitMatch ? parseFloat(waitMatch[1]) : 30; // default 30s
-            const cooldownUntil = Date.now() + (waitSecs * 1000);
-
-            friendlyError = `System is busy (High Traffic). Cooling down for ${waitSecs}s.`;
-            localStorage.setItem('jobfit_quota_status', JSON.stringify({
-              type: 'rate_limit',
-              timestamp: Date.now(),
-              cooldownUntil: cooldownUntil
-            }));
-          }
-
-          setImportError(friendlyError);
-        } finally {
-          setIsParsingResume(false);
-        }
+      const newProfile: ResumeProfile = {
+        id: crypto.randomUUID(),
+        name: file.name.replace(/\.[^/.]+$/, "") || "Uploaded Resume",
+        blocks: blocks
       };
-      reader.readAsDataURL(file);
-    } catch (fileReadErr: unknown) {
-      const err = fileReadErr as Error;
-      setImportError(`Failed to read file: ${err.message || 'Unknown error'}`);
+
+      const profiles = await Storage.addResume(newProfile);
+      setState(prev => ({ ...prev, resumes: profiles }));
+      setImportTrigger(t => t + 1); // trigger reload in editor
+    } catch (err) {
+      console.error(err);
+      setImportError((err as Error).message);
+    } finally {
       setIsParsingResume(false);
     }
   };
 
-  // Helper to set view and active job ID
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setView('home');
+  };
+
+  const handleWelcomeContinue = () => {
+    localStorage.setItem('jobfit_welcome_seen', 'true');
+    setShowWelcome(false);
+    // Next: Show Privacy if not seen
+    if (!localStorage.getItem('jobfit_privacy_accepted')) {
+      setShowPrivacyNotice(true);
+    }
+  };
+
+  const handlePrivacyAccept = () => {
+    localStorage.setItem('jobfit_privacy_accepted', 'true');
+    setShowPrivacyNotice(false);
+
+    // Check if API key exists, if not show setup screen
+    // BUT: If user is logged in (Pro/Beta), they don't need a key (Managed Service)
+    const hasApiKey = localStorage.getItem('gemini_api_key');
+    // Logic: If NO key AND NOT a managed user (Pro/Tester/Admin) -> Show Setup
+    const isManaged = userTier === 'pro' || isTester || isAdmin;
+    if (!hasApiKey && !user && !isManaged) {
+      setShowApiKeySetup(true);
+    }
+  };
+
+  const handleNudgeResponse = async (status: 'interview' | 'rejected' | 'ghosted') => {
+    if (!nudgeJob) return;
+    await handleUpdateJob({ ...nudgeJob, status });
+    setNudgeJob(null);
+    setNudgeJob(null);
+  };
+
+  const handleDraftApplication = async (url: string) => {
+    // 1. Switch View immediately to show progress (or we can show a loader overlay?)
+    // Ideally, show Home with a Skeleton Job or similar? 
+    // User asked to "go to the job post page". So let's create the job first.
+
+    const jobId = crypto.randomUUID();
+    const newJob: SavedJob = {
+      id: jobId,
+      company: 'Analyzing...',
+      position: 'Drafting Application...',
+      description: '',
+      resumeId: state.resumes[0]?.id || 'master',
+      dateAdded: Date.now(),
+      status: 'analyzing',
+    };
+
+    await Storage.addJob(newJob);
+    setState(prev => ({
+      ...prev,
+      jobs: [newJob, ...prev.jobs],
+      activeJobId: jobId,
+      currentView: 'job-detail'
+    }));
+
+    // 2. Perform Analysis in Background (updating the job)
+    try {
+      const text = await ScraperService.scrapeJobContent(url);
+      // Update 1: We have text
+      const jobWithText = { ...newJob, description: text };
+      await Storage.saveJob(jobWithText); // Use saveJob alias
+
+      // Update state to show text?
+
+      const analysis = await analyzeJobFit(text, state.resumes);
+      const completedJob = {
+        ...jobWithText,
+        status: 'saved' as const,
+        analysis: analysis,
+        company: analysis.distilledJob?.companyName || 'Unknown',
+        position: analysis.distilledJob?.roleTitle || 'Untitled'
+      };
+
+      await Storage.saveJob(completedJob);
+      handleUpdateJob(completedJob); // Update global state
+    } catch (err) {
+      console.error("Draft Application Failed", err);
+      const failedJob = { ...newJob, status: 'error' as const };
+      await Storage.saveJob(failedJob);
+      handleUpdateJob(failedJob);
+      alert("Failed to analyze job. Please try again.");
+    }
+  };
+
   const setView = (view: AppState['currentView']) => {
     setState(prev => ({ ...prev, currentView: view }));
   };
@@ -341,38 +309,24 @@ const App: React.FC = () => {
     setState(prev => ({ ...prev, activeJobId: id }));
   };
 
-  const { activeJobId } = state;
-  const activeJob = activeJobId ? state.jobs.find(j => j.id === activeJobId) : null;
-
-  const handleWelcomeContinue = () => {
-    localStorage.setItem('jobfit_welcome_seen', 'true');
-    setShowWelcome(false);
-    setShowPrivacyNotice(true);
-  };
-
-  const handlePrivacyAccept = () => {
-    localStorage.setItem('jobfit_privacy_accepted', 'true');
-    setShowPrivacyNotice(false);
-
-    // Check if API key exists, if not show setup screen
-    const hasApiKey = localStorage.getItem('gemini_api_key');
-    if (!hasApiKey) {
-      setShowApiKeySetup(true);
-    }
-  };
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-  };
+  const activeJob = state.jobs.find(j => j.id === state.activeJobId);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-200">
 
+      {/* Modals */}
       <WelcomeScreen isOpen={showWelcome} onContinue={handleWelcomeContinue} />
-      <PrivacyNotice isOpen={showPrivacyNotice} onAccept={handlePrivacyAccept} />
       <ApiKeySetup isOpen={showApiKeySetup} onComplete={() => setShowApiKeySetup(false)} />
       <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
-      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+      <PrivacyNotice isOpen={showPrivacyNotice} onAccept={handlePrivacyAccept} />
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        user={user}
+        userTier={userTier}
+        isTester={isTester}
+        isAdmin={isAdmin}
+      />
       <UsageModal
         isOpen={showUsage}
         onClose={() => setShowUsage(false)}
@@ -385,7 +339,7 @@ const App: React.FC = () => {
       {/* Only show header after onboarding is complete */}
       {!showWelcome && !showPrivacyNotice && !showApiKeySetup && (
         <header className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-50 h-16 transition-colors duration-200">
-          <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between relative">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setActiveJobId(null); setView('home'); }}>
               <div className="bg-gradient-to-br from-indigo-600 to-violet-600 text-white p-2 rounded-lg shadow-lg shadow-indigo-500/20">
                 <Briefcase className="w-5 h-5" />
@@ -395,18 +349,34 @@ const App: React.FC = () => {
               </h1>
             </div>
 
-            <nav className="flex items-center gap-1 bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+            <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
               {user && (
-                <button
-                  onClick={() => { setActiveJobId(null); setView('resumes'); }}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${state.currentView === 'resumes'
-                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-                    }`}
-                >
-                  <Briefcase className="w-4 h-4" />
-                  <span className="hidden sm:inline">Resumes</span>
-                </button>
+                <>
+                  {/* Feed is for Pro OR Testers OR Admins */}
+                  {(userTier === 'pro' || isTester || isAdmin) && (
+                    <button
+                      onClick={() => { setActiveJobId(null); setView('pro'); }}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${state.currentView === 'pro'
+                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                        }`}
+                    >
+                      <Zap className="w-4 h-4" />
+                      <span className="hidden sm:inline">Feed</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => { setActiveJobId(null); setView('resumes'); }}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${state.currentView === 'resumes'
+                      ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                      }`}
+                  >
+                    <Briefcase className="w-4 h-4" />
+                    <span className="hidden sm:inline">Resumes</span>
+                  </button>
+                </>
               )}
               {state.jobs.length > 0 && (
                 <button
@@ -427,9 +397,14 @@ const App: React.FC = () => {
               <div className="flex items-center gap-2">
                 {user ? (
                   <div className="flex items-center gap-3">
-                    <div className="text-xs text-right hidden md:block">
-                      <div className="font-medium text-slate-900 dark:text-slate-200">{user.email}</div>
-                      <div className="text-slate-500 dark:text-slate-500">Free Tier</div>
+                    <div className="hidden md:flex items-center gap-2 bg-slate-100 dark:bg-slate-800 py-1.5 px-3 rounded-full border border-slate-200 dark:border-slate-700">
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-300">{user.email}</div>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isAdmin ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' :
+                        isTester ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' :
+                          'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300'
+                        }`}>
+                        {isAdmin ? 'Admin' : isTester ? 'Beta' : 'Pro'}
+                      </span>
                     </div>
                     <button
                       onClick={handleSignOut}
@@ -483,6 +458,7 @@ const App: React.FC = () => {
                 onImportResume={handleImportResume}
                 isParsing={isParsingResume}
                 importError={state.importError ?? null}
+                user={user}
               />
             </div>
           </div>
@@ -491,7 +467,9 @@ const App: React.FC = () => {
         {/* Constrained Views */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-24">
           {state.currentView === 'pro' && (
-            <JobFitPro onBack={() => setView('home')} />
+            <JobFitPro
+              onDraftApplication={handleDraftApplication}
+            />
           )}
 
           {state.currentView === 'history' && (
@@ -519,11 +497,12 @@ const App: React.FC = () => {
               resumes={state.resumes}
               onBack={() => { setActiveJobId(null); setView('history'); }}
               onUpdateJob={handleUpdateJob}
-              userTier={userTier}
+              userTier={isAdmin ? 'admin' : isTester ? 'tester' : userTier}
             />
           )}
         </div>
       </main>
+      <Analytics />
     </div >
   );
 };
