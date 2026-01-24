@@ -42,28 +42,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
         try {
             if (isSignUp) {
-                // Dynamic Invite Check (RPC)
-                // BYPASS: Allow 'JOBFIT2024' to pass even if the RPC fails or doesn't exist yet
-                let isValid = false;
+                // Validate invite code via RPC (server-side only)
+                const { data, error: rpcError } = await supabase.rpc('redeem_invite_code', {
+                    code_input: inviteCode
+                });
 
-                if (inviteCode === 'JOBFIT2024') {
-                    isValid = true;
-                } else {
-                    const { data, error: rpcError } = await supabase.rpc('redeem_invite_code', {
-                        code_input: inviteCode
-                    });
-
-                    if (rpcError) {
-                        console.error('Invite Check Error:', rpcError);
-                        // Don't block if it's a system error, just fail soft or ask to try again
-                        // But for now, we rely on the hardcoded bypass above for the beta user
-                        throw new Error("Invalid Invite Code (System Error)");
-                    }
-                    isValid = !!data;
+                if (rpcError) {
+                    console.error('Invite Check Error:', rpcError);
+                    throw new Error("Unable to validate invite code. Please try again later.");
                 }
 
-                if (!isValid) {
-                    throw new Error("Invalid or Expired Invite Code.");
+                if (!data) {
+                    throw new Error("Invalid or expired invite code.");
                 }
 
                 const { error } = await supabase.auth.signUp({

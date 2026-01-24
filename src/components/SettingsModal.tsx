@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Moon, LogOut, AlertTriangle } from 'lucide-react';
 
 import type { User } from '@supabase/supabase-js';
+import { removeSecureItem } from '../utils/secureStorage';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -37,7 +38,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
         // Clear all JobFit data
         localStorage.removeItem('jobfit_resumes_v2');
         localStorage.removeItem('jobfit_jobs_history');
-        localStorage.removeItem('gemini_api_key');
+        removeSecureItem('api_key'); // Clear encrypted API key
+        localStorage.removeItem('gemini_api_key'); // Clear old unencrypted key if it exists
         localStorage.removeItem('jobfit_privacy_accepted');
         localStorage.removeItem('jobfit_daily_usage');
         localStorage.removeItem('jobfit_quota_status');

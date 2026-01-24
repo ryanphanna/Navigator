@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { Storage } from './services/storageService';
 import { parseResumeFile, analyzeJobFit } from './services/geminiService';
 import { ScraperService } from './services/scraperService';
+import { getSecureItem } from './utils/secureStorage';
 import ResumeEditor from './components/ResumeEditor';
 import HomeInput from './components/HomeInput';
 import History from './components/History';
@@ -91,18 +92,22 @@ const App: React.FC = () => {
     const processUser = async (user: User | null) => {
       setUser(user);
       if (user) {
-        // 1. Get Billing Tier from DB
-        const { data } = await supabase.from('profiles').select('subscription_tier').eq('id', user.id).single();
-        if (data) setUserTier(data.subscription_tier as 'free' | 'pro' | 'admin');
+        // Get user profile data from database
+        const { data } = await supabase
+          .from('profiles')
+          .select('subscription_tier, is_admin, is_tester')
+          .eq('id', user.id)
+          .single();
 
-        // 2. Beta Override: All invite-code users are marked as Testers
-        // In future, this could come from a DB column 'is_tester'
-        setIsTester(true);
+        if (data) {
+          setUserTier(data.subscription_tier as 'free' | 'pro' | 'admin');
+          setIsAdmin(data.is_admin || false);
+          setIsTester(data.is_tester || false);
 
-        // 3. Admin Check (Hardcoded for beta owner)
-        if (user.email === 'rhanna@live.com') {
-          setIsAdmin(true);
-          setUserTier('admin'); // Sync tier for convenience
+          // Sync tier for admin convenience
+          if (data.is_admin) {
+            setUserTier('admin');
+          }
         }
       } else {
         setUserTier('free');
@@ -227,13 +232,13 @@ const App: React.FC = () => {
     }
   };
 
-  const handlePrivacyAccept = () => {
+  const handlePrivacyAccept = async () => {
     localStorage.setItem('jobfit_privacy_accepted', 'true');
     setShowPrivacyNotice(false);
 
     // Check if API key exists, if not show setup screen
     // BUT: If user is logged in (Pro/Beta), they don't need a key (Managed Service)
-    const hasApiKey = localStorage.getItem('gemini_api_key');
+    const hasApiKey = await getSecureItem('api_key');
     // Logic: If NO key AND NOT a managed user (Pro/Tester/Admin) -> Show Setup
     const isManaged = userTier === 'pro' || isTester || isAdmin;
     if (!hasApiKey && !user && !isManaged) {

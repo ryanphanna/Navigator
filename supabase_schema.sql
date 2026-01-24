@@ -7,6 +7,8 @@ create table profiles (
   id uuid references auth.users not null primary key,
   email text,
   subscription_tier text default 'free',
+  is_admin boolean default false,
+  is_tester boolean default false,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
