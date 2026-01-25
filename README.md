@@ -45,10 +45,4 @@ JobFit helps you manage your professional experience as discrete "blocks" and in
 
 ---
 
-## ⚖️ License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
 **Happy Hunting! 🚀💼**
