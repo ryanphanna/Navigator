@@ -38,37 +38,40 @@ const envSchema = z.object({
 export type Env = z.infer<typeof envSchema>;
 
 /**
- * Validate and export environment variables
- *
- * This runs immediately when the module is imported,
- * ensuring the app fails fast if configuration is wrong.
+ * Validate environment variables and return result with errors
  */
-function validateEnv(): Env {
-  try {
-    return envSchema.parse(import.meta.env);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      // Format validation errors nicely
-      const errorMessages = error.issues.map((err: z.ZodIssue) => {
-        const path = err.path.join('.');
-        return `  ❌ ${path}: ${err.message}`;
-      });
+function validateEnv(): { env: Env | null; errors: string[] } {
+  const result = envSchema.safeParse(import.meta.env);
 
-      console.error('❌ Environment validation failed:\n');
-      console.error(errorMessages.join('\n'));
-      console.error('\n📝 Check your .env file or environment variables.');
-      console.error('💡 Required variables: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY\n');
-
-      throw new Error('Invalid environment configuration. See console for details.');
-    }
-    throw error;
+  if (result.success) {
+    return { env: result.data, errors: [] };
   }
+
+  // Format validation errors nicely
+  const errors = result.error.issues.map((err: z.ZodIssue) => {
+    const path = err.path.join('.');
+    return `${path}: ${err.message}`;
+  });
+
+  console.error('Environment validation failed:');
+  errors.forEach(e => console.error(`  - ${e}`));
+  console.error('Required variables: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY');
+
+  return { env: null, errors };
 }
 
 // Validate on module load
-export const env = validateEnv();
+const validation = validateEnv();
 
-// Also validate in production builds
-if (import.meta.env.PROD) {
-  console.log('✅ Environment variables validated successfully');
+if (validation.env && import.meta.env.PROD) {
+  console.log('Environment variables validated successfully');
+}
+
+// Export validation state for the app to check
+export const env = validation.env;
+export const envErrors = validation.errors;
+
+// Helper to check if env is valid
+export function isEnvValid(): boolean {
+  return validation.env !== null && validation.errors.length === 0;
 }
