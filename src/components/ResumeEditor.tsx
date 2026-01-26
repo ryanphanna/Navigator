@@ -173,35 +173,49 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                         <div className="pl-5 pr-4 py-4">
                                             {/* Top Controls */}
                                             <div className="flex items-start justify-between gap-4 mb-3">
-                                                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4">
                                                     {/* Title */}
                                                     {block.type !== 'summary' && (
-                                                        <div className={block.type === 'skill' ? 'md:col-span-2' : ''}>
+                                                        <div className={block.type === 'skill' ? 'md:col-span-12' : 'md:col-span-5'}>
                                                             <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
                                                                 {block.type === 'education' ? 'Degree / Certificate' : block.type === 'skill' ? 'Skill Group / Category' : 'Role / Title'}
                                                             </label>
-                                                            <input
+                                                            <textarea
                                                                 value={block.title}
                                                                 onChange={(e) => updateBlock(block.id, 'title', e.target.value)}
-                                                                className="w-full font-bold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none transition-colors placeholder:text-slate-300"
+                                                                className="w-full font-bold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none transition-colors placeholder:text-slate-300 resize-none overflow-hidden"
                                                                 placeholder={block.type === 'skill' ? "e.g. Technical Skills" : "e.g. Senior Manager"}
+                                                                rows={1}
+                                                                ref={(el) => {
+                                                                    if (el) {
+                                                                        el.style.height = 'auto';
+                                                                        el.style.height = el.scrollHeight + 'px';
+                                                                    }
+                                                                }}
                                                             />
                                                         </div>
                                                     )}
 
                                                     {/* Organization */}
                                                     {block.type !== 'summary' && block.type !== 'skill' && (
-                                                        <div>
+                                                        <div className="md:col-span-4">
                                                             <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
                                                                 {block.type === 'education' ? 'School / Institution' : 'Organization'}
                                                             </label>
                                                             <div className="flex items-center gap-2">
                                                                 <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                                                                <input
+                                                                <textarea
                                                                     value={block.organization}
                                                                     onChange={(e) => updateBlock(block.id, 'organization', e.target.value)}
-                                                                    className="w-full text-sm font-medium text-slate-700 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none transition-colors placeholder:text-slate-300"
+                                                                    className="w-full text-sm font-medium text-slate-700 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none transition-colors placeholder:text-slate-300 resize-none overflow-hidden"
                                                                     placeholder="e.g. Acme Corp"
+                                                                    rows={1}
+                                                                    ref={(el) => {
+                                                                        if (el) {
+                                                                            el.style.height = 'auto';
+                                                                            el.style.height = el.scrollHeight + 'px';
+                                                                        }
+                                                                    }}
                                                                 />
                                                             </div>
                                                         </div>
@@ -209,7 +223,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
                                                     {/* Date Range */}
                                                     {block.type !== 'summary' && block.type !== 'skill' && (
-                                                        <div className="md:col-span-2 flex justify-end">
+                                                        <div className="md:col-span-3 flex justify-end">
                                                             <div className="flex items-center gap-2 text-slate-400 bg-slate-50 px-2 py-1 rounded text-xs">
                                                                 <Calendar className="w-3 h-3" />
                                                                 <input

@@ -12,6 +12,33 @@ const getUserId = async () => {
     return session?.user?.id;
 };
 
+// Helper: Compare blocks for equality
+const areBlocksEqual = (a: import('../types').ExperienceBlock, b: import('../types').ExperienceBlock) => {
+    // 1. Type must match
+    if (a.type !== b.type) return false;
+
+    // 2. Normalize strings (lowercase, trim)
+    const normTitleA = a.title.toLowerCase().trim();
+    const normTitleB = b.title.toLowerCase().trim();
+    const normOrgA = a.organization.toLowerCase().trim();
+    const normOrgB = b.organization.toLowerCase().trim();
+
+    // 3. For Work/Education/Project: Title AND Organization must match
+    if (['work', 'education', 'project'].includes(a.type)) {
+        return normTitleA === normTitleB && normOrgA === normOrgB;
+    }
+
+    // 4. For Skills/Summary: Just Type matters roughly, but let's check Title too for Skills categories
+    if (a.type === 'skill') {
+        return normTitleA === normTitleB;
+    }
+
+    // 5. Summary: Usually only one, so if types match, they are "equal" (and we merge/overwrite)
+    if (a.type === 'summary') return true;
+
+    return false;
+};
+
 export const Storage = {
     // --- Resumes ---
     async getResumes(): Promise<ResumeProfile[]> {
@@ -95,10 +122,57 @@ export const Storage = {
     async addResume(profile: ResumeProfile) {
         // 1. Get existing
         const localRaw = localStorage.getItem(STORAGE_KEYS.RESUMES);
-        const existing: ResumeProfile[] = localRaw ? JSON.parse(localRaw) : [{ id: 'master', name: 'Master Experience', blocks: [] }];
+        const existing: ResumeProfile[] = localRaw ? JSON.parse(localRaw) : [];
 
-        // 2. Add new
-        const updated = [...existing, profile];
+        // 2. Smart Merge Logic
+        let updated: ResumeProfile[];
+
+        if (existing.length === 0) {
+            // First resume ever -> just add it
+            updated = [profile];
+        } else {
+            // Merge into the Master (first profile)
+            const master = existing[0];
+            const newBlocks = [...master.blocks]; // Clone to mutate
+
+            // Iterate over the NEW profile's blocks
+            profile.blocks.forEach(newBlock => {
+                const matchIndex = newBlocks.findIndex(b => areBlocksEqual(b, newBlock));
+
+                if (matchIndex !== -1) {
+                    // Match found! Merge bullets.
+                    const existingBlock = newBlocks[matchIndex];
+
+                    // Combined unique bullets
+                    const combinedBullets = Array.from(new Set([
+                        ...existingBlock.bullets,
+                        ...newBlock.bullets
+                    ])).filter(b => b.trim().length > 0);
+
+                    // Update the block in place
+                    newBlocks[matchIndex] = {
+                        ...existingBlock,
+                        bullets: combinedBullets,
+                        // Optionally update dateRange if the new one looks "fresher"? 
+                        // Let's keep existing dateRange for stability unless empty.
+                        dateRange: existingBlock.dateRange || newBlock.dateRange
+                    };
+                } else {
+                    // No match -> New Experience -> Add it
+                    newBlocks.push(newBlock);
+                }
+            });
+
+            // Update Master Profile
+            const updatedMaster = {
+                ...master,
+                blocks: newBlocks
+            };
+
+            // Replace the first item, keep others (if any legacy ones exist)
+            updated = [updatedMaster, ...existing.slice(1)];
+        }
+
         localStorage.setItem(STORAGE_KEYS.RESUMES, JSON.stringify(updated));
 
         // 3. Sync to Cloud
