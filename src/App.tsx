@@ -415,20 +415,20 @@ const App: React.FC = () => {
                     {isAdmin && (
                       <button
                         onClick={() => { setActiveJobId(null); setView('admin'); }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${state.currentView === 'admin'
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${state.currentView === 'admin'
                           ? 'bg-indigo-600 text-white shadow-sm'
                           : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                           }`}
                       >
-                        <Terminal className="w-3.5 h-3.5" />
+                        <Terminal className="w-4 h-4" />
                         Admin
                       </button>
                     )}
-                    <div className="hidden md:flex items-center gap-2 bg-slate-100 dark:bg-slate-800 py-1.5 px-3 rounded-lg border border-slate-200 dark:border-slate-700">
-                      <div className="text-xs font-medium text-slate-700 dark:text-slate-300">{user.email}</div>
+                    <div className="hidden md:flex items-center gap-2 bg-slate-100 dark:bg-slate-800 py-2 px-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                      <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{user.email}</div>
                       <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isAdmin ? 'bg-indigo-600 text-white shadow-sm' :
                         isTester ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' :
-                          userTier === 'pro' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' :
+                          userTier === 'pro' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-purple-300' :
                             'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                         }`}>
                         {isAdmin ? 'Admin' : isTester ? 'Beta' : userTier === 'pro' ? 'Pro' : 'Free'}
