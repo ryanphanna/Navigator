@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
 import {
+    Activity, Clock, CheckCircle, AlertCircle, Search,
     ArrowLeft, Terminal, Bot, Zap, RefreshCw, ChevronDown, ChevronUp, Eye, EyeOff,
     Users, BarChart3, TrendingUp, ShieldCheck
 } from 'lucide-react';
