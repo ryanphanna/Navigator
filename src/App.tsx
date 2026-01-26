@@ -501,48 +501,39 @@ const App: React.FC = () => {
 
       <main className="w-full pb-24 sm:pb-8">
 
-        {/* Full Width Views */}
-        {state.currentView === 'home' && (
-          <div className="w-full">
-            {nudgeJob && (
-              <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 sm:pt-24">
-                <NudgeCard
-                  job={nudgeJob}
-                  onUpdateStatus={handleNudgeResponse}
-                  onDismiss={() => setNudgeJob(null)}
+        {/* Full Width Views & PageLayout Views */}
+        <div className="w-full">
+          {state.currentView === 'home' && (
+            <>
+              {nudgeJob && (
+                <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 sm:pt-24">
+                  <NudgeCard
+                    job={nudgeJob}
+                    onUpdateStatus={handleNudgeResponse}
+                    onDismiss={() => setNudgeJob(null)}
+                  />
+                </div>
+              )}
+
+              {/* HomeInput handles its own padding/layout */}
+              <div className="pt-8 sm:pt-24">
+                <HomeInput
+                  resumes={state.resumes}
+                  userSkills={state.skills}
+                  onJobCreated={handleJobCreated}
+                  onJobUpdated={handleUpdateJob}
+                  onImportResume={handleImportResume}
+                  isParsing={isParsingResume}
+                  importError={state.importError ?? null}
+                  user={user}
                 />
               </div>
-            )}
+            </>
+          )}
 
-            {/* HomeInput handles its own padding/layout */}
-            <div className="pt-8 sm:pt-24">
-              <HomeInput
-                resumes={state.resumes}
-                userSkills={state.skills}
-                onJobCreated={handleJobCreated}
-                onJobUpdated={handleUpdateJob}
-                onImportResume={handleImportResume}
-                isParsing={isParsingResume}
-                importError={state.importError ?? null}
-                user={user}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Constrained Views */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-24">
           {state.currentView === 'pro' && (
             <JobFitPro
               onDraftApplication={handleDraftApplication}
-            />
-          )}
-
-          {state.currentView === 'history' && (
-            <History
-              jobs={state.jobs}
-              onSelectJob={(id) => { setActiveJobId(id); setView('job-detail'); }}
-              onDeleteJob={handleDeleteJob}
             />
           )}
 
@@ -554,6 +545,26 @@ const App: React.FC = () => {
               isParsing={isParsingResume}
               importError={importError}
               importTrigger={importTrigger}
+            />
+          )}
+
+          {(state.currentView === 'arsenal' && (isTester || isAdmin)) && (
+            <SkillsView
+              skills={state.skills}
+              resumes={state.resumes}
+              onSkillsUpdated={(skills) => setState(prev => ({ ...prev, skills }))}
+              onStartInterview={(name) => setInterviewSkill(name)}
+            />
+          )}
+        </div>
+
+        {/* Constrained Views (Legacy/Specific) */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-24">
+          {state.currentView === 'history' && (
+            <History
+              jobs={state.jobs}
+              onSelectJob={(id) => { setActiveJobId(id); setView('job-detail'); }}
+              onDeleteJob={handleDeleteJob}
             />
           )}
 
@@ -571,16 +582,7 @@ const App: React.FC = () => {
             <AdminDashboard />
           )}
 
-          {(state.currentView === 'arsenal' && (isTester || isAdmin)) && (
-            <SkillsView
-              skills={state.skills}
-              resumes={state.resumes}
-              onSkillsUpdated={(skills) => setState(prev => ({ ...prev, skills }))}
-              onStartInterview={(name) => setInterviewSkill(name)}
-            />
-          )}
-
-          {/* Interview Modal (Global) */}
+          {/* Interview Modal (Global) - Rendered here to ensure it's within context if needed, but could be global */}
           {interviewSkill && (
             <SkillInterviewModal
               skillName={interviewSkill}

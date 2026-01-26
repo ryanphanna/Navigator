@@ -7,6 +7,7 @@ import { SkillCard } from './SkillCard';
 import { SkillsStats } from './SkillsStats';
 import { AddSkillModal } from './AddSkillModal';
 import { SkillSuggestions } from './SkillSuggestions';
+import { PageLayout } from '../common/PageLayout';
 
 interface SkillsViewProps {
     skills: CustomSkill[];
@@ -80,33 +81,23 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
         }
     };
 
+    const headerActions = (
+        <button
+            onClick={() => setIsAdding(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
+        >
+            <Plus className="w-5 h-5" />
+            Add Skill
+        </button>
+    );
+
     return (
-        <div className="animate-in fade-in duration-500 pb-20">
-            {/* Strategy Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-                <div className="space-y-1">
-                    <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-4">
-                        <div className="p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-500/20">
-                            <Target className="w-8 h-8 text-white" />
-                        </div>
-                        Your Skills
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium ml-1">
-                        Track your skills, verify proficiency, and close the gap.
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setIsAdding(true)}
-                        className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
-                    >
-                        <Plus className="w-5 h-5" />
-                        Add Skill
-                    </button>
-                </div>
-            </div>
-
+        <PageLayout
+            title="Your Skills"
+            description="Track your skills, verify proficiency, and close the gap."
+            icon={<Target className="w-8 h-8 text-white" />}
+            actions={headerActions}
+        >
             {/* Quick Stats */}
             <SkillsStats
                 skills={skills}
@@ -168,6 +159,6 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
                 onClose={() => setIsAdding(false)}
                 onAdd={handleAddSkill}
             />
-        </div>
+        </PageLayout>
     );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ResumeProfile, ExperienceBlock } from '../types';
 import { Upload, Loader2, Plus, Trash2, Briefcase, GraduationCap, Code, Layers, Calendar, Building2, UserCircle, Zap } from 'lucide-react';
+import { PageLayout } from './common/PageLayout';
 
 interface ResumeEditorProps {
     resumes: ResumeProfile[];
@@ -115,8 +116,24 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
     const showEmptyState = blocks.length === 0 && !hasStartedManually && !isParsing;
 
+    const headerActions = (
+        <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isParsing}
+            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-2xl font-bold transition-all shadow-sm border border-slate-200 dark:border-slate-700 disabled:opacity-70 disabled:cursor-wait"
+        >
+            {isParsing ? <Loader2 className="w-5 h-5 animate-spin text-indigo-600" /> : <Upload className="w-5 h-5" />}
+            {isParsing ? 'Parsing...' : 'Import Resume'}
+        </button>
+    );
+
     return (
-        <div className="animate-in fade-in pb-20">
+        <PageLayout
+            title="Resume Builder"
+            description="Manage your experience blocks. We assemble these into your final resume."
+            icon={<Briefcase className="w-8 h-8 text-white" />}
+            actions={headerActions}
+        >
             <input
                 type="file"
                 ref={fileInputRef}
@@ -126,7 +143,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
             />
 
             {showEmptyState ? (
-                <div className="max-w-2xl mx-auto mt-20 text-center space-y-8 animate-in zoom-in-95 duration-500">
+                <div className="max-w-2xl mx-auto mt-8 text-center space-y-8 animate-in zoom-in-95 duration-500">
                     <div className="space-y-4">
                         <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-indigo-100">
                             <Briefcase className="w-10 h-10 text-indigo-600" />
@@ -173,31 +190,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                 </div>
             ) : (
                 <>
-                    {/* Header (Unified Design) */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-                        <div className="space-y-2">
-                            <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-4">
-                                <div className="p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-500/20">
-                                    <Briefcase className="w-8 h-8 text-white" />
-                                </div>
-                                Resume Builder
-                            </h1>
-                            <p className="text-slate-500 dark:text-slate-400 font-medium ml-1 max-w-xl">
-                                Manage your experience blocks. We assemble these into your final resume.
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={isParsing}
-                                className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-2xl font-bold transition-all shadow-sm border border-slate-200 dark:border-slate-700 disabled:opacity-70 disabled:cursor-wait"
-                            >
-                                {isParsing ? <Loader2 className="w-5 h-5 animate-spin text-indigo-600" /> : <Upload className="w-5 h-5" />}
-                                {isParsing ? 'Parsing...' : 'Import Resume'}
-                            </button>
-                        </div>
-                    </div>
 
                     {importError && (
                         <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-sm animate-in slide-in-from-top-2 font-medium">
@@ -374,7 +366,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                 </>
             )
             }
-        </div >
+        </PageLayout >
     );
 };
 
