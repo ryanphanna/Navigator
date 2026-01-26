@@ -31,7 +31,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     .single();
 
                 if (data && !error) {
-                    console.log('User Profile Data:', data);
                     setUserTier(data.subscription_tier as 'free' | 'pro' | 'admin');
                     setIsAdmin(data.is_admin || false);
                     setIsTester(data.is_tester || false);
@@ -40,10 +39,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     if (data.is_admin) {
                         setUserTier('admin');
                     }
-                } else if (error) {
-                    console.error('Supabase Profile Error:', error);
-                } else {
-                    console.log('No profile row found for user:', currentUser.id);
                 }
             } catch (err) {
                 console.error('Error fetching user profile:', err);
