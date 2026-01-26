@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ResumeProfile, ExperienceBlock } from '../types';
-import { Upload, Loader2, Plus, Trash2, Briefcase, GraduationCap, Code, Layers, Calendar, Building2, UserCircle, Zap, CheckCircle } from 'lucide-react';
+import { Upload, Loader2, Plus, Trash2, Briefcase, GraduationCap, Code, Layers, Calendar, Building2, UserCircle, Zap } from 'lucide-react';
 
 interface ResumeEditorProps {
     resumes: ResumeProfile[];

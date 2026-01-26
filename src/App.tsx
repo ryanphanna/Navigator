@@ -529,9 +529,7 @@ const App: React.FC = () => {
             />
           )}
           {state.currentView === 'admin' && (
-            <AdminDashboard
-              onBack={() => setView('home')}
-            />
+            <AdminDashboard />
           )}
         </div>
         <Analytics />
