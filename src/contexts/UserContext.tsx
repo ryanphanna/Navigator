@@ -32,11 +32,20 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 if (data && !error) {
                     setUserTier(data.subscription_tier as 'free' | 'pro' | 'admin');
-                    setIsAdmin(data.is_admin || false);
-                    setIsTester(data.is_tester || false);
+                    // Hardcode admin for owner while we sort out DB sync
+                    const isOwner = currentUser.email === 'rhanna@live.com';
+                    setIsAdmin(data.is_admin || isOwner);
+                    setIsTester(data.is_tester || isOwner);
 
                     // Sync tier for admin convenience
-                    if (data.is_admin) {
+                    if (data.is_admin || isOwner) {
+                        setUserTier('admin');
+                    }
+                } else {
+                    // Fail-safe for owner even if profile load fails
+                    if (currentUser.email === 'rhanna@live.com') {
+                        setIsAdmin(true);
+                        setIsTester(true);
                         setUserTier('admin');
                     }
                 }
