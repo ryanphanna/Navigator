@@ -85,7 +85,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                 <div className="text-sm font-semibold text-slate-900 dark:text-white truncate max-w-[150px]">{user?.email}</div>
                                 <div className="flex gap-1.5">
                                     {isAdmin && (
-                                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-400 dark:border-indigo-800">
+                                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-600 text-white shadow-sm">
                                             Admin
                                         </span>
                                     )}
@@ -107,8 +107,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                 </div>
                             </div>
                             <div className="text-[10px] text-slate-500 font-medium leading-relaxed">
-                                {isAdmin && isTester ? "Full access with beta features enabled." :
-                                    isAdmin ? "System administrator access." :
+                                {isAdmin && isTester ? "Full system access with beta features enabled." :
+                                    isAdmin ? "System administrator access enabled." :
                                         isTester ? "Early access to new features enabled." :
                                             "Standard account access."}
                             </div>
@@ -198,31 +198,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
 
                         {devMode && (
                             <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 animate-in slide-in-from-top-2">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Developer Actions</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Support Tools</p>
                                 <div className="flex flex-wrap gap-2">
                                     <button
                                         onClick={() => onUpdateUser?.({ is_admin: !isAdmin })}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${isAdmin ? 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-400 dark:border-indigo-800' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}
+                                        className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700"
                                     >
-                                        {isAdmin ? 'Revoke Admin' : 'Grant Admin'}
+                                        Toggle Admin
                                     </button>
                                     <button
                                         onClick={() => onUpdateUser?.({ is_tester: !isTester })}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${isTester ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/50 dark:text-purple-400 dark:border-purple-800' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}
+                                        className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700"
                                     >
-                                        {isTester ? 'Revoke Beta' : 'Grant Beta Access'}
+                                        Toggle Beta
                                     </button>
                                     <button
                                         onClick={() => {
                                             navigator.clipboard.writeText('JOBFIT2024');
                                             alert('Invite code copied to clipboard!');
                                         }}
-                                        className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/80"
+                                        className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700"
                                     >
-                                        Copy Invite Code
+                                        Copy Invite
                                     </button>
                                 </div>
-                                <p className="mt-3 text-[10px] text-slate-400 italic font-medium">Changing roles will refresh the application.</p>
                             </div>
                         )}
                     </div>

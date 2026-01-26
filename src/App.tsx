@@ -431,7 +431,7 @@ const App: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <div className="hidden md:flex items-center gap-2 bg-slate-100 dark:bg-slate-800 py-1.5 px-3 rounded-full border border-slate-200 dark:border-slate-700">
                       <div className="text-xs font-medium text-slate-700 dark:text-slate-300">{user.email}</div>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isAdmin ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' :
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isAdmin ? 'bg-indigo-600 text-white shadow-sm' :
                         isTester ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' :
                           userTier === 'pro' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' :
                             'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
