@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, SchemaType } from "@google/generative-ai";
 import { supabase } from "./supabase";
-import type { JobAnalysis, ResumeProfile, ExperienceBlock, CustomSkill, DistilledJob } from "../types";
+import type { JobAnalysis, ResumeProfile, ExperienceBlock, CustomSkill } from "../types";
 import { getSecureItem, setSecureItem, removeSecureItem, migrateToSecureStorage } from "../utils/secureStorage";
 import { getUserFriendlyError, getRetryMessage } from "../utils/errorMessages";
 import { API_CONFIG, CONTENT_VALIDATION, AI_MODELS, AI_TEMPERATURE, STORAGE_KEYS } from "../constants";
@@ -240,106 +240,12 @@ ${b.bullets.map(bull => `- ${bull}`).join('\n')}
         .join('\n---\n');
 };
 
-// STAGE 1: Extract job metadata and clean description (Flash - fast, cheap, small output)
-const extractJobInfo = async (
-    rawJobText: string
-): Promise<{ distilledJob: DistilledJob; cleanedDescription: string }> => {
-
-    console.log('🤖 Stage 1/2: Extracting job details (Flash)');
-
-    const extractionPrompt = `You are a job posting analyzer. Extract key information and clean this job posting.
-
-RAW JOB POSTING:
-${rawJobText.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}
-
-TASK:
-1. Extract metadata: company name, job title, application deadline (if mentioned, else null), salary range (if mentioned, else null)
-2. Extract required skills with proficiency levels:
-   - 'learning': Familiarity, exposure, want to learn, junior-level
-   - 'comfortable': Proficient, strong understanding, 2-5 years
-   - 'expert': Advanced, lead, deep knowledge, 5-8+ years
-3. Extract key skills (simple list format)
-4. Extract core responsibilities
-5. Clean the job description: REMOVE company culture fluff, benefits, legal disclaimers, application instructions. KEEP job description, requirements, qualifications, responsibilities.
-
-Return JSON with: distilledJob (object) and cleanedDescription (string)`;
-
-    return callWithRetry(async () => {
-        const model = await getModel({ model: AI_MODELS.FLASH });
-        const response = await model.generateContent({
-            contents: [{ role: "user", parts: [{ text: extractionPrompt }] }],
-            generationConfig: {
-                temperature: AI_TEMPERATURE.STRICT,
-                maxOutputTokens: 2048,
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: SchemaType.OBJECT,
-                    properties: {
-                        distilledJob: {
-                            type: SchemaType.OBJECT,
-                            properties: {
-                                companyName: { type: SchemaType.STRING },
-                                roleTitle: { type: SchemaType.STRING },
-                                applicationDeadline: { type: SchemaType.STRING, nullable: true },
-                                salaryRange: { type: SchemaType.STRING, nullable: true },
-                                requiredSkills: {
-                                    type: SchemaType.ARRAY,
-                                    items: {
-                                        type: SchemaType.OBJECT,
-                                        properties: {
-                                            name: { type: SchemaType.STRING },
-                                            level: { type: SchemaType.STRING, enum: ["learning", "comfortable", "expert"], format: "enum" }
-                                        },
-                                        required: ["name", "level"]
-                                    }
-                                },
-                                keySkills: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
-                                coreResponsibilities: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
-                            },
-                            required: ["companyName", "roleTitle", "keySkills", "requiredSkills", "coreResponsibilities"]
-                        },
-                        cleanedDescription: { type: SchemaType.STRING }
-                    },
-                    required: ["distilledJob", "cleanedDescription"]
-                }
-            }
-        });
-
-        const text = response.response.text();
-        if (!text || !text.trim()) throw new Error("Empty response from extraction");
-
-        // Strip markdown code blocks (Gemini sometimes adds them even with responseMimeType: "application/json")
-        const cleanedText = text.replace(/^```json\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
-
-        const parsed = JSON.parse(cleanedText);
-        if (!parsed.distilledJob || !parsed.cleanedDescription) {
-            throw new Error("Missing required fields in extraction response");
-        }
-
-        console.log('✅ Stage 1 complete');
-        return parsed;
-    }, {
-        event_type: 'job_extraction',
-        prompt: extractionPrompt,
-        model: AI_MODELS.FLASH
-    });
-};
-
-// STAGE 2 + MAIN EXPORT: Analyze compatibility (Pro - smarter, higher token limit)
 export const analyzeJobFit = async (
     jobDescription: string,
     resumes: ResumeProfile[],
     userSkills: CustomSkill[] = [],
     onProgress?: RetryProgressCallback
 ): Promise<JobAnalysis> => {
-
-    // Stage 1: Extract and clean (Flash)
-    if (onProgress) onProgress("Extracting job details...", 1, 2);
-    const { distilledJob, cleanedDescription } = await extractJobInfo(jobDescription);
-
-    // Stage 2: Analyze with Pro model
-    if (onProgress) onProgress("Analyzing your fit (Pro model)...", 2, 2);
-    console.log('🧠 Stage 2/2: Analyzing compatibility (Pro)');
 
     const resumeContext = resumes
         .map(r => `PROFILE_NAME: ${r.name}\nPROFILE_ID: ${r.id}\nEXPERIENCE BLOCKS:\n${stringifyProfile(r)}\n`)
@@ -349,83 +255,98 @@ export const analyzeJobFit = async (
         ? `VERIFIED SKILLS (ARSENAL):\n${userSkills.map(s => `- ${s.name}: ${s.proficiency} (Evidence: ${s.evidence})`).join('\n')}\n`
         : '';
 
-    const analysisPrompt = `You are a ruthless technical recruiter analyzing candidate fit.
+    const prompt = ANALYSIS_PROMPTS.JOB_FIT_ANALYSIS(jobDescription, resumeContext + "\n" + skillContext);
 
-JOB POSTING:
-Company: ${distilledJob.companyName}
-Role: ${distilledJob.roleTitle}
-${distilledJob.salaryRange ? `Salary: ${distilledJob.salaryRange}` : ''}
-${distilledJob.applicationDeadline ? `Deadline: ${distilledJob.applicationDeadline}` : ''}
-
-REQUIREMENTS (Cleaned):
-${cleanedDescription}
-
-MY EXPERIENCE:
-${resumeContext}
-
-${skillContext}
-
-TASK:
-1. SCORE: Rate compatibility 0-100. Be harsh. Matching <50% = reject.
-2. MATCH BREAKDOWN: Identify PROVEN strengths and MISSING/UNDER-LEVELLED weaknesses.
-3. BEST RESUME: Pick the profile ID that fits best.
-4. REASONING: Explain the score in 2-3 sentences.
-5. TAILORING: Select specific BLOCK_IDs that are VITAL. Provide concise, actionable instructions.
-6. PERSONA: Address as "You", not "The Candidate"
-
-Return ONLY JSON with: compatibilityScore, bestResumeProfileId, reasoning, strengths, weaknesses, tailoringInstructions, recommendedBlockIds`;
-
-    const analysis = await callWithRetry(async () => {
-        const model = await getModel({ model: AI_MODELS.PRO });
-        const response = await model.generateContent({
-            contents: [{ role: "user", parts: [{ text: analysisPrompt }] }],
-            generationConfig: {
-                temperature: AI_TEMPERATURE.STRICT,
-                maxOutputTokens: 4096, // Reduced from 8192 since job is already distilled
-                responseMimeType: "application/json",
-            }
-        });
-
-        const usageMetadata = (response as any).usageMetadata;
-        if (usageMetadata) {
-            console.log('📊 Token Usage:', {
-                promptTokens: usageMetadata.promptTokenCount,
-                outputTokens: usageMetadata.candidatesTokenCount,
-                totalTokens: usageMetadata.totalTokenCount
+    return callWithRetry(async () => {
+        try {
+            console.log('🤖 Job Analysis: Using Gemini Flash (2.0-flash-exp)');
+            const model = await getModel({
+                model: AI_MODELS.FLASH, // Use 2.0-flash for structured data extraction
+                safetySettings: [
+                    {
+                        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                        threshold: HarmBlockThreshold.BLOCK_NONE,
+                    },
+                    {
+                        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                        threshold: HarmBlockThreshold.BLOCK_NONE,
+                    },
+                    {
+                        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                        threshold: HarmBlockThreshold.BLOCK_NONE,
+                    },
+                    {
+                        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        threshold: HarmBlockThreshold.BLOCK_NONE,
+                    },
+                ],
             });
+            const response = await model.generateContent({
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: {
+                    temperature: AI_TEMPERATURE.STRICT,
+                    maxOutputTokens: 8192, // Increased from 4096 to allow longer responses
+                    responseMimeType: "application/json",
+                    // Removed strict responseSchema to prevent truncation - Gemini has more flexibility now
+                }
+            });
+
+            // Log token usage for debugging
+            const usageMetadata = (response as any).usageMetadata;
+            if (usageMetadata) {
+                console.log('📊 Token Usage:', {
+                    promptTokens: usageMetadata.promptTokenCount,
+                    outputTokens: usageMetadata.candidatesTokenCount,
+                    totalTokens: usageMetadata.totalTokenCount
+                });
+            }
+
+            const text = response.response.text();
+            if (!text || !text.trim()) throw new Error("Empty response from AI");
+
+            // Increment local request counter on success
+            const today = new Date().toISOString().split('T')[0];
+            const currentCount = JSON.parse(localStorage.getItem('jobfit_daily_usage') || '{}');
+            if (currentCount.date !== today) {
+                currentCount.date = today;
+                currentCount.count = 0;
+            }
+            currentCount.count++;
+            localStorage.setItem('jobfit_daily_usage', JSON.stringify(currentCount));
+
+            // Strip markdown code blocks if present (Gemini sometimes wraps JSON in ```json ... ```)
+            const cleanedText = text.replace(/^```json\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+
+            if (!cleanedText) {
+                throw new Error("Response was only markdown markers with no content");
+            }
+
+            try {
+                const parsed = JSON.parse(cleanedText) as JobAnalysis;
+
+                // Validate the parsed result has the required structure
+                if (!parsed || typeof parsed !== 'object') {
+                    throw new Error("Parsed result is not an object");
+                }
+                if (!parsed.distilledJob || parsed.compatibilityScore === undefined) {
+                    throw new Error("Missing required fields in AI response");
+                }
+
+                return parsed;
+            } catch (parseError) {
+                console.error('JSON Parse Error:', parseError);
+                console.error('Problematic text:', cleanedText.substring(0, 500));
+                throw new Error(`Failed to parse AI response: ${(parseError as Error).message}`);
+            }
+
+        } catch (error) {
+            throw error; // Re-throw to trigger retry
         }
-
-        const text = response.response.text();
-        if (!text || !text.trim()) throw new Error("Empty response from analysis");
-
-        const today = new Date().toISOString().split('T')[0];
-        const currentCount = JSON.parse(localStorage.getItem('jobfit_daily_usage') || '{}');
-        if (currentCount.date !== today) {
-            currentCount.date = today;
-            currentCount.count = 0;
-        }
-        currentCount.count++;
-        localStorage.setItem('jobfit_daily_usage', JSON.stringify(currentCount));
-
-        const cleanedText = text.replace(/^```json\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
-        const parsed = JSON.parse(cleanedText);
-
-        if (!parsed.compatibilityScore || !parsed.bestResumeProfileId) {
-            throw new Error("Missing required fields in analysis response");
-        }
-
-        console.log('✅ Stage 2 complete');
-        return parsed;
     }, {
         event_type: 'analysis',
-        prompt: analysisPrompt,
-        model: AI_MODELS.PRO
+        prompt: prompt,
+        model: AI_MODELS.FLASH
     }, 3, 2000, onProgress);
-
-    return {
-        ...analysis,
-        distilledJob
-    };
 };
 
 
@@ -433,8 +354,7 @@ export const generateCoverLetter = async (
     jobDescription: string,
     selectedResume: ResumeProfile,
     tailoringInstructions: string[],
-    additionalContext?: string,
-    forceVariant?: string  // Optional: specify exact variant to use
+    additionalContext?: string
 ): Promise<{ text: string; promptVersion: string }> => {
     // ... (prompt definition) ...
     const resumeText = stringifyProfile(selectedResume);
@@ -442,11 +362,9 @@ export const generateCoverLetter = async (
     // Use extracted templates/prompts
     const PROMPT_VARIANTS = ANALYSIS_PROMPTS.COVER_LETTER.VARIANTS;
 
-    // A/B Test Selection (Random or Forced)
+    // A/B Test Selection (Random)
     const keys = Object.keys(PROMPT_VARIANTS);
-    const promptVersion = forceVariant && keys.includes(forceVariant)
-        ? forceVariant
-        : keys[Math.floor(Math.random() * keys.length)];
+    const promptVersion = keys[Math.floor(Math.random() * keys.length)];
     const selectedVariantTemplate = PROMPT_VARIANTS[promptVersion as keyof typeof PROMPT_VARIANTS];
     const selectedModel = promptVersion === 'v3_experimental_pro' ? AI_MODELS.PRO : AI_MODELS.FLASH;
 
@@ -476,85 +394,6 @@ export const generateCoverLetter = async (
         prompt: prompt,
         model: selectedModel
     });
-};
-
-// Pro Feature: Smart Quality-Gated Cover Letter Generation
-// Logic: Try until score >= 75, but stop early if quality improves
-// If attempt 2 gets worse, try once more (max 3 attempts)
-export const generateCoverLetterWithQuality = async (
-    jobDescription: string,
-    selectedResume: ResumeProfile,
-    tailoringInstructions: string[],
-    additionalContext?: string,
-    onProgress?: (message: string) => void
-): Promise<{ text: string; promptVersion: string; score: number; attempts: number }> => {
-    const QUALITY_THRESHOLD = 75;
-    const PROMPT_VARIANTS = Object.keys(ANALYSIS_PROMPTS.COVER_LETTER.VARIANTS);
-    const usedVariants: string[] = [];
-    const attempts: Array<{ text: string; promptVersion: string; score: number }> = [];
-
-    // Attempt 1: Random variant
-    onProgress?.("Generating cover letter...");
-    const attempt1 = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, additionalContext);
-    usedVariants.push(attempt1.promptVersion);
-
-    onProgress?.("Evaluating quality...");
-    const critique1 = await critiqueCoverLetter(jobDescription, attempt1.text);
-    attempts.push({ ...attempt1, score: critique1.score });
-
-    console.log(`[Quality Gate] Attempt 1 (${attempt1.promptVersion}): Score ${critique1.score}/100`);
-
-    // Stop if threshold met
-    if (critique1.score >= QUALITY_THRESHOLD) {
-        return { ...attempt1, score: critique1.score, attempts: 1 };
-    }
-
-    // Attempt 2: Different variant (score was < 75)
-    onProgress?.("Optimizing quality...");
-    const availableVariants2 = PROMPT_VARIANTS.filter(v => !usedVariants.includes(v));
-    const variant2 = availableVariants2[Math.floor(Math.random() * availableVariants2.length)];
-
-    const attempt2 = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, additionalContext, variant2);
-    usedVariants.push(attempt2.promptVersion);
-
-    onProgress?.("Evaluating quality...");
-    const critique2 = await critiqueCoverLetter(jobDescription, attempt2.text);
-    attempts.push({ ...attempt2, score: critique2.score });
-
-    console.log(`[Quality Gate] Attempt 2 (${attempt2.promptVersion}): Score ${critique2.score}/100`);
-
-    // Stop if threshold met
-    if (critique2.score >= QUALITY_THRESHOLD) {
-        return { ...attempt2, score: critique2.score, attempts: 2 };
-    }
-
-    // Stop if quality improved (even if still below threshold)
-    if (critique2.score >= critique1.score) {
-        console.log(`[Quality Gate] Quality improved (${critique2.score} >= ${critique1.score}). Stopping.`);
-        return { ...attempt2, score: critique2.score, attempts: 2 };
-    }
-
-    // Attempt 3: Quality got worse, try once more
-    console.log(`[Quality Gate] Quality decreased (${critique2.score} < ${critique1.score}). Final attempt.`);
-    onProgress?.("Final optimization...");
-
-    const availableVariants3 = PROMPT_VARIANTS.filter(v => !usedVariants.includes(v));
-    const variant3 = availableVariants3.length > 0
-        ? availableVariants3[Math.floor(Math.random() * availableVariants3.length)]
-        : PROMPT_VARIANTS[Math.floor(Math.random() * PROMPT_VARIANTS.length)];
-
-    const attempt3 = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, additionalContext, variant3);
-
-    onProgress?.("Evaluating quality...");
-    const critique3 = await critiqueCoverLetter(jobDescription, attempt3.text);
-    attempts.push({ ...attempt3, score: critique3.score });
-
-    console.log(`[Quality Gate] Attempt 3 (${attempt3.promptVersion}): Score ${critique3.score}/100`);
-
-    // Return best of all 3 attempts
-    const best = attempts.reduce((prev, curr) => curr.score > prev.score ? curr : prev);
-    console.log(`[Quality Gate] Final: Using best attempt with score ${best.score}/100`);
-    return { text: best.text, promptVersion: best.promptVersion, score: best.score, attempts: 3 };
 };
 
 export const generateTailoredSummary = async (

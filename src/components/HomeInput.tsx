@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, AlertCircle, Link as LinkIcon, FileText, CheckCircle, Lock, Sparkles, Zap, Check, Plus, Shield, PenTool, Bookmark } from 'lucide-react';
-import { ScraperService } from '../services/scraperService';
-import { analyzeJobFit } from '../services/geminiService';
+
 import type { ResumeProfile, SavedJob, CustomSkill } from '../types';
 import { Storage } from '../services/storageService';
 import type { User } from '@supabase/supabase-js';
-import { getUserFriendlyError } from '../utils/errorMessages';
 import { STORAGE_KEYS } from '../constants';
 
 
@@ -34,8 +32,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
     const [manualText, setManualText] = useState('');
     const [isManualMode, setIsManualMode] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [statusMessage, setStatusMessage] = useState<string | null>(null);
-    const [lastSubmittedId, setLastSubmittedId] = useState<string | null>(null);
+
     const [showResumePrompt, setShowResumePrompt] = useState(false);
     const [pendingJobInput, setPendingJobInput] = useState<{ type: 'url' | 'text', content: string } | null>(null);
     const [headingIndex, setHeadingIndex] = useState(0);
@@ -90,11 +87,13 @@ const HomeInput: React.FC<HomeInputProps> = ({
         const jobId = crypto.randomUUID();
 
         // 1. Create the placeholder job immediately
+        // If content is text, we save it immediately. If URL, we save URL and scrape later in JobDetail.
         const newJob: SavedJob = {
             id: jobId,
-            company: 'Analyzing...',
+            company: 'New Job', // Temporary until analysis
             position: 'Analyzing...',
-            description: '',
+            description: input.type === 'text' ? input.content : '',
+            url: input.type === 'url' ? input.content : undefined,
             resumeId: resumes[0]?.id || 'master', // Default to first resume
             dateAdded: Date.now(),
             status: 'analyzing',
@@ -102,66 +101,16 @@ const HomeInput: React.FC<HomeInputProps> = ({
 
         // 2. Add to state immediately
         await Storage.addJob(newJob);
-        onJobCreated(newJob);
-        setLastSubmittedId(jobId);
 
-        // 3. Clear inputs immediately so user is unblocked
+        // 3. Navigate immediately
+        onJobCreated(newJob);
+
+        // 4. Clear inputs
         setManualText('');
         setUrl('');
         setError(null);
         if (isManualMode && input.type === 'text') {
             setIsManualMode(false);
-        }
-
-        // 4. Run scraping and analysis in background
-        try {
-            let textToAnalyze = input.type === 'text' ? input.content : '';
-
-            // If URL, we need to scrape first
-            if (input.type === 'url') {
-                try {
-                    // Use the robust ScraperService (Edge Function)
-                    textToAnalyze = await ScraperService.scrapeJobText(input.content);
-
-                    if (!textToAnalyze) {
-                        throw new Error("Could not extract text from this URL.");
-                    }
-                } catch (scrapeError) {
-                    console.error("Scraping failed:", scrapeError);
-                    const failedJob: SavedJob = { ...newJob, status: 'error', analysis: undefined };
-                    onJobUpdated(failedJob);
-                    return; // Stop processing
-                }
-            }
-
-            const analysis = await analyzeJobFit(
-                textToAnalyze,
-                resumes,
-                userSkills,
-                (message: string) => setStatusMessage(message)  // Show retry progress
-            );
-
-            setStatusMessage(null);  // Clear status after success
-
-            const updatedJob: SavedJob = {
-                ...newJob,
-                description: textToAnalyze, // Save the text we successfully got
-                status: 'analyzing',
-                analysis: analysis
-            };
-
-            onJobUpdated(updatedJob);
-        } catch (err) {
-            setStatusMessage(null);
-            const friendlyError = getUserFriendlyError(err as Error);
-            setError(friendlyError);
-
-            const failedJob: SavedJob = {
-                ...newJob,
-                status: 'error',
-                analysis: undefined
-            };
-            onJobUpdated(failedJob);
         }
     };
 
@@ -290,18 +239,6 @@ const HomeInput: React.FC<HomeInputProps> = ({
                 )}
 
                 <div className="mt-8 text-center h-6">
-                    {statusMessage && (
-                        <div className="flex items-center justify-center gap-2 text-sm text-amber-600 font-medium animate-in fade-in slide-in-from-bottom-2">
-                            <Sparkles className="w-4 h-4 animate-spin" />
-                            {statusMessage}
-                        </div>
-                    )}
-                    {!statusMessage && lastSubmittedId && !manualText && !url && (
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium animate-in fade-in slide-in-from-bottom-2">
-                            <CheckCircle className="w-4 h-4" />
-                            Job added to processing queue
-                        </div>
-                    )}
                     {error && isManualMode && (
                         <p className="text-sm text-red-600 font-medium">{error}</p>
                     )}

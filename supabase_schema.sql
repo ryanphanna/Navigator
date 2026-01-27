@@ -65,6 +65,18 @@ create table daily_usage (
   primary key (user_id, date)
 );
 
+-- USER_SKILLS: Stores user's verified skills with proficiency levels
+create table user_skills (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references profiles(id) not null,
+  name text not null,
+  proficiency text not null check (proficiency in ('learning', 'comfortable', 'expert')),
+  evidence text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique(user_id, name)
+);
+
 -- 3. SECURITY (Row Level Security)
 
 alter table profiles enable row level security;
@@ -73,6 +85,7 @@ alter table jobs enable row level security;
 alter table feedback enable row level security;
 alter table invite_codes enable row level security;
 alter table daily_usage enable row level security;
+alter table user_skills enable row level security;
 
 -- Profile Policies
 create policy "Users can view their own profile" on profiles for select using (auth.uid() = id);
@@ -83,6 +96,9 @@ create policy "Users can manage own resumes" on resumes for all using (auth.uid(
 
 -- Job Policies
 create policy "Users can manage own jobs" on jobs for all using (auth.uid() = user_id);
+
+-- User Skills Policies
+create policy "Users can manage own skills" on user_skills for all using (auth.uid() = user_id);
 
 -- Feedback Policies
 create policy "Users can insert own feedback" on feedback for insert with check (auth.uid() = user_id);
@@ -151,6 +167,11 @@ CREATE INDEX IF NOT EXISTS idx_jobs_user_id ON jobs(user_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_date_added ON jobs(date_added DESC);
 CREATE INDEX IF NOT EXISTS idx_jobs_user_date ON jobs(user_id, date_added DESC);
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
+
+-- User Skills
+CREATE INDEX IF NOT EXISTS idx_user_skills_user_id ON user_skills(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_skills_name ON user_skills(name);
+CREATE INDEX IF NOT EXISTS idx_user_skills_proficiency ON user_skills(proficiency);
 
 -- 6. INITIAL SEEDING
 insert into invite_codes (code, remaining_uses) values ('JOBFIT2024', 9999) on conflict do nothing;

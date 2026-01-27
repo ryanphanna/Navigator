@@ -414,19 +414,17 @@ const App: React.FC = () => {
                     </button>
                   )}
 
-                  {/* Skills tab is for Testers OR Admins only */}
-                  {(isTester || isAdmin) && (
-                    <button
-                      onClick={() => { setActiveJobId(null); setView('arsenal'); }}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${state.currentView === 'arsenal'
-                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-                        }`}
-                    >
-                      <Target className="w-4 h-4" />
-                      <span className="hidden sm:inline">Skills</span>
-                    </button>
-                  )}
+                  {/* Skills tab - available to all logged-in users */}
+                  <button
+                    onClick={() => { setActiveJobId(null); setView('arsenal'); }}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${state.currentView === 'arsenal'
+                      ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                      }`}
+                  >
+                    <Target className="w-4 h-4" />
+                    <span className="hidden sm:inline">Skills</span>
+                  </button>
 
                   <button
                     onClick={() => { setActiveJobId(null); setView('resumes'); }}
@@ -562,7 +560,7 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {(state.currentView === 'arsenal' && (isTester || isAdmin)) && (
+          {state.currentView === 'arsenal' && (
             <div className="pt-20">
               <SkillsView
                 skills={state.skills}
