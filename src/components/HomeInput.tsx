@@ -617,13 +617,13 @@ const HomeInput: React.FC<HomeInputProps> = ({
 
             {/* Bento Grid Features - Only for Non-Logged In Users */}
             {!user && shuffledCards.length > 0 && (
-                <div className="mt-16 w-full max-w-[1600px] mx-auto px-6 lg:px-12">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-10">
+                <div className="mt-16 w-full max-w-[1920px] mx-auto px-6 lg:px-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {shuffledCards.map((index) => {
                             switch (index) {
                                 case 0: return (
                                     /* Card 1: Speed (Flash) */
-                                    <div key="card-1" className="bg-blue-50/50 dark:bg-blue-500/5 backdrop-blur-xl rounded-[2.5rem] p-8 border border-blue-500/10 dark:border-blue-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
+                                    <div key="card-1" className="bg-blue-50/50 dark:bg-blue-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-blue-500/10 dark:border-blue-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-all duration-700" />
                                         <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 group-hover:rotate-12 transition-transform">
                                             <Zap className="w-6 h-6" />
@@ -635,7 +635,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                             Stop guessing. Get an instant 0-100 compatibility rating for any job description.
                                         </p>
                                         {/* Visual for Score */}
-                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex items-center justify-center h-44 relative z-10">
+                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex items-center justify-center h-40 relative z-10">
                                             <div className="relative w-28 h-28 flex items-center justify-center">
                                                 <svg className="w-full h-full transform -rotate-90">
                                                     <circle cx="56" cy="56" r="50" fill="transparent" stroke="currentColor" strokeWidth="8" className="text-slate-100 dark:text-slate-800" />
@@ -648,7 +648,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                 );
                                 case 1: return (
                                     /* Card 2: Keyword Targeting */
-                                    <div key="card-2" className="bg-violet-50/50 dark:bg-violet-500/5 backdrop-blur-xl rounded-[2.5rem] p-8 border border-violet-500/10 dark:border-violet-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
+                                    <div key="card-2" className="bg-violet-50/50 dark:bg-violet-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-violet-500/10 dark:border-violet-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-violet-500/20 transition-all duration-700" />
                                         <div className="w-12 h-12 bg-violet-100 dark:bg-violet-900/30 rounded-2xl flex items-center justify-center text-violet-600 dark:text-violet-400 mb-6 group-hover:rotate-12 transition-transform">
                                             <Sparkles className="w-6 h-6" />
@@ -660,7 +660,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                             Beat the ATS. We identify exactly which skills and keywords your resume is missing.
                                         </p>
                                         {/* Visual for Keywords */}
-                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm space-y-3 h-44 overflow-hidden relative z-10">
+                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm space-y-3 h-40 overflow-hidden relative z-10">
                                             <div className="text-[10px] font-bold text-slate-400 uppercase mb-2">Detected Keywords</div>
                                             <div className="flex flex-wrap gap-2">
                                                 {['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Cloud Infrastructure'].map((s, i) => (
@@ -675,7 +675,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                 );
                                 case 2: return (
                                     /* Card 3: Privacy (Lock) */
-                                    <div key="card-3" className="bg-emerald-50/50 dark:bg-emerald-500/5 backdrop-blur-xl rounded-[2.5rem] p-8 border border-emerald-500/10 dark:border-emerald-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
+                                    <div key="card-3" className="bg-emerald-50/50 dark:bg-emerald-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-emerald-500/10 dark:border-emerald-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-emerald-500/20 transition-all duration-700" />
                                         <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-6 group-hover:rotate-12 transition-transform">
                                             <Lock className="w-6 h-6" />
@@ -687,7 +687,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                             Your data stays yours. Encrypted local storage that we can't access or train on.
                                         </p>
                                         {/* Visual for Privacy */}
-                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex flex-col items-center justify-center h-44 gap-3 relative z-10 overflow-hidden">
+                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex flex-col items-center justify-center h-40 gap-3 relative z-10 overflow-hidden">
                                             <div className="p-4 bg-emerald-100/50 dark:bg-emerald-900/20 rounded-full animate-pulse">
                                                 <Shield className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
                                             </div>
@@ -701,7 +701,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                 );
                                 case 3: return (
                                     /* Card 4: Tailored Cover Letters */
-                                    <div key="card-4" className="bg-orange-50/50 dark:bg-orange-500/5 backdrop-blur-xl rounded-[2.5rem] p-8 border border-orange-500/10 dark:border-orange-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
+                                    <div key="card-4" className="bg-orange-50/50 dark:bg-orange-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-orange-500/10 dark:border-orange-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-orange-500/20 transition-all duration-700" />
                                         <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-2xl flex items-center justify-center text-orange-600 dark:text-orange-400 mb-6 group-hover:rotate-12 transition-transform">
                                             <PenTool className="w-6 h-6" />
@@ -713,7 +713,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                             Not just templates. We write unique, persuasive letters that cite your actual experience.
                                         </p>
                                         {/* Visual for Writing */}
-                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex flex-col h-44 gap-3 relative z-10 overflow-hidden group-hover:border-orange-500/30 transition-colors">
+                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex flex-col h-40 gap-3 relative z-10 overflow-hidden group-hover:border-orange-500/30 transition-colors">
                                             <div className="w-2/3 h-2 bg-slate-100 dark:bg-slate-800 rounded-full" />
                                             <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full" />
                                             <div className="w-5/6 h-2 bg-orange-100/50 dark:bg-orange-800/30 rounded-full" />
@@ -724,7 +724,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                 );
                                 case 4: return (
                                     /* Card 5: Professional Summary */
-                                    <div key="card-5" className="bg-rose-50/50 dark:bg-rose-500/5 backdrop-blur-xl rounded-[2.5rem] p-8 border border-rose-500/10 dark:border-rose-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
+                                    <div key="card-5" className="bg-rose-50/50 dark:bg-rose-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-rose-500/10 dark:border-rose-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-rose-500/20 transition-all duration-700" />
                                         <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/30 rounded-2xl flex items-center justify-center text-rose-600 dark:text-rose-400 mb-6 group-hover:rotate-12 transition-transform">
                                             <FileText className="w-6 h-6" />
@@ -736,7 +736,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                             We rewrite your professional summary to perfection for every single application.
                                         </p>
                                         {/* Visual for Highlights */}
-                                        <div className="bg-gradient-to-br from-rose-500 to-pink-600 rounded-[2rem] p-6 text-white shadow-lg relative z-10 overflow-hidden h-44 flex flex-col justify-center">
+                                        <div className="bg-gradient-to-br from-rose-500 to-pink-600 rounded-[2rem] p-6 text-white shadow-lg relative z-10 overflow-hidden h-40 flex flex-col justify-center">
                                             <div className="h-6 w-3/4 bg-white/20 rounded-md mb-2 flex items-center px-2">
                                                 <div className="h-1.5 w-full bg-white/40 rounded-full"></div>
                                             </div>
@@ -749,7 +749,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                 );
                                 case 5: return (
                                     /* Card 6: Bookmarklet (Informational) */
-                                    <div key="card-6" className="bg-sky-50/50 dark:bg-sky-500/5 backdrop-blur-xl rounded-[2.5rem] p-8 border border-sky-500/10 dark:border-sky-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
+                                    <div key="card-6" className="bg-sky-50/50 dark:bg-sky-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-sky-500/10 dark:border-sky-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-sky-500/20 transition-all duration-700" />
                                         <div className="w-12 h-12 bg-sky-100 dark:bg-sky-900/30 rounded-2xl flex items-center justify-center text-sky-600 dark:text-sky-400 mb-6 group-hover:rotate-12 transition-transform">
                                             <Bookmark className="w-6 h-6" />
@@ -761,7 +761,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                             Found a job on LinkedIn or Indeed? Save it to JobFit with a single click.
                                         </p>
                                         {/* Visual for Bookmarklet Info */}
-                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex flex-col items-center justify-center h-44 gap-3 relative z-10 overflow-hidden">
+                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex flex-col items-center justify-center h-40 gap-3 relative z-10 overflow-hidden">
                                             {/* Browser Bar Illustration */}
                                             <div className="w-full h-8 bg-slate-100 dark:bg-slate-800 rounded-t-lg flex items-center px-3 gap-1.5 opacity-60">
                                                 <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600"></div>
@@ -786,7 +786,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                 );
                                 case 6: return (
                                     /* Card 7: AI Career Coach (Gap Analysis) */
-                                    <div key="card-7" className="bg-emerald-50/50 dark:bg-emerald-500/5 backdrop-blur-xl rounded-[2.5rem] p-8 border border-emerald-500/10 dark:border-emerald-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
+                                    <div key="card-7" className="bg-emerald-50/50 dark:bg-emerald-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-emerald-500/10 dark:border-emerald-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-emerald-500/20 transition-all duration-700" />
                                         <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-6 group-hover:scale-110 transition-transform">
                                             <TrendingUp className="w-6 h-6" />
@@ -798,7 +798,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                             Identify the exact skills you need for your next level. Automated gap analysis across all your target roles.
                                         </p>
                                         {/* Visual for Gap Analysis */}
-                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex flex-col justify-center h-44 gap-3 relative z-10 overflow-hidden group-hover:border-emerald-500/30 transition-colors">
+                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex flex-col justify-center h-40 gap-3 relative z-10 overflow-hidden group-hover:border-emerald-500/30 transition-colors">
                                             <div className="space-y-2">
                                                 <div className="flex items-center justify-between">
                                                     <div className="h-2 w-20 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
@@ -824,7 +824,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                 );
                                 case 7: return (
                                     /* Card 8: Role Model Synthesis */
-                                    <div key="card-8" className="bg-teal-50/50 dark:bg-teal-500/5 backdrop-blur-xl rounded-[2.5rem] p-8 border border-teal-500/10 dark:border-teal-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
+                                    <div key="card-8" className="bg-teal-50/50 dark:bg-teal-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-teal-500/10 dark:border-teal-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-teal-500/20 transition-all duration-700" />
                                         <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-2xl flex items-center justify-center text-teal-600 dark:text-teal-400 mb-6 group-hover:rotate-6 transition-transform">
                                             <Shield className="w-6 h-6" />
@@ -836,7 +836,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                             Import LinkedIn profiles of people whose careers you admire. We synthesize their paths into your strategy.
                                         </p>
                                         {/* Visual for Role Models */}
-                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex items-center justify-around h-44 relative z-10 overflow-hidden group-hover:border-teal-500/30 transition-colors">
+                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex items-center justify-around h-40 relative z-10 overflow-hidden group-hover:border-teal-500/30 transition-colors">
                                             <div className="flex flex-col items-center gap-2 opacity-40">
                                                 <div className="w-10 h-10 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
                                                 <div className="h-1.5 w-12 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
@@ -857,7 +857,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                 );
                                 case 8: return (
                                     /* Card 9: 12-Month Roadmap */
-                                    <div key="card-9" className="bg-emerald-50/50 dark:bg-emerald-500/5 backdrop-blur-xl rounded-[2.5rem] p-8 border border-emerald-500/10 dark:border-emerald-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
+                                    <div key="card-9" className="bg-emerald-50/50 dark:bg-emerald-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-emerald-500/10 dark:border-emerald-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-emerald-500/20 transition-all duration-700" />
                                         <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-6 group-hover:-translate-y-1 transition-transform">
                                             <ArrowRight className="w-6 h-6" />
@@ -869,7 +869,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                             Transition from "Applying" to "Building". Get a month-by-month execution plan to land your target role.
                                         </p>
                                         {/* Visual for Roadmap */}
-                                        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-[2rem] p-6 text-white shadow-lg relative z-10 overflow-hidden h-44 flex flex-col justify-center group-hover:brightness-110 transition-all">
+                                        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-[2rem] p-6 text-white shadow-lg relative z-10 overflow-hidden h-40 flex flex-col justify-center group-hover:brightness-110 transition-all">
                                             <div className="space-y-3 relative z-10">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-[10px] font-bold">1</div>
