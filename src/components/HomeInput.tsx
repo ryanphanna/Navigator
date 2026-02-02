@@ -231,7 +231,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                     <>
                         {/* Mode Switcher moved above the input for cleaner card layout */}
                         {/* Mode Switcher moved above the input for cleaner card layout */}
-                        {mode === 'all' && (
+                        {user && mode === 'all' && (
                             <div className="mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-[1920px] mx-auto px-12">
                                     {/* Action Card 1: JobFit */}
