@@ -623,7 +623,6 @@ const App: React.FC = () => {
           {isCoachMode && (
             <div className="pt-24">
               <CoachDashboard
-                resumes={state.resumes}
                 userSkills={state.skills}
                 roleModels={state.roleModels}
                 targetJobs={state.targetJobs}

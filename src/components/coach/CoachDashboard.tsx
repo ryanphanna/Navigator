@@ -11,10 +11,9 @@ import {
     Calendar,
     Map
 } from 'lucide-react';
-import type { ResumeProfile, CustomSkill, RoleModelProfile, TargetJob } from '../../types';
+import type { CustomSkill, RoleModelProfile, TargetJob } from '../../types';
 
 interface CoachDashboardProps {
-    resumes: ResumeProfile[];
     userSkills: CustomSkill[];
     roleModels: RoleModelProfile[];
     targetJobs: TargetJob[];
@@ -27,8 +26,25 @@ interface CoachDashboardProps {
     activeAnalysisIds?: Set<string>;
 }
 
+const COACH_HEADLINES = [
+    { text: "Chart your", highlight: "Course" },
+    { text: "Map your", highlight: "Growth" },
+    { text: "Build your", highlight: "Roadmap" },
+    { text: "Design your", highlight: "Future" },
+    { text: "Scale your", highlight: "Impact" }
+];
+
+const COACH_MESSAGES = [
+    "Reviewing your skills...",
+    "Analyzing Role Model patterns...",
+    "Identifying skill gaps...",
+    "Brainstorming roadmap projects...",
+    "Calculating professional trajectory...",
+    "Consulting the AI knowledge base...",
+    "Synthesizing your growth path..."
+];
+
 export const CoachDashboard: React.FC<CoachDashboardProps> = ({
-    resumes,
     userSkills,
     roleModels,
     targetJobs,
@@ -44,13 +60,6 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
     const [activeHeadline, setActiveHeadline] = useState({ text: 'Design your', highlight: 'Future' });
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const COACH_HEADLINES = [
-        { text: "Chart your", highlight: "Course" },
-        { text: "Map your", highlight: "Growth" },
-        { text: "Build your", highlight: "Roadmap" },
-        { text: "Design your", highlight: "Future" },
-        { text: "Scale your", highlight: "Impact" }
-    ];
 
     React.useEffect(() => {
         const randomChoice = COACH_HEADLINES[Math.floor(Math.random() * COACH_HEADLINES.length)];
@@ -82,15 +91,6 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
         await onGenerateRoadmap(targetJobId);
     };
 
-    const COACH_MESSAGES = [
-        "Reviewing your skills...",
-        "Analyzing Role Model patterns...",
-        "Identifying skill gaps...",
-        "Brainstorming roadmap projects...",
-        "Calculating professional trajectory...",
-        "Consulting the AI knowledge base...",
-        "Synthesizing your growth path..."
-    ];
 
     const [coachMessageIndex, setCoachMessageIndex] = React.useState(0);
 
