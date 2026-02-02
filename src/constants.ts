@@ -43,8 +43,8 @@ export const UI_CONFIG = {
 
 // AI Model Configuration
 export const AI_MODELS = {
-  FLASH: 'gemini-2.0-flash-exp',
-  PRO: 'gemini-2.0-flash-exp', // Using Flash for both stages until Pro is available via proxy
+  FLASH: 'gemini-2.0-flash',
+  PRO: 'gemini-2.0-flash', // Using Flash for both stages until Pro is available via proxy
 } as const;
 
 // Temperature Settings for AI
@@ -67,6 +67,7 @@ export const STORAGE_KEYS = {
   CURRENT_VIEW: 'jobfit_current_view',
   ACTIVE_TAB: 'jobfit_active_tab',
   BOOKMARKLET_TIP_DISMISSED: 'jobfit_bookmarklet_tip_dismissed',
+  SKILL_SUGGESTIONS: 'jobfit_skill_suggestions',
 } as const;
 
 // User Tiers

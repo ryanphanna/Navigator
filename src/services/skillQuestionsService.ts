@@ -1,47 +1,64 @@
-// Import AI service helper (we'll use getModel from geminiService since there's no standalone generateText export)
+import { generateSkillQuestions } from './geminiService';
 
 interface SkillQuestions {
     skillName: string;
+    proficiency: string;
     questions: string[];
     generatedAt: number;
 }
 
-const CACHE_KEY = 'skillQuestions_cache';
+const CACHE_KEY = 'skillQuestions_cache_v2'; // Bump version to invalidate old cache
 const CACHE_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-export async function getSkillVerificationQuestions(skillName: string): Promise<string[]> {
+export async function getSkillVerificationQuestions(skillName: string, proficiency: string, useAI: boolean = true): Promise<string[]> {
+    // If AI is disabled, return fallback immediately (don't check/pollute cache with static data)
+    if (!useAI) {
+        return getFallbackQuestions(skillName);
+    }
+
     // Check cache first
-    const cached = getFromCache(skillName);
+    const cached = getFromCache(skillName, proficiency);
     if (cached) {
         return cached;
     }
 
     // Generate new questions
-    const questions = await generateQuestionsForSkill(skillName);
+    const questions = await generateQuestionsForSkill(skillName, proficiency);
 
     // Cache them
-    saveToCache(skillName, questions);
+    saveToCache(skillName, proficiency, questions);
 
     return questions;
 }
 
-async function generateQuestionsForSkill(skillName: string): Promise<string[]> {
-    const questions = [
+async function generateQuestionsForSkill(skillName: string, proficiency: string): Promise<string[]> {
+    try {
+        const questions = await generateSkillQuestions(skillName, proficiency);
+        return questions.length > 0 ? questions : getFallbackQuestions(skillName);
+    } catch (error) {
+        console.error("AI Generation failed, using fallback", error);
+        return getFallbackQuestions(skillName);
+    }
+}
+
+function getFallbackQuestions(skillName: string): string[] {
+    return [
         `I have experience with ${skillName}`,
         `I can work independently with ${skillName}`,
         `I have used ${skillName} in multiple projects`
     ];
-    return questions;
 }
 
-function getFromCache(skillName: string): string[] | null {
+function getFromCache(skillName: string, proficiency: string): string[] | null {
     try {
         const cacheStr = localStorage.getItem(CACHE_KEY);
         if (!cacheStr) return null;
 
         const cache: SkillQuestions[] = JSON.parse(cacheStr);
         const cached = cache.find(
-            item => item.skillName.toLowerCase() === skillName.toLowerCase()
+            item =>
+                item.skillName.toLowerCase() === skillName.toLowerCase() &&
+                item.proficiency === proficiency
         );
 
         if (!cached) return null;
@@ -59,24 +76,25 @@ function getFromCache(skillName: string): string[] | null {
     }
 }
 
-function saveToCache(skillName: string, questions: string[]): void {
+function saveToCache(skillName: string, proficiency: string, questions: string[]): void {
     try {
         const cacheStr = localStorage.getItem(CACHE_KEY);
         let cache: SkillQuestions[] = cacheStr ? JSON.parse(cacheStr) : [];
 
-        // Remove old entry for this skill if exists
+        // Remove old entry for this skill+level if exists
         cache = cache.filter(
-            item => item.skillName.toLowerCase() !== skillName.toLowerCase()
+            item => !(item.skillName.toLowerCase() === skillName.toLowerCase() && item.proficiency === proficiency)
         );
 
         // Add new entry
         cache.push({
             skillName,
+            proficiency,
             questions,
             generatedAt: Date.now()
         });
 
-        // Keep cache size reasonable (max 100 skills)
+        // Keep cache size reasonable (max 100 entries)
         if (cache.length > 100) {
             cache = cache.slice(-100);
         }

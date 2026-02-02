@@ -49,17 +49,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         setError(null);
 
         try {
-            // In a real app, you might check if the user exists via a public profiles table
-            // or an RPC call. For MVP, we'll try to sign in with a fake password 
-            // to see if we get "Invalid login credentials" (exists) vs some other error.
-            // But Supabase doesn't make this easy without triggering security alerts.
-            // Let's assume most users are new or we provide a clear switch.
+            // Check if user exists via RPC
+            // This allows us to seamlessly route to Login vs Join Beta
+            const { data: exists, error: checkError } = await supabase.rpc('check_user_exists', {
+                email_input: email.toLowerCase().trim()
+            });
 
-            // Simpler strategy: Just go to next step.
-            // If we wanted to be fancy, we could use supabase.auth.signInWithOtp
-            // which handles user existence, but we want password flow.
+            if (!checkError) {
+                setIsSignUp(!exists);
+            } else {
+                // Background fallback: If RPC fails, we'll default to login
+                // but keep a way to switch if needed.
+                console.warn('check_user_exists RPC failed or not found. Defaulting to Sign In.');
+                setIsSignUp(false);
+            }
 
-            // Let's just move to Step 1. 
             setStep(1);
         } catch (err: any) {
             setError(getUserFriendlyError(err));
@@ -278,7 +282,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                                     onClick={() => setIsSignUp(!isSignUp)}
                                     className="text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                                 >
-                                    {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Join the Beta"}
+                                    {isSignUp ? 'Actually, I have an account' : "Wait, I don't have an account"}
                                 </button>
                             </div>
                         </form>

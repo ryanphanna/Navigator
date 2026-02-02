@@ -49,7 +49,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                     <h2 className="text-2xl font-bold text-slate-900">Application History</h2>
                     <p className="text-slate-500 text-sm">Track your analyzed jobs and applications</p>
                 </div>
-                <span className="text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{jobs.length} Jobs</span>
+                <span className="text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{filteredJobs.length} Jobs</span>
             </div>
 
             {/* Search Bar */}

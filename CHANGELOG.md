@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-02-01
+
+### Added
+- **AI Career Coach**: New dashboard for career path analysis and role model tracking.
+- **Role Model Support**: Capability to upload and distill patterns from LinkedIn profile PDFs.
+- **Gap Analysis**: Detailed skill gap comparison between user profile and target roles.
+- **12-Month Trajectory**: Automated professional roadmap generation.
+
+### Fixed
+- **Performance**: Resolved an infinite render loop in `HomeInput` component that caused high CPU usage.
+- **Cleanup**: Terminated orphaned background processes during initialization.
+
 ## [1.1.0] - 2026-01-25
 
 ### Fixed

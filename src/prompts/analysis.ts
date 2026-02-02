@@ -102,14 +102,18 @@ export const ANALYSIS_PROMPTS = {
             - IMPORTANT: Do NOT include any (BLOCK_ID: ...) citations or metadata in the final text.
             `
     },
-    GENERATE: (template: string, jobDescription: string, resumeText: string, tailoringInstructions: string[], additionalContext?: string) => `
+    GENERATE: (template: string, jobDescription: string, resumeText: string, tailoringInstructions: string[], additionalContext?: string, trajectoryContext?: string) => `
     ${template}
-
+ 
     JOB DESCRIPTION:
     ${jobDescription}
-
+ 
     MY EXPERIENCE:
     ${resumeText}
+ 
+    ${trajectoryContext ? `MY LONG-TERM CAREER GOAL & PROGRESS:
+    ${trajectoryContext}
+    (Context: Mention how this current role fits into your 12-month trajectory if it makes for a stronger narrative.)` : ''}
 
     STRATEGY:
     ${tailoringInstructions.join("\n")}
@@ -160,9 +164,9 @@ export const ANALYSIS_PROMPTS = {
     `,
 
   SUGGEST_SKILLS: (resumeContext: string) => `
-    You are an expert career consultant. Based on the candidate's resume profiles below, extract a comprehensive list of professional skills.
+    You are an expert career consultant. Based on your resume profiles below, extract a comprehensive list of professional skills.
     
-    MY EXPERIENCE PROFILES:
+    YOUR EXPERIENCE PROFILES:
     ${resumeContext}
     
     TASK:
@@ -171,8 +175,103 @@ export const ANALYSIS_PROMPTS = {
     - For EACH skill, provide a concise 1-sentence description explaining what it means in practical terms.
     - Example: {"name": "Retail Operations", "description": "Managing daily store operations including inventory, staff scheduling, and customer flow"}
     - Example: {"name": "Stakeholder Management", "description": "Building and maintaining relationships with internal and external partners"}
-    - Focus on high-value skills important for job matching.
+    - Focus on high-value skills important for your job matching.
     
     Return ONLY a JSON array of objects: [{"name": "Skill Name", "description": "Brief explanation"}]
+    `,
+
+  SKILL_VERIFICATION: (skillName: string, proficiency: string) => `
+    You are a technical interviewer verifying a candidate's claim of being "${proficiency}" in "${skillName}".
+    
+    Generate 3 specific, falsifiable "I have..." statements that a VALID ${proficiency} user would agree with.
+    
+    CONSTRAINTS:
+    - Write in **PLAIN ENGLISH** (geared to commoners).
+    - Max 15 words per statement.
+    - NO corporate jargon.
+    - **AVOID** generic claims about "introducing tools", "saving money", or "efficiency" unless specific to the skill.
+    - Focus on **HOW** the work is done and **WHAT** specific problems are solved.
+    
+    GUIDELINES by Level:
+    - Learning: I know the basics and how to start.
+    - Comfortable: I can do the work without help.
+    - Expert: I can fix complex problems and teach others.
+    
+    EXAMPLES for "React" (Expert):
+    - "I have fixed slow-loading pages by stopping unnecessary re-renders."
+    - "I have built a system to manage app data without extra libraries."
+    - "I have set up server-side rendering to make the app load faster."
+    
+    TASK:
+    Generate 3 statements for "${skillName}" at "${proficiency}" level.
+    Return ONLY a JSON array of strings.
+    `,
+
+  GAP_ANALYSIS: (roleModelContext: string, userProfileContext: string) => `
+    You are a Strategic Career Architect. Your task is to perform a high-resolution Gap Analysis between your current profile and the collective patterns of your "Role Models".
+
+    ROLE MODEL PATTERNS:
+    ${roleModelContext}
+
+    YOUR PROFILE (Current):
+    ${userProfileContext}
+
+    TASK:
+    1. IDENTIFY GAPS: Compare the Role Models' career paths and top skills to your experience.
+    2. QUANTIFY: For each major gap, provide "Actionable Evidence" — specific, measurable projects or milestones you should complete.
+    3. STRATEGY: 
+       - Avoid generic advice like "Learn React".
+       - Say "Build a full-stack e-commerce app using React and Stripe to prove you can handle production-ready payment flows."
+    
+    Return JSON with this schema:
+    {
+      "careerTrajectoryGap": "string (Summary of the path differences)",
+      "topSkillGaps": [
+        {
+          "skill": "string",
+          "importance": 1-5,
+          "gapDescription": "string",
+          "actionableEvidence": [
+            {
+              "type": "project" | "metric" | "certification" | "tool",
+              "task": "string",
+              "metric": "string (The proof of success)",
+              "tools": ["string"]
+            }
+          ]
+        }
+      ],
+      "estimatedTimeToBridge": "string (e.g. 6-12 months)"
+    }
+  `,
+
+  GENERATE_ROADMAP: (gapAnalysis: string) => `
+    You are a Strategic Career Architect. Your task is to transform a Gap Analysis into a structured 12-month Roadmap.
+
+    GAP ANALYSIS DATA:
+    ${gapAnalysis}
+
+    TASK:
+    1. DISTRIBUTE: Take the "Actionable Evidence" items from the Gap Analysis and distribute them across a 12-month timeline.
+    2. SEQUENCING: Prioritize foundational skills first. 
+    3. BALANCE: Ensure a realistic workload (not everything in month 1 or month 12).
+    4. SCHEMA: Return a JSON object with a "milestones" array.
+    5. PERSONA: Speak directly to "You" in the milestone descriptions.
+
+    Return JSON with this schema:
+    {
+      "milestones": [
+        {
+          "id": "string",
+          "month": 1-12,
+          "title": "string (Short, punchy)",
+          "type": "project" | "metric" | "certification" | "tool",
+          "task": "string",
+          "metric": "string",
+          "tools": ["string"],
+          "linkedSkill": "string (The skill name this addresses)"
+        }
+      ]
+    }
   `
 };

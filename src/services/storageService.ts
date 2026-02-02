@@ -1,10 +1,14 @@
 import type { ResumeProfile, SavedJob, CustomSkill } from '../types';
 import { supabase, isSupabaseConfigured } from './supabase';
+import { encryptionService } from './encryptionService';
 
 const STORAGE_KEYS = {
     RESUMES: 'jobfit_resumes_v2',
     JOBS: 'jobfit_jobs_history',
-    SKILLS: 'jobfit_user_skills'
+    SKILLS: 'jobfit_user_skills',
+    ROLE_MODELS: 'jobcoach_role_models',
+    TARGET_JOBS: 'jobfit_target_jobs',
+    VAULT_SEED: 'jobfit_vault_seed'
 };
 
 // Helper: Get User ID if logged in
@@ -13,46 +17,86 @@ const getUserId = async () => {
     return session?.user?.id;
 };
 
+// --- Private Vault (Encryption) Logic ---
+
+const getVaultSeed = () => {
+    let seed = localStorage.getItem(STORAGE_KEYS.VAULT_SEED);
+    if (!seed) {
+        seed = crypto.randomUUID();
+        localStorage.setItem(STORAGE_KEYS.VAULT_SEED, seed);
+    }
+    return seed;
+};
+
+const Vault = {
+    initialized: false,
+
+    async ensureInit() {
+        if (this.initialized) return;
+        const seed = getVaultSeed();
+        await encryptionService.init(seed);
+        this.initialized = true;
+    },
+
+    async getSecure(key: string): Promise<any | null> {
+        await this.ensureInit();
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+
+        // Migration/Compatibility check
+        // If it starts with '{' or '[', it's legacy unencrypted JSON
+        if (raw.startsWith('{') || raw.startsWith('[')) {
+            console.log(`[Vault] Migrating legacy content for key: ${key}`);
+            try {
+                const data = JSON.parse(raw);
+                // Auto-encrypt for next time
+                await this.setSecure(key, data);
+                return data;
+            } catch {
+                return null;
+            }
+        }
+
+        try {
+            const decrypted = await encryptionService.decrypt(raw);
+            return JSON.parse(decrypted);
+        } catch (e) {
+            console.error(`[Vault] Decryption failed for ${key}. Data may be corrupted.`);
+            return null;
+        }
+    },
+
+    async setSecure(key: string, data: any) {
+        await this.ensureInit();
+        const serialized = JSON.stringify(data);
+        const encrypted = await encryptionService.encrypt(serialized);
+        localStorage.setItem(key, encrypted);
+    }
+};
+
 // Helper: Compare blocks for equality
 const areBlocksEqual = (a: import('../types').ExperienceBlock, b: import('../types').ExperienceBlock) => {
-    // 1. Type must match
+    // ... (logic remains same)
     if (a.type !== b.type) return false;
-
-    // 2. Normalize strings (lowercase, trim)
     const normTitleA = a.title.toLowerCase().trim();
     const normTitleB = b.title.toLowerCase().trim();
     const normOrgA = a.organization.toLowerCase().trim();
     const normOrgB = b.organization.toLowerCase().trim();
-
-    // 3. For Work/Education/Project: Title AND Organization must match
     if (['work', 'education', 'project'].includes(a.type)) {
         return normTitleA === normTitleB && normOrgA === normOrgB;
     }
-
-    // 4. For Skills/Summary: Just Type matters roughly, but let's check Title too for Skills categories
-    if (a.type === 'skill') {
-        return normTitleA === normTitleB;
-    }
-
-    // 5. Summary: Usually only one, so if types match, they are "equal" (and we merge/overwrite)
+    if (a.type === 'skill') return normTitleA === normTitleB;
     if (a.type === 'summary') return true;
-
     return false;
 };
 
 export const Storage = {
     // --- Resumes ---
     async getResumes(): Promise<ResumeProfile[]> {
-        // 1. Try Local First (Instant)
-        const local = localStorage.getItem(STORAGE_KEYS.RESUMES);
-        let profiles: ResumeProfile[] = [];
+        // 1. Try Local First (Instant) - Now via Vault
+        let profiles = await Vault.getSecure(STORAGE_KEYS.RESUMES);
 
-        if (local) {
-            try {
-                profiles = JSON.parse(local);
-            } catch { /* ignore */ }
-        } else {
-            // Default State
+        if (!profiles) {
             profiles = [{ id: 'master', name: 'Master Experience', blocks: [] }];
         }
 
@@ -66,21 +110,10 @@ export const Storage = {
                 .maybeSingle();
 
             if (data && data.content) {
-                // Cloud is source of truth
-                // We assume 1 profile for now (MVP), but schema supports many
-                // If cloud has content, overwrite local (simple sync)
-                // NOTE: Real sync needs conflict res. For MVP, Last Write Wins (Cloud Wins on Load)
-                // Actually, for "get", we trust Cloud if available.
-                // Ideally we merge, but let's stick to simple "Cloud overrides local" on fresh load
-                // But wait, structure is ResumeProfile[], schema stores JSONB.
-                // Let's assume schema stores ResumeProfile[] in 'content' column?
-                // Checking schema: 'content jsonb'.
-                // We need to adhere to schema.
                 const cloudProfiles = data.content as ResumeProfile[];
                 if (Array.isArray(cloudProfiles) && cloudProfiles.length > 0) {
                     profiles = cloudProfiles;
-                    // Update local cache
-                    localStorage.setItem(STORAGE_KEYS.RESUMES, JSON.stringify(profiles));
+                    await Vault.setSecure(STORAGE_KEYS.RESUMES, profiles);
                 }
             }
         }
@@ -88,24 +121,17 @@ export const Storage = {
     },
 
     async saveResumes(resumes: ResumeProfile[]) {
-        // 1. Save Local
-        localStorage.setItem(STORAGE_KEYS.RESUMES, JSON.stringify(resumes));
+        // 1. Save Local (Secured)
+        await Vault.setSecure(STORAGE_KEYS.RESUMES, resumes);
 
         // 2. Save Cloud (if logged in)
         const userId = await getUserId();
         if (userId) {
-            // Upsert based on user_id. 
-            // Our schema has 'id' (uuid) and 'user_id'. 
-            // We probably want 1 row per user for ALL resumes (simpler for now) OR 1 row per resume.
-            // My schema defined 'content jsonb'. Let's treat it as "The Resume Array".
-            // We need to find the resume row for this user.
-
-            // Check if row exists
             const { data } = await supabase.from('resumes').select('id').eq('user_id', userId).maybeSingle();
 
             if (data) {
                 const { error } = await supabase.from('resumes').update({
-                    content: resumes, // Store the whole array
+                    content: resumes,
                     name: 'Default Profile'
                 }).eq('id', data.id);
                 if (error) console.error("Cloud Sync Error (Update Resume):", error);
@@ -121,65 +147,42 @@ export const Storage = {
     },
 
     async addResume(profile: ResumeProfile) {
-        // 1. Get existing
-        const localRaw = localStorage.getItem(STORAGE_KEYS.RESUMES);
-        const existing: ResumeProfile[] = localRaw ? JSON.parse(localRaw) : [];
+        // 1. Get existing (Secured)
+        const existing: ResumeProfile[] = await Vault.getSecure(STORAGE_KEYS.RESUMES) || [];
 
         // 2. Smart Merge Logic
         let updated: ResumeProfile[];
-
         if (existing.length === 0) {
-            // First resume ever -> just add it
             updated = [profile];
         } else {
-            // Merge into the Master (first profile)
             const master = existing[0];
-            const newBlocks = [...master.blocks]; // Clone to mutate
-
-            // Iterate over the NEW profile's blocks
+            const newBlocks = [...master.blocks];
             profile.blocks.forEach(newBlock => {
                 const matchIndex = newBlocks.findIndex(b => areBlocksEqual(b, newBlock));
-
                 if (matchIndex !== -1) {
-                    // Match found! Merge bullets.
                     const existingBlock = newBlocks[matchIndex];
-
-                    // Combined unique bullets
                     const combinedBullets = Array.from(new Set([
                         ...existingBlock.bullets,
                         ...newBlock.bullets
                     ])).filter(b => b.trim().length > 0);
-
-                    // Update the block in place
                     newBlocks[matchIndex] = {
                         ...existingBlock,
                         bullets: combinedBullets,
-                        // Optionally update dateRange if the new one looks "fresher"? 
-                        // Let's keep existing dateRange for stability unless empty.
                         dateRange: existingBlock.dateRange || newBlock.dateRange
                     };
                 } else {
-                    // No match -> New Experience -> Add it
                     newBlocks.push(newBlock);
                 }
             });
-
-            // Update Master Profile
-            const updatedMaster = {
-                ...master,
-                blocks: newBlocks
-            };
-
-            // Replace the first item, keep others (if any legacy ones exist)
+            const updatedMaster = { ...master, blocks: newBlocks };
             updated = [updatedMaster, ...existing.slice(1)];
         }
 
-        localStorage.setItem(STORAGE_KEYS.RESUMES, JSON.stringify(updated));
+        await Vault.setSecure(STORAGE_KEYS.RESUMES, updated);
 
         // 3. Sync to Cloud
         const userId = await getUserId();
         if (userId) {
-            // Update the single row
             const { error } = await supabase.from('resumes').update({
                 content: updated
             }).eq('user_id', userId);
@@ -195,9 +198,8 @@ export const Storage = {
     },
 
     async getJobs(): Promise<SavedJob[]> {
-        // 1. Local
-        const local = localStorage.getItem(STORAGE_KEYS.JOBS);
-        let jobs: SavedJob[] = local ? JSON.parse(local) : [];
+        // 1. Local (Secured)
+        let jobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS) || [];
 
         // 2. Cloud
         const userId = await getUserId();
@@ -224,52 +226,41 @@ export const Storage = {
                     fitAnalysis: row.fit_analysis
                 }));
 
-                // Merge/Overlay
-                // Simple strategy: Cloud wins.
                 jobs = cloudJobs;
-                localStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(jobs));
+                await Vault.setSecure(STORAGE_KEYS.JOBS, jobs);
             }
         }
         return jobs;
     },
 
     async addJob(job: SavedJob) {
-        // 1. Local
-        const localRaw = localStorage.getItem(STORAGE_KEYS.JOBS);
-        const localJobs: SavedJob[] = localRaw ? JSON.parse(localRaw) : [];
+        // 1. Local (Secured)
+        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS) || [];
         const updated = [job, ...localJobs];
-        localStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(updated));
+        await Vault.setSecure(STORAGE_KEYS.JOBS, updated);
 
         // 2. Cloud
         const userId = await getUserId();
         if (userId) {
-            // Insert row
             const { error } = await supabase.from('jobs').insert({
                 user_id: userId,
-                // generate uuid? or let DB do it? 
-                // Front end generated an ID. Let's use it if UUID, else let DB gen and we might have mismatch.
-                // Best practice: Let DB gen ID. But frontend needs known ID.
-                // We'll trust frontend ID if it's UUID.
-                // job.id is crypto.randomUUID().
                 id: job.id,
                 job_title: job.analysis?.distilledJob?.roleTitle || 'Untitled Role',
                 company: job.analysis?.distilledJob?.companyName || 'Unknown Company',
-                analysis: job.analysis, // Stores full object including coverLetter if attached
+                analysis: job.analysis,
                 status: job.status,
                 date_added: new Date(job.dateAdded).toISOString()
             });
             if (error) console.error("Cloud Sync Error (Add Job):", error);
         }
-        // Return updated list to keep frontend in sync
         return updated;
     },
 
     async updateJob(updatedJob: SavedJob) {
-        // 1. Local
-        const localRaw = localStorage.getItem(STORAGE_KEYS.JOBS);
-        const localJobs: SavedJob[] = localRaw ? JSON.parse(localRaw) : [];
+        // 1. Local (Secured)
+        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS) || [];
         const updated = localJobs.map(j => j.id === updatedJob.id ? updatedJob : j);
-        localStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(updated));
+        await Vault.setSecure(STORAGE_KEYS.JOBS, updated);
 
         // 2. Cloud
         const userId = await getUserId();
@@ -286,11 +277,10 @@ export const Storage = {
     },
 
     async deleteJob(id: string) {
-        // 1. Local
-        const localRaw = localStorage.getItem(STORAGE_KEYS.JOBS);
-        const localJobs: SavedJob[] = localRaw ? JSON.parse(localRaw) : [];
+        // 1. Local (Secured)
+        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS) || [];
         const updated = localJobs.filter(j => j.id !== id);
-        localStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(updated));
+        await Vault.setSecure(STORAGE_KEYS.JOBS, updated);
 
         // 2. Cloud
         const userId = await getUserId();
@@ -308,21 +298,15 @@ export const Storage = {
         // 1. Sync Resumes if Cloud is Empty
         const { data: cloudResume } = await supabase.from('resumes').select('id').eq('user_id', userId).maybeSingle();
         if (!cloudResume) {
-            const localResumesRaw = localStorage.getItem(STORAGE_KEYS.RESUMES);
-            if (localResumesRaw) {
-                const resumes = JSON.parse(localResumesRaw);
-                if (resumes.length > 0) {
-                    await this.saveResumes(resumes);
-                }
+            const resumes = await Vault.getSecure(STORAGE_KEYS.RESUMES);
+            if (resumes && resumes.length > 0) {
+                await this.saveResumes(resumes);
             }
         }
 
         // 2. Sync Jobs (Push missing ones)
-        const localJobsRaw = localStorage.getItem(STORAGE_KEYS.JOBS);
-        if (localJobsRaw) {
-            const localJobs: SavedJob[] = JSON.parse(localJobsRaw);
-
-            // Get all Cloud IDs to avoid duplicates
+        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS) || [];
+        if (localJobs.length > 0) {
             const { data: cloudJobs } = await supabase.from('jobs').select('id').eq('user_id', userId);
             const cloudIds = new Set(cloudJobs?.map(j => j.id) || []);
 
@@ -403,9 +387,8 @@ export const Storage = {
 
     // --- Arsenal / Skills ---
     async getSkills(): Promise<CustomSkill[]> {
-        // 1. Local
-        const local = localStorage.getItem(STORAGE_KEYS.SKILLS);
-        let skills: CustomSkill[] = local ? JSON.parse(local) : [];
+        // 1. Local (Secured)
+        let skills: CustomSkill[] = await Vault.getSecure(STORAGE_KEYS.SKILLS) || [];
 
         // 2. Cloud
         const userId = await getUserId();
@@ -426,7 +409,7 @@ export const Storage = {
                     created_at: row.created_at,
                     updated_at: row.updated_at
                 }));
-                localStorage.setItem(STORAGE_KEYS.SKILLS, JSON.stringify(skills));
+                await Vault.setSecure(STORAGE_KEYS.SKILLS, skills);
             }
         }
         return skills;
@@ -435,9 +418,8 @@ export const Storage = {
     async saveSkill(skill: Omit<CustomSkill, 'id' | 'user_id' | 'created_at' | 'updated_at'>) {
         const userId = await getUserId();
         if (!userId) {
-            // Local-only fallback (for anonymous users)
-            const localRaw = localStorage.getItem(STORAGE_KEYS.SKILLS);
-            const skills: CustomSkill[] = localRaw ? JSON.parse(localRaw) : [];
+            // Local-only fallback (Secured)
+            const skills: CustomSkill[] = await Vault.getSecure(STORAGE_KEYS.SKILLS) || [];
             const existingIdx = skills.findIndex(s => s.name === skill.name);
 
             const newSkill: CustomSkill = {
@@ -451,7 +433,7 @@ export const Storage = {
             if (existingIdx !== -1) skills[existingIdx] = newSkill;
             else skills.push(newSkill);
 
-            localStorage.setItem(STORAGE_KEYS.SKILLS, JSON.stringify(skills));
+            await Vault.setSecure(STORAGE_KEYS.SKILLS, skills);
             return newSkill;
         }
 
@@ -473,22 +455,20 @@ export const Storage = {
             throw error;
         }
 
-        // Update Local Cache
-        const localRaw = localStorage.getItem(STORAGE_KEYS.SKILLS);
-        const localSkills: CustomSkill[] = localRaw ? JSON.parse(localRaw) : [];
+        // Update Local Cache (Secured)
+        const localSkills: CustomSkill[] = await Vault.getSecure(STORAGE_KEYS.SKILLS) || [];
         const updated = localSkills.filter(s => s.name !== skill.name);
         updated.push(data);
-        localStorage.setItem(STORAGE_KEYS.SKILLS, JSON.stringify(updated));
+        await Vault.setSecure(STORAGE_KEYS.SKILLS, updated);
 
         return data as CustomSkill;
     },
 
     async deleteSkill(name: string) {
-        // 1. Local
-        const localRaw = localStorage.getItem(STORAGE_KEYS.SKILLS);
-        const localSkills: CustomSkill[] = localRaw ? JSON.parse(localRaw) : [];
+        // 1. Local (Secured)
+        const localSkills: CustomSkill[] = await Vault.getSecure(STORAGE_KEYS.SKILLS) || [];
         const updated = localSkills.filter(s => s.name !== name);
-        localStorage.setItem(STORAGE_KEYS.SKILLS, JSON.stringify(updated));
+        await Vault.setSecure(STORAGE_KEYS.SKILLS, updated);
 
         // 2. Cloud
         const userId = await getUserId();
@@ -500,5 +480,52 @@ export const Storage = {
                 .eq('name', name);
             if (error) console.error("Cloud Delete Error (Skill):", error);
         }
+    },
+
+    // --- Role Models ---
+    async getRoleModels(): Promise<import('../types').RoleModelProfile[]> {
+        return await Vault.getSecure(STORAGE_KEYS.ROLE_MODELS) || [];
+    },
+
+    async addRoleModel(roleModel: import('../types').RoleModelProfile) {
+        const existing: import('../types').RoleModelProfile[] = await Vault.getSecure(STORAGE_KEYS.ROLE_MODELS) || [];
+        const updated = [roleModel, ...existing];
+        await Vault.setSecure(STORAGE_KEYS.ROLE_MODELS, updated);
+        return updated;
+    },
+
+    async deleteRoleModel(id: string) {
+        const existing: import('../types').RoleModelProfile[] = await Vault.getSecure(STORAGE_KEYS.ROLE_MODELS) || [];
+        const updated = existing.filter(rm => rm.id !== id);
+        await Vault.setSecure(STORAGE_KEYS.ROLE_MODELS, updated);
+        return updated;
+    },
+
+    // --- Target Jobs ---
+    async getTargetJobs(): Promise<import('../types').TargetJob[]> {
+        return await Vault.getSecure(STORAGE_KEYS.TARGET_JOBS) || [];
+    },
+
+    async saveTargetJob(targetJob: import('../types').TargetJob) {
+        const existing: import('../types').TargetJob[] = await Vault.getSecure(STORAGE_KEYS.TARGET_JOBS) || [];
+        const index = existing.findIndex(tj => tj.id === targetJob.id);
+
+        let updated: import('../types').TargetJob[];
+        if (index !== -1) {
+            updated = [...existing];
+            updated[index] = targetJob;
+        } else {
+            updated = [targetJob, ...existing];
+        }
+
+        await Vault.setSecure(STORAGE_KEYS.TARGET_JOBS, updated);
+        return updated;
+    },
+
+    async deleteTargetJob(id: string) {
+        const existing: import('../types').TargetJob[] = await Vault.getSecure(STORAGE_KEYS.TARGET_JOBS) || [];
+        const updated = existing.filter(tj => tj.id !== id);
+        await Vault.setSecure(STORAGE_KEYS.TARGET_JOBS, updated);
+        return updated;
     }
 };

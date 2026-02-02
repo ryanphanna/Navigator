@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { isEnvValid, envErrors } from './config';
 import App from './App';
 import { UserProvider } from './contexts/UserContext';
+import { ToastProvider } from './contexts/ToastContext';
 
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -65,9 +66,11 @@ root.render(
   <React.StrictMode>
     <ErrorBoundary>
       {isEnvValid() ? (
-        <UserProvider>
-          <App />
-        </UserProvider>
+        <ToastProvider>
+          <UserProvider>
+            <App />
+          </UserProvider>
+        </ToastProvider>
       ) : (
         <EnvErrorPage errors={envErrors} />
       )}

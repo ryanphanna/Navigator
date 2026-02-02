@@ -3,11 +3,11 @@ import { supabase } from '../services/supabase';
 import {
     Activity, CheckCircle2, AlertCircle,
     Terminal, Bot, Zap, RefreshCw, ChevronRight, Eye, EyeOff,
-    Users, BarChart3, TrendingUp, ShieldCheck, Search, Calendar, Filter
+    Users, BarChart3, TrendingUp, ShieldCheck, Search
 } from 'lucide-react';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    ComposedChart, Line, Bar, PieChart, Pie, Cell, Legend
+    ComposedChart, Bar, PieChart, Pie, Cell, Legend
 } from 'recharts';
 
 interface LogEntry {
@@ -365,7 +365,7 @@ export const AdminDashboard: React.FC = () => {
                                                     const model = log.model_name.replace('gemini-', '');
                                                     acc[model] = (acc[model] || 0) + 1;
                                                     return acc;
-                                                }, {})).map((entry, index) => (
+                                                }, {})).map((_, index) => (
                                                     <Cell key={`cell-${index}`} fill={[COLORS.primary, COLORS.success, COLORS.error][index % 3]} />
                                                 ))}
                                             </Pie>

@@ -1,7 +1,7 @@
 
 
 export const PARSING_PROMPTS = {
-    RESUME_PARSE: (extractedText: string | null = null) => `
+  RESUME_PARSE: (extractedText: string | null = null) => `
     Analyze this resume content. 
     Break it down into discrete "Experience Blocks". 
     For each job, education, or project, create a block.
@@ -20,7 +20,7 @@ export const PARSING_PROMPTS = {
     }
   ${extractedText ? `\nRESUME CONTENT:\n${extractedText}` : ''}`,
 
-    JOB_LISTING_PARSE: (cleanHtml: string, baseUrl: string) => `
+  JOB_LISTING_PARSE: (cleanHtml: string, baseUrl: string) => `
     You are a smart scraper. Extract job listings from this HTML. 
     
     CRITICAL INSTRUCTIONS:
@@ -38,12 +38,35 @@ export const PARSING_PROMPTS = {
         "title": "string (The clear job title)",
         "url": "string (The absolute URL to the specific job details)",
         "company": "string (Default to 'TTC' if not found)",
-        "location": "string (e.g. Toronto)",
+        "location": "string (Toronto)",
         "postedDate": "string (ISO date or 'Recently')"
       }
     ]
 
     HTML Content:
     ${cleanHtml}
+  `,
+
+  ROLE_MODEL_PARSE: () => `
+    You are a Career Path Analyst. Analyze this LinkedIn profile (or resume) of a "Role Model".
+    Extract their core career progression, top skills, and industry patterns.
+
+    TASK:
+    1. EXTRACT: 
+       - Name (if visible)
+       - Headline (e.g. "Staff Engineer at Google")
+       - Organization (Most recent company)
+       - Skills (Top 10 most relevant skills mentioned)
+       - Career Snapshot (Briefly summarize their "climb" - e.g. "Started in QA, transitioned to Dev, then Management")
+    
+    Return JSON with:
+    {
+      "name": "string",
+      "headline": "string",
+      "organization": "string",
+      "topSkills": ["string"],
+      "careerSnapshot": "string",
+      "rawTextSummary": "string (A clean, slightly condensed version of their experience)"
+    }
   `
 };

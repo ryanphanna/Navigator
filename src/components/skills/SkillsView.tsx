@@ -9,6 +9,8 @@ import { SkillsStats } from './SkillsStats';
 import { AddSkillModal } from './AddSkillModal';
 import { SkillSuggestions } from './SkillSuggestions';
 import { PageLayout } from '../common/PageLayout';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { STORAGE_KEYS } from '../../constants';
 
 interface SkillsViewProps {
     skills: CustomSkill[];
@@ -22,9 +24,18 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
     const [searchTerm, setSearchTerm] = useState('');
     const [isAdding, setIsAdding] = useState(false);
 
-    const [suggestions, setSuggestions] = useState<Array<{ name: string; description: string }>>([]);
+    // Persist suggestions in LocalStorage so they don't vanish on unmount/reload
+    const [suggestions, setSuggestions] = useLocalStorage<Array<{ name: string; description: string }>>(
+        STORAGE_KEYS.SKILL_SUGGESTIONS,
+        []
+    );
     const [isSuggesting, setIsSuggesting] = useState(false);
     const { showSuccess } = useToast();
+
+    // Dynamically filter suggestions: Include only those NOT in current skills
+    const displayedSuggestions = suggestions.filter(s =>
+        !skills.some(existing => existing.name.toLowerCase() === s.name.toLowerCase())
+    );
 
     const handleAddSkill = async (newSkillName: string) => {
         if (!newSkillName.trim()) return;
@@ -63,10 +74,8 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
         setIsSuggesting(true);
         try {
             const rawSuggestions = await suggestSkillsFromResumes(resumes);
-            // Filter out skills already in the vault
-            const existingNames = skills.map(s => s.name.toLowerCase());
-            const filtered = rawSuggestions.filter(s => !existingNames.includes(s.name.toLowerCase()));
-            setSuggestions(filtered);
+            // We just store all raw suggestions. The filtering against existing skills happens in render.
+            setSuggestions(rawSuggestions);
         } catch (err) {
             console.error("Suggestion Failed", err);
         } finally {
@@ -82,7 +91,8 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
                 description
             });
             onSkillsUpdated([...skills, newSkill]);
-            setSuggestions(prev => prev.filter(s => s.name !== name));
+            // No need to manually filter suggestions - 'displayedSuggestions' will automatically update
+            // because 'skills' prop will change.
             onStartInterview(newSkill.name);
         } catch (err) {
             console.error("Add Suggested Skill Failed", err);
@@ -116,7 +126,7 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
 
             {/* Suggestions Area */}
             <SkillSuggestions
-                suggestions={suggestions}
+                suggestions={displayedSuggestions}
                 onAddSuggestion={handleAddSuggestedSkill}
                 onClear={() => setSuggestions([])}
             />

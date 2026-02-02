@@ -1,22 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import type { AppState, SavedJob, ResumeProfile, CustomSkill } from './types';
+import { Suspense, useState, useEffect, lazy } from 'react';
+import type { AppState, SavedJob, ResumeProfile, CustomSkill, TargetJob } from './types';
 import { Analytics } from '@vercel/analytics/react';
 
 import { Storage } from './services/storageService';
-import { parseResumeFile, analyzeJobFit } from './services/geminiService';
+import { parseResumeFile, analyzeJobFit, parseRoleModel, analyzeGap, generateRoadmap } from './services/geminiService';
 import { ScraperService } from './services/scraperService';
 import { getSecureItem } from './utils/secureStorage';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useUser } from './contexts/UserContext';
 import { TIME_PERIODS, STORAGE_KEYS } from './constants';
-import ResumeEditor from './components/ResumeEditor';
+import { LoadingState } from './components/common/LoadingState';
+
+// Main job-search components (kept static for SEO/Speed)
 import HomeInput from './components/HomeInput';
 import History from './components/History';
 import JobDetail from './components/JobDetail';
-import { JobFitPro } from './components/JobFitPro';
+import { CoachDashboard } from './components/coach/CoachDashboard'; // Static import for CoachDashboard
+
+// Lazy load heavy/beta modules
+const ResumeEditor = lazy(() => import('./components/ResumeEditor'));
+const JobFitPro = lazy(() => import('./components/JobFitPro').then(m => ({ default: m.JobFitPro })));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+
 import { SkillsView } from './components/skills/SkillsView';
+import { supabase } from './services/supabase';
 import { SkillInterviewModal } from './components/skills/SkillInterviewModal';
-import { Briefcase, Settings, History as HistoryIcon, Zap, Terminal, Target } from 'lucide-react';
+import { Settings, Briefcase, TrendingUp, LogOut } from 'lucide-react';
 import { SettingsModal } from './components/SettingsModal';
 import { UsageModal } from './components/UsageModal';
 import { WelcomeScreen } from './components/WelcomeScreen';
@@ -24,8 +33,7 @@ import { AuthModal } from './components/AuthModal';
 import { PrivacyNotice } from './components/PrivacyNotice';
 import { ApiKeySetup } from './components/ApiKeySetup';
 import { NudgeCard } from './components/NudgeCard';
-import { AdminDashboard } from './components/AdminDashboard';
-import { ToastProvider } from './contexts/ToastContext';
+import { useToast } from './contexts/ToastContext';
 import { ToastContainer } from './components/common/Toast';
 
 // Main App Component
@@ -36,6 +44,8 @@ const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
     resumes: [],
     jobs: [],
+    roleModels: [],
+    targetJobs: [],
     skills: [],
     currentView: currentView,
     activeJobId: null,
@@ -56,8 +66,9 @@ const App: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
   }, []);
+
   // Auth State (Managed by Context)
-  const { user, userTier, isTester, isAdmin, signOut } = useUser();
+  const { user, userTier, isTester, isAdmin } = useUser();
   const [showAuth, setShowAuth] = useState(false);
 
   // Nudge State
@@ -80,12 +91,18 @@ const App: React.FC = () => {
   const [showPrivacyNotice, setShowPrivacyNotice] = useState(false);
   const [showApiKeySetup, setShowApiKeySetup] = useState(false);
 
+  // Background Tasks Tracking
+  const [activeAnalysisIds, setActiveAnalysisIds] = useState<Set<string>>(new Set());
+  const { showSuccess, showError, showInfo } = useToast();
+
   // Load Data
   useEffect(() => {
     const loadData = async () => {
       const storedResumes = await Storage.getResumes();
       const storedJobs = await Storage.getJobs();
       const storedSkills = await Storage.getSkills();
+      const storedRoleModels = await Storage.getRoleModels();
+      const storedTargetJobs = await Storage.getTargetJobs();
 
       // Fix stuck "analyzing" jobs (e.g. if user closed tab during analysis)
       const sanitizedJobs = (storedJobs || []).map(job => {
@@ -100,6 +117,8 @@ const App: React.FC = () => {
         resumes: storedResumes,
         jobs: sanitizedJobs,
         skills: storedSkills,
+        roleModels: storedRoleModels,
+        targetJobs: storedTargetJobs,
         currentView: 'home',
         activeJobId: null,
         apiStatus: 'ok',
@@ -107,8 +126,6 @@ const App: React.FC = () => {
     };
     loadData();
   }, []);
-
-  // Auth Handled by UserContext
 
   // Nudge Logic
   useEffect(() => {
@@ -181,7 +198,6 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isTester, isAdmin, userTier]);
 
-
   // --- Handlers ---
 
   const handleJobCreated = (newJob: SavedJob) => {
@@ -199,6 +215,14 @@ const App: React.FC = () => {
     setState(prev => ({
       ...prev,
       jobs: prev.jobs.map(j => j.id === updatedJob.id ? updatedJob : j)
+    }));
+  };
+
+  const handleTargetJobCreated = (newTarget: TargetJob) => {
+    setState(prev => ({
+      ...prev,
+      targetJobs: [newTarget, ...prev.targetJobs],
+      currentView: 'coach-gap-analysis'
     }));
   };
 
@@ -244,10 +268,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    setView('home');
-  };
+
 
   const handleWelcomeContinue = () => {
     localStorage.setItem(STORAGE_KEYS.WELCOME_SEEN, 'true');
@@ -272,10 +293,21 @@ const App: React.FC = () => {
     }
   };
 
-  const handleNudgeResponse = async (status: 'interview' | 'rejected' | 'ghosted') => {
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      // Reset local state if necessary, though UserContext should handle most of it
+      showSuccess("Successfully signed out.");
+    } catch (err) {
+      console.error("Sign out error:", err);
+      showError("Failed to sign out.");
+    }
+  };
+
+  const handleNudgeResponse = (status: 'interview' | 'rejected' | 'ghosted') => {
     if (!nudgeJob) return;
-    await handleUpdateJob({ ...nudgeJob, status });
-    setNudgeJob(null);
+    // Map status from NudgeCard to SavedJob.status
+    handleUpdateJob({ ...nudgeJob, status: status as any });
     setNudgeJob(null);
   };
 
@@ -358,195 +390,209 @@ const App: React.FC = () => {
 
   const activeJob = state.jobs.find(j => j.id === state.activeJobId);
 
+  // Helper: Is "Coach" mode active?
+  const isCoachMode = state.currentView.startsWith('coach');
+
   return (
-    <ToastProvider>
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-200">
       <ToastContainer />
-      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-200">
 
-        {/* Modals */}
-        <WelcomeScreen isOpen={showWelcome} onContinue={handleWelcomeContinue} />
-        <ApiKeySetup isOpen={showApiKeySetup} onComplete={() => setShowApiKeySetup(false)} />
-        <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
-        <PrivacyNotice isOpen={showPrivacyNotice} onAccept={handlePrivacyAccept} />
-        <SettingsModal
-          isOpen={showSettings}
-          onClose={() => setShowSettings(false)}
-          user={user}
-          userTier={userTier}
-          isTester={isTester}
-          isAdmin={isAdmin}
-        />
-        <UsageModal
-          isOpen={showUsage}
-          onClose={() => setShowUsage(false)}
-          apiStatus={state.apiStatus}
-          quotaStatus={quotaStatus}
-          cooldownSeconds={cooldownSeconds}
-        />
+      {/* Modals */}
+      <WelcomeScreen isOpen={showWelcome} onContinue={handleWelcomeContinue} />
+      <ApiKeySetup isOpen={showApiKeySetup} onComplete={() => setShowApiKeySetup(false)} />
+      <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
+      <PrivacyNotice isOpen={showPrivacyNotice} onAccept={handlePrivacyAccept} />
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        user={user}
+        userTier={userTier}
+        isTester={isTester}
+        isAdmin={isAdmin}
+      />
+      <UsageModal
+        isOpen={showUsage}
+        onClose={() => setShowUsage(false)}
+        apiStatus={state.apiStatus === 'offline' ? 'error' : state.apiStatus}
+        quotaStatus={quotaStatus}
+        cooldownSeconds={cooldownSeconds}
+      />
 
 
-        {/* Only show header after onboarding is complete */}
-        {!showWelcome && !showPrivacyNotice && !showApiKeySetup && (
-          <header className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-50 h-16 transition-colors duration-200">
-            <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between relative">
-              <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setActiveJobId(null); setView('home'); }}>
-                <div className="bg-gradient-to-br from-indigo-600 to-violet-600 text-white p-2 rounded-lg shadow-lg shadow-indigo-500/20">
+      {/* Only show header after onboarding is complete */}
+      {!showWelcome && !showPrivacyNotice && !showApiKeySetup && (
+        <header className={`fixed top-0 left-0 right-0 backdrop-blur-md border-b z-50 h-16 transition-all duration-200 ${isCoachMode
+          ? 'bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/30'
+          : 'bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800'
+          }`}>
+          <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between relative">
+
+            {/* LEFT: STATIC BRAND LOGO */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => { setActiveJobId(null); setView('home'); }}>
+                <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20">
                   <Briefcase className="w-5 h-5" />
                 </div>
-                <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 flex items-center gap-2">
-                  JobFit
-                </h1>
-              </div>
-
-              <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
-                {user && (
-                  <>
-                    {/* Feed is for Pro OR Testers OR Admins */}
-                    {(userTier === 'pro' || isTester || isAdmin) && (
-                      <button
-                        onClick={() => { setActiveJobId(null); setView('pro'); }}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${state.currentView === 'pro'
-                          ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600'
-                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-                          }`}
-                      >
-                        <Zap className="w-4 h-4" />
-                        <span className="hidden sm:inline">Feed</span>
-                      </button>
-                    )}
-
-                    {/* Skills tab - available to all logged-in users */}
-                    <button
-                      onClick={() => { setActiveJobId(null); setView('arsenal'); }}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${state.currentView === 'arsenal'
-                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-                        }`}
-                    >
-                      <Target className="w-4 h-4" />
-                      <span className="hidden sm:inline">Skills</span>
-                    </button>
-
-                    <button
-                      onClick={() => { setActiveJobId(null); setView('resumes'); }}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${state.currentView === 'resumes'
-                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-                        }`}
-                    >
-                      <Briefcase className="w-4 h-4" />
-                      <span className="hidden sm:inline">Resumes</span>
-                    </button>
-                  </>
-                )}
-                {state.jobs.length > 0 && (
-                  <button
-                    onClick={() => { setActiveJobId(null); setView('history'); }}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${state.currentView === 'history'
-                      ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-600'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-                      }`}
-                  >
-                    <HistoryIcon className="w-4 h-4" />
-                    <span className="hidden sm:inline">History</span>
-                  </button>
-                )}
-              </nav>
-
-              <div className="flex items-center">
-                <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-2"></div>
-                <div className="flex items-center gap-2">
-                  {user ? (
-                    <div className="flex items-center gap-3">
-                      <div className="hidden md:flex items-center gap-2 bg-slate-100 dark:bg-slate-800 py-2 px-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{user.email}</div>
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isAdmin ? 'bg-indigo-600 text-white shadow-sm' :
-                          isTester ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' :
-                            userTier === 'pro' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-purple-300' :
-                              'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-                          }`}>
-                          {isAdmin ? 'Admin' : isTester ? 'Beta' : userTier === 'pro' ? 'Pro' : 'Free'}
-                        </span>
-                      </div>
-                      <button
-                        onClick={handleSignOut}
-                        className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-                      >
-                        Sign Out
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setShowAuth(true)}
-                      className="px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                    >
-                      Sign In
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setShowSettings(true)}
-                    className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all"
-                    title="Settings"
-                  >
-                    <Settings className="w-5 h-5" />
-                  </button>
-                  {isAdmin && (
-                    <button
-                      onClick={() => { setActiveJobId(null); setView('admin'); }}
-                      className={`p-2 rounded-lg transition-all ${state.currentView === 'admin'
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                      title="Admin Dashboard"
-                    >
-                      <Terminal className="w-5 h-5" />
-                    </button>
-                  )}
-                </div>
+                <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 hidden sm:block">
+                  Job
+                </span>
               </div>
             </div>
-          </header>
-        )}
 
-        <main className="w-full pb-24 sm:pb-8">
 
-          {/* Full Width Views & PageLayout Views */}
-          <div className="w-full">
-            {state.currentView === 'home' && (
-              <>
-                {nudgeJob && (
-                  <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-24">
-                    <NudgeCard
-                      job={nudgeJob}
-                      onUpdateStatus={handleNudgeResponse}
-                      onDismiss={() => setNudgeJob(null)}
-                    />
-                  </div>
+            {/* CENTER: EXPANDING ACCORDION NAVIGATION */}
+            <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 transition-all duration-500 ease-in-out">
+
+              {/* JobFit Group */}
+              <div className={`flex items-center rounded-xl transition-all duration-500 ${!isCoachMode ? 'bg-white dark:bg-slate-700 shadow-sm border border-slate-200/50 dark:border-slate-600/50 pr-2' : ''}`}>
+                <button
+                  onClick={() => { setActiveJobId(null); setView('job-fit'); }}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${currentView === 'job-fit' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-indigo-600 dark:text-slate-400'}`}
+                >
+                  <Briefcase className={`w-4 h-4 ${currentView === 'job-fit' ? 'scale-110' : 'scale-100'}`} />
+                  <span>JobFit</span>
+                </button>
+
+                <div className={`flex items-center gap-1 overflow-hidden transition-all duration-500 ${!isCoachMode ? 'max-w-xs opacity-100 ml-1' : 'max-w-0 opacity-0'}`}>
+                  <div className="w-px h-4 bg-slate-200 dark:bg-slate-600 mx-1" />
+                  {(userTier === 'pro' || isTester || isAdmin) && (
+                    <button
+                      onClick={() => { setActiveJobId(null); setView('pro'); }}
+                      className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'pro' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-indigo-500'}`}
+                    >
+                      Feed
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { setActiveJobId(null); setView('skills'); }}
+                    className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'skills' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-indigo-500'}`}
+                  >
+                    Skills
+                  </button>
+                  <button
+                    onClick={() => { setActiveJobId(null); setView('resumes'); }}
+                    className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'resumes' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-indigo-500'}`}
+                  >
+                    Resumes
+                  </button>
+                </div>
+              </div>
+
+              {/* JobCoach Group */}
+              <div className={`flex items-center rounded-xl transition-all duration-500 ml-1 ${isCoachMode ? 'bg-white dark:bg-slate-700 shadow-sm border border-slate-200/50 dark:border-slate-600/50 pr-2' : ''}`}>
+                <button
+                  onClick={() => { setActiveJobId(null); setView('coach-home'); }}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${isCoachMode ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 hover:text-emerald-600 dark:text-slate-400'}`}
+                >
+                  <TrendingUp className={`w-4 h-4 ${isCoachMode ? 'scale-110' : 'scale-100'}`} />
+                  <span>JobCoach</span>
+                </button>
+
+                <div className={`flex items-center gap-1 overflow-hidden transition-all duration-500 ${isCoachMode ? 'max-w-md opacity-100 ml-1' : 'max-w-0 opacity-0'}`}>
+                  <div className="w-px h-4 bg-emerald-200 dark:bg-emerald-800 mx-1" />
+                  <button
+                    onClick={() => { setActiveJobId(null); setView('coach-home'); }}
+                    className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'coach-home' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 hover:text-emerald-500'}`}
+                  >
+                    Future
+                  </button>
+                  <button
+                    onClick={() => { setActiveJobId(null); setView('coach-role-models'); }}
+                    className={`px-2 py-1 rounded-md text-xs font-medium transition-all flex items-center gap-1 ${state.currentView === 'coach-role-models' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 hover:text-emerald-500'}`}
+                  >
+                    <span>Role Models</span>
+                    <span className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 px-1 py-0.5 rounded-full text-[9px] font-bold">
+                      {state.roleModels.length}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => { setActiveJobId(null); setView('coach-gap-analysis'); }}
+                    className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'coach-gap-analysis' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 hover:text-emerald-500'}`}
+                  >
+                    Skills Gap
+                  </button>
+                </div>
+              </div>
+            </nav>
+
+            <div className="flex items-center">
+              <div className="flex items-center gap-2">
+                {!user ? (
+                  <button
+                    onClick={() => setShowAuth(true)}
+                    className="px-4 py-1.5 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm font-semibold rounded-lg border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900/50 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 transition-all mr-2 active:scale-95"
+                  >
+                    Sign In
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center gap-2 px-4 py-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-sm font-semibold rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all mr-2 group"
+                    title="Log Out"
+                  >
+                    <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    <span>Log Out</span>
+                  </button>
                 )}
+                {/* User Profile / Settings (Unchanged) */}
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all"
+                  title="Settings"
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+      )}
 
-                {/* HomeInput handles its own padding/layout */}
-                <div className="pt-24">
-                  <HomeInput
-                    resumes={state.resumes}
-                    onJobCreated={handleJobCreated}
-                    onImportResume={handleImportResume}
-                    isParsing={isParsingResume}
-                    importError={state.importError ?? null}
-                    user={user}
+      <main className="w-full pb-24 sm:pb-8">
+
+        {/* Full Width Views & PageLayout Views */}
+        <div className="w-full">
+          {(state.currentView === 'home' || state.currentView === 'job-fit') && (
+            <>
+              {nudgeJob && (
+                <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-24">
+                  <NudgeCard
+                    job={nudgeJob}
+                    onUpdateStatus={handleNudgeResponse}
+                    onDismiss={() => setNudgeJob(null)}
                   />
                 </div>
-              </>
-            )}
+              )}
 
-            {state.currentView === 'pro' && (
+              {/* HomeInput handles its own padding/layout */}
+              <div className="pt-24">
+                <HomeInput
+                  resumes={state.resumes}
+                  onJobCreated={handleJobCreated}
+                  onTargetJobCreated={handleTargetJobCreated}
+                  onImportResume={handleImportResume}
+                  isParsing={isParsingResume}
+                  importError={state.importError ?? null}
+                  user={user}
+                  mode={state.currentView === 'job-fit' ? 'apply' : 'all'}
+                  onNavigate={setView}
+                />
+              </div>
+            </>
+          )}
+
+          {state.currentView === 'pro' && (
+            <Suspense fallback={<LoadingState message="Loading Pro Feed..." />}>
               <div className="pt-20">
                 <JobFitPro
                   onDraftApplication={handleDraftApplication}
                 />
               </div>
-            )}
+            </Suspense>
+          )}
 
-            {state.currentView === 'resumes' && (
+          {state.currentView === 'resumes' && (
+            <Suspense fallback={<LoadingState message="Opening Editor..." />}>
               <div className="pt-20">
                 <ResumeEditor
                   resumes={state.resumes}
@@ -558,66 +604,168 @@ const App: React.FC = () => {
                   importTrigger={importTrigger}
                 />
               </div>
-            )}
+            </Suspense>
+          )}
 
-            {state.currentView === 'arsenal' && (
-              <div className="pt-20">
-                <SkillsView
-                  skills={state.skills}
-                  resumes={state.resumes}
-                  onSkillsUpdated={(skills) => setState(prev => ({ ...prev, skills }))}
-                  onStartInterview={(name) => setInterviewSkill(name)}
-                  userTier={userTier}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Constrained Views (Legacy/Specific) */}
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-24">
-            {state.currentView === 'history' && (
-              <History
-                jobs={state.jobs}
-                onSelectJob={(id) => { setActiveJobId(id); setView('job-detail'); }}
-                onDeleteJob={handleDeleteJob}
+          {state.currentView === 'skills' && (
+            <div className="pt-20">
+              <SkillsView
+                skills={state.skills}
+                resumes={state.resumes}
+                onSkillsUpdated={(skills) => setState(prev => ({ ...prev, skills }))}
+                onStartInterview={(name) => setInterviewSkill(name)}
+                userTier={userTier}
               />
-            )}
+            </div>
+          )}
 
-            {state.currentView === 'job-detail' && activeJob && (
-              <JobDetail
-                job={activeJob}
+          {/* JobCoach Views (Statically imported for pixel-perfect layout sync) */}
+          {isCoachMode && (
+            <div className="pt-24">
+              <CoachDashboard
                 resumes={state.resumes}
                 userSkills={state.skills}
-                onBack={() => { setActiveJobId(null); setView('history'); }}
-                onUpdateJob={handleUpdateJob}
-                userTier={isAdmin ? 'admin' : isTester ? 'tester' : userTier}
-                onVerifySkill={(skillName) => setInterviewSkill(skillName)}
-                onAddSkill={async (skillName) => {
-                  const newSkill = await Storage.saveSkill({
-                    name: skillName,
-                    proficiency: 'learning'
-                  });
-                  setState(prev => ({ ...prev, skills: [...prev.skills, newSkill] }));
+                roleModels={state.roleModels}
+                targetJobs={state.targetJobs}
+                activeAnalysisIds={activeAnalysisIds}
+                view={state.currentView as any}
+                onAddRoleModel={async (file: File) => {
+                  try {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = async () => {
+                      const base64 = (reader.result as string).split(',')[1];
+                      const parsed = await parseRoleModel(base64, file.type);
+                      const updated = await Storage.addRoleModel(parsed);
+                      setState(prev => ({ ...prev, roleModels: updated }));
+                    };
+                  } catch (err) {
+                    console.error("Failed to add role model:", err);
+                  }
+                }}
+                onDeleteRoleModel={async (id) => {
+                  const updated = await Storage.deleteRoleModel(id);
+                  setState(prev => ({ ...prev, roleModels: updated }));
+                }}
+                onRunGapAnalysis={async (targetJobId) => {
+                  const targetJob = state.targetJobs.find(tj => tj.id === targetJobId);
+                  if (!targetJob) return;
+
+                  // Background Process
+                  setActiveAnalysisIds(prev => new Set(prev).add(targetJobId));
+                  showInfo("AI Coach is analyzing your skill gap in the background...");
+
+                  // Don't await here
+                  analyzeGap(state.roleModels, state.resumes, state.skills)
+                    .then(async (analysis) => {
+                      const updatedTargetJob = { ...targetJob, gapAnalysis: analysis };
+                      const updatedList = await Storage.saveTargetJob(updatedTargetJob);
+                      setState(prev => ({ ...prev, targetJobs: updatedList }));
+                      showSuccess(`Gap Analysis complete for ${targetJob.title || 'Role'}!`);
+                    })
+                    .catch((err) => {
+                      console.error("Gap Analysis failed:", err);
+                      showError("AI Coach hit a snag during Gap Analysis.");
+                    })
+                    .finally(() => {
+                      setActiveAnalysisIds(prev => {
+                        const next = new Set(prev);
+                        next.delete(targetJobId);
+                        return next;
+                      });
+                    });
+                }}
+                onGenerateRoadmap={async (targetJobId) => {
+                  const targetJob = state.targetJobs.find(tj => tj.id === targetJobId);
+                  if (!targetJob || !targetJob.gapAnalysis) return;
+
+                  // Background Process
+                  setActiveAnalysisIds(prev => new Set(prev).add(`${targetJobId}-roadmap`));
+                  showInfo("AI Coach is building your 12-month roadmap...");
+
+                  // Don't await here
+                  generateRoadmap(targetJob.gapAnalysis)
+                    .then(async (roadmap) => {
+                      const updatedTargetJob = { ...targetJob, roadmap };
+                      const updatedList = await Storage.saveTargetJob(updatedTargetJob);
+                      setState(prev => ({ ...prev, targetJobs: updatedList }));
+                      showSuccess(`Your Career Roadmap for ${targetJob.title || 'Role'} is ready!`);
+                    })
+                    .catch((err) => {
+                      console.error("Roadmap generation failed:", err);
+                      showError("AI Coach couldn't build that roadmap right now.");
+                    })
+                    .finally(() => {
+                      setActiveAnalysisIds(prev => {
+                        const next = new Set(prev);
+                        next.delete(`${targetJobId}-roadmap`);
+                        return next;
+                      });
+                    });
+                }}
+                onToggleMilestone={async (targetJobId, milestoneId) => {
+                  const targetJob = state.targetJobs.find(tj => tj.id === targetJobId);
+                  if (!targetJob || !targetJob.roadmap) return;
+
+                  const updatedRoadmap = targetJob.roadmap.map(m =>
+                    m.id === milestoneId ? { ...m, status: (m.status === 'completed' ? 'pending' : 'completed') as any } : m
+                  );
+                  const updatedTargetJob = { ...targetJob, roadmap: updatedRoadmap };
+                  const updatedList = await Storage.saveTargetJob(updatedTargetJob);
+                  setState(prev => ({ ...prev, targetJobs: updatedList }));
                 }}
               />
-            )}
-            {state.currentView === 'admin' && (
-              <AdminDashboard />
-            )}
+            </div>
+          )}
+        </div>
 
-            {/* Interview Modal (Global) - Rendered here to ensure it's within context if needed, but could be global */}
-            {interviewSkill && (
-              <SkillInterviewModal
-                skillName={interviewSkill}
-                onClose={() => setInterviewSkill(null)}
-                onComplete={handleInterviewComplete}
-              />
-            )}
-          </div>
-          <Analytics />
-        </main>
-      </div>
-    </ToastProvider>
+        {/* Constrained Views (Legacy/Specific) */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-24">
+          {state.currentView === 'history' && (
+            <History
+              jobs={state.jobs}
+              onSelectJob={(id) => { setActiveJobId(id); setView('job-detail'); }}
+              onDeleteJob={handleDeleteJob}
+            />
+          )}
+
+          {state.currentView === 'job-detail' && activeJob && (
+            <JobDetail
+              job={activeJob}
+              resumes={state.resumes}
+              userSkills={state.skills}
+              targetJobs={state.targetJobs}
+              onBack={() => { setActiveJobId(null); setView('history'); }}
+              onUpdateJob={handleUpdateJob}
+              userTier={isAdmin ? 'admin' : isTester ? 'tester' : userTier}
+              onAddSkill={async (skillName) => {
+                const newSkill = await Storage.saveSkill({
+                  name: skillName,
+                  proficiency: 'learning'
+                });
+                setState(prev => ({ ...prev, skills: [...prev.skills, newSkill] }));
+              }}
+            />
+          )}
+          {state.currentView === 'admin' && (
+            <Suspense fallback={<LoadingState message="Syncing Admin Dashboard..." />}>
+              <AdminDashboard />
+            </Suspense>
+          )}
+
+          {/* Interview Modal (Global) - Rendered here to ensure it's within context if needed, but could be global */}
+          {interviewSkill && (
+            <SkillInterviewModal
+              skillName={interviewSkill}
+              onClose={() => setInterviewSkill(null)}
+              onComplete={handleInterviewComplete}
+              showValidation={isAdmin || isTester}
+            />
+          )}
+        </div>
+        <Analytics />
+      </main>
+    </div>
   );
 };
 

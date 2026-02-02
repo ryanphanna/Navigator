@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import type { SavedJob, ResumeProfile, CustomSkill } from '../types';
+import type { SavedJob, ResumeProfile, CustomSkill, TargetJob } from '../types';
 import { tailorExperienceBlock, analyzeJobFit } from '../services/geminiService';
 import { Storage } from '../services/storageService';
 import { ScraperService } from '../services/scraperService';
@@ -21,13 +21,13 @@ interface JobDetailProps {
     onUpdateJob: (job: SavedJob) => void;
     userTier?: 'free' | 'pro' | 'admin' | 'tester';
     userSkills?: CustomSkill[];
-    onVerifySkill?: (skillName: string) => void;
+    targetJobs?: TargetJob[];
     onAddSkill?: (skillName: string) => Promise<void>;
 }
 
 type Tab = 'analysis' | 'resume' | 'cover-letter' | 'job-post';
 
-const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob, userTier = 'free', userSkills = [], onVerifySkill, onAddSkill }) => {
+const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob, userTier = 'free', userSkills = [], targetJobs = [], onAddSkill }) => {
     const [activeTab, setActiveTab] = useLocalStorage<Tab>(STORAGE_KEYS.ACTIVE_TAB, 'analysis');
     const [generating, setGenerating] = useState(false);
     const [localJob, setLocalJob] = useState(job);
@@ -851,6 +851,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                             analysis={analysis}
                             bestResume={bestResume}
                             userTier={userTier}
+                            targetJobs={targetJobs}
                             onJobUpdate={(updated) => {
                                 setLocalJob(updated);
                                 onUpdateJob(updated);

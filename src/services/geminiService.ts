@@ -1,6 +1,15 @@
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { supabase } from "./supabase";
-import type { JobAnalysis, ResumeProfile, ExperienceBlock, CustomSkill, DistilledJob } from "../types";
+import type {
+    JobAnalysis,
+    ResumeProfile,
+    ExperienceBlock,
+    CustomSkill,
+    DistilledJob,
+    RoleModelProfile,
+    GapAnalysisResult,
+    RoadmapMilestone
+} from "../types";
 import { getSecureItem, setSecureItem, removeSecureItem, migrateToSecureStorage } from "../utils/secureStorage";
 import { getUserFriendlyError, getRetryMessage } from "../utils/errorMessages";
 import { API_CONFIG, CONTENT_VALIDATION, AI_MODELS, AI_TEMPERATURE, STORAGE_KEYS } from "../constants";
@@ -110,6 +119,14 @@ const logToSupabase = async (params: {
     error_message?: string;
     metadata?: any;
 }) => {
+    // Helper: Redact PII (Emails, Phones) before logging
+    const redactContent = (text?: string) => {
+        if (!text) return text;
+        return text
+            .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[EMAIL_REDACTED]")
+            .replace(/(\+?\d{1,2}\s?)?(\(?\d{3}\)?[\s.-]?)?\d{3}[\s.-]?\d{4}/g, "[PHONE_REDACTED]");
+    };
+
     try {
         const { data: { session } } = await supabase.auth.getSession();
         const userId = session?.user?.id;
@@ -118,8 +135,8 @@ const logToSupabase = async (params: {
             user_id: userId,
             event_type: params.event_type,
             model_name: params.model_name,
-            prompt_text: params.prompt_text,
-            response_text: params.response_text,
+            prompt_text: redactContent(params.prompt_text),
+            response_text: redactContent(params.response_text),
             latency_ms: params.latency_ms,
             status: params.status,
             error_message: params.error_message,
@@ -134,7 +151,7 @@ const logToSupabase = async (params: {
 // User requested more conservative polling and detailed error surfacing
 const callWithRetry = async <T>(
     fn: () => Promise<T>,
-    context: { event_type: string; prompt: string; model: string },
+    context: { event_type: string; prompt: string; model: string; metadata?: any },
     retries: number = API_CONFIG.MAX_RETRIES,
     initialDelay = API_CONFIG.INITIAL_RETRY_DELAY_MS,
     onProgress?: RetryProgressCallback
@@ -154,7 +171,8 @@ const callWithRetry = async <T>(
                 prompt_text: context.prompt,
                 response_text: typeof result === 'string' ? result : JSON.stringify(result),
                 latency_ms: latency,
-                status: 'success'
+                status: 'success',
+                metadata: context.metadata
             });
 
             return result;
@@ -352,7 +370,7 @@ export const analyzeJobFit = async (
         .join("\n=================\n");
 
     const skillContext = userSkills.length > 0
-        ? `VERIFIED SKILLS(ARSENAL): \n${userSkills.map(s => `- ${s.name}: ${s.proficiency} (Evidence: ${s.evidence})`).join('\n')} \n`
+        ? `YOUR SKILLS: \n${userSkills.map(s => `- ${s.name}: ${s.proficiency} (Evidence: ${s.evidence})`).join('\n')} \n`
         : '';
 
     const analysisPrompt = `You are a ruthless technical recruiter analyzing candidate fit.
@@ -453,7 +471,8 @@ export const generateCoverLetter = async (
     selectedResume: ResumeProfile,
     tailoringInstructions: string[],
     additionalContext?: string,
-    forceVariant?: string  // Optional: specify exact variant to use
+    forceVariant?: string,
+    trajectoryContext?: string
 ): Promise<{ text: string; promptVersion: string }> => {
     // ... (prompt definition) ...
     const resumeText = stringifyProfile(selectedResume);
@@ -474,7 +493,8 @@ export const generateCoverLetter = async (
         jobDescription,
         resumeText,
         tailoringInstructions,
-        additionalContext
+        additionalContext,
+        trajectoryContext
     );
 
     return callWithRetry(async () => {
@@ -493,7 +513,11 @@ export const generateCoverLetter = async (
     }, {
         event_type: 'cover_letter',
         prompt: prompt,
-        model: selectedModel
+        model: selectedModel,
+        metadata: {
+            prompt_variant: promptVersion,
+            is_ab_test: !!forceVariant
+        }
     });
 };
 
@@ -505,7 +529,8 @@ export const generateCoverLetterWithQuality = async (
     selectedResume: ResumeProfile,
     tailoringInstructions: string[],
     additionalContext?: string,
-    onProgress?: (message: string) => void
+    onProgress?: (message: string) => void,
+    trajectoryContext?: string
 ): Promise<{ text: string; promptVersion: string; score: number; attempts: number }> => {
     const QUALITY_THRESHOLD = 75;
     const PROMPT_VARIANTS = Object.keys(ANALYSIS_PROMPTS.COVER_LETTER.VARIANTS);
@@ -514,7 +539,7 @@ export const generateCoverLetterWithQuality = async (
 
     // Attempt 1: Random variant
     onProgress?.("Generating cover letter...");
-    const attempt1 = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, additionalContext);
+    const attempt1 = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, additionalContext, undefined, trajectoryContext);
     usedVariants.push(attempt1.promptVersion);
 
     onProgress?.("Evaluating quality...");
@@ -533,7 +558,7 @@ export const generateCoverLetterWithQuality = async (
     const availableVariants2 = PROMPT_VARIANTS.filter(v => !usedVariants.includes(v));
     const variant2 = availableVariants2[Math.floor(Math.random() * availableVariants2.length)];
 
-    const attempt2 = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, additionalContext, variant2);
+    const attempt2 = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, additionalContext, variant2, trajectoryContext);
     usedVariants.push(attempt2.promptVersion);
 
     onProgress?.("Evaluating quality...");
@@ -562,7 +587,7 @@ export const generateCoverLetterWithQuality = async (
         ? availableVariants3[Math.floor(Math.random() * availableVariants3.length)]
         : PROMPT_VARIANTS[Math.floor(Math.random() * PROMPT_VARIANTS.length)];
 
-    const attempt3 = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, additionalContext, variant3);
+    const attempt3 = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, additionalContext, variant3, trajectoryContext);
 
     onProgress?.("Evaluating quality...");
     const critique3 = await critiqueCoverLetter(jobDescription, attempt3.text);
@@ -963,7 +988,18 @@ export const suggestSkillsFromResumes = async (
             contents: [{ role: "user", parts: [{ text: prompt }] }],
             generationConfig: {
                 temperature: AI_TEMPERATURE.CREATIVE,
-                responseMimeType: "application/json"
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: SchemaType.ARRAY,
+                    items: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                            name: { type: SchemaType.STRING },
+                            description: { type: SchemaType.STRING }
+                        },
+                        required: ["name", "description"]
+                    }
+                }
             }
         });
 
@@ -995,4 +1031,269 @@ export const suggestSkillsFromResumes = async (
         prompt: prompt,
         model: AI_MODELS.FLASH
     }, 2, 2000, onProgress);
+};
+
+export const generateSkillQuestions = async (
+    skillName: string,
+    proficiency: string
+): Promise<string[]> => {
+    const prompt = ANALYSIS_PROMPTS.SKILL_VERIFICATION(skillName, proficiency);
+
+    return callWithRetry(async () => {
+        const model = await getModel({
+            model: AI_MODELS.FLASH,
+        });
+
+        const response = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: {
+                temperature: AI_TEMPERATURE.CREATIVE,
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: SchemaType.ARRAY,
+                    items: { type: SchemaType.STRING }
+                }
+            }
+        });
+
+        const text = response.response.text();
+        if (!text) throw new Error("No response from AI");
+
+        try {
+            const cleanedText = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+            const parsed = JSON.parse(cleanedText);
+
+            if (Array.isArray(parsed) && parsed.every(i => typeof i === 'string')) {
+                return parsed;
+            }
+            return [];
+        } catch (e) {
+            console.error("Failed to parse skill questions:", text);
+            return [];
+        }
+    }, {
+        event_type: 'skill_verification',
+        prompt: prompt,
+        model: AI_MODELS.FLASH
+    });
+};
+// New function: Parse Role Model profile (LinkedIn PDF)
+export const parseRoleModel = async (
+    fileBase64: string,
+    mimeType: string
+): Promise<any> => {
+    let promptParts: any[] = [];
+
+    if (mimeType === 'application/pdf') {
+        const extractedText = await extractPdfText(fileBase64);
+        if (extractedText.length > CONTENT_VALIDATION.MIN_PDF_TEXT_LENGTH) {
+            promptParts = [{ text: `ROLE MODEL CONTENT:\n${extractedText}` }];
+        } else {
+            throw new Error("Could not extract text from PDF.");
+        }
+    } else {
+        promptParts = [{ inlineData: { mimeType, data: fileBase64 } }];
+    }
+
+    const prompt = PARSING_PROMPTS.ROLE_MODEL_PARSE();
+    promptParts.push({ text: prompt });
+
+    return callWithRetry(async () => {
+        try {
+            const model = await getModel({
+                model: 'gemini-2.0-flash',
+                generationConfig: {
+                    temperature: AI_TEMPERATURE.STRICT,
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                            name: { type: SchemaType.STRING },
+                            headline: { type: SchemaType.STRING },
+                            organization: { type: SchemaType.STRING },
+                            topSkills: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+                            careerSnapshot: { type: SchemaType.STRING },
+                            rawTextSummary: { type: SchemaType.STRING }
+                        },
+                        required: ["name", "headline", "organization", "topSkills", "careerSnapshot", "rawTextSummary"]
+                    }
+                }
+            });
+
+            const response = await model.generateContent({
+                contents: [{ role: "user", parts: promptParts }]
+            });
+
+            const text = response.response.text();
+            if (!text) throw new Error("Empty response");
+
+            const cleanedText = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+            const parsed = JSON.parse(cleanedText);
+
+            return {
+                ...parsed,
+                id: crypto.randomUUID(),
+                dateAdded: Date.now()
+            };
+        } catch (error) {
+            console.error("Parse Role Model Failed:", error);
+            throw error;
+        }
+    }, {
+        event_type: 'role_model_parsing',
+        prompt: prompt,
+        model: 'gemini-2.0-flash'
+    });
+};
+
+export const analyzeGap = async (
+    roleModels: RoleModelProfile[],
+    userResumes: ResumeProfile[],
+    userSkills: CustomSkill[]
+): Promise<GapAnalysisResult> => {
+    // 1. Construct Contexts
+    const roleModelContext = roleModels.map(rm =>
+        `ROLE MODEL: ${rm.name}\nHeadline: ${rm.headline}\nSnapshot: ${rm.careerSnapshot}\nSkills: ${rm.topSkills.join(', ')}`
+    ).join('\n\n');
+
+    const userProfileContext = `
+        RESUMES:
+        ${userResumes.map(r =>
+        `### ${r.name}\n${r.blocks.map(b => `- ${b.title} @ ${b.organization}`).join('\n')}`
+    ).join('\n\n')}
+
+        CURRENT SKILLS:
+        ${userSkills.map(s => `- ${s.name} (${s.proficiency})`).join('\n')}
+    `;
+
+    const prompt = ANALYSIS_PROMPTS.GAP_ANALYSIS(roleModelContext, userProfileContext);
+
+    return callWithRetry(async () => {
+        try {
+            const model = await getModel({
+                model: 'gemini-2.0-flash',
+                generationConfig: {
+                    temperature: AI_TEMPERATURE.STRICT,
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                            careerTrajectoryGap: { type: SchemaType.STRING },
+                            topSkillGaps: {
+                                type: SchemaType.ARRAY,
+                                items: {
+                                    type: SchemaType.OBJECT,
+                                    properties: {
+                                        skill: { type: SchemaType.STRING },
+                                        importance: { type: SchemaType.NUMBER },
+                                        gapDescription: { type: SchemaType.STRING },
+                                        actionableEvidence: {
+                                            type: SchemaType.ARRAY,
+                                            items: {
+                                                type: SchemaType.OBJECT,
+                                                properties: {
+                                                    type: { type: SchemaType.STRING, enum: ["project", "metric", "certification", "tool"] },
+                                                    task: { type: SchemaType.STRING },
+                                                    metric: { type: SchemaType.STRING },
+                                                    tools: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
+                                                },
+                                                required: ["type", "task", "metric", "tools"]
+                                            }
+                                        }
+                                    },
+                                    required: ["skill", "importance", "gapDescription", "actionableEvidence"]
+                                }
+                            },
+                            estimatedTimeToBridge: { type: SchemaType.STRING }
+                        },
+                        required: ["careerTrajectoryGap", "topSkillGaps", "estimatedTimeToBridge"]
+                    }
+                }
+            });
+
+            const response = await model.generateContent({
+                contents: [{ role: "user", parts: [{ text: prompt }] }]
+            });
+
+            const text = response.response.text();
+            if (!text) throw new Error("Empty response");
+
+            const cleanedText = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+            const parsed = JSON.parse(cleanedText);
+
+            return {
+                ...parsed,
+                dateGenerated: Date.now()
+            };
+        } catch (error) {
+            console.error("Gap Analysis Failed:", error);
+            throw error;
+        }
+    }, {
+        event_type: 'gap_analysis',
+        prompt: prompt,
+        model: 'gemini-2.0-flash'
+    });
+};
+
+export const generateRoadmap = async (gapAnalysis: GapAnalysisResult): Promise<RoadmapMilestone[]> => {
+    const context = JSON.stringify(gapAnalysis, null, 2);
+    const prompt = ANALYSIS_PROMPTS.GENERATE_ROADMAP(context);
+
+    return callWithRetry(async () => {
+        try {
+            const model = await getModel({
+                model: 'gemini-2.0-flash',
+                generationConfig: {
+                    temperature: AI_TEMPERATURE.STRICT,
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                            milestones: {
+                                type: SchemaType.ARRAY,
+                                items: {
+                                    type: SchemaType.OBJECT,
+                                    properties: {
+                                        id: { type: SchemaType.STRING },
+                                        month: { type: SchemaType.NUMBER },
+                                        title: { type: SchemaType.STRING },
+                                        type: { type: SchemaType.STRING, enum: ["project", "metric", "certification", "tool"] },
+                                        task: { type: SchemaType.STRING },
+                                        metric: { type: SchemaType.STRING },
+                                        tools: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+                                        linkedSkill: { type: SchemaType.STRING }
+                                    },
+                                    required: ["id", "month", "title", "type", "task", "metric", "tools", "linkedSkill"]
+                                }
+                            }
+                        },
+                        required: ["milestones"]
+                    }
+                }
+            });
+
+            const response = await model.generateContent({
+                contents: [{ role: "user", parts: [{ text: prompt }] }]
+            });
+
+            const text = response.response.text();
+            if (!text) throw new Error("Empty response");
+
+            const cleanedText = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+            const parsed = JSON.parse(cleanedText);
+
+            return parsed.milestones.map((m: any) => ({
+                ...m,
+                status: 'pending'
+            }));
+        } catch (error) {
+            console.error("Roadmap Generation Failed:", error);
+            throw error;
+        }
+    }, {
+        event_type: 'roadmap_generation',
+        prompt: prompt,
+        model: 'gemini-2.0-flash'
+    });
 };

@@ -1,7 +1,8 @@
 import React from 'react';
-import type { SavedJob, ResumeProfile, JobAnalysis } from '../types';
+import type { SavedJob, ResumeProfile, JobAnalysis, TargetJob } from '../types';
 import { Storage } from '../services/storageService';
 import { generateCoverLetter, generateCoverLetterWithQuality, critiqueCoverLetter } from '../services/geminiService';
+import { ANALYSIS_PROMPTS } from '../prompts/analysis';
 import {
     Loader2, Sparkles, AlertCircle, PenTool, ThumbsUp, ThumbsDown,
     Copy, Check, CheckCircle, Settings, Users
@@ -14,6 +15,7 @@ interface CoverLetterEditorProps {
     analysis: JobAnalysis;
     bestResume: ResumeProfile;
     userTier: 'free' | 'pro' | 'admin' | 'tester';
+    targetJobs: TargetJob[];
     onJobUpdate: (job: SavedJob) => void;
 }
 
@@ -22,12 +24,14 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
     analysis,
     bestResume,
     userTier,
+    targetJobs,
     onJobUpdate
 }) => {
     const [generating, setGenerating] = React.useState(false);
     const [copiedState, setCopiedState] = React.useState<'cl' | null>(null);
     const [rated, setRated] = React.useState<1 | -1 | null>(null);
     const [analysisProgress, setAnalysisProgress] = React.useState<string | null>(null);
+    const [comparisonVersions, setComparisonVersions] = React.useState<{ text: string; promptVersion: string }[] | null>(null);
     const [localJob, setLocalJob] = React.useState(job);
     const { showError } = useToast();
 
@@ -65,8 +69,36 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                 finalContext = localJob.contextNotes;
             }
 
+            // Trajectory Context
+            let trajectoryContext = '';
+            if (targetJobs.length > 0) {
+                const mainGoal = targetJobs[0]; // Assume first one for now, or could find best match
+                const completedCount = mainGoal.roadmap?.filter(m => m.status === 'completed').length || 0;
+                const totalCount = mainGoal.roadmap?.length || 0;
+
+                trajectoryContext = `I am currently pursuing a career pivot/growth path towards: ${mainGoal.title}. `;
+                if (totalCount > 0) {
+                    trajectoryContext += `I have completed ${completedCount} out of ${totalCount} milestones in my 12-month professional roadmap, including ${mainGoal.roadmap?.filter(m => m.status === 'completed').map(m => m.title).join(', ')}.`;
+                }
+            }
+
             // TODO: Check if Pro user (hardcoded to true for now)
             const isPro = true;
+
+            // Draft Comparison Logic: 10% chance to show two options side-by-side
+            const isComparisonTriggered = !critiqueContext && Math.random() < 0.1;
+
+            if (isComparisonTriggered) {
+                setAnalysisProgress("Generating stylistic variants...");
+                const variants = Object.keys(ANALYSIS_PROMPTS.COVER_LETTER.VARIANTS).slice(0, 2); // Pick first two
+
+                const results = await Promise.all(variants.map(v =>
+                    generateCoverLetter(textToUse, bestResume, instructions, finalContext, v, trajectoryContext)
+                ));
+
+                setComparisonVersions(results);
+                return;
+            }
 
             if (isPro) {
                 const result = await generateCoverLetterWithQuality(
@@ -74,7 +106,8 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                     bestResume,
                     instructions,
                     finalContext,
-                    (msg) => setAnalysisProgress(msg)
+                    (msg) => setAnalysisProgress(msg),
+                    trajectoryContext
                 );
 
                 const updated = {
@@ -95,7 +128,9 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                     textToUse,
                     bestResume,
                     instructions,
-                    finalContext
+                    finalContext,
+                    undefined,
+                    trajectoryContext
                 );
 
                 const updated = {
@@ -117,6 +152,25 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
             setGenerating(false);
             setAnalysisProgress(null);
         }
+    };
+
+    const handleSelectVariant = (variant: { text: string; promptVersion: string }) => {
+        const other = comparisonVersions?.find(v => v.promptVersion !== variant.promptVersion);
+
+        const updated = {
+            ...localJob,
+            coverLetter: variant.text,
+            initialCoverLetter: variant.text,
+            promptVersion: variant.promptVersion
+        };
+
+        Storage.updateJob(updated);
+        setLocalJob(updated);
+        onJobUpdate(updated);
+        setComparisonVersions(null);
+
+        // Specific A/B log
+        Storage.submitFeedback(localJob.id, 1, `ab_test_pick:${variant.promptVersion}_vs_${other?.promptVersion || 'none'}`);
     };
 
     const handleRunCritique = async () => {
@@ -220,7 +274,32 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
 
                     {/* Editor / Content Area */}
                     <div className="p-8 min-h-[500px] flex flex-col">
-                        {localJob.coverLetter ? (
+                        {comparisonVersions ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+                                {comparisonVersions.map((v, i) => (
+                                    <div key={i} className="flex flex-col space-y-4 p-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-300 hover:border-indigo-300 transition-all group relative">
+                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-white border border-slate-200 rounded-full text-[10px] font-bold text-slate-400 uppercase tracking-widest shadow-sm">
+                                            Style Option {i + 1}
+                                        </div>
+                                        <div className="flex-1 text-sm text-slate-700 font-serif leading-relaxed line-clamp-[15]">
+                                            {v.text}
+                                        </div>
+                                        <button
+                                            onClick={() => handleSelectVariant(v)}
+                                            className="w-full py-2.5 bg-white border border-slate-200 text-slate-900 rounded-lg text-xs font-bold hover:bg-slate-900 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2 group-hover:scale-[1.02]"
+                                        >
+                                            <Sparkles className="w-3.5 h-3.5" />
+                                            Use This Style
+                                        </button>
+                                    </div>
+                                ))}
+                                <div className="md:col-span-2 text-center pt-4">
+                                    <p className="text-xs text-slate-400 font-medium italic">
+                                        Choose the draft that best fits your personal voice.
+                                    </p>
+                                </div>
+                            </div>
+                        ) : localJob.coverLetter ? (
                             <>
                                 <div
                                     className="flex-1 text-slate-800 leading-relaxed font-serif whitespace-pre-wrap selection:bg-indigo-100 selection:text-indigo-900 outline-none focus:bg-slate-50 transition-colors rounded p-4 border border-transparent focus:border-indigo-100"

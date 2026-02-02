@@ -313,7 +313,7 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
                                             ) : (
                                                 <>
                                                     <Zap className="w-4 h-4" />
-                                                    Draft Application
+                                                    Apply
                                                 </>
                                             )}
                                         </button>

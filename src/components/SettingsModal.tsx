@@ -79,37 +79,48 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                     <div>
                         <h4 className="font-bold text-xs text-slate-400 uppercase tracking-wider mb-4">Account</h4>
                         <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl p-4">
-                            <div className="flex items-center justify-between mb-3">
-                                <div className="text-sm font-semibold text-slate-900 dark:text-white truncate max-w-[150px]">{user?.email}</div>
-                                <div className="flex gap-1.5">
-                                    {isAdmin && (
-                                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-600 text-white shadow-sm">
-                                            Admin
-                                        </span>
-                                    )}
-                                    {isTester && (
-                                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-900/50 dark:text-purple-400 dark:border-purple-800">
-                                            Beta
-                                        </span>
-                                    )}
-                                    {userTier === 'pro' && !isAdmin && (
-                                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-400 dark:border-emerald-800">
-                                            Pro
-                                        </span>
-                                    )}
-                                    {userTier === 'free' && !isAdmin && !isTester && (
-                                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
-                                            Free
-                                        </span>
-                                    )}
+                            {user && (
+                                <>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="text-sm font-semibold text-slate-900 dark:text-white truncate max-w-[150px]">{user?.email}</div>
+                                        <div className="flex gap-1.5">
+                                            {isAdmin && (
+                                                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-600 text-white shadow-sm">
+                                                    Admin
+                                                </span>
+                                            )}
+                                            {isTester && (
+                                                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-900/50 dark:text-purple-400 dark:border-purple-800">
+                                                    Beta
+                                                </span>
+                                            )}
+                                            {userTier === 'pro' && !isAdmin && (
+                                                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-400 dark:border-emerald-800">
+                                                    Pro
+                                                </span>
+                                            )}
+                                            {userTier === 'free' && !isAdmin && !isTester && (
+                                                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
+                                                    Free
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="text-[10px] text-slate-500 font-medium leading-relaxed">
+                                        {isAdmin && isTester ? "Full system access with beta features enabled." :
+                                            isAdmin ? "System administrator access enabled." :
+                                                isTester ? "Early access to new features enabled." :
+                                                    "Standard account access."}
+                                    </div>
+                                </>
+                            )}
+                            {!user && (
+                                <div className="text-center py-2">
+                                    <p className="text-xs text-slate-500 leading-relaxed">
+                                        Sign in via the header to sync your data and access Pro features.
+                                    </p>
                                 </div>
-                            </div>
-                            <div className="text-[10px] text-slate-500 font-medium leading-relaxed">
-                                {isAdmin && isTester ? "Full system access with beta features enabled." :
-                                    isAdmin ? "System administrator access enabled." :
-                                        isTester ? "Early access to new features enabled." :
-                                            "Standard account access."}
-                            </div>
+                            )}
                         </div>
                     </div>
 

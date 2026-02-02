@@ -12,6 +12,7 @@ interface ToastContextType {
     showToast: (message: string, type: ToastType) => void;
     showSuccess: (message: string) => void;
     showError: (message: string) => void;
+    showInfo: (message: string) => void;
     removeToast: (id: string) => void;
     toasts: Toast[];
 }
@@ -39,12 +40,16 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         showToast(message, 'error');
     }, [showToast]);
 
+    const showInfo = useCallback((message: string) => {
+        showToast(message, 'info');
+    }, [showToast]);
+
     const removeToast = useCallback((id: string) => {
         setToasts(prev => prev.filter(toast => toast.id !== id));
     }, []);
 
     return (
-        <ToastContext.Provider value={{ showToast, showSuccess, showError, removeToast, toasts }}>
+        <ToastContext.Provider value={{ showToast, showSuccess, showError, showInfo, removeToast, toasts }}>
             {children}
         </ToastContext.Provider>
     );

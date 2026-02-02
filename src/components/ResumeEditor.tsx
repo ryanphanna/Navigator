@@ -349,32 +349,32 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                         </div>
                                                     </div>
                                                 </div>
-                                    ))}
-
-                                                {/* Empty State for Section */}
-                                                {sectionBlocks.length === 0 && (
-                                                    <div className="text-center py-6 border-2 border-dashed border-slate-100 rounded-xl">
-                                                        <p className="text-xs text-slate-400 mb-2">No {section.label.toLowerCase()} added yet.</p>
-                                                    </div>
-                                                )}
-
-                                                {/* Add Block Button for Section */}
-                                                {/* Add Block Button for Section */}
-                                                <button
-                                                    onClick={() => addBlock(section.type)}
-                                                    className="w-full py-2 flex items-center justify-center gap-2 text-sm font-medium text-slate-400 hover:text-indigo-600 border border-transparent hover:border-indigo-100 hover:bg-indigo-50 rounded-lg transition-all border-dashed"
-                                                >
-                                                    <Plus className="w-4 h-4" /> Add {section.label}
-                                                </button>
                                             </div>
+                                        ))}
+
+                                        {/* Empty State for Section */}
+                                        {sectionBlocks.length === 0 && (
+                                            <div className="text-center py-6 border-2 border-dashed border-slate-100 rounded-xl">
+                                                <p className="text-xs text-slate-400 mb-2">No {section.label.toLowerCase()} added yet.</p>
+                                            </div>
+                                        )}
+
+                                        {/* Add Block Button for Section */}
+                                        <button
+                                            onClick={() => addBlock(section.type)}
+                                            className="w-full py-2 flex items-center justify-center gap-2 text-sm font-medium text-slate-400 hover:text-indigo-600 border border-transparent hover:border-indigo-100 hover:bg-indigo-50 rounded-lg transition-all border-dashed"
+                                        >
+                                            <Plus className="w-4 h-4" /> Add {section.label}
+                                        </button>
+                                    </div>
                                 </div>
-                                    );
+                            );
                         })}
-                                </div>
+                    </div>
                 </>
             )}
-                </PageLayout >
-            );
+        </PageLayout >
+    );
 };
 
-            export default ResumeEditor;
+export default ResumeEditor;

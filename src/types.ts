@@ -15,6 +15,17 @@ export interface ResumeProfile {
     blocks: ExperienceBlock[]; // The new structure
 }
 
+export interface RoleModelProfile {
+    id: string;
+    name: string;
+    headline: string;
+    organization: string;
+    topSkills: string[];
+    careerSnapshot: string;
+    rawTextSummary: string;
+    dateAdded: number;
+}
+
 export interface DistilledJob {
     companyName: string;
     roleTitle: string;
@@ -78,6 +89,45 @@ export interface SavedJob {
     status?: 'saved' | 'applied' | 'interview' | 'offer' | 'rejected' | 'ghosted' | 'analyzing' | 'error';
 }
 
+export interface GapAction {
+    type: 'project' | 'metric' | 'certification' | 'tool';
+    task: string;
+    metric: string;
+    tools: string[];
+}
+
+export interface SkillGap {
+    skill: string;
+    importance: number; // 1-5
+    gapDescription: string;
+    actionableEvidence: GapAction[];
+}
+
+export interface GapAnalysisResult {
+    careerTrajectoryGap: string;
+    topSkillGaps: SkillGap[];
+    estimatedTimeToBridge: string;
+    dateGenerated: number;
+}
+
+export interface RoadmapMilestone extends GapAction {
+    id: string;
+    title: string;
+    month: number; // 1-12
+    status: 'pending' | 'completed';
+    linkedSkill: string;
+}
+
+export interface TargetJob {
+    id: string;
+    title: string;          // e.g. "Senior Product Manager"
+    company?: string;       // Optional, if they have a specific target
+    description: string;    // The pasted JD or requirements
+    dateAdded: number;
+    gapAnalysis?: GapAnalysisResult;
+    roadmap?: RoadmapMilestone[];
+}
+
 export interface JobFeedItem {
     id: string;
     title: string;
@@ -104,9 +154,11 @@ export interface CustomSkill {
 export interface AppState {
     resumes: ResumeProfile[];
     jobs: SavedJob[];
+    roleModels: RoleModelProfile[];
+    targetJobs: TargetJob[];
     skills: CustomSkill[];
-    apiStatus: 'ok' | 'error' | 'checking';
-    currentView: 'home' | 'history' | 'resumes' | 'job-detail' | 'pro' | 'admin' | 'arsenal';
+    apiStatus: 'ok' | 'offline' | 'checking';
+    currentView: 'home' | 'job-fit' | 'history' | 'resumes' | 'job-detail' | 'pro' | 'admin' | 'skills' | 'coach' | 'coach-home' | 'coach-role-models' | 'coach-gap-analysis';
     activeJobId: string | null;
     importError?: string | null;
 }
