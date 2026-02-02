@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.2.0] - 2026-02-01
+## [2.0.0] - 2026-02-01
 
 ### Added
 - **AI Career Coach**: New dashboard for career path analysis and role model tracking.
