@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, AlertCircle, Link as LinkIcon, FileText, Lock, Sparkles, Zap, Plus, Shield, PenTool, Bookmark, Loader2, TrendingUp, GraduationCap, Clock } from 'lucide-react';
+import { AlertCircle, Link as LinkIcon, FileText, Plus, Bookmark, Loader2, ArrowRight, TrendingUp, Sparkles } from 'lucide-react';
+import { LandingContent } from './LandingContent';
+import { MarketingGrid } from './MarketingGrid';
+import { ActionGrid } from './ActionGrid';
+import { UsageIndicator } from './UsageIndicator';
 
 import type { ResumeProfile, SavedJob, TargetJob } from '../../types';
 import { Storage } from '../../services/storageService';
@@ -68,62 +72,8 @@ const HomeInput: React.FC<HomeInputProps> = ({
     const [showResumePrompt, setShowResumePrompt] = useState(false);
     const [pendingJobInput, setPendingJobInput] = useState<{ type: 'url' | 'text', content: string } | null>(null);
 
-    const [shuffledCards, setShuffledCards] = useState<number[]>([]);
-    const [shuffledActionCards, setShuffledActionCards] = useState<number[]>([]);
+    // ActionGrid handles its own card logic now
     const [activeHeadline, setActiveHeadline] = useState({ text: '', highlight: '' });
-
-    // Sync mode prop with internal state if it changes
-    useEffect(() => {
-        if (mode === 'apply') setIsTargetMode(false);
-        if (mode === 'goal') setIsTargetMode(true);
-    }, [mode]);
-
-
-    useEffect(() => {
-        // Initialize shuffled cards for marketing (logged-out) view
-        // Exclude Coach (6) and Roadmap (7) from marketing cards - they're beta only
-        const marketingCards = [0, 1, 2, 3, 4, 5];
-        const shuffled = [...marketingCards].sort(() => Math.random() - 0.5);
-        setShuffledCards(shuffled);
-
-        // Card indices by product:
-        // JOB: 0 (Analyze), 2 (Skills), 3 (Resumes), 5 (History), 6 (Cover Letters)
-        // COACH: 1 (Roadmap)
-        // EDU: 4 (Edu)
-
-        // Job product cards in priority order (highest to lowest)
-        const jobCardsByPriority = [
-            3, // 1. Resumes (highest priority - core workflow)
-            0, // 2. Analyze (primary tool - job fit scoring)
-            6, // 3. Cover Letters (high value - double analysis)
-            2, // 4. Skills (skill gap analysis)
-            5, // 5. History (lowest priority - past work viewer)
-        ];
-
-        // Build action cards based on user permissions
-        const actionCards: number[] = [];
-
-        // Determine how many Job cards to show based on other products
-        const showCoach = isTester || isAdmin;
-        const showEdu = isAdmin;
-        const productCount = (showCoach ? 1 : 0) + (showEdu ? 1 : 0);
-        const jobCardCount = 5 - productCount; // Total 5 cards, subtract other products
-
-        // Add top priority Job cards
-        actionCards.push(...jobCardsByPriority.slice(0, jobCardCount));
-
-        // Add Coach product if beta/admin
-        if (showCoach) {
-            actionCards.push(1); // Roadmap
-        }
-
-        // Add Edu product if admin
-        if (showEdu) {
-            actionCards.push(4); // Edu
-        }
-
-        setShuffledActionCards(actionCards);
-    }, [isAdmin, isTester]);
 
     useEffect(() => {
         // Select random headline base on mode
@@ -273,270 +223,29 @@ const HomeInput: React.FC<HomeInputProps> = ({
             </div>
 
             <div className={`w-full ${mode === 'all' ? 'max-w-[1920px]' : 'max-w-4xl'} px-4 relative`}>
-                <div className="text-center mb-10">
-                    <h2 className="text-6xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
-                        {activeHeadline.text} <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 animate-gradient-x">{activeHeadline.highlight}</span>
-                    </h2>
-                    <p className="text-2xl text-slate-500 dark:text-slate-400 leading-relaxed max-w-4xl mx-auto">
-                        {mode === 'all'
-                            ? "Tailor your resume and write your cover letter in seconds."
-                            : isTargetMode
-                                ? "Distill career paths into your personalized growth roadmap."
-                                : "Tailor your resume for any opening with a single click."
-                        }
-                    </p>
-                </div>
+                {user && (
+                    <div className="text-center mb-10">
+                        <h2 className="text-6xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
+                            {activeHeadline.text} <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 animate-gradient-x">{activeHeadline.highlight}</span>
+                        </h2>
+                        <p className="text-2xl text-slate-500 dark:text-slate-400 leading-relaxed max-w-4xl mx-auto">
+                            {mode === 'all'
+                                ? "Tailor your resume and write your cover letter in seconds."
+                                : isTargetMode
+                                    ? "Distill career paths into your personalized growth roadmap."
+                                    : "Tailor your resume for any opening with a single click."
+                            }
+                        </p>
+                    </div>
+                )}
 
                 {!isManualMode ? (
                     <>
                         {/* Mode Switcher moved above the input for cleaner card layout */}
                         {/* Mode Switcher moved above the input for cleaner card layout */}
                         {user && mode === 'all' && (
-                            <div className={`mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150`}>
-                                <div className={`grid grid-cols-1 md:grid-cols-2 ${isAdmin ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-8 max-w-[1920px] mx-auto px-12`}>
-                                    {shuffledActionCards.map((index) => {
-                                        switch (index) {
-                                            case 0: return (
-                                                /* Action Card: JobFit */
-                                                <button
-                                                    key="action-jobfit"
-                                                    onClick={() => onNavigate?.('job-fit')}
-                                                    className="group relative bg-indigo-50/50 dark:bg-indigo-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-indigo-500/10 dark:border-indigo-500/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 text-left overflow-hidden h-full flex flex-col"
-                                                >
-                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-indigo-500/20 transition-all duration-700" />
-                                                    <div className="flex items-center gap-4 relative z-10 mb-4">
-                                                        <div className="w-12 h-12 bg-indigo-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                                                            <Sparkles className="w-6 h-6" />
-                                                        </div>
-                                                        <h3 className="text-xl font-black text-slate-900 dark:text-white">Analyze</h3>
-                                                    </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                                        Tailor your resume for any opening with a single click.
-                                                    </p>
-                                                    <div className="relative h-20 bg-white/50 dark:bg-slate-950/50 rounded-2xl border border-white/50 dark:border-slate-800/50 mb-4 flex items-center justify-center overflow-hidden">
-                                                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-indigo-500/5 to-transparent" />
-                                                        <div className="relative w-14 h-14 flex items-center justify-center">
-                                                            <svg className="w-full h-full transform -rotate-90">
-                                                                <circle cx="28" cy="28" r="24" fill="transparent" stroke="currentColor" strokeWidth="4" className="text-slate-100 dark:text-slate-800" />
-                                                                <circle cx="28" cy="28" r="24" fill="transparent" stroke="currentColor" strokeWidth="4" strokeDasharray="150.8" strokeDashoffset="30.16" className="text-indigo-500 group-hover:stroke-indigo-400 transition-colors" />
-                                                            </svg>
-                                                            <span className="absolute text-[10px] font-black text-slate-900 dark:text-white">98%</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center justify-end gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-xs group-hover:gap-3 transition-all relative z-10">
-                                                        <span>Get Hired</span>
-                                                        <ArrowRight className="w-3 h-3" />
-                                                    </div>
-                                                </button>
-                                            );
-                                            case 1: return (
-                                                /* Action Card: JobCoach */
-                                                <button
-                                                    key="action-coach"
-                                                    onClick={() => onNavigate?.('coach-home')}
-                                                    className="group relative bg-emerald-50/50 dark:bg-emerald-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-emerald-500/10 dark:border-emerald-500/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 text-left overflow-hidden h-full flex flex-col"
-                                                >
-                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-emerald-500/20 transition-all duration-700" />
-                                                    <div className="flex items-center gap-4 relative z-10 mb-4">
-                                                        <div className="w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
-                                                            <TrendingUp className="w-6 h-6" />
-                                                        </div>
-                                                        <h3 className="text-xl font-black text-slate-900 dark:text-white">Roadmap</h3>
-                                                    </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                                        Build your roadmap to land major target roles.
-                                                    </p>
-                                                    <div className="relative h-20 bg-white/50 dark:bg-slate-950/50 rounded-2xl border border-white/50 dark:border-slate-800/50 mb-4 flex items-center justify-center px-4 overflow-hidden">
-                                                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-emerald-500/5 to-transparent" />
-                                                        <div className="w-full h-1 bg-slate-200 dark:bg-slate-800 relative rounded-full">
-                                                            <div className="absolute inset-y-0 left-0 w-2/3 bg-emerald-500 rounded-full group-hover:w-3/4 transition-all duration-1000" />
-                                                            <div className="absolute top-1/2 left-0 -translate-y-1/2 w-3 h-3 bg-white dark:bg-slate-900 border-2 border-emerald-500 rounded-full shadow-sm" />
-                                                            <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-3 h-3 bg-white dark:bg-slate-900 border-2 border-emerald-500 rounded-full shadow-sm" />
-                                                            <div className="absolute top-1/2 left-2/3 -translate-y-1/2 w-4 h-4 bg-emerald-500 rounded-full shadow-lg animate-pulse" />
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center justify-end gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs group-hover:gap-3 transition-all relative z-10">
-                                                        <span>Scale Up</span>
-                                                        <ArrowRight className="w-3 h-3" />
-                                                    </div>
-                                                </button>
-                                            );
-                                            case 2: return (
-                                                /* Action Card: Skills Arsenal */
-                                                <button
-                                                    key="action-skills"
-                                                    onClick={() => onNavigate?.('skills')}
-                                                    className="group relative bg-amber-50/50 dark:bg-amber-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-amber-500/10 dark:border-amber-500/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 text-left overflow-hidden h-full flex flex-col"
-                                                >
-                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-amber-500/20 transition-all duration-700" />
-                                                    <div className="flex items-center gap-4 relative z-10 mb-4">
-                                                        <div className="w-12 h-12 bg-amber-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform duration-500">
-                                                            <Zap className="w-6 h-6" />
-                                                        </div>
-                                                        <h3 className="text-xl font-black text-slate-900 dark:text-white">Skills</h3>
-                                                    </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                                        Identify and bridge your skill gaps with AI.
-                                                    </p>
-                                                    <div className="relative h-20 bg-white/50 dark:bg-slate-950/50 rounded-2xl border border-white/50 dark:border-slate-800/50 mb-4 flex flex-col items-center justify-center gap-2 px-4 overflow-hidden">
-                                                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-amber-500/5 to-transparent" />
-                                                        <div className="flex gap-2">
-                                                            <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-600"><div className="w-4 h-1 bg-amber-500 rounded-full" /></div>
-                                                            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shadow-lg transform -rotate-12 group-hover:rotate-0 transition-transform"><Sparkles className="w-4 h-4 text-white" /></div>
-                                                            <div className="w-8 h-8 rounded-lg bg-amber-500/20" />
-                                                        </div>
-                                                        <div className="flex gap-2">
-                                                            <div className="w-12 h-2 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                                                            <div className="w-8 h-2 bg-amber-500/40 rounded-full" />
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center justify-end gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs group-hover:gap-3 transition-all relative z-10">
-                                                        <span>Audit Gaps</span>
-                                                        <ArrowRight className="w-3 h-3" />
-                                                    </div>
-                                                </button>
-                                            );
-                                            case 3: return (
-                                                /* Action Card: Resume Manager */
-                                                <button
-                                                    key="action-resumes"
-                                                    onClick={() => onNavigate?.('resumes')}
-                                                    className="group relative bg-rose-50/50 dark:bg-rose-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-rose-500/10 dark:border-rose-500/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 text-left overflow-hidden h-full flex flex-col"
-                                                >
-                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-rose-500/20 transition-all duration-700" />
-                                                    <div className="flex items-center gap-4 relative z-10 mb-4">
-                                                        <div className="w-12 h-12 bg-rose-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/20 group-hover:scale-110 transition-transform duration-500">
-                                                            <FileText className="w-6 h-6" />
-                                                        </div>
-                                                        <h3 className="text-xl font-black text-slate-900 dark:text-white">Resumes</h3>
-                                                    </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                                        Store and edit your resume profiles.
-                                                    </p>
-                                                    <div className="relative h-20 bg-white/50 dark:bg-slate-950/50 rounded-2xl border border-white/50 dark:border-slate-800/50 mb-4 flex items-center justify-center overflow-hidden">
-                                                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-rose-500/5 to-transparent" />
-                                                        <div className="relative w-12 h-16 bg-white dark:bg-slate-900 rounded shadow-md border border-slate-200 dark:border-slate-800 transform -rotate-12 translate-x-2 translate-y-2 opacity-50" />
-                                                        <div className="relative w-12 h-16 bg-white dark:bg-slate-900 rounded shadow-lg border border-slate-200 dark:border-slate-800 group-hover:-translate-y-1 transition-transform" />
-                                                        <div className="absolute bottom-6 w-8 h-1 bg-rose-500/30 rounded-full" />
-                                                        <div className="absolute bottom-4 w-6 h-1 bg-rose-500/20 rounded-full" />
-                                                    </div>
-                                                    <div className="flex items-center justify-end gap-2 text-rose-600 dark:text-rose-400 font-bold text-xs group-hover:gap-3 transition-all relative z-10">
-                                                        <span>Manage All</span>
-                                                        <ArrowRight className="w-3 h-3" />
-                                                    </div>
-                                                </button>
-                                            );
-                                            case 4: return (
-                                                /* Action Card: Edu module */
-                                                <button
-                                                    key="action-edu"
-                                                    onClick={() => onNavigate?.('grad')}
-                                                    className="group relative bg-violet-50/50 dark:bg-violet-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-violet-500/10 dark:border-violet-500/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 text-left overflow-hidden h-full flex flex-col"
-                                                >
-                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-violet-500/20 transition-all duration-700" />
-                                                    <div className="flex items-center gap-4 relative z-10 mb-4">
-                                                        <div className="w-12 h-12 bg-violet-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/20 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500">
-                                                            <GraduationCap className="w-6 h-6" />
-                                                        </div>
-                                                        <h3 className="text-xl font-black text-slate-900 dark:text-white">Edu</h3>
-                                                    </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                                        High-fidelity academic reconnaissance and pathfinding.
-                                                    </p>
-                                                    <div className="relative h-20 bg-white/50 dark:bg-slate-950/50 rounded-2xl border border-white/50 dark:border-slate-800/50 mb-4 flex items-center justify-center overflow-hidden">
-                                                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-violet-500/5 to-transparent" />
-                                                        <div className="flex items-center gap-1">
-                                                            {[1, 2, 3].map(i => (
-                                                                <div key={i} className="w-8 h-10 bg-violet-100 dark:bg-violet-900/30 rounded-lg flex items-center justify-center border border-violet-200/50">
-                                                                    <div className="w-4 h-0.5 bg-violet-400 rounded-full" />
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center justify-end gap-2 text-violet-600 dark:text-violet-400 font-bold text-xs group-hover:gap-3 transition-all relative z-10">
-                                                        <span>Scout Programs</span>
-                                                        <ArrowRight className="w-3 h-3" />
-                                                    </div>
-                                                </button>
-                                            );
-                                            case 5: return (
-                                                /* Action Card: History */
-                                                <button
-                                                    key="action-history"
-                                                    onClick={() => onNavigate?.('history')}
-                                                    className="group relative bg-blue-50/50 dark:bg-blue-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-blue-500/10 dark:border-blue-500/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 text-left overflow-hidden h-full flex flex-col"
-                                                >
-                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-all duration-700" />
-                                                    <div className="flex items-center gap-4 relative z-10 mb-4">
-                                                        <div className="w-12 h-12 bg-blue-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform duration-500">
-                                                            <Clock className="w-6 h-6" />
-                                                        </div>
-                                                        <h3 className="text-xl font-black text-slate-900 dark:text-white">History</h3>
-                                                    </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                                        Review your analyzed jobs and insights.
-                                                    </p>
-                                                    <div className="relative h-20 bg-white/50 dark:bg-slate-950/50 rounded-2xl border border-white/50 dark:border-slate-800/50 mb-4 flex flex-col gap-2 px-4 justify-center overflow-hidden">
-                                                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-blue-500/5 to-transparent" />
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                                                            <div className="flex-grow h-2 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                                                            <div className="text-[10px] font-bold text-blue-600">98%</div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 opacity-60">
-                                                            <div className="w-2 h-2 bg-blue-400 rounded-full" />
-                                                            <div className="flex-grow h-2 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                                                            <div className="text-[10px] font-bold text-blue-500">87%</div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 opacity-40">
-                                                            <div className="w-2 h-2 bg-blue-300 rounded-full" />
-                                                            <div className="flex-grow h-2 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                                                            <div className="text-[10px] font-bold text-blue-400">92%</div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center justify-end gap-2 text-blue-600 dark:text-blue-400 font-bold text-xs group-hover:gap-3 transition-all relative z-10">
-                                                        <span>View All</span>
-                                                        <ArrowRight className="w-3 h-3" />
-                                                    </div>
-                                                </button>
-                                            );
-                                            case 6: return (
-                                                /* Action Card: Cover Letters */
-                                                <button
-                                                    key="action-cover-letters"
-                                                    onClick={() => onNavigate?.('cover-letters')}
-                                                    className="group relative bg-purple-50/50 dark:bg-purple-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-purple-500/10 dark:border-purple-500/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 text-left overflow-hidden h-full flex flex-col"
-                                                >
-                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-purple-500/20 transition-all duration-700" />
-                                                    <div className="flex items-center gap-4 relative z-10 mb-4">
-                                                        <div className="w-12 h-12 bg-purple-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/20 group-hover:scale-110 transition-transform duration-500">
-                                                            <PenTool className="w-6 h-6" />
-                                                        </div>
-                                                        <h3 className="text-xl font-black text-slate-900 dark:text-white">Cover Letters</h3>
-                                                    </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                                        Generate AI-tailored cover letters.
-                                                    </p>
-                                                    <div className="relative h-20 bg-white/50 dark:bg-slate-950/50 rounded-2xl border border-white/50 dark:border-slate-800/50 mb-4 flex flex-col gap-1.5 px-4 justify-center overflow-hidden">
-                                                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-purple-500/5 to-transparent" />
-                                                        <div className="w-3/4 h-2 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                                                        <div className="w-full h-2 bg-purple-200 dark:bg-purple-900/40 rounded-full" />
-                                                        <div className="w-5/6 h-2 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                                                        <div className="w-2/3 h-2 bg-purple-100 dark:bg-purple-900/20 rounded-full" />
-                                                    </div>
-                                                    <div className="flex items-center justify-end gap-2 text-purple-600 dark:text-purple-400 font-bold text-xs group-hover:gap-3 transition-all relative z-10">
-                                                        <span>Create New</span>
-                                                        <ArrowRight className="w-3 h-3" />
-                                                    </div>
-                                                </button>
-                                            );
-                                            default: return null;
-                                        }
-                                    })}
-                                </div>
-                            </div>
+                            <ActionGrid onNavigate={onNavigate} isAdmin={isAdmin} isTester={isTester} />
                         )}
-
                         {mode !== 'all' && (
                             <div className="w-full max-w-3xl mx-auto animate-in zoom-in-95 fade-in duration-500">
                                 <form onSubmit={error ? (e) => { e.preventDefault(); handleJobSubmission({ type: 'text', content: url }); } : handleUrlSubmit} className="relative group perspective-1000">
@@ -614,28 +323,8 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                 </form>
 
                                 {/* Usage Indicator for Free Tier (not shown to admins) */}
-                                {user && !isAdmin && usageStats && usageStats.tier === 'free' && (
-                                    <div className="mt-4 flex items-center justify-center gap-2 text-sm animate-in fade-in duration-500">
-                                        <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full border border-blue-200/50 dark:border-blue-800/50">
-                                            <div className="flex items-center gap-1.5">
-                                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                                                <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                                    {usageStats.totalAnalyses}/{usageStats.limit}
-                                                </span>
-                                                <span className="text-slate-500 dark:text-slate-400">
-                                                    free analyses used
-                                                </span>
-                                            </div>
-                                            {usageStats.totalAnalyses >= 2 && (
-                                                <button
-                                                    onClick={() => alert('Upgrade flow coming soon!')}
-                                                    className="ml-2 px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold rounded-full hover:from-blue-700 hover:to-purple-700 transition-all"
-                                                >
-                                                    Upgrade
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
+                                {user && !isAdmin && (
+                                    <UsageIndicator usageStats={usageStats} />
                                 )}
                             </div>
                         )}
@@ -801,270 +490,11 @@ const HomeInput: React.FC<HomeInputProps> = ({
                 </div>
             )}
 
-            {/* Bento Grid Features - Only for Non-Logged In Users */}
-            {!user && shuffledCards.length > 0 && (
-                <div className="mt-16 w-full max-w-[1920px] mx-auto px-6 lg:px-12">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {shuffledCards.map((index) => {
-                            switch (index) {
-                                case 0: return (
-                                    /* Card 1: Speed (Flash) */
-                                    <div key="card-1" className="bg-blue-50/50 dark:bg-blue-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-blue-500/10 dark:border-blue-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-all duration-700" />
-                                        <div className="flex items-center gap-4 relative z-10 mb-4">
-                                            <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                                                <Zap className="w-6 h-6" />
-                                            </div>
-                                            <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                                                JobFit Score
-                                            </h3>
-                                        </div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                            Stop guessing. Get an instant 0-100 compatibility rating for any job description.
-                                        </p>
-                                        {/* Visual for Score */}
-                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex items-center justify-center h-40 relative z-10">
-                                            <div className="relative w-28 h-28 flex items-center justify-center">
-                                                <svg className="w-full h-full transform -rotate-90">
-                                                    <circle cx="56" cy="56" r="50" fill="transparent" stroke="currentColor" strokeWidth="8" className="text-slate-100 dark:text-slate-800" />
-                                                    <circle cx="56" cy="56" r="50" fill="transparent" stroke="currentColor" strokeWidth="8" strokeDasharray="314.159" strokeDashoffset="6.28" className="text-blue-600 dark:text-blue-400 animate-[dash_1.5s_ease-in-out_forwards]" />
-                                                </svg>
-                                                <span className="absolute text-2xl font-black text-slate-900 dark:text-white">98<span className="text-xs text-blue-600">%</span></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                                case 1: return (
-                                    /* Card 2: Keyword Targeting */
-                                    <div key="card-2" className="bg-violet-50/50 dark:bg-violet-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-violet-500/10 dark:border-violet-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-violet-500/20 transition-all duration-700" />
-                                        <div className="flex items-center gap-4 relative z-10 mb-4">
-                                            <div className="w-12 h-12 bg-violet-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                                                <Sparkles className="w-6 h-6" />
-                                            </div>
-                                            <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                                                Keyword Targeting
-                                            </h3>
-                                        </div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                            Beat the ATS. We identify exactly which skills and keywords your resume is missing.
-                                        </p>
-                                        {/* Visual for Keywords */}
-                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm space-y-3 h-40 overflow-hidden relative z-10">
-                                            <div className="text-[10px] font-bold text-slate-400 uppercase mb-2">Detected Keywords</div>
-                                            <div className="flex flex-wrap gap-2">
-                                                {['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Cloud Infrastructure'].map((s, i) => (
-                                                    <span key={i} className={`px-2 py-1 rounded-md text-[10px] font-bold ${i < 3 ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'}`}>
-                                                        {i < 3 ? '✓' : '+'} {s}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                            <div className="absolute bottom-0 inset-x-0 h-12 bg-gradient-to-t from-white dark:from-slate-950 to-transparent" />
-                                        </div>
-                                    </div>
-                                );
-                                case 2: return (
-                                    /* Card 3: Privacy (Lock) */
-                                    <div key="card-3" className="bg-emerald-50/50 dark:bg-emerald-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-emerald-500/10 dark:border-emerald-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-emerald-500/20 transition-all duration-700" />
-                                        <div className="flex items-center gap-4 relative z-10 mb-4">
-                                            <div className="w-12 h-12 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                                                <Lock className="w-6 h-6" />
-                                            </div>
-                                            <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                                                Private Vault
-                                            </h3>
-                                        </div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                            Your data stays yours. Encrypted local storage that we can't access or train on.
-                                        </p>
-                                        {/* Visual for Privacy */}
-                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex flex-col items-center justify-center h-40 gap-3 relative z-10 overflow-hidden">
-                                            <div className="p-4 bg-emerald-100/50 dark:bg-emerald-900/20 rounded-full animate-pulse">
-                                                <Shield className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
-                                            </div>
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-[10px] font-bold text-slate-900 dark:text-white uppercase tracking-widest">AES-256</span>
-                                                <span className="text-[10px] text-emerald-600 font-bold">✓ Encrypted</span>
-                                            </div>
-                                            <div className="absolute top-0 left-0 w-full h-full bg-grid-slate-100/50 dark:bg-grid-slate-800/20 [mask-image:radial-gradient(white,transparent)]" />
-                                        </div>
-                                    </div>
-                                );
-                                case 3: return (
-                                    /* Card 4: Tailored Cover Letters */
-                                    <div key="card-4" className="bg-orange-50/50 dark:bg-orange-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-orange-500/10 dark:border-orange-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-orange-500/20 transition-all duration-700" />
-                                        <div className="flex items-center gap-4 relative z-10 mb-4">
-                                            <div className="w-12 h-12 bg-orange-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                                                <PenTool className="w-6 h-6" />
-                                            </div>
-                                            <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                                                Smart Cover Letters
-                                            </h3>
-                                        </div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                            Not just templates. We write unique, persuasive letters that cite your actual experience.
-                                        </p>
-                                        {/* Visual for Writing */}
-                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex flex-col h-40 gap-3 relative z-10 overflow-hidden group-hover:border-orange-500/30 transition-colors">
-                                            <div className="w-2/3 h-2 bg-slate-100 dark:bg-slate-800 rounded-full" />
-                                            <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full" />
-                                            <div className="w-5/6 h-2 bg-orange-100/50 dark:bg-orange-800/30 rounded-full" />
-                                            <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full" />
-                                            <div className="w-3/4 h-2 bg-slate-100 dark:bg-slate-800 rounded-full" />
-                                        </div>
-                                    </div>
-                                );
-                                case 4: return (
-                                    /* Card 5: Professional Summary */
-                                    <div key="card-5" className="bg-rose-50/50 dark:bg-rose-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-rose-500/10 dark:border-rose-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-rose-500/20 transition-all duration-700" />
-                                        <div className="flex items-center gap-4 relative z-10 mb-4">
-                                            <div className="w-12 h-12 bg-rose-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                                                <FileText className="w-6 h-6" />
-                                            </div>
-                                            <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                                                Tailored Summaries
-                                            </h3>
-                                        </div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                            We rewrite your professional summary to perfection for every single application.
-                                        </p>
-                                        {/* Visual for Highlights */}
-                                        <div className="bg-gradient-to-br from-rose-500 to-pink-600 rounded-[2rem] p-6 text-white shadow-lg relative z-10 overflow-hidden h-40 flex flex-col justify-center">
-                                            <div className="h-6 w-3/4 bg-white/20 rounded-md mb-2 flex items-center px-2">
-                                                <div className="h-1.5 w-full bg-white/40 rounded-full"></div>
-                                            </div>
-                                            <div className="h-6 w-1/2 bg-white/40 rounded-md mb-2 flex items-center px-2">
-                                                <div className="h-1.5 w-full bg-white/60 rounded-full"></div>
-                                            </div>
-                                            <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-white/10 rounded-full blur-xl" />
-                                        </div>
-                                    </div>
-                                );
-                                case 5: return (
-                                    /* Card 6: Bookmarklet (Informational) */
-                                    <div key="card-6" className="bg-sky-50/50 dark:bg-sky-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-sky-500/10 dark:border-sky-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-sky-500/20 transition-all duration-700" />
-                                        <div className="flex items-center gap-4 relative z-10 mb-4">
-                                            <div className="w-12 h-12 bg-sky-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-sky-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                                                <Bookmark className="w-6 h-6" />
-                                            </div>
-                                            <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                                                Save from Anywhere
-                                            </h3>
-                                        </div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                            Found a job on LinkedIn or Indeed? Save it to JobFit with a single click.
-                                        </p>
-                                        {/* Visual for Bookmarklet Info */}
-                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex flex-col items-center justify-center h-40 gap-3 relative z-10 overflow-hidden">
-                                            {/* Browser Bar Illustration */}
-                                            <div className="w-full h-8 bg-slate-100 dark:bg-slate-800 rounded-t-lg flex items-center px-3 gap-1.5 opacity-60">
-                                                <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600"></div>
-                                                <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600"></div>
-                                                <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600"></div>
-                                            </div>
-                                            <div className="w-full h-1 bg-slate-200 dark:bg-slate-700 mb-2"></div>
+            {/* Bento Grid Features - Only for Non-Logged In Users (Extracted to MarketingGrid) */}
+            {!user && <MarketingGrid />}
 
-                                            <div
-                                                className="flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg font-bold shadow-md text-sm z-10 opacity-70 cursor-default"
-                                                title="Available after login"
-                                            >
-                                                <Plus className="w-3 h-3" />
-                                                Save to JobFit
-                                            </div>
-
-                                            <div className="absolute bottom-4 right-10 text-[10px] text-slate-400 font-mono bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 -rotate-6">
-                                                Bookmarks Bar
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                                case 6: return (
-                                    /* Card 7: AI Career Coach (Gap Analysis) */
-                                    <div key="card-7" className="bg-emerald-50/50 dark:bg-emerald-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-emerald-500/10 dark:border-emerald-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-emerald-500/20 transition-all duration-700" />
-                                        <div className="flex items-center gap-4 relative z-10 mb-4">
-                                            <div className="w-12 h-12 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                                                <TrendingUp className="w-6 h-6" />
-                                            </div>
-                                            <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                                                AI Career Coach
-                                            </h3>
-                                        </div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                            Identify the exact skills you need for your next level. Automated gap analysis across all your target roles.
-                                        </p>
-                                        {/* Visual for Gap Analysis */}
-                                        <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2rem] p-6 border border-white/50 dark:border-slate-800/50 shadow-sm flex flex-col justify-center h-40 gap-3 relative z-10 overflow-hidden group-hover:border-emerald-500/30 transition-colors">
-                                            <div className="space-y-2">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="h-2 w-20 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-                                                    <div className="h-2 w-12 bg-emerald-500 rounded-full"></div>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <div className="h-2 w-24 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-                                                    <div className="h-2 w-8 bg-emerald-300 rounded-full"></div>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <div className="h-2 w-16 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-                                                    <div className="h-2 w-10 bg-emerald-400 rounded-full"></div>
-                                                </div>
-                                            </div>
-                                            <div className="absolute inset-0 bg-emerald-50/10 dark:bg-emerald-900/5 flex items-center justify-center">
-                                                <div className="p-3 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-emerald-100 dark:border-emerald-800 flex items-center gap-2">
-                                                    <Sparkles className="w-4 h-4 text-emerald-500 animate-pulse" />
-                                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Analyzing Gaps...</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                                case 7: return (
-                                    /* Card 9: 12-Month Roadmap */
-                                    <div key="card-9" className="bg-emerald-50/50 dark:bg-emerald-500/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-emerald-500/10 dark:border-emerald-500/20 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group flex flex-col overflow-hidden relative">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-emerald-500/20 transition-all duration-700" />
-                                        <div className="flex items-center gap-4 relative z-10 mb-4">
-                                            <div className="w-12 h-12 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                                                <ArrowRight className="w-6 h-6" />
-                                            </div>
-                                            <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                                                12-Month Roadmap
-                                            </h3>
-                                        </div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 relative z-10 flex-grow">
-                                            Transition from "Applying" to "Building". Get a month-by-month execution plan to land your target role.
-                                        </p>
-                                        {/* Visual for Roadmap */}
-                                        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-[2rem] p-6 text-white shadow-lg relative z-10 overflow-hidden h-40 flex flex-col justify-center group-hover:brightness-110 transition-all">
-                                            <div className="space-y-3 relative z-10">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-[10px] font-bold">1</div>
-                                                    <div className="h-2 flex-grow bg-white/30 rounded-full overflow-hidden">
-                                                        <div className="h-full w-full bg-white animate-[shimmer_2s_infinite]"></div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-[10px] font-bold">2</div>
-                                                    <div className="h-2 flex-grow bg-white/20 rounded-full"></div>
-                                                </div>
-                                                <div className="flex items-center gap-3 opacity-60">
-                                                    <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-[10px] font-bold">3</div>
-                                                    <div className="h-2 flex-grow bg-white/10 rounded-full"></div>
-                                                </div>
-                                            </div>
-                                            <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-                                        </div>
-                                    </div>
-                                );
-                                default: return null;
-                            }
-                        })}
-                    </div>
-                </div>
-            )}
+            {/* Additional Landing Content for Logged Out Users */}
+            {!user && <LandingContent />}
         </div>
     );
 };
