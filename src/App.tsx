@@ -172,52 +172,7 @@ const App: React.FC = () => {
     return () => clearTimeout(timer);
   }, [state.jobs]);
 
-  // Keyboard Shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      const modKey = isMac ? e.metaKey : e.ctrlKey;
 
-      // Ignore if user is typing in an input/textarea
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-        return;
-      }
-
-      // Cmd/Ctrl + K: Go to history (like search)
-      if (modKey && e.key === 'k') {
-        e.preventDefault();
-        setView('history');
-      }
-
-      // Cmd/Ctrl + H: Go to history
-      if (modKey && e.key === 'h') {
-        e.preventDefault();
-        setView('history');
-      }
-
-      // Cmd/Ctrl + R: Go to resumes
-      if (modKey && e.key === 'r') {
-        e.preventDefault();
-        setView('resumes');
-      }
-
-      // Cmd/Ctrl + N: Go to home (new analysis)
-      if (modKey && e.key === 'n') {
-        e.preventDefault();
-        setView('home');
-      }
-
-      // Cmd/Ctrl + P: Go to Pro feed (if available)
-      if (modKey && e.key === 'p' && (isTester || isAdmin || userTier === 'pro')) {
-        e.preventDefault();
-        setView('pro');
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isTester, isAdmin, userTier]);
 
   // --- Handlers ---
 
@@ -507,14 +462,14 @@ const App: React.FC = () => {
                 </button>
                 <button
                   onClick={() => { setActiveJobId(null); setView('skills'); }}
-                  className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'skills' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-indigo-500'}`}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${state.currentView === 'skills' ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                 >
                   Skills
                 </button>
                 {(userTier === 'pro' || isTester || isAdmin) && (
                   <button
                     onClick={() => { setActiveJobId(null); setView('pro'); }}
-                    className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'pro' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-indigo-500'}`}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${state.currentView === 'pro' ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                   >
                     Feed
                   </button>
