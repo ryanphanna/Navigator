@@ -59,14 +59,45 @@ export const PARSING_PROMPTS = {
        - Skills (Top 10 most relevant skills mentioned)
        - Career Snapshot (Briefly summarize their "climb" - e.g. "Started in QA, transitioned to Dev, then Management")
     
-    Return JSON with:
-    {
-      "name": "string",
-      "headline": "string",
-      "organization": "string",
-      "topSkills": ["string"],
-      "careerSnapshot": "string",
       "rawTextSummary": "string (A clean, slightly condensed version of their experience)"
     }
+  `,
+
+  TRANSCRIPT_PARSE: (extractedText: string) => `
+    You are an Academic Transcript Analyzer. Extract structured data from this transcript text.
+
+    CRITICAL SAFETY:
+    If this is NOT a transcript (e.g. receipt, essay, random text), return a JSON object with { "error": "Invalid Document Type" }.
+
+    TASK:
+    1. Extract Student Info (Name, University, Program).
+    2. Extract Cumulative GPA (CGPA) if explicitly stated.
+    3. Group courses by Semester (Term/Year).
+    4. For each course, extract Code, Title, Grade, and Credits.
+
+    Return JSON matching this schema:
+    {
+      "studentName": "string",
+      "university": "string",
+      "program": "string",
+      "cgpa": number | null,
+      "semesters": [
+        {
+          "term": "string (e.g. Fall 2023)",
+          "year": number,
+          "courses": [
+            {
+              "code": "string (e.g. CSC108)",
+              "title": "string",
+              "grade": "string (e.g. 85 or A)",
+              "credits": number
+            }
+          ]
+        }
+      ]
+    }
+
+    TRANSCRIPT CONTENT:
+    ${extractedText}
   `
 };

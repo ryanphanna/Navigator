@@ -1,18 +1,18 @@
 import React, { useState, useMemo } from 'react';
-import type { SavedJob, ResumeProfile, CustomSkill, TargetJob } from '../types';
-import { tailorExperienceBlock, analyzeJobFit } from '../services/geminiService';
-import { Storage } from '../services/storageService';
-import { ScraperService } from '../services/scraperService';
+import type { SavedJob, ResumeProfile, CustomSkill, TargetJob } from '../../types';
+import { tailorExperienceBlock, analyzeJobFit } from '../../services/geminiService';
+import { Storage } from '../../services/storageService';
+import { ScraperService } from '../../services/scraperService';
 import { CoverLetterEditor } from './CoverLetterEditor';
 import {
     ArrowLeft, Loader2, Sparkles, AlertCircle, Briefcase, ThumbsUp, CheckCircle, AlertTriangle, XCircle,
     FileText, Copy, PenTool, ExternalLink,
     BookOpen, ShieldCheck, Lock, Plus
 } from 'lucide-react';
-import { UsageModal } from './UsageModal';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { STORAGE_KEYS } from '../constants';
-import { useToast } from '../contexts/ToastContext';
+import { UsageModal } from '../../components/UsageModal';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { STORAGE_KEYS } from '../../constants';
+import { useToast } from '../../contexts/ToastContext';
 
 interface JobDetailProps {
     job: SavedJob;

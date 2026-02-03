@@ -144,6 +144,7 @@ export interface CustomSkill {
     id: string;
     user_id: string;
     name: string;
+    category?: 'hard' | 'soft';
     proficiency: 'learning' | 'comfortable' | 'expert';
     description?: string; // Brief explanation of what this skill means
     evidence?: string;
@@ -158,7 +159,33 @@ export interface AppState {
     targetJobs: TargetJob[];
     skills: CustomSkill[];
     apiStatus: 'ok' | 'offline' | 'checking';
-    currentView: 'home' | 'job-fit' | 'history' | 'resumes' | 'job-detail' | 'pro' | 'admin' | 'skills' | 'coach' | 'coach-home' | 'coach-role-models' | 'coach-gap-analysis';
+    currentView: 'home' | 'job-fit' | 'history' | 'resumes' | 'job-detail' | 'pro' | 'admin' | 'skills' | 'coach' | 'coach-home' | 'coach-role-models' | 'coach-gap-analysis' | 'grad';
     activeJobId: string | null;
     importError?: string | null;
+}
+
+export interface Course {
+    code: string;
+    title: string;
+    grade: string; // "A+", "85", "Pass"
+    credits: number; // e.g. 0.5 or 1.0
+    term?: string; // "Fall 2023"
+}
+
+export interface Semester {
+    term: string; // "Fall 2023"
+    year: number;
+    courses: Course[];
+    semesterGpa?: number;
+}
+
+export interface Transcript {
+    id: string;
+    studentName?: string;
+    university?: string;
+    program?: string;
+    cgpa?: number; // Cumulative GPA if found
+    semesters: Semester[];
+    rawText?: string;
+    dateUploaded: number;
 }

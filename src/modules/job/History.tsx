@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import type { SavedJob } from '../types';
+import type { SavedJob } from '../../types';
 import { Building, ArrowRight, Trash2, Loader2, AlertCircle, Send, Users, Star, XCircle, Search, X } from 'lucide-react';
 
 interface HistoryProps {

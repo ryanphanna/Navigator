@@ -3,11 +3,11 @@ import {
     Sparkles, Zap,
     Loader2, ExternalLink, RefreshCw
 } from 'lucide-react';
-import { ScraperService } from '../services/scraperService';
-import { supabase } from '../services/supabase';
-import { analyzeJobFit } from '../services/geminiService';
-import type { JobFeedItem } from '../types';
-import { PageLayout } from './common/PageLayout';
+import { ScraperService } from '../../services/scraperService';
+import { supabase } from '../../services/supabase';
+import { analyzeJobFit } from '../../services/geminiService';
+import type { JobFeedItem } from '../../types';
+import { PageLayout } from '../../components/common/PageLayout';
 
 interface JobFitProProps {
     onBack?: () => void; // Optional now since we removed the button? Keeping for safety

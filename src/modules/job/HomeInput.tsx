@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, AlertCircle, Link as LinkIcon, FileText, Lock, Sparkles, Zap, Plus, Shield, PenTool, Bookmark, Loader2, TrendingUp } from 'lucide-react';
 
-import type { ResumeProfile, SavedJob, TargetJob } from '../types';
-import { Storage } from '../services/storageService';
+import type { ResumeProfile, SavedJob, TargetJob } from '../../types';
+import { Storage } from '../../services/storageService';
 import type { User } from '@supabase/supabase-js';
-import { STORAGE_KEYS } from '../constants';
+import { STORAGE_KEYS } from '../../constants';
 
 
 interface HomeInputProps {
@@ -173,7 +173,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
         setIsScrapingUrl(true);
 
         try {
-            const { ScraperService } = await import('../services/scraperService');
+            const { ScraperService } = await import('../../services/scraperService');
             const text = await ScraperService.scrapeJobContent(url);
             handleJobSubmission({ type: 'text', content: text });
         } catch (err: any) {

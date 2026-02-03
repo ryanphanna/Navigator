@@ -5,22 +5,22 @@ import { Analytics } from '@vercel/analytics/react';
 import { Storage } from './services/storageService';
 import { parseResumeFile, analyzeJobFit, parseRoleModel, analyzeGap, generateRoadmap } from './services/geminiService';
 import { ScraperService } from './services/scraperService';
-import { getSecureItem } from './utils/secureStorage';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useUser } from './contexts/UserContext';
 import { TIME_PERIODS, STORAGE_KEYS } from './constants';
 import { LoadingState } from './components/common/LoadingState';
 
 // Main job-search components (kept static for SEO/Speed)
-import HomeInput from './components/HomeInput';
-import History from './components/History';
-import JobDetail from './components/JobDetail';
-import { CoachDashboard } from './components/coach/CoachDashboard'; // Static import for CoachDashboard
+import HomeInput from './modules/job/HomeInput';
+import History from './modules/job/History';
+import JobDetail from './modules/job/JobDetail';
+import { CoachDashboard } from './modules/career/CoachDashboard'; // Static import for CoachDashboard
 
 // Lazy load heavy/beta modules
 const ResumeEditor = lazy(() => import('./components/ResumeEditor'));
-const JobFitPro = lazy(() => import('./components/JobFitPro').then(m => ({ default: m.JobFitPro })));
+const JobFitPro = lazy(() => import('./modules/job/JobFitPro').then(m => ({ default: m.JobFitPro })));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const GradFitPlaceholder = lazy(() => import('./modules/grad/GradFitPlaceholder').then(m => ({ default: m.GradFitPlaceholder })));
 
 import { SkillsView } from './components/skills/SkillsView';
 import { supabase } from './services/supabase';
@@ -30,8 +30,6 @@ import { SettingsModal } from './components/SettingsModal';
 import { UsageModal } from './components/UsageModal';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { AuthModal } from './components/AuthModal';
-import { PrivacyNotice } from './components/PrivacyNotice';
-import { ApiKeySetup } from './components/ApiKeySetup';
 import { NudgeCard } from './components/NudgeCard';
 import { ViewTransition } from './components/ViewTransition';
 import { useToast } from './contexts/ToastContext';
@@ -89,8 +87,6 @@ const App: React.FC = () => {
     return !localStorage.getItem(STORAGE_KEYS.WELCOME_SEEN);
   });
 
-  const [showPrivacyNotice, setShowPrivacyNotice] = useState(false);
-  const [showApiKeySetup, setShowApiKeySetup] = useState(false);
 
   // Background Tasks Tracking
   const [activeAnalysisIds, setActiveAnalysisIds] = useState<Set<string>>(new Set());
@@ -274,25 +270,8 @@ const App: React.FC = () => {
   const handleWelcomeContinue = () => {
     localStorage.setItem(STORAGE_KEYS.WELCOME_SEEN, 'true');
     setShowWelcome(false);
-    // Next: Show Privacy if not seen
-    if (!localStorage.getItem(STORAGE_KEYS.PRIVACY_ACCEPTED)) {
-      setShowPrivacyNotice(true);
-    }
   };
 
-  const handlePrivacyAccept = async () => {
-    localStorage.setItem(STORAGE_KEYS.PRIVACY_ACCEPTED, 'true');
-    setShowPrivacyNotice(false);
-
-    // Check if API key exists, if not show setup screen
-    // BUT: If user is logged in (Pro/Beta), they don't need a key (Managed Service)
-    const hasApiKey = await getSecureItem('api_key');
-    // Logic: If NO key AND NOT a managed user (Pro/Tester/Admin) -> Show Setup
-    const isManaged = userTier === 'pro' || isTester || isAdmin;
-    if (!hasApiKey && !user && !isManaged) {
-      setShowApiKeySetup(true);
-    }
-  };
 
   const handleSignOut = async () => {
     try {
@@ -416,9 +395,7 @@ const App: React.FC = () => {
         onImportResume={handleImportResume}
         isParsing={isParsingResume}
       />
-      <ApiKeySetup isOpen={showApiKeySetup} onComplete={() => setShowApiKeySetup(false)} />
       <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
-      <PrivacyNotice isOpen={showPrivacyNotice} onAccept={handlePrivacyAccept} />
       <SettingsModal
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
@@ -438,125 +415,132 @@ const App: React.FC = () => {
       />
 
 
-      {/* Only show header after onboarding is complete */}
-      {!showWelcome && !showPrivacyNotice && !showApiKeySetup && (
-        <header className={`fixed top-0 left-0 right-0 backdrop-blur-md border-b z-50 h-16 transition-all duration-200 ${isCoachMode
-          ? 'bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/30'
-          : 'bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800'
-          }`}>
-          <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between relative">
+      {/* Header always visible now, behind onboarding overlay */}
+      <header className={`fixed top-0 left-0 right-0 backdrop-blur-md border-b z-40 h-16 transition-all duration-200 ${isCoachMode
+        ? 'bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/30'
+        : 'bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800'
+        }`}>
+        <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between relative">
 
-            {/* LEFT: STATIC BRAND LOGO */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => { setActiveJobId(null); setView('home'); }}>
-                <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20">
-                  <Briefcase className="w-5 h-5" />
-                </div>
-                <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 hidden sm:block">
-                  Job
-                </span>
+          {/* LEFT: STATIC BRAND LOGO */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => { setActiveJobId(null); setView('home'); }}>
+              <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20">
+                <Briefcase className="w-5 h-5" />
               </div>
-            </div>
-
-
-            {/* CENTER: EXPANDING ACCORDION NAVIGATION */}
-            <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 transition-all duration-500 ease-in-out">
-
-              {/* JobFit Group */}
-              <div className={`flex items-center rounded-xl transition-all duration-500 ${!isCoachMode ? 'bg-white dark:bg-slate-700 shadow-sm border border-slate-200/50 dark:border-slate-600/50 pr-2' : ''}`}>
-                <button
-                  onClick={() => { setActiveJobId(null); setView('job-fit'); }}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${currentView === 'job-fit' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-indigo-600 dark:text-slate-400'}`}
-                >
-                  <Briefcase className={`w-4 h-4 ${currentView === 'job-fit' ? 'scale-110' : 'scale-100'}`} />
-                  <span>JobFit</span>
-                </button>
-
-                <div className={`flex items-center gap-1 overflow-hidden transition-all duration-200 ease-out ${!isCoachMode ? 'max-w-xs opacity-100 ml-1' : 'max-w-0 opacity-0'}`}>
-                  <div className="w-px h-4 bg-slate-200 dark:bg-slate-600 mx-1" />
-                  <button
-                    onClick={() => { setActiveJobId(null); setView('resumes'); }}
-                    className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'resumes' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-indigo-500'}`}
-                  >
-                    Resumes
-                  </button>
-                  <button
-                    onClick={() => { setActiveJobId(null); setView('skills'); }}
-                    className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'skills' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-indigo-500'}`}
-                  >
-                    Skills
-                  </button>
-                  {(userTier === 'pro' || isTester || isAdmin) && (
-                    <button
-                      onClick={() => { setActiveJobId(null); setView('pro'); }}
-                      className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'pro' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-indigo-500'}`}
-                    >
-                      Feed
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* JobCoach Group */}
-              <div className={`flex items-center rounded-xl transition-all duration-500 ml-1 ${isCoachMode ? 'bg-white dark:bg-slate-700 shadow-sm border border-slate-200/50 dark:border-slate-600/50 pr-2' : ''}`}>
-                <button
-                  onClick={() => { setActiveJobId(null); setView('coach-home'); }}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${isCoachMode ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 hover:text-emerald-600 dark:text-slate-400'}`}
-                >
-                  <TrendingUp className={`w-4 h-4 ${isCoachMode ? 'scale-110' : 'scale-100'}`} />
-                  <span>JobCoach</span>
-                </button>
-
-                <div className={`flex items-center gap-1 overflow-hidden transition-all duration-200 ease-out ${isCoachMode ? 'max-w-md opacity-100 ml-1' : 'max-w-0 opacity-0'}`}>
-                  <div className="w-px h-4 bg-emerald-200 dark:bg-emerald-800 mx-1" />
-                  <button
-                    onClick={() => { setActiveJobId(null); setView('coach-role-models'); }}
-                    className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'coach-role-models' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 hover:text-emerald-500'}`}
-                  >
-                    Role Models
-                  </button>
-                  <button
-                    onClick={() => { setActiveJobId(null); setView('coach-gap-analysis'); }}
-                    className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'coach-gap-analysis' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 hover:text-emerald-500'}`}
-                  >
-                    Skills Gap
-                  </button>
-                </div>
-              </div>
-            </nav>
-
-            <div className="flex items-center">
-              <div className="flex items-center gap-2">
-                {!user ? (
-                  <button
-                    onClick={() => setShowAuth(true)}
-                    className="px-4 py-1.5 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm font-semibold rounded-lg border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900/50 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 transition-all mr-2 active:scale-95"
-                  >
-                    Sign In
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleSignOut}
-                    className="flex items-center gap-2 px-4 py-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-sm font-semibold rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all mr-2 group"
-                    title="Log Out"
-                  >
-                    <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                    <span>Log Out</span>
-                  </button>
-                )}
-                {/* User Profile / Settings (Unchanged) */}
-                <button
-                  onClick={() => setShowSettings(true)}
-                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all"
-                  title="Settings"
-                >
-                  <Settings className="w-5 h-5" />
-                </button>
-              </div>
+              <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 hidden sm:block">
+                Job
+              </span>
             </div>
           </div>
-        </header>
-      )}
+
+
+          {/* CENTER: EXPANDING ACCORDION NAVIGATION */}
+          <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 transition-all duration-500 ease-in-out">
+
+            {/* JobFit Group */}
+            <div className={`flex items-center rounded-xl transition-all duration-500 ${!isCoachMode ? 'bg-white dark:bg-slate-700 shadow-sm border border-slate-200/50 dark:border-slate-600/50 pr-2' : ''}`}>
+              <button
+                onClick={() => { setActiveJobId(null); setView('job-fit'); }}
+                className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${currentView === 'job-fit' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-indigo-600 dark:text-slate-400'}`}
+              >
+                <Briefcase className={`w-4 h-4 ${currentView === 'job-fit' ? 'scale-110' : 'scale-100'}`} />
+                <span>JobFit</span>
+              </button>
+
+              <div className={`flex items-center gap-1 overflow-hidden transition-all duration-200 ease-out ${!isCoachMode ? 'max-w-xs opacity-100 ml-1' : 'max-w-0 opacity-0'}`}>
+                <div className="w-px h-4 bg-slate-200 dark:bg-slate-600 mx-1" />
+                <button
+                  onClick={() => { setActiveJobId(null); setView('resumes'); }}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${state.currentView === 'resumes' ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                >
+                  Resumes
+                </button>
+
+                {isAdmin && (
+                  <button
+                    onClick={() => setView('grad')}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${state.currentView === 'grad' ? 'bg-pink-100 dark:bg-pink-900/50 text-pink-700 dark:text-pink-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                  >
+                    GradFit
+                  </button>
+                )}
+                <button
+                  onClick={() => { setActiveJobId(null); setView('skills'); }}
+                  className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'skills' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-indigo-500'}`}
+                >
+                  Skills
+                </button>
+                {(userTier === 'pro' || isTester || isAdmin) && (
+                  <button
+                    onClick={() => { setActiveJobId(null); setView('pro'); }}
+                    className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'pro' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-indigo-500'}`}
+                  >
+                    Feed
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* JobCoach Group */}
+            <div className={`flex items-center rounded-xl transition-all duration-500 ml-1 ${isCoachMode ? 'bg-white dark:bg-slate-700 shadow-sm border border-slate-200/50 dark:border-slate-600/50 pr-2' : ''}`}>
+              <button
+                onClick={() => { setActiveJobId(null); setView('coach-home'); }}
+                className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${isCoachMode ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 hover:text-emerald-600 dark:text-slate-400'}`}
+              >
+                <TrendingUp className={`w-4 h-4 ${isCoachMode ? 'scale-110' : 'scale-100'}`} />
+                <span>JobCoach</span>
+              </button>
+
+              <div className={`flex items-center gap-1 overflow-hidden transition-all duration-200 ease-out ${isCoachMode ? 'max-w-md opacity-100 ml-1' : 'max-w-0 opacity-0'}`}>
+                <div className="w-px h-4 bg-emerald-200 dark:bg-emerald-800 mx-1" />
+                <button
+                  onClick={() => { setActiveJobId(null); setView('coach-role-models'); }}
+                  className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'coach-role-models' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 hover:text-emerald-500'}`}
+                >
+                  Role Models
+                </button>
+                <button
+                  onClick={() => { setActiveJobId(null); setView('coach-gap-analysis'); }}
+                  className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${state.currentView === 'coach-gap-analysis' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 hover:text-emerald-500'}`}
+                >
+                  Skills Gap
+                </button>
+              </div>
+            </div>
+          </nav>
+
+          <div className="flex items-center">
+            <div className="flex items-center gap-2">
+              {!user ? (
+                <button
+                  onClick={() => setShowAuth(true)}
+                  className="px-4 py-1.5 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm font-semibold rounded-lg border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900/50 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 transition-all mr-2 active:scale-95"
+                >
+                  Sign In
+                </button>
+              ) : (
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2 px-4 py-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-sm font-semibold rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all mr-2 group"
+                  title="Log Out"
+                >
+                  <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                  <span>Log Out</span>
+                </button>
+              )}
+              {/* User Profile / Settings (Unchanged) */}
+              <button
+                onClick={() => setShowSettings(true)}
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all"
+                title="Settings"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
 
       <main className="w-full pb-24 sm:pb-8">
 
@@ -763,6 +747,37 @@ const App: React.FC = () => {
             </Suspense>
           )}
 
+          {state.currentView === 'grad' && isAdmin && (
+            <Suspense fallback={<LoadingState message="Loading GradFit..." />}>
+              <div className="pt-24 pb-12 px-4 sm:px-6">
+                <GradFitPlaceholder
+                  onAddSkills={async (newSkills: any[]) => { // Explicitly typed to avoid 'any' error or update interface
+                    const skillsToAdd = newSkills.map(s => ({
+                      id: crypto.randomUUID(),
+                      user_id: 'local',
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString(),
+                      name: s.name,
+                      category: s.category,
+                      proficiency: s.proficiency,
+                      evidence: s.evidence
+                    })); // Add required fields
+
+                    // Persist (Pseudo)
+                    for (const s of skillsToAdd) {
+                      await Storage.saveSkill(s);
+                    }
+
+                    setState(prev => ({
+                      ...prev,
+                      skills: [...prev.skills, ...skillsToAdd]
+                    }));
+                  }}
+                />
+              </div>
+            </Suspense>
+          )}
+
           {/* Interview Modal (Global) - Rendered here to ensure it's within context if needed, but could be global */}
           {interviewSkill && (
             <SkillInterviewModal
@@ -774,8 +789,8 @@ const App: React.FC = () => {
           )}
         </div>
         <Analytics />
-      </main>
-    </div>
+      </main >
+    </div >
   );
 };
 

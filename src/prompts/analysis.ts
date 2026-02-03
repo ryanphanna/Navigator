@@ -271,7 +271,58 @@ export const ANALYSIS_PROMPTS = {
           "tools": ["string"],
           "linkedSkill": "string (The skill name this addresses)"
         }
-      ]
+      }
     }
+  `,
+
+
+  GRAD_SCHOOL_ELIGIBILITY: (transcriptText: string, targetProgram: string) => `
+    You are a Graduate Admissions Consultant. Analyze this transcript for eligibility into a specific Master's program.
+
+    TRANSCRIPT SUMMARY:
+    ${transcriptText}
+
+    TARGET PROGRAM:
+    ${targetProgram}
+
+    TASK:
+    1. Assess cGPA strength for this specific field (e.g. 3.0 is okay for Arts, bad for Med School).
+    2. Identify KEY missing prerequisites or weak areas (e.g. "Low grades in calculus").
+    3. Estimate "Admission Probability" (High, Medium, Low).
+    4. Recommend 2-3 strategic moves for the remaining time (e.g. "Retake Stats", "Focus on research").
+
+    Return JSON:
+    {
+      "probability": "High" | "Medium" | "Low",
+      "analysis": "string (2-3 sentences)",
+      "gpaVerdict": "string (e.g. 'Strong')",
+      "gpaContext": "string (e.g. 'Your 3.8 is well above the 3.3 cutoff')",
+      "weaknesses": ["string"],
+      "recommendations": ["string"]
+    }
+  `,
+
+  COURSE_SKILL_EXTRACTION: (coursesList: string) => `
+    You are a Skills Taxonomist. Analyze this list of university courses and extract skills.
+    
+    CRITICAL: Distinguish between "Hard Skills" (Technical, Tools, Subject Matter) and "Soft Skills" (Transferable, Interpersonal).
+
+    COURSES:
+    ${coursesList}
+
+    TASK:
+    1. Infer skills based on course titles & level.
+    2. Categorize each skill strictly as 'hard' or 'soft'.
+    3. Estimate proficiency based on course level.
+
+    Return JSON:
+    [
+      {
+        "name": "string",
+        "category": "hard" | "soft",
+        "proficiency": "learning" | "comfortable" | "expert",
+        "evidence": "string (e.g. 'From CSC207')"
+      }
+    ]
   `
 };

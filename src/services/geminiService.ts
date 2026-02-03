@@ -8,7 +8,8 @@ import type {
     DistilledJob,
     RoleModelProfile,
     GapAnalysisResult,
-    RoadmapMilestone
+    RoadmapMilestone,
+    Transcript
 } from "../types";
 import { getSecureItem, setSecureItem, removeSecureItem, migrateToSecureStorage } from "../utils/secureStorage";
 import { getUserFriendlyError, getRetryMessage } from "../utils/errorMessages";
@@ -794,6 +795,147 @@ export const parseResumeFile = async (
     });
 };
 
+export const analyzeMAEligibility = async (
+    transcript: Transcript,
+    targetProgram: string
+): Promise<{
+    probability: 'High' | 'Medium' | 'Low';
+    analysis: string;
+    gpaVerdict: string;
+    gpaContext: string;
+    weaknesses: string[];
+    recommendations: string[];
+}> => {
+
+    // Construct context
+    const transcriptSummary = `
+    Student: ${transcript.studentName || 'Unknown'}
+    University: ${transcript.university || 'Unknown'}
+    Program: ${transcript.program || 'Unknown'}
+    cGPA: ${transcript.cgpa || 'Not calculated'}
+    
+    COURSES:
+    ${transcript.semesters.map(s =>
+        `${s.term} ${s.year}:\n${s.courses.map(c => `- ${c.code}: ${c.title} (${c.grade})`).join('\n')}`
+    ).join('\n\n')}
+    `;
+
+    const prompt = ANALYSIS_PROMPTS.GRAD_SCHOOL_ELIGIBILITY(transcriptSummary, targetProgram);
+
+    return callWithRetry(async () => {
+        const model = await getModel({
+            model: 'gemini-2.0-flash',
+            generationConfig: {
+                responseMimeType: "application/json",
+                // schema handled via prompt instruction
+            }
+        });
+
+        const response = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: prompt }] }]
+        });
+
+        const text = response.response.text();
+        if (!text) throw new Error("No analysis generated");
+
+        const cleanedText = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+        return JSON.parse(cleanedText);
+    }, {
+        event_type: 'ma_eligibility',
+        prompt: prompt,
+        model: 'gemini-2.0-flash'
+    });
+};
+
+export const extractSkillsFromCourses = async (
+    transcript: Transcript
+): Promise<Array<{ name: string; category: 'hard' | 'soft'; proficiency: 'learning' | 'comfortable' | 'expert'; evidence: string }>> => {
+
+    // Flatten courses into a list
+    const coursesList = transcript.semesters.map(s =>
+        s.courses.map(c => `${c.code}: ${c.title}`).join('\n')
+    ).join('\n');
+
+    const prompt = ANALYSIS_PROMPTS.COURSE_SKILL_EXTRACTION(coursesList);
+
+    return callWithRetry(async () => {
+        const model = await getModel({
+            model: 'gemini-2.0-flash',
+            generationConfig: {
+                responseMimeType: "application/json"
+            }
+        });
+
+        const response = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: prompt }] }]
+        });
+
+        const text = response.response.text();
+        if (!text) return [];
+
+        const cleanedText = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+        return JSON.parse(cleanedText);
+    }, {
+        event_type: 'course_skill_extraction',
+        prompt: prompt,
+        model: 'gemini-2.0-flash'
+    });
+};
+
+// New function to parse raw HTML into JobFeedItems (Client-Side Fallback)
+export const parseTranscript = async (
+    fileBase64: string,
+    mimeType: string = 'application/pdf'
+): Promise<Transcript> => {
+
+    // Reuse PDF extraction logic
+    let extractedText = '';
+    if (mimeType === 'application/pdf') {
+        extractedText = await extractPdfText(fileBase64);
+        if (extractedText.length < 50) {
+            throw new Error("Could not extract text from PDF. Please ensure it is a text-based PDF.");
+        }
+    } else {
+        throw new Error("Only PDF transcripts are supported currently.");
+    }
+
+    const prompt = PARSING_PROMPTS.TRANSCRIPT_PARSE(extractedText);
+
+    return callWithRetry(async () => {
+        const model = await getModel({
+            model: 'gemini-2.0-flash',
+            generationConfig: {
+                responseMimeType: "application/json",
+                // We use auto-schema via prompt instruction instead of strict schema for flexibility with bad PDF text
+            }
+        });
+
+        const response = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: prompt }] }]
+        });
+
+        const text = response.response.text();
+        if (!text) throw new Error("No response from AI");
+
+        const cleanedText = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+        const parsed = JSON.parse(cleanedText);
+
+        if (parsed.error) {
+            throw new Error(parsed.error);
+        }
+
+        return {
+            ...parsed,
+            id: crypto.randomUUID(),
+            dateUploaded: Date.now(),
+            rawText: extractedText
+        };
+    }, {
+        event_type: 'transcript_parsing',
+        prompt: prompt,
+        model: 'gemini-2.0-flash'
+    });
+};
 // New function to parse raw HTML into JobFeedItems (Client-Side Fallback)
 export const parseJobListing = async (
     html: string,

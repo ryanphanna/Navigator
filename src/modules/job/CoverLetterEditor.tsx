@@ -1,14 +1,14 @@
 import React from 'react';
-import type { SavedJob, ResumeProfile, JobAnalysis, TargetJob } from '../types';
-import { Storage } from '../services/storageService';
-import { generateCoverLetter, generateCoverLetterWithQuality, critiqueCoverLetter } from '../services/geminiService';
-import { ANALYSIS_PROMPTS } from '../prompts/analysis';
+import type { SavedJob, ResumeProfile, JobAnalysis, TargetJob } from '../../types';
+import { Storage } from '../../services/storageService';
+import { generateCoverLetter, generateCoverLetterWithQuality, critiqueCoverLetter } from '../../services/geminiService';
+import { ANALYSIS_PROMPTS } from '../../prompts/analysis';
 import {
     Loader2, Sparkles, AlertCircle, PenTool, ThumbsUp, ThumbsDown,
     Copy, Check, CheckCircle, Settings, Users
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { useToast } from '../contexts/ToastContext';
+import { useToast } from '../../contexts/ToastContext';
 
 interface CoverLetterEditorProps {
     job: SavedJob;
@@ -57,7 +57,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
         setGenerating(true);
         setAnalysisProgress("Generating cover letter...");
         try {
-            const textToUse = localJob.description || `Role: ${analysis.distilledJob.roleTitle} at ${analysis.distilledJob.companyName}`;
+            const textToUse = localJob.description || `Role: ${analysis.distilledJob.roleTitle} at ${analysis.distilledJob.companyName} `;
 
             let finalContext = localJob.contextNotes;
             let instructions = analysis.tailoringInstructions;
@@ -76,9 +76,9 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                 const completedCount = mainGoal.roadmap?.filter(m => m.status === 'completed').length || 0;
                 const totalCount = mainGoal.roadmap?.length || 0;
 
-                trajectoryContext = `I am currently pursuing a career pivot/growth path towards: ${mainGoal.title}. `;
+                trajectoryContext = `I am currently pursuing a career pivot / growth path towards: ${mainGoal.title}.`;
                 if (totalCount > 0) {
-                    trajectoryContext += `I have completed ${completedCount} out of ${totalCount} milestones in my 12-month professional roadmap, including ${mainGoal.roadmap?.filter(m => m.status === 'completed').map(m => m.title).join(', ')}.`;
+                    trajectoryContext += `I have completed ${completedCount} out of ${totalCount} milestones in my 12 - month professional roadmap, including ${mainGoal.roadmap?.filter(m => m.status === 'completed').map(m => m.title).join(', ')}.`;
                 }
             }
 
