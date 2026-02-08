@@ -9,7 +9,7 @@ import {
     ArrowRight,
     TrendingUp,
     Sparkles,
-    FileCheck
+
 } from 'lucide-react';
 import { LandingContent } from './LandingContent';
 import { MarketingGrid } from './MarketingGrid';

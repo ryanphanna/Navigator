@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../services/supabase';
-import { X, Mail, Lock, Loader2, ArrowRight, AlertCircle, CheckCircle, Sparkles } from 'lucide-react';
+import { X, Mail, Lock, Loader2, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 import { getUserFriendlyError } from '../utils/errorMessages';
 
 interface AuthModalProps {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { GraduationCap, BookOpen, Calculator, Award } from 'lucide-react';
+import { BookOpen, Calculator, Award } from 'lucide-react';
 import { TranscriptUpload } from './TranscriptUpload';
 import { GPACalculator } from './GPACalculator';
 import { MAEligibility } from './MAEligibility';
