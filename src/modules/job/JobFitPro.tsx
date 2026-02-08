@@ -8,6 +8,7 @@ import { supabase } from '../../services/supabase';
 import { analyzeJobFit } from '../../services/geminiService';
 import type { JobFeedItem } from '../../types';
 import { PageLayout } from '../../components/common/PageLayout';
+import { STORAGE_KEYS } from '../../constants';
 
 interface JobFitProProps {
     onBack?: () => void; // Optional now since we removed the button? Keeping for safety
@@ -28,13 +29,11 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
     }, []);
 
     const loadFeedWithCache = async () => {
-        const CACHE_KEY = 'jobfit_feed_cache';
-        const CACHE_TIMESTAMP_KEY = 'jobfit_feed_timestamp';
         const ONE_DAY = 24 * 60 * 60 * 1000;
 
         // Check if we have cached data
-        const cachedData = localStorage.getItem(CACHE_KEY);
-        const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+        const cachedData = localStorage.getItem(STORAGE_KEYS.FEED_CACHE);
+        const cachedTimestamp = localStorage.getItem(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
 
         if (cachedData && cachedTimestamp) {
             const age = Date.now() - parseInt(cachedTimestamp);
@@ -58,8 +57,8 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
             setFeed(data);
 
             // Cache the raw feed data
-            localStorage.setItem('jobfit_feed_cache', JSON.stringify(data));
-            localStorage.setItem('jobfit_feed_timestamp', Date.now().toString());
+            localStorage.setItem(STORAGE_KEYS.FEED_CACHE, JSON.stringify(data));
+            localStorage.setItem(STORAGE_KEYS.FEED_CACHE_TIMESTAMP, Date.now().toString());
 
             // Trigger background analysis
             setTimeout(() => analyzeJobsInBackground(data), 100);

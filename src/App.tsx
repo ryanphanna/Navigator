@@ -25,6 +25,7 @@ import { SkillsView } from './components/skills/SkillsView';
 import { SkillInterviewModal } from './components/skills/SkillInterviewModal';
 import { SettingsModal } from './components/SettingsModal';
 import { UpgradeModal } from './components/UpgradeModal';
+import { ROUTES } from './constants';
 import { SEOLandingPage } from './modules/seo/SEOLandingPage';
 import { AuthModal } from './components/AuthModal';
 import { NudgeCard } from './components/NudgeCard';
@@ -364,10 +365,10 @@ const App: React.FC = () => {
           } />
 
           {/* SEO Landing Pages (Dynamic) */}
-          <Route path="/resume-for/:role" element={<SEOLandingPage />} />
+          <Route path={ROUTES.SEO_LANDING} element={<SEOLandingPage />} />
 
           {/* Core Views */}
-          <Route path="/feed" element={
+          <Route path={ROUTES.FEED} element={
             <Suspense fallback={<LoadingState message="Loading Pro Feed..." />}>
               <div className="pt-12">
                 <JobFitPro onDraftApplication={handleDraftApplication} />
@@ -375,13 +376,13 @@ const App: React.FC = () => {
             </Suspense>
           } />
 
-          <Route path="/admin" element={
+          <Route path={ROUTES.ADMIN} element={
             <Suspense fallback={<LoadingState message="Loading Admin Console..." />}>
               <AdminDashboard />
             </Suspense>
           } />
 
-          <Route path="/resumes" element={
+          <Route path={ROUTES.RESUMES} element={
             <Suspense fallback={<LoadingState message="Opening Editor..." />}>
               <div className="pt-12">
                 <ResumeEditor
@@ -397,7 +398,7 @@ const App: React.FC = () => {
             </Suspense>
           } />
 
-          <Route path="/skills" element={
+          <Route path={ROUTES.SKILLS} element={
             <div className="pt-12">
               <SkillsView
                 skills={state.skills}
@@ -410,7 +411,7 @@ const App: React.FC = () => {
           } />
 
           {/* Coach Routes */}
-          <Route path="/coach/*" element={
+          <Route path={ROUTES.COACH_HOME + "/*"} element={
             <div className="pt-16">
               <CoachDashboard
                 userSkills={state.skills}
@@ -506,7 +507,7 @@ const App: React.FC = () => {
           } />
 
           {/* History / All Context */}
-          <Route path="/history" element={
+          <Route path={ROUTES.HISTORY} element={
             <div className="pt-20">
               <History
                 jobs={state.jobs}
@@ -516,7 +517,7 @@ const App: React.FC = () => {
             </div>
           } />
 
-          <Route path="/job/:id" element={
+          <Route path={ROUTES.JOB_DETAIL} element={
             activeJob ? (
               <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-24 animate-in slide-in-from-right-4 duration-500">
                 <JobDetail
@@ -535,7 +536,7 @@ const App: React.FC = () => {
             )
           } />
 
-          <Route path="/grad" element={
+          <Route path={ROUTES.GRAD} element={
             <Suspense fallback={<LoadingState message="Loading Academic HQ..." />}>
               <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-16">
                 <GradFitPlaceholder />
@@ -544,7 +545,7 @@ const App: React.FC = () => {
           } />
 
           {/* Catch all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
         </Routes>
       </main>
     </div>

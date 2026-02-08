@@ -501,13 +501,13 @@ Return ONLY JSON with: compatibilityScore, bestResumeProfileId, reasoning, stren
         if (!text || !text.trim()) throw new Error("Empty response from analysis");
 
         const today = new Date().toISOString().split('T')[0];
-        const currentCount = JSON.parse(localStorage.getItem('jobfit_daily_usage') || '{}');
+        const currentCount = JSON.parse(localStorage.getItem(STORAGE_KEYS.DAILY_USAGE) || '{}');
         if (currentCount.date !== today) {
             currentCount.date = today;
             currentCount.count = 0;
         }
         currentCount.count++;
-        localStorage.setItem('jobfit_daily_usage', JSON.stringify(currentCount));
+        localStorage.setItem(STORAGE_KEYS.DAILY_USAGE, JSON.stringify(currentCount));
 
         const parsed = JSON.parse(cleanJsonOutput(text));
 
@@ -681,7 +681,7 @@ export const generateTailoredSummary = async (
     return callWithRetry(async (meta) => {
         try {
             const model = await getModel({
-                model: 'gemini-2.0-flash',
+                model: AI_MODELS.FLASH,
                 generationConfig: {
                     responseMimeType: "application/json",
                     responseSchema: {
@@ -720,7 +720,7 @@ export const generateTailoredSummary = async (
     }, {
         event_type: 'tailored_summary',
         prompt: prompt,
-        model: 'gemini-2.0-flash'
+        model: AI_MODELS.FLASH
     });
 };
 
@@ -734,7 +734,7 @@ export const critiqueCoverLetter = async (
     return callWithRetry(async () => {
         try {
             const model = await getModel({
-                model: 'gemini-2.0-flash',
+                model: AI_MODELS.FLASH,
                 generationConfig: {
                     temperature: AI_TEMPERATURE.STRICT,
                     responseMimeType: "application/json",
@@ -765,7 +765,7 @@ export const critiqueCoverLetter = async (
     }, {
         event_type: 'critique',
         prompt: prompt,
-        model: 'gemini-2.0-flash'
+        model: AI_MODELS.FLASH
     });
 };
 
@@ -826,7 +826,7 @@ export const parseResumeFile = async (
     return callWithRetry(async () => {
         try {
             const model = await getModel({
-                model: 'gemini-2.0-flash', // Using 2.0-flash as standard model
+                model: AI_MODELS.FLASH, // Using 2.0-flash as standard model
                 generationConfig: {
                     responseMimeType: "application/json",
                     responseSchema: {
@@ -884,7 +884,7 @@ export const parseResumeFile = async (
     }, {
         event_type: 'parsing',
         prompt: prompt,
-        model: 'gemini-2.0-flash'
+        model: AI_MODELS.FLASH
     });
 };
 
@@ -917,7 +917,7 @@ export const analyzeMAEligibility = async (
 
     return callWithRetry(async () => {
         const model = await getModel({
-            model: 'gemini-2.0-flash',
+            model: AI_MODELS.FLASH,
             generationConfig: {
                 responseMimeType: "application/json",
                 // schema handled via prompt instruction
@@ -936,7 +936,7 @@ export const analyzeMAEligibility = async (
     }, {
         event_type: 'ma_eligibility',
         prompt: prompt,
-        model: 'gemini-2.0-flash'
+        model: AI_MODELS.FLASH
     });
 };
 
@@ -953,7 +953,7 @@ export const extractSkillsFromCourses = async (
 
     return callWithRetry(async () => {
         const model = await getModel({
-            model: 'gemini-2.0-flash',
+            model: AI_MODELS.FLASH,
             generationConfig: {
                 responseMimeType: "application/json"
             }
@@ -970,7 +970,7 @@ export const extractSkillsFromCourses = async (
     }, {
         event_type: 'course_skill_extraction',
         prompt: prompt,
-        model: 'gemini-2.0-flash'
+        model: AI_MODELS.FLASH
     });
 };
 
@@ -995,7 +995,7 @@ export const parseTranscript = async (
 
     return callWithRetry(async () => {
         const model = await getModel({
-            model: 'gemini-2.0-flash',
+            model: AI_MODELS.FLASH,
             generationConfig: {
                 responseMimeType: "application/json",
                 // We use auto-schema via prompt instruction instead of strict schema for flexibility with bad PDF text
@@ -1035,7 +1035,7 @@ export const parseTranscript = async (
     }, {
         event_type: 'transcript_parsing',
         prompt: prompt,
-        model: 'gemini-2.0-flash'
+        model: AI_MODELS.FLASH
     });
 };
 // New function to parse raw HTML into JobFeedItems (Client-Side Fallback)
@@ -1055,7 +1055,7 @@ export const parseJobListing = async (
     return callWithRetry(async () => {
         try {
             const model = await getModel({
-                model: 'gemini-2.0-flash',
+                model: AI_MODELS.FLASH,
                 generationConfig: {
                     responseMimeType: "application/json",
                     responseSchema: {
@@ -1092,7 +1092,7 @@ export const parseJobListing = async (
     }, {
         event_type: 'listing_parse',
         prompt: prompt,
-        model: 'gemini-2.0-flash'
+        model: AI_MODELS.FLASH
     });
 };
 
@@ -1116,7 +1116,7 @@ export const tailorExperienceBlock = async (
     return callWithRetry(async () => {
         try {
             const model = await getModel({
-                model: 'gemini-2.0-flash',
+                model: AI_MODELS.FLASH,
                 generationConfig: {
                     temperature: AI_TEMPERATURE.BALANCED, // Little bit of creativity allowed for phrasing
                     responseMimeType: "application/json",
@@ -1144,7 +1144,7 @@ export const tailorExperienceBlock = async (
     }, {
         event_type: 'tailoring_block',
         prompt: prompt,
-        model: 'gemini-2.0-flash'
+        model: AI_MODELS.FLASH
     });
 };
 export const inferProficiencyFromResponse = async (
@@ -1403,7 +1403,7 @@ export const parseRoleModel = async (
 
     const experience = await callWithRetry(async () => {
         const model = await getModel({
-            model: 'gemini-2.0-flash',
+            model: AI_MODELS.FLASH,
             generationConfig: {
                 temperature: AI_TEMPERATURE.STRICT,
                 responseMimeType: "application/json",
@@ -1439,7 +1439,7 @@ export const parseRoleModel = async (
     }, {
         event_type: 'role_model_experience',
         prompt: experiencePrompt,
-        model: 'gemini-2.0-flash'
+        model: AI_MODELS.FLASH
     });
 
     return {
@@ -1488,7 +1488,7 @@ export const analyzeGap = async (
         try {
             // STAGE 1: Generate Initial Gap Analysis (Flash)
             const model1 = await getModel({
-                model: 'gemini-2.0-flash',
+                model: AI_MODELS.FLASH,
                 generationConfig: {
                     temperature: AI_TEMPERATURE.STRICT,
                     responseMimeType: "application/json",
@@ -1553,7 +1553,7 @@ export const analyzeGap = async (
             if (strictMode) {
                 const filterPrompt = ANALYSIS_PROMPTS.FILTER_HARD_SKILLS(cleanedText1);
                 const model2 = await getModel({
-                    model: 'gemini-2.0-flash',
+                    model: AI_MODELS.FLASH,
                     generationConfig: {
                         temperature: AI_TEMPERATURE.STRICT,
                         responseMimeType: "application/json",
@@ -1589,7 +1589,7 @@ export const analyzeGap = async (
     }, {
         event_type: 'gap_analysis',
         prompt: prompt,
-        model: 'gemini-2.0-flash'
+        model: AI_MODELS.FLASH
     });
 };
 
@@ -1600,7 +1600,7 @@ export const generateRoadmap = async (gapAnalysis: GapAnalysisResult): Promise<R
     return callWithRetry(async () => {
         try {
             const model = await getModel({
-                model: 'gemini-2.0-flash',
+                model: AI_MODELS.FLASH,
                 generationConfig: {
                     temperature: AI_TEMPERATURE.STRICT,
                     responseMimeType: "application/json",
@@ -1650,7 +1650,7 @@ export const generateRoadmap = async (gapAnalysis: GapAnalysisResult): Promise<R
     }, {
         event_type: 'roadmap_generation',
         prompt: prompt,
-        model: 'gemini-2.0-flash'
+        model: AI_MODELS.FLASH
     });
 };
 

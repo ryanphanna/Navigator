@@ -2,14 +2,7 @@ import type { ResumeProfile, SavedJob, CustomSkill } from '../types';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { encryptionService } from './encryptionService';
 
-const STORAGE_KEYS = {
-    RESUMES: 'jobfit_resumes_v2',
-    JOBS: 'jobfit_jobs_history',
-    SKILLS: 'jobfit_user_skills',
-    ROLE_MODELS: 'jobcoach_role_models',
-    TARGET_JOBS: 'jobfit_target_jobs',
-    VAULT_SEED: 'jobfit_vault_seed'
-};
+import { STORAGE_KEYS } from '../constants';
 
 // Helper: Get User ID if logged in
 const getUserId = async () => {
@@ -200,7 +193,7 @@ export const Storage = {
 
     async getJobs(): Promise<SavedJob[]> {
         // 1. Local (Secured)
-        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS) || [];
+        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS_HISTORY) || [];
         let jobs = localJobs;
 
         // 2. Cloud
@@ -257,7 +250,7 @@ export const Storage = {
                     return finalJob;
                 });
 
-                await Vault.setSecure(STORAGE_KEYS.JOBS, jobs);
+                await Vault.setSecure(STORAGE_KEYS.JOBS_HISTORY, jobs);
             }
         }
         return jobs;
@@ -265,9 +258,9 @@ export const Storage = {
 
     async addJob(job: SavedJob) {
         // 1. Local (Secured)
-        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS) || [];
+        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS_HISTORY) || [];
         const updated = [job, ...localJobs];
-        await Vault.setSecure(STORAGE_KEYS.JOBS, updated);
+        await Vault.setSecure(STORAGE_KEYS.JOBS_HISTORY, updated);
 
         // 2. Cloud
         const userId = await getUserId();
@@ -292,9 +285,9 @@ export const Storage = {
 
     async updateJob(updatedJob: SavedJob) {
         // 1. Local (Secured)
-        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS) || [];
+        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS_HISTORY) || [];
         const updated = localJobs.map(j => j.id === updatedJob.id ? updatedJob : j);
-        await Vault.setSecure(STORAGE_KEYS.JOBS, updated);
+        await Vault.setSecure(STORAGE_KEYS.JOBS_HISTORY, updated);
 
         // 2. Cloud
         const userId = await getUserId();
@@ -317,9 +310,9 @@ export const Storage = {
 
     async deleteJob(id: string) {
         // 1. Local (Secured)
-        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS) || [];
+        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS_HISTORY) || [];
         const updated = localJobs.filter(j => j.id !== id);
-        await Vault.setSecure(STORAGE_KEYS.JOBS, updated);
+        await Vault.setSecure(STORAGE_KEYS.JOBS_HISTORY, updated);
 
         // 2. Cloud
         const userId = await getUserId();
@@ -344,7 +337,7 @@ export const Storage = {
         }
 
         // 2. Sync Jobs (Push missing ones)
-        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS) || [];
+        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS_HISTORY) || [];
         if (localJobs.length > 0) {
             const { data: cloudJobs } = await supabase.from('jobs').select('id').eq('user_id', userId);
             const cloudIds = new Set(cloudJobs?.map(j => j.id) || []);

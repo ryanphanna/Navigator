@@ -9,7 +9,7 @@ import { useLocalStorage } from './useLocalStorage';
 import { useUser } from '../contexts/UserContext';
 import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../services/supabase';
-import { TIME_PERIODS, STORAGE_KEYS } from '../constants';
+import { TIME_PERIODS, STORAGE_KEYS, ROUTES } from '../constants';
 import { CanonicalService } from '../services/seo/canonicalService';
 
 export const useAppLogic = () => {
@@ -20,7 +20,7 @@ export const useAppLogic = () => {
     const location = useLocation();
 
     // Persist transcript
-    const [transcript] = useLocalStorage<Transcript | null>('NAVIGATOR_TRANSCRIPT_CACHE', null);
+    const [transcript] = useLocalStorage<Transcript | null>(STORAGE_KEYS.TRANSCRIPT_CACHE, null);
 
     // Global State
     const [state, setState] = useState<AppState>({
@@ -36,19 +36,19 @@ export const useAppLogic = () => {
     // Derive currentView from location
     const currentView = (() => {
         const path = location.pathname;
-        if (path === '/') return 'home';
-        if (path === '/analyze') return 'job-fit';
-        if (path === '/history') return 'history';
+        if (path === ROUTES.HOME) return 'home';
+        if (path === ROUTES.ANALYZE) return 'job-fit';
+        if (path === ROUTES.HISTORY) return 'history';
         if (path.startsWith('/job/')) return 'job-detail';
-        if (path === '/resumes') return 'resumes';
-        if (path === '/skills') return 'skills';
-        if (path === '/feed' || path === '/pro') return 'pro';
-        if (path === '/admin') return 'admin';
-        if (path === '/coach/role-models') return 'coach-role-models';
-        if (path === '/coach/gap-analysis') return 'coach-gap-analysis';
-        if (path === '/coach') return 'coach-home';
+        if (path === ROUTES.RESUMES) return 'resumes';
+        if (path === ROUTES.SKILLS) return 'skills';
+        if (path === ROUTES.PRO_FEED || path === '/feed') return 'pro';
+        if (path === ROUTES.ADMIN) return 'admin';
+        if (path === ROUTES.COACH_ROLE_MODELS) return 'coach-role-models';
+        if (path === ROUTES.COACH_GAP) return 'coach-gap-analysis';
+        if (path === ROUTES.COACH_HOME) return 'coach-home';
         if (path.startsWith('/grad')) return 'grad';
-        if (path === '/cover-letters') return 'cover-letters';
+        if (path === ROUTES.COVER_LETTERS) return 'cover-letters';
         return 'home';
     })();
 

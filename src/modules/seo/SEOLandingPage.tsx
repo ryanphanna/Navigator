@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { CanonicalService } from '../../services/seo/canonicalService';
 import { SEO_BUCKETS } from '../../services/seo/seo-data';
 import { ArrowRight, CheckCircle2, Star, TrendingUp, AlertTriangle, Briefcase } from 'lucide-react';
+import { ROUTES } from '../../constants';
 
 export const SEOLandingPage: React.FC = () => {
     const { role } = useParams<{ role: string }>();
@@ -112,14 +113,14 @@ export const SEOLandingPage: React.FC = () => {
                         {SEO_BUCKETS.filter(b => b.id !== 'general').map(b => (
                             <Link
                                 key={b.slug}
-                                to={`/resume-for/${b.slug}`}
+                                to={ROUTES.SEO_LANDING.replace(':role', b.slug)}
                                 className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:border-indigo-500 hover:text-indigo-500 transition-colors"
                             >
                                 {b.title} Resume
                             </Link>
                         ))}
                         <Link
-                            to="/resume-for/digital-marketing-specialist"
+                            to={ROUTES.SEO_LANDING.replace(':role', 'digital-marketing-specialist')}
                             className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:border-indigo-500 hover:text-indigo-500 transition-colors"
                         >
                             Digital Marketing Specialist

@@ -3,7 +3,7 @@ import { X, Moon, LogOut, AlertTriangle, Eye } from 'lucide-react';
 
 import type { User } from '@supabase/supabase-js';
 import { removeSecureItem } from '../utils/secureStorage';
-import { APP_VERSION } from '../constants';
+import { APP_VERSION, STORAGE_KEYS } from '../constants';
 
 type UserTier = 'free' | 'pro' | 'admin';
 
@@ -22,7 +22,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
     const [confirmReset, setConfirmReset] = useState(false);
     const [isDark, setIsDark] = useState(() => {
         if (typeof window !== 'undefined') {
-            return document.documentElement.classList.contains('dark') || localStorage.getItem('jobfit_theme') === 'dark';
+            return document.documentElement.classList.contains('dark') || localStorage.getItem(STORAGE_KEYS.THEME) === 'dark';
         }
         return false;
     });
@@ -32,23 +32,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
         setIsDark(newIsDark);
         if (newIsDark) {
             document.documentElement.classList.add('dark');
-            localStorage.setItem('jobfit_theme', 'dark');
+            localStorage.setItem(STORAGE_KEYS.THEME, 'dark');
         } else {
             document.documentElement.classList.remove('dark');
-            localStorage.setItem('jobfit_theme', 'light');
+            localStorage.setItem(STORAGE_KEYS.THEME, 'light');
         }
     };
 
     const handleReset = () => {
         // Clear all JobFit data
-        localStorage.removeItem('jobfit_resumes_v2');
-        localStorage.removeItem('jobfit_jobs_history');
-        removeSecureItem('api_key'); // Clear encrypted API key
+        localStorage.removeItem(STORAGE_KEYS.RESUMES);
+        localStorage.removeItem(STORAGE_KEYS.JOBS_HISTORY);
+        removeSecureItem(STORAGE_KEYS.API_KEY); // Clear encrypted API key
         localStorage.removeItem('gemini_api_key'); // Clear old unencrypted key if it exists
-        localStorage.removeItem('jobfit_privacy_accepted');
-        localStorage.removeItem('jobfit_daily_usage');
-        localStorage.removeItem('jobfit_quota_status');
-        localStorage.removeItem('jobfit_theme');
+        localStorage.removeItem(STORAGE_KEYS.PRIVACY_ACCEPTED);
+        localStorage.removeItem(STORAGE_KEYS.DAILY_USAGE);
+        localStorage.removeItem(STORAGE_KEYS.QUOTA_STATUS);
+        localStorage.removeItem(STORAGE_KEYS.THEME);
         window.location.reload(); // Force reload to reset state
     };
 
