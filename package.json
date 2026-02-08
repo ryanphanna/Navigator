@@ -2,7 +2,7 @@
   "name": "job-fit-minimalist",
   "description": "A minimalist tool to analyze job compatibility, suggest resume tailoring, and generate cover letters using Gemini.",
   "private": true,
-  "version": "3.2.0",
+  "version": "2.2.1",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.1] - 2026-02-07
+
+### Changed
+- **UI**: Narrowed Bento grid containers (`max-w-7xl`) to align perfectly with the header's navigation boundaries.
+- **UI**: Reordered header buttons to a more logical flow: Log Out → Admin → Settings.
+- **UI**: Optimized the `ActionGrid` to display 5 cards in a single row on XL screens for better balance.
+
+### Fixed
+- **UI**: Resolved a race condition where the "Sign In" button and navigation pill would flicker or appear together during authentication loading.
+- **Build**: Fixed an unused `TrendingUp` icon import in `MarketingGrid` that was causing Vercel deployment failures.
+
 ## [2.2.0] - 2026-02-05
 
 ### Added
