@@ -2,6 +2,9 @@
  * Application Constants
  * All magic numbers and configuration values in one place
  */
+import { version } from '../package.json';
+
+export const APP_VERSION = version;
 
 // API & Retry Configuration
 export const API_CONFIG = {

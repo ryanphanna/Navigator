@@ -3,7 +3,7 @@ import { X, Moon, LogOut, AlertTriangle, Eye } from 'lucide-react';
 
 import type { User } from '@supabase/supabase-js';
 import { removeSecureItem } from '../utils/secureStorage';
-import { version } from '../../package.json';
+import { APP_VERSION } from '../constants';
 
 type UserTier = 'free' | 'pro' | 'admin';
 
@@ -245,7 +245,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                 </div>
                 <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 text-center">
                     <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-                        JobFit v{version}
+                        JobFit v{APP_VERSION}
                     </p>
                 </div>
             </div>
