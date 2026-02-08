@@ -80,6 +80,29 @@ create table user_skills (
   unique(user_id, name)
 );
 
+-- ROLE_MODELS: Stores target professional profiles for gap analysis
+create table role_models (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references profiles(id) not null,
+  name text not null,
+  content jsonb not null, -- Stores the RoleModelProfile
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- TARGET_JOBS: Stores high-level career goals and associated roadmaps
+create table target_jobs (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references profiles(id) not null,
+  title text not null,
+  description text,
+  role_model_id uuid references role_models(id),
+  gap_analysis jsonb,
+  roadmap jsonb,
+  type text default 'goal' check (type in ('goal', 'role_model')),
+  strict_mode boolean default true,
+  date_added timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- 3. SECURITY (Row Level Security)
 
 alter table profiles enable row level security;
@@ -89,6 +112,8 @@ alter table feedback enable row level security;
 alter table invite_codes enable row level security;
 alter table daily_usage enable row level security;
 alter table user_skills enable row level security;
+alter table role_models enable row level security;
+alter table target_jobs enable row level security;
 
 -- Profile Policies
 create policy "Users can view their own profile" on profiles for select using (auth.uid() = id);
@@ -102,6 +127,12 @@ create policy "Users can manage own jobs" on jobs for all using (auth.uid() = us
 
 -- User Skills Policies
 create policy "Users can manage own skills" on user_skills for all using (auth.uid() = user_id);
+
+-- Role Models Policies
+create policy "Users can manage own role models" on role_models for all using (auth.uid() = user_id);
+
+-- Target Jobs Policies
+create policy "Users can manage own target jobs" on target_jobs for all using (auth.uid() = user_id);
 
 -- Feedback Policies
 create policy "Users can insert own feedback" on feedback for insert with check (auth.uid() = user_id);

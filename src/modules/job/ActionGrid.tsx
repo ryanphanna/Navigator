@@ -50,83 +50,77 @@ export const ActionGrid: React.FC<ActionGridProps> = ({ onNavigate, isAdmin = fa
         switch (id) {
             case 'jobfit':
                 return (
-                    <div className="relative w-14 h-14 flex items-center justify-center">
+                    <div className="relative w-20 h-20 flex items-center justify-center">
                         <svg className="w-full h-full transform -rotate-90">
-                            <circle cx="28" cy="28" r="24" fill="transparent" stroke="currentColor" strokeWidth="4" className="text-slate-100 dark:text-slate-800" />
-                            <circle cx="28" cy="28" r="24" fill="transparent" stroke="currentColor" strokeWidth="4" strokeDasharray="150.8" strokeDashoffset="30.16" className={`${color.text} animate-[dash_1.5s_ease-in-out_forwards]`} />
+                            <circle cx="40" cy="40" r="32" fill="transparent" stroke="currentColor" strokeWidth="6" className="text-slate-100 dark:text-slate-800" />
+                            <circle cx="40" cy="40" r="32" fill="transparent" stroke="currentColor" strokeWidth="6" strokeDasharray="201.06" strokeDashoffset="40.21" className={`${color.text} animate-[dash_1.5s_ease-in-out_forwards]`} />
                         </svg>
-                        <span className={`absolute text-[10px] font-black ${color.text}`}>98%</span>
+                        <span className={`absolute text-base font-black ${color.text}`}>98%</span>
                     </div>
                 );
             case 'coach':
                 return (
-                    <div className="w-full h-1 bg-slate-200 dark:bg-slate-800 relative rounded-full mx-4">
-                        <div className={`absolute inset-y-0 left-0 w-2/3 ${color.iconBg} rounded-full group-hover:w-3/4 transition-all duration-1000`} />
-                        <div className={`absolute top-1/2 left-0 -translate-y-1/2 w-3 h-3 bg-white dark:bg-slate-900 border-2 ${color.accent.replace('border-', 'border-').split(' ')[0]} rounded-full shadow-sm`} />
-                        <div className={`absolute top-1/2 left-1/3 -translate-y-1/2 w-3 h-3 bg-white dark:bg-slate-900 border-2 ${color.accent.replace('border-', 'border-').split(' ')[0]} rounded-full shadow-sm`} />
-                        <div className={`absolute top-1/2 left-2/3 -translate-y-1/2 w-4 h-4 ${color.iconBg} rounded-full shadow-lg animate-pulse`} />
+                    <div className="w-full px-8 space-y-4">
+                        <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div className={`h-full ${color.iconBg} w-2/3 animate-[shimmer_2s_infinite]`} style={{ backgroundSize: '200% 100%', backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }} />
+                        </div>
+                        <div className="flex justify-between items-center gap-2">
+                            <div className={`h-6 w-6 rounded-lg ${color.iconBg}/20 flex items-center justify-center`}><Zap className={`w-3.5 h-3.5 ${color.text}`} /></div>
+                            <div className="h-1.5 flex-1 bg-slate-100 dark:bg-slate-800 rounded-full" />
+                        </div>
                     </div>
                 );
             case 'keywords':
                 return (
-                    <div className="flex flex-col items-center justify-center gap-2">
-                        <div className="flex gap-2">
-                            <div className={`w-8 h-8 rounded-lg ${color.iconBg}/20 flex items-center justify-center ${color.text}`}><div className={`w-4 h-1 ${color.iconBg} rounded-full`} /></div>
-                            <div className={`w-8 h-8 rounded-lg ${color.iconBg} flex items-center justify-center shadow-lg transform -rotate-12 group-hover:rotate-0 transition-transform`}><Sparkles className="w-4 h-4 text-white" /></div>
-                            <div className={`w-8 h-8 rounded-lg ${color.iconBg}/20`} />
-                        </div>
-                        <div className="flex gap-2">
-                            <div className="w-12 h-2 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                            <div className={`w-8 h-2 ${color.iconBg}/40 rounded-full`} />
-                        </div>
+                    <div className="flex flex-wrap items-center justify-center gap-1.5 px-6">
+                        {['Python', 'React', 'AWS'].map((skill, i) => (
+                            <span key={skill} className={`px-2.5 py-1 rounded-lg ${i === 0 ? color.bg.replace('/50', '/80') + ' ' + color.text : 'bg-slate-100 dark:bg-slate-800 text-slate-500'} text-[10px] font-black border border-slate-200/50 dark:border-white/5`}>
+                                {i === 0 ? '✓ ' : '+ '}{skill}
+                            </span>
+                        ))}
                     </div>
                 );
             case 'resumes':
                 return (
-                    <div className="relative flex items-center justify-center w-full h-full">
-                        <div className="relative w-12 h-16 bg-white dark:bg-slate-950 rounded shadow-md border border-slate-200 dark:border-slate-800 transform -rotate-12 translate-x-2 translate-y-2 opacity-50" />
-                        <div className="relative w-12 h-16 bg-white dark:bg-slate-950 rounded shadow-lg border border-slate-200 dark:border-slate-800 group-hover:-translate-y-1 transition-transform" />
-                        <div className={`absolute bottom-6 w-8 h-1 ${color.iconBg}/30 rounded-full`} />
-                        <div className={`absolute bottom-4 w-6 h-1 ${color.iconBg}/20 rounded-full`} />
+                    <div className="relative flex items-center justify-center w-full h-24">
+                        <div className="relative w-14 h-20 bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-white/10 transform -rotate-12 translate-x-4 opacity-40 scale-90" />
+                        <div className="relative w-14 h-20 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-white/10 group-hover:-translate-y-2 transition-transform duration-500 z-10 flex flex-col p-2 gap-1.5">
+                            <div className={`w-3/4 h-1.5 ${color.iconBg}/40 rounded-full`} />
+                            <div className={`w-full h-1 ${color.iconBg}/20 rounded-full`} />
+                            <div className={`w-5/6 h-1 ${color.iconBg}/10 rounded-full`} />
+                        </div>
                     </div>
                 );
             case 'edu':
                 return (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2 px-8">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className={`w-8 h-10 ${color.iconBg}/10 rounded-lg flex items-center justify-center border ${color.accent}`}>
-                                <div className={`w-4 h-0.5 ${color.iconBg}/40 rounded-full`} />
+                            <div key={i} className={`w-10 h-14 ${color.iconBg}/10 rounded-xl flex items-center justify-center border ${color.accent} group-hover:scale-110 transition-transform`} style={{ transitionDelay: `${i * 100}ms` }}>
+                                <div className={`w-5 h-1 ${color.iconBg}/40 rounded-full`} />
                             </div>
                         ))}
                     </div>
                 );
             case 'history':
                 return (
-                    <div className="flex flex-col gap-2 w-full px-4">
-                        <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 ${color.iconBg} rounded-full`} />
-                            <div className="flex-grow h-2 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                            <div className={`text-[10px] font-bold ${color.text}`}>98%</div>
-                        </div>
-                        <div className="flex items-center gap-2 opacity-60">
-                            <div className={`w-2 h-2 ${color.iconBg} rounded-full`} />
-                            <div className="flex-grow h-2 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                            <div className={`text-[10px] font-bold ${color.text}`}>87%</div>
-                        </div>
-                        <div className="flex items-center gap-2 opacity-40">
-                            <div className={`w-2 h-2 ${color.iconBg} rounded-full`} />
-                            <div className="flex-grow h-2 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                            <div className={`text-[10px] font-bold ${color.text}`}>92%</div>
-                        </div>
+                    <div className="flex flex-col gap-3 w-full px-8">
+                        {[98, 87, 92].map((score, i) => (
+                            <div key={i} className={`flex items-center gap-3 ${i > 0 ? 'opacity-40' : ''}`}>
+                                <div className={`w-2.5 h-2.5 ${color.iconBg} rounded-full`} />
+                                <div className="flex-grow h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full" />
+                                <div className={`text-[10px] font-black ${color.text}`}>{score}%</div>
+                            </div>
+                        ))}
                     </div>
                 );
             case 'cover_letters':
                 return (
-                    <div className="flex flex-col gap-1.5 w-full px-4">
-                        <div className="w-3/4 h-2 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                        <div className={`w-full h-2 ${color.iconBg}/20 rounded-full`} />
-                        <div className="w-5/6 h-2 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                        <div className={`w-2/3 h-2 ${color.iconBg}/10 rounded-full`} />
+                    <div className="flex flex-col gap-2 w-full px-8">
+                        <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div className={`h-full ${color.iconBg} w-3/4 animate-pulse`} />
+                        </div>
+                        <div className="w-5/6 h-2 bg-slate-100 dark:bg-slate-800 rounded-full" />
+                        <div className="w-2/3 h-2 bg-slate-100 dark:bg-slate-800 rounded-full" />
                     </div>
                 );
             default:

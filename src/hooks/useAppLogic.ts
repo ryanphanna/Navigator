@@ -119,7 +119,7 @@ export const useAppLogic = () => {
                 skills: storedSkills,
                 roleModels: storedRoleModels,
                 targetJobs: storedTargetJobs,
-                activeJobId: null, // Initial load, let URL effect handle it? Or maybe wait for URL effect.
+                activeSubmissionId: null, // Initial load, let URL effect handle it? Or maybe wait for URL effect.
                 apiStatus: 'ok',
             }));
         };
@@ -368,7 +368,7 @@ export const useAppLogic = () => {
         setState(prev => ({
             ...prev,
             jobs: [newJob, ...prev.jobs],
-            activeJobId: jobId
+            activeSubmissionId: jobId
         }));
         navigate(`/job/${jobId}`);
         showInfo("Drafting your tailored application...");

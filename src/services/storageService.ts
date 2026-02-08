@@ -516,29 +516,97 @@ export const Storage = {
 
     // --- Role Models ---
     async getRoleModels(): Promise<import('../types').RoleModelProfile[]> {
-        return await Vault.getSecure(STORAGE_KEYS.ROLE_MODELS) || [];
+        // 1. Local (Secured)
+        let roleModels: import('../types').RoleModelProfile[] = await Vault.getSecure(STORAGE_KEYS.ROLE_MODELS) || [];
+
+        // 2. Cloud
+        const userId = await getUserId();
+        if (userId) {
+            const { data, error } = await supabase
+                .from('role_models')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+
+            if (!error && data) {
+                roleModels = data.map(row => ({
+                    ...row.content,
+                    id: row.id,
+                }));
+                await Vault.setSecure(STORAGE_KEYS.ROLE_MODELS, roleModels);
+            }
+        }
+        return roleModels;
     },
 
     async addRoleModel(roleModel: import('../types').RoleModelProfile) {
+        // 1. Local (Secured)
         const existing: import('../types').RoleModelProfile[] = await Vault.getSecure(STORAGE_KEYS.ROLE_MODELS) || [];
         const updated = [roleModel, ...existing];
         await Vault.setSecure(STORAGE_KEYS.ROLE_MODELS, updated);
+
+        // 2. Cloud
+        const userId = await getUserId();
+        if (userId) {
+            const { error } = await supabase.from('role_models').insert({
+                id: roleModel.id,
+                user_id: userId,
+                name: roleModel.name,
+                content: roleModel
+            });
+            if (error) console.error("Cloud Sync Error (Add Role Model):", error);
+        }
         return updated;
     },
 
     async deleteRoleModel(id: string) {
+        // 1. Local (Secured)
         const existing: import('../types').RoleModelProfile[] = await Vault.getSecure(STORAGE_KEYS.ROLE_MODELS) || [];
         const updated = existing.filter(rm => rm.id !== id);
         await Vault.setSecure(STORAGE_KEYS.ROLE_MODELS, updated);
+
+        // 2. Cloud
+        const userId = await getUserId();
+        if (userId) {
+            await supabase.from('role_models').delete().eq('id', id);
+        }
         return updated;
     },
 
     // --- Target Jobs ---
     async getTargetJobs(): Promise<import('../types').TargetJob[]> {
-        return await Vault.getSecure(STORAGE_KEYS.TARGET_JOBS) || [];
+        // 1. Local (Secured)
+        let targetJobs: import('../types').TargetJob[] = await Vault.getSecure(STORAGE_KEYS.TARGET_JOBS) || [];
+
+        // 2. Cloud
+        const userId = await getUserId();
+        if (userId) {
+            const { data, error } = await supabase
+                .from('target_jobs')
+                .select('*')
+                .eq('user_id', userId)
+                .order('date_added', { ascending: false });
+
+            if (!error && data) {
+                targetJobs = data.map(row => ({
+                    id: row.id,
+                    title: row.title,
+                    description: row.description,
+                    roleModelId: row.role_model_id,
+                    gapAnalysis: row.gap_analysis,
+                    roadmap: row.roadmap,
+                    type: row.type,
+                    strictMode: row.strict_mode,
+                    dateAdded: new Date(row.date_added).getTime()
+                }));
+                await Vault.setSecure(STORAGE_KEYS.TARGET_JOBS, targetJobs);
+            }
+        }
+        return targetJobs;
     },
 
     async saveTargetJob(targetJob: import('../types').TargetJob) {
+        // 1. Local (Secured)
         const existing: import('../types').TargetJob[] = await Vault.getSecure(STORAGE_KEYS.TARGET_JOBS) || [];
         const index = existing.findIndex(tj => tj.id === targetJob.id);
 
@@ -549,15 +617,39 @@ export const Storage = {
         } else {
             updated = [targetJob, ...existing];
         }
-
         await Vault.setSecure(STORAGE_KEYS.TARGET_JOBS, updated);
+
+        // 2. Cloud
+        const userId = await getUserId();
+        if (userId) {
+            const { error } = await supabase.from('target_jobs').upsert({
+                id: targetJob.id,
+                user_id: userId,
+                title: targetJob.title,
+                description: targetJob.description,
+                role_model_id: targetJob.roleModelId,
+                gap_analysis: targetJob.gapAnalysis,
+                roadmap: targetJob.roadmap,
+                type: targetJob.type || 'goal',
+                strict_mode: targetJob.strictMode ?? true,
+                date_added: new Date(targetJob.dateAdded).toISOString()
+            });
+            if (error) console.error("Cloud Sync Error (Save Target Job):", error);
+        }
         return updated;
     },
 
     async deleteTargetJob(id: string) {
+        // 1. Local (Secured)
         const existing: import('../types').TargetJob[] = await Vault.getSecure(STORAGE_KEYS.TARGET_JOBS) || [];
         const updated = existing.filter(tj => tj.id !== id);
         await Vault.setSecure(STORAGE_KEYS.TARGET_JOBS, updated);
+
+        // 2. Cloud
+        const userId = await getUserId();
+        if (userId) {
+            await supabase.from('target_jobs').delete().eq('id', id);
+        }
         return updated;
     }
 };

@@ -1,36 +1,137 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --font-inter: "Inter", sans-serif;
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --accent-primary: 79, 70, 229;
+  /* Indigo 600 */
+  --accent-glow: 79, 70, 229;
+
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+
+  @keyframes gradient-x {
+
+    0%,
+    100% {
+      background-size: 200% 200%;
+      background-position: left center;
+    }
+
+    50% {
+      background-size: 200% 200%;
+      background-position: right center;
+    }
+  }
+
+  @keyframes scan-line {
+    0% {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+
+    50% {
+      opacity: 0.5;
+    }
+
+    100% {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes float-y {
+
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes card-shimmer {
+    0% {
+      transform: translateX(-100%) skewX(-15deg);
+    }
+
+    100% {
+      transform: translateX(200%) skewX(-15deg);
+    }
+  }
+
+  @keyframes pulse-glow {
+
+    0%,
+    100% {
+      opacity: 0.5;
+      scale: 1;
+    }
+
+    50% {
+      opacity: 1;
+      scale: 1.05;
+    }
+  }
+
+  @keyframes dash {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  --animate-blob: blob 7s infinite;
+  --animate-gradient-x: gradient-x 15s ease infinite;
+  --animate-scan-line: scan-line 3s linear infinite;
+  --animate-float-y: float-y 3s ease-in-out infinite;
+  --animate-card-shimmer: card-shimmer 2s infinite;
+  --animate-pulse-glow: pulse-glow 3s ease-in-out infinite;
+}
 
 @layer base {
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
   }
 }
 
-/* THEME SYSTEM */
-:root {
-  --accent-primary: 79, 70, 229;
-  /* Indigo 600 */
-  --accent-glow: 79, 70, 229;
-}
+@layer base {
+  .theme-job {
+    --accent-primary: 79, 70, 229;
+    --accent-glow: 79, 70, 229;
+  }
 
-.theme-job {
-  --accent-primary: 79, 70, 229;
-  /* Indigo 600 */
-  --accent-glow: 79, 70, 229;
-}
+  .theme-coach {
+    --accent-primary: 16, 185, 129;
+    --accent-glow: 16, 185, 129;
+  }
 
-.theme-coach {
-  --accent-primary: 16, 185, 129;
-  /* Emerald 500 */
-  --accent-glow: 16, 185, 129;
-}
-
-.theme-edu {
-  --accent-primary: 245, 158, 11;
-  /* Amber 500 */
-  --accent-glow: 245, 158, 11;
+  .theme-edu {
+    --accent-primary: 245, 158, 11;
+    --accent-glow: 245, 158, 11;
+  }
 }
 
 /* GLASSMORPHISM UTILITY */

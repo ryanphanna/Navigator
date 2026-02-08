@@ -27,47 +27,69 @@ export const MarketingGrid: React.FC = () => {
         switch (id) {
             case 'jobfit':
                 return (
-                    <div className="relative w-14 h-14 flex items-center justify-center">
+                    <div className="relative w-20 h-20 flex items-center justify-center">
                         <svg className="w-full h-full transform -rotate-90">
-                            <circle cx="28" cy="28" r="24" fill="transparent" stroke="currentColor" strokeWidth="4" className="text-slate-100 dark:text-slate-800" />
-                            <circle cx="28" cy="28" r="24" fill="transparent" stroke="currentColor" strokeWidth="4" strokeDasharray="150.8" strokeDashoffset="30.16" className={`${color.text} animate-[dash_1.5s_ease-in-out_forwards]`} />
+                            <circle cx="40" cy="40" r="32" fill="transparent" stroke="currentColor" strokeWidth="6" className="text-slate-100 dark:text-slate-800" />
+                            <circle cx="40" cy="40" r="32" fill="transparent" stroke="currentColor" strokeWidth="6" strokeDasharray="201.06" strokeDashoffset="40.21" className={`${color.text} animate-[dash_2s_ease-in-out_forwards]`} />
                         </svg>
-                        <span className={`absolute text-[10px] font-black ${color.text}`}>98%</span>
+                        <span className={`absolute text-base font-black ${color.text}`}>98%</span>
                     </div>
                 );
             case 'keywords':
                 return (
-                    <div className="flex items-center justify-center gap-2 px-4">
-                        <span className={`px-2 py-1 rounded ${color.bg.replace('/50', '/80')} ${color.text} text-[10px] font-bold`}>✓ React</span>
-                        <span className={`px-2 py-1 rounded ${color.bg.replace('/50', '/40')} ${color.text} text-[10px] font-bold opacity-60`}>+ Node</span>
+                    <div className="flex flex-wrap items-center justify-center gap-2 px-6">
+                        {['Python', 'React', 'AWS', 'Docker'].map((skill, i) => (
+                            <span key={skill} className={`px-3 py-1.5 rounded-xl ${i === 0 ? color.bg.replace('/50', '/80') + ' ' + color.text : 'bg-slate-100 dark:bg-slate-800 text-slate-500'} text-xs font-bold transition-all hover:scale-110 cursor-default shadow-sm border border-slate-200/50 dark:border-white/5`}>
+                                {i === 0 ? '✓ ' : '+ '}{skill}
+                            </span>
+                        ))}
                     </div>
                 );
             case 'resumes':
                 return (
-                    <div className={`relative w-12 h-12 ${color.iconBg}/20 rounded-lg flex items-center justify-center border ${color.accent}`}>
-                        <div className={`w-6 h-0.5 ${color.iconBg} rounded-full`} />
+                    <div className="relative w-full px-10 flex flex-col gap-2">
+                        <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div className={`h-full ${color.iconBg} w-3/4 animate-pulse`} />
+                        </div>
+                        <div className="h-2 w-1/2 bg-slate-100 dark:bg-slate-800 rounded-full" />
+                        <div className="h-2 w-5/6 bg-slate-100 dark:bg-slate-800 rounded-full" />
                     </div>
                 );
             case 'cover_letters':
                 return (
-                    <div className="flex flex-col justify-center gap-1.5 px-4 w-full">
-                        <div className="w-3/4 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                        <div className={`w-full h-1.5 ${color.iconBg}/20 rounded-full`} />
-                        <div className="w-2/3 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                    <div className="flex flex-col gap-2 w-full px-10">
+                        <div className="flex items-center gap-2">
+                            <div className={`w-8 h-8 rounded-lg ${color.bg} flex items-center justify-center ${color.text}`}>
+                                <PenTool className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1 space-y-1.5">
+                                <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full" />
+                                <div className="h-2 w-2/3 bg-slate-100 dark:bg-slate-800 rounded-full" />
+                            </div>
+                        </div>
                     </div>
                 );
             case 'history':
                 return (
-                    <div className={`flex items-center gap-1.5 px-3 py-1.5 ${color.iconBg} text-white text-[10px] font-bold rounded shadow-sm`}>
-                        <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                        Save
+                    <div className="relative group/save">
+                        <div className={`flex items-center gap-2 px-6 py-3 ${color.iconBg} text-white text-sm font-black rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 cursor-pointer`}>
+                            <Bookmark className="w-4 h-4" />
+                            SAVE JOB
+                        </div>
+                        <div className={`absolute -inset-2 ${color.iconBg} opacity-20 blur-xl rounded-full scale-110 group-hover/save:scale-125 transition-transform duration-1000`} />
                     </div>
                 );
             case 'coach':
                 return (
-                    <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 relative rounded-full mx-4 overflow-hidden">
-                        <div className={`absolute inset-y-0 left-0 w-2/3 ${color.iconBg} rounded-full animate-[shimmer_2s_infinite]`} style={{ backgroundSize: '200% 100%', backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)' }} />
-                        <div className={`absolute inset-y-0 left-0 w-2/3 ${color.iconBg} rounded-full opacity-50`} />
+                    <div className="w-full px-10 space-y-4">
+                        <div className="flex justify-between items-end h-12 gap-1.5">
+                            {[40, 70, 55, 90, 65].map((h, i) => (
+                                <div key={i} className={`flex-1 ${color.iconBg} rounded-t-lg transition-all duration-1000 origin-bottom hover:scale-y-110`} style={{ height: `${h}%`, opacity: 0.3 + (i * 0.15) }} />
+                            ))}
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div className={`h-full ${color.iconBg} w-2/3 animate-[shimmer_2s_infinite]`} style={{ backgroundSize: '200% 100%', backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }} />
+                        </div>
                     </div>
                 );
             default:
@@ -76,23 +98,24 @@ export const MarketingGrid: React.FC = () => {
     };
 
     return (
-        <div className="mt-16 w-full max-w-7xl mx-auto px-4">
-            {/* HUB: The Central Mission Statement (Bursting Core) - NOW OUTSIDE GRID */}
-            <div className="flex flex-col items-center justify-center text-center pt-8 pb-24 relative overflow-hidden mb-12">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent opacity-50" />
+        <div className="mt-24 w-full max-w-7xl mx-auto px-4 pb-24">
+            {/* HUB: The Central Mission Statement */}
+            <div className="flex flex-col items-center justify-center text-center pt-16 pb-32 relative overflow-hidden mb-8">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(79,70,229,0.08)_0%,_transparent_70%)] opacity-100" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-indigo-500/5 blur-[120px] rounded-full pointer-events-none" />
 
-                <div className="relative z-10 max-w-4xl mx-auto px-6">
-                    <h2 className="text-5xl md:text-8xl font-black text-slate-900 dark:text-white mb-8 tracking-tighter leading-[0.9]">
+                <div className="relative z-10 max-w-5xl mx-auto px-6">
+                    <h2 className="text-6xl md:text-[9rem] font-black text-slate-900 dark:text-white mb-10 tracking-tighter leading-[0.85] animate-in fade-in slide-in-from-bottom-8 duration-1000">
                         Get hired.<br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-indigo-600">Delete us.</span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 animate-gradient-x">Delete us.</span>
                     </h2>
-                    <p className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed">
-                        We measure success by how fast you leave. Get your forever job, delete your account, and get on with your life.
+                    <p className="text-2xl md:text-3xl text-slate-500 dark:text-slate-400 font-medium max-w-3xl mx-auto leading-relaxed opacity-80">
+                        We measure success by how fast you leave. Get your forever job, delete your account, and <span className="text-slate-900 dark:text-white font-bold">get on with your life.</span>
                     </p>
                 </div>
             </div>
 
-            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8`}>
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12`}>
                 {shuffledCards.map((key) => {
                     const config = BENTO_CARDS[key as keyof typeof BENTO_CARDS];
                     return (
