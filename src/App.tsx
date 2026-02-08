@@ -25,9 +25,10 @@ import { SkillsView } from './components/skills/SkillsView';
 import { SkillInterviewModal } from './components/skills/SkillInterviewModal';
 import { SettingsModal } from './components/SettingsModal';
 import { UpgradeModal } from './components/UpgradeModal';
+import { SEOLandingPage } from './modules/seo/SEOLandingPage';
 import { AuthModal } from './components/AuthModal';
 import { NudgeCard } from './components/NudgeCard';
-import { ViewTransition } from './components/ViewTransition';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from './components/common/Toast';
 import { Settings, Briefcase, TrendingUp, LogOut, GraduationCap, ShieldAlert } from 'lucide-react';
 
@@ -56,7 +57,7 @@ const App: React.FC = () => {
     },
     actions: {
       setView,
-      setActiveJobId,
+      setActiveSubmissionId,
       handleJobCreated,
       handleUpdateJob,
       handleTargetJobCreated,
@@ -73,7 +74,7 @@ const App: React.FC = () => {
   // Auth Context
   const { user, isLoading, userTier, isTester, isAdmin, simulatedTier, setSimulatedTier } = useUser();
 
-  const activeJob = state.jobs.find(j => j.id === state.activeJobId);
+  const activeJob = state.jobs.find(j => j.id === state.activeSubmissionId);
   const isCoachMode = typeof currentView === 'string' && currentView.startsWith('coach');
   const isEduMode = currentView === 'grad' || (typeof currentView === 'string' && currentView.startsWith('grad-'));
 
@@ -155,7 +156,7 @@ const App: React.FC = () => {
 
           {/* LEFT: STATIC BRAND LOGO */}
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => { setActiveJobId(null); setView('home'); }}>
+            <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => { setActiveSubmissionId(null); setView('home'); }}>
               <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20">
                 <TrendingUp className="w-4 h-4" />
               </div>
@@ -183,7 +184,7 @@ const App: React.FC = () => {
 
                 <button
                   ref={el => { if (el) jobNavRefs.current.set('job-fit', el); }}
-                  onClick={() => { setActiveJobId(null); setView('job-fit'); }}
+                  onClick={() => { setActiveSubmissionId(null); setView('job-fit'); }}
                   className={`relative z-10 px-3 h-full rounded-full text-xs font-bold leading-none transition-all flex items-center gap-1.5 ${currentView === 'job-fit' || currentView === 'home' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-indigo-600 dark:text-slate-400'}`}
                 >
                   <Briefcase className={`w-3.5 h-3.5 ${(currentView === 'job-fit' || currentView === 'home') ? 'scale-110' : 'scale-100'}`} />
@@ -194,21 +195,21 @@ const App: React.FC = () => {
                   <div className="w-px h-3 bg-slate-300 dark:bg-slate-600 mx-1" />
                   <button
                     ref={el => { if (el) jobNavRefs.current.set('history', el); }}
-                    onClick={() => { setActiveJobId(null); setView('history'); }}
+                    onClick={() => { setActiveSubmissionId(null); setView('history'); }}
                     className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'history' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-500'}`}
                   >
                     History
                   </button>
                   <button
                     ref={el => { if (el) jobNavRefs.current.set('resumes', el); }}
-                    onClick={() => { setActiveJobId(null); setView('resumes'); }}
+                    onClick={() => { setActiveSubmissionId(null); setView('resumes'); }}
                     className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'resumes' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-500'}`}
                   >
                     Resumes
                   </button>
                   <button
                     ref={el => { if (el) jobNavRefs.current.set('skills', el); }}
-                    onClick={() => { setActiveJobId(null); setView('skills'); }}
+                    onClick={() => { setActiveSubmissionId(null); setView('skills'); }}
                     className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'skills' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-500'}`}
                   >
                     Skills
@@ -216,7 +217,7 @@ const App: React.FC = () => {
                   {(userTier === 'pro' || isTester || isAdmin) && (
                     <button
                       ref={el => { if (el) jobNavRefs.current.set('pro', el); }}
-                      onClick={() => { setActiveJobId(null); setView('pro'); }}
+                      onClick={() => { setActiveSubmissionId(null); setView('pro'); }}
                       className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'pro' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-500'}`}
                     >
                       Feed
@@ -229,7 +230,7 @@ const App: React.FC = () => {
               {(isTester || isAdmin) && (
                 <div className={`flex items-center h-full rounded-full transition-all duration-500 ml-0.5 ${isCoachMode ? 'bg-white dark:bg-slate-700 shadow-sm border border-slate-200/50 dark:border-slate-600/50 pr-0.5' : ''}`}>
                   <button
-                    onClick={() => { setActiveJobId(null); setView('coach-home'); }}
+                    onClick={() => { setActiveSubmissionId(null); setView('coach-home'); }}
                     className={`px-3 h-full rounded-full text-xs font-bold leading-none transition-all flex items-center gap-1.5 ${isCoachMode ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 hover:text-emerald-600 dark:text-slate-400'}`}
                   >
                     <TrendingUp className={`w-3.5 h-3.5 ${isCoachMode ? 'scale-110' : 'scale-100'}`} />
@@ -239,13 +240,13 @@ const App: React.FC = () => {
                   <div className={`flex items-center h-full gap-0.5 overflow-hidden transition-all duration-200 ease-out ${isCoachMode ? 'max-w-md opacity-100 ml-0.5' : 'max-w-0 opacity-0'}`}>
                     <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800 mx-1" />
                     <button
-                      onClick={() => { setActiveJobId(null); setView('coach-role-models'); }}
+                      onClick={() => { setActiveSubmissionId(null); setView('coach-role-models'); }}
                       className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'coach-role-models' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400 hover:text-emerald-600'}`}
                     >
                       Role Models
                     </button>
                     <button
-                      onClick={() => { setActiveJobId(null); setView('coach-gap-analysis'); }}
+                      onClick={() => { setActiveSubmissionId(null); setView('coach-gap-analysis'); }}
                       className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'coach-gap-analysis' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400 hover:text-emerald-600'}`}
                     >
                       Skills Gap
@@ -258,7 +259,7 @@ const App: React.FC = () => {
               {isAdmin && (
                 <div className={`flex items-center h-full rounded-full transition-all duration-500 ml-0.5 ${currentView === 'grad' ? 'bg-white dark:bg-slate-700 shadow-sm border border-slate-200/50 dark:border-slate-600/50 pr-0.5' : ''}`}>
                   <button
-                    onClick={() => { setActiveJobId(null); setView('grad'); }}
+                    onClick={() => { setActiveSubmissionId(null); setView('grad'); }}
                     className={`px-3 h-full rounded-full text-xs font-bold leading-none transition-all flex items-center gap-1.5 ${currentView === 'grad' ? 'text-violet-600 dark:text-violet-400' : 'text-slate-500 hover:text-violet-600 dark:text-slate-400'}`}
                   >
                     <GraduationCap className={`w-3.5 h-3.5 ${currentView === 'grad' ? 'scale-110' : 'scale-100'}`} />
@@ -290,7 +291,7 @@ const App: React.FC = () => {
 
             {isAdmin && (
               <button
-                onClick={() => { setActiveJobId(null); setView('admin'); }}
+                onClick={() => { setActiveSubmissionId(null); setView('admin'); }}
                 className={`p-1.5 rounded-full transition-all ${currentView === 'admin' ? 'text-rose-600 bg-rose-50 dark:bg-rose-900/20' : 'text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                 title="Admin Console"
               >
@@ -311,8 +312,9 @@ const App: React.FC = () => {
       </header>
 
       <main className="w-full pb-16 sm:pb-8">
-        <ViewTransition viewKey={currentView} className="w-full">
-          {(currentView === 'home' || currentView === 'job-fit') && (
+        <Routes>
+          {/* Home / Analyze */}
+          <Route path="/" element={
             <>
               {nudgeJob && (
                 <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-16">
@@ -323,7 +325,6 @@ const App: React.FC = () => {
                   />
                 </div>
               )}
-
               <div className="pt-16">
                 <HomeInput
                   resumes={state.resumes}
@@ -336,31 +337,51 @@ const App: React.FC = () => {
                   isTester={isTester}
                   user={user}
                   usageStats={usageStats}
-                  mode={currentView === 'job-fit' ? 'apply' : 'all'}
+                  mode="all"
                   onNavigate={setView}
-                  key={currentView}
                 />
               </div>
             </>
-          )}
+          } />
 
-          {currentView === 'pro' && (
+          <Route path="/analyze" element={
+            <div className="pt-16">
+              <HomeInput
+                resumes={state.resumes}
+                onJobCreated={handleJobCreated}
+                onTargetJobCreated={handleTargetJobCreated}
+                onImportResume={handleImportResume}
+                isParsing={isParsingResume}
+                importError={importError ?? null}
+                isAdmin={isAdmin}
+                isTester={isTester}
+                user={user}
+                usageStats={usageStats}
+                mode="apply"
+                onNavigate={setView}
+              />
+            </div>
+          } />
+
+          {/* SEO Landing Pages (Dynamic) */}
+          <Route path="/resume-for/:role" element={<SEOLandingPage />} />
+
+          {/* Core Views */}
+          <Route path="/feed" element={
             <Suspense fallback={<LoadingState message="Loading Pro Feed..." />}>
               <div className="pt-12">
-                <JobFitPro
-                  onDraftApplication={handleDraftApplication}
-                />
+                <JobFitPro onDraftApplication={handleDraftApplication} />
               </div>
             </Suspense>
-          )}
+          } />
 
-          {currentView === 'admin' && (
+          <Route path="/admin" element={
             <Suspense fallback={<LoadingState message="Loading Admin Console..." />}>
               <AdminDashboard />
             </Suspense>
-          )}
+          } />
 
-          {currentView === 'resumes' && (
+          <Route path="/resumes" element={
             <Suspense fallback={<LoadingState message="Opening Editor..." />}>
               <div className="pt-12">
                 <ResumeEditor
@@ -374,9 +395,9 @@ const App: React.FC = () => {
                 />
               </div>
             </Suspense>
-          )}
+          } />
 
-          {currentView === 'skills' && (
+          <Route path="/skills" element={
             <div className="pt-12">
               <SkillsView
                 skills={state.skills}
@@ -386,10 +407,10 @@ const App: React.FC = () => {
                 userTier={userTier}
               />
             </div>
-          )}
+          } />
 
-          {/* JobCoach Views */}
-          {isCoachMode && (
+          {/* Coach Routes */}
+          <Route path="/coach/*" element={
             <div className="pt-16">
               <CoachDashboard
                 userSkills={state.skills}
@@ -482,41 +503,49 @@ const App: React.FC = () => {
                 }}
               />
             </div>
-          )}
-        </ViewTransition>
+          } />
 
-        {/* Constrained Views */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-24">
-          {currentView === 'history' && (
-            <History
-              jobs={state.jobs}
-              onSelectJob={(id) => { setActiveJobId(id); setView('job-detail'); }}
-              onDeleteJob={handleDeleteJob}
-            />
-          )}
+          {/* History / All Context */}
+          <Route path="/history" element={
+            <div className="pt-20">
+              <History
+                jobs={state.jobs}
+                onSelectJob={setActiveSubmissionId}
+                onDeleteJob={handleDeleteJob}
+              />
+            </div>
+          } />
 
-          {currentView === 'grad' && (
+          <Route path="/job/:id" element={
+            activeJob ? (
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-24 animate-in slide-in-from-right-4 duration-500">
+                <JobDetail
+                  job={activeJob}
+                  resumes={state.resumes}
+                  onBack={() => setView('history')}
+                  onUpdateJob={handleUpdateJob}
+                  userTier={userTier}
+                />
+              </div>
+            ) : (
+              // Fallback / Loading
+              <div className="pt-24 text-center">
+                <LoadingState message="Loading Job..." />
+              </div>
+            )
+          } />
+
+          <Route path="/grad" element={
             <Suspense fallback={<LoadingState message="Loading Academic HQ..." />}>
-              <div className="pt-16">
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-16">
                 <GradFitPlaceholder />
               </div>
             </Suspense>
-          )}
+          } />
 
-          {/* Job Detail View */}
-          {currentView === 'job-detail' && activeJob && (
-            <div className="animate-in slide-in-from-right-4 duration-500">
-              <JobDetail
-                job={activeJob}
-                resumes={state.resumes}
-                userSkills={state.skills}
-                onBack={() => setView('history')}
-                onUpdateJob={handleUpdateJob}
-                userTier={userTier}
-              />
-            </div>
-          )}
-        </div>
+          {/* Catch all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
     </div>
   );

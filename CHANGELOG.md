@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.3.0] - 2026-02-07
+
+### Added
+- **Programmatic SEO**: Implemented a dynamic SEO landing page engine at `/resume-for/:role` with a universal master template.
+- **Canonical Routing**: Added a `CanonicalService` to map diverse job titles to standard high-quality SEO buckets.
+
+### Changed
+- **Architecture**: Refactored application state to distinguish between `activeSubmissionId` (specific user action) and `roleId` (canonical job role).
+- **Architecture**: Updated all navigation and state logic to use the new "Submission ID" terminology for better clarity.
+- **Routing**: Integrated `react-router-dom` more deeply to handle persistent SEO URLs and history navigation.
+
 ## [2.2.1] - 2026-02-07
 
 ### Changed

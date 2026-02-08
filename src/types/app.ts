@@ -10,7 +10,6 @@ export interface AppState {
     targetJobs: TargetJob[];
     skills: CustomSkill[];
     apiStatus: 'ok' | 'offline' | 'checking';
-    currentView: 'home' | 'job-fit' | 'history' | 'resumes' | 'job-detail' | 'pro' | 'admin' | 'skills' | 'coach' | 'coach-home' | 'coach-role-models' | 'coach-gap-analysis' | 'grad' | 'cover-letters';
-    activeJobId: string | null;
+    activeSubmissionId: string | null;
     importError?: string | null;
 }

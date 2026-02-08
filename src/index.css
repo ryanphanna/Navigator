@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+/* THEME SYSTEM */
+:root {
+  --accent-primary: 79, 70, 229;
+  /* Indigo 600 */
+  --accent-glow: 79, 70, 229;
+}
+
+.theme-job {
+  --accent-primary: 79, 70, 229;
+  /* Indigo 600 */
+  --accent-glow: 79, 70, 229;
+}
+
+.theme-coach {
+  --accent-primary: 16, 185, 129;
+  /* Emerald 500 */
+  --accent-glow: 16, 185, 129;
+}
+
+.theme-edu {
+  --accent-primary: 245, 158, 11;
+  /* Amber 500 */
+  --accent-glow: 245, 158, 11;
+}
+
+/* GLASSMORPHISM UTILITY */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.dark .glass-card {
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Custom scrollbar for textareas */
+textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* PRINT STYLES FOR RESUME BUILDER */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #resume-preview,
+  #resume-preview * {
+    visibility: visible;
+  }
+
+  #resume-preview {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px 40px !important;
+    /* Standard printable margins */
+    box-shadow: none !important;
+    background: white !important;
+  }
+}

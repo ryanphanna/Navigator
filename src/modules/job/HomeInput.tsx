@@ -17,7 +17,7 @@ import { ActionGrid } from './ActionGrid';
 import { UsageIndicator } from './UsageIndicator';
 import { useToast } from '../../contexts/ToastContext';
 
-import type { ResumeProfile, SavedJob, TargetJob, AppState } from '../../types';
+import type { ResumeProfile, SavedJob, TargetJob } from '../../types';
 import { Storage } from '../../services/storageService';
 import type { User } from '@supabase/supabase-js';
 import type { UsageStats } from '../../services/usageLimits';
@@ -35,7 +35,7 @@ interface HomeInputProps {
     user: User | null;
     usageStats?: UsageStats;
     mode?: 'all' | 'apply' | 'goal';
-    onNavigate?: (view: AppState['currentView']) => void;
+    onNavigate?: (view: string) => void;
 }
 
 const HEADLINES = {

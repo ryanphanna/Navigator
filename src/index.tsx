@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { isEnvValid, envErrors } from './config';
+import './index.css';
 import App from './App';
 import { UserProvider } from './contexts/UserContext';
 import { ToastProvider } from './contexts/ToastContext';
@@ -59,6 +60,8 @@ function EnvErrorPage({ errors }: { errors: string[] }) {
   );
 }
 
+import { BrowserRouter } from 'react-router-dom';
+
 const root = ReactDOM.createRoot(rootElement);
 
 // Show error page if environment is not valid, otherwise show the app
@@ -68,7 +71,9 @@ root.render(
       {isEnvValid() ? (
         <ToastProvider>
           <UserProvider>
-            <App />
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
           </UserProvider>
         </ToastProvider>
       ) : (

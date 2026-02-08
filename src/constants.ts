@@ -44,7 +44,7 @@ export const UI_CONFIG = {
 // AI Model Configuration
 export const AI_MODELS = {
   FLASH: 'gemini-2.0-flash',
-  PRO: 'gemini-2.0-flash', // Using Flash for both stages until Pro is available via proxy
+  PRO: 'gemini-1.5-pro',
 } as const;
 
 // Temperature Settings for AI

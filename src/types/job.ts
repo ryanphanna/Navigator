@@ -34,7 +34,8 @@ export interface JobAnalysis {
 }
 
 export interface SavedJob {
-    id: string;
+    id: string; // The unique Submission ID for this specific user action
+    roleId?: string; // The canonical ID for the role (e.g. 'software-engineer')
     company: string;
     position: string;
     description: string;

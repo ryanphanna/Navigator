@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import type { AppState, SavedJob, ResumeProfile, CustomSkill, TargetJob, Transcript } from '../types';
 import { Storage } from '../services/storageService';
 import { parseResumeFile, analyzeJobFit } from '../services/geminiService';
@@ -9,14 +10,16 @@ import { useUser } from '../contexts/UserContext';
 import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../services/supabase';
 import { TIME_PERIODS, STORAGE_KEYS } from '../constants';
+import { CanonicalService } from '../services/seo/canonicalService';
 
 export const useAppLogic = () => {
     // Auth & Context
     const { user, isAdmin } = useUser();
     const { showSuccess, showError, showInfo } = useToast();
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    // Persist current view & transcript
-    const [currentView, setCurrentView] = useLocalStorage<AppState['currentView']>(STORAGE_KEYS.CURRENT_VIEW, 'home');
+    // Persist transcript
     const [transcript] = useLocalStorage<Transcript | null>('NAVIGATOR_TRANSCRIPT_CACHE', null);
 
     // Global State
@@ -26,10 +29,39 @@ export const useAppLogic = () => {
         roleModels: [],
         targetJobs: [],
         skills: [],
-        currentView: currentView || 'home',
-        activeJobId: null,
+        activeSubmissionId: null,
         apiStatus: 'checking',
     });
+
+    // Derive currentView from location
+    const currentView = (() => {
+        const path = location.pathname;
+        if (path === '/') return 'home';
+        if (path === '/analyze') return 'job-fit';
+        if (path === '/history') return 'history';
+        if (path.startsWith('/job/')) return 'job-detail';
+        if (path === '/resumes') return 'resumes';
+        if (path === '/skills') return 'skills';
+        if (path === '/feed' || path === '/pro') return 'pro';
+        if (path === '/admin') return 'admin';
+        if (path === '/coach/role-models') return 'coach-role-models';
+        if (path === '/coach/gap-analysis') return 'coach-gap-analysis';
+        if (path === '/coach') return 'coach-home';
+        if (path.startsWith('/grad')) return 'grad';
+        if (path === '/cover-letters') return 'cover-letters';
+        return 'home';
+    })();
+
+    // Sync activeJobId with URL
+    useEffect(() => {
+        const match = location.pathname.match(/\/job\/([^/]+)/);
+        if (match) {
+            setState(prev => ({ ...prev, activeSubmissionId: match[1] }));
+        } else {
+            setState(prev => ({ ...prev, activeSubmissionId: null }));
+        }
+    }, [location.pathname]);
+
 
     // Resume Import State
     const [isParsingResume, setIsParsingResume] = useState(false);
@@ -87,8 +119,7 @@ export const useAppLogic = () => {
                 skills: storedSkills,
                 roleModels: storedRoleModels,
                 targetJobs: storedTargetJobs,
-                currentView: currentView || 'home',
-                activeJobId: null,
+                activeJobId: null, // Initial load, let URL effect handle it? Or maybe wait for URL effect.
                 apiStatus: 'ok',
             }));
         };
@@ -130,13 +161,70 @@ export const useAppLogic = () => {
 
     // --- Actions ---
 
-    const setView = (view: AppState['currentView']) => {
-        setCurrentView(view);
-        setState(prev => ({ ...prev, currentView: view }));
+    // Updated setView to use Router
+    const setView = (view: string) => {
+        switch (view) {
+            case 'home':
+                navigate('/');
+                break;
+            case 'job-fit':
+                navigate('/analyze');
+                break;
+            case 'history':
+                navigate('/history');
+                break;
+            case 'resumes':
+                navigate('/resumes');
+                break;
+            case 'skills':
+                navigate('/skills');
+                break;
+            case 'pro':
+                navigate('/feed');
+                break;
+            case 'admin':
+                navigate('/admin');
+                break;
+            case 'coach':
+            case 'coach-home':
+                navigate('/coach');
+                break;
+            case 'coach-role-models':
+                navigate('/coach/role-models');
+                break;
+            case 'coach-gap-analysis':
+                navigate('/coach/gap-analysis');
+                break;
+            case 'grad':
+                navigate('/grad');
+                break;
+            case 'cover-letters':
+                navigate('/cover-letters');
+                break;
+            case 'job-detail':
+                if (state.activeSubmissionId) {
+                    navigate(`/job/${state.activeSubmissionId}`);
+                }
+                break;
+            default:
+                console.warn(`Unknown view: ${view}`);
+                navigate('/');
+        }
     };
 
-    const setActiveJobId = (id: string | null) => {
-        setState(prev => ({ ...prev, activeJobId: id }));
+    const setActiveSubmissionId = (id: string | null) => {
+        // Just state update? No, should navigate if not null
+        if (id) {
+            // Check if we need to navigate
+            if (location.pathname !== `/job/${id}`) {
+                navigate(`/job/${id}`);
+            }
+        } else {
+            if (location.pathname.startsWith('/job/')) {
+                navigate('/history'); // Default fallback? Or just stay? Usually clearing ID happens on back
+            }
+        }
+        setState(prev => ({ ...prev, activeSubmissionId: id }));
     };
 
     const handleUpdateJob = (updatedJob: SavedJob) => {
@@ -163,8 +251,11 @@ export const useAppLogic = () => {
         setState(prev => ({
             ...prev,
             jobs: [newJob, ...prev.jobs].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
-            activeJobId: newJob.id
+            activeSubmissionId: newJob.id
         }));
+
+        // Auto-navigate to job detail
+        navigate(`/job/${newJob.id}`);
 
         if (user && !isAdmin) {
             await incrementAnalysisCount(user.id);
@@ -174,12 +265,18 @@ export const useAppLogic = () => {
         (async () => {
             try {
                 const analysis = await analyzeJobFit(newJob.description || '', state.resumes, state.skills);
+
+                // SEO Canonical Logic: Determine Role ID
+                const roleTitle = analysis.distilledJob?.roleTitle || newJob.position;
+                const { bucket } = CanonicalService.getCanonicalRole(roleTitle);
+
                 const completedJob = {
                     ...newJob,
                     status: 'saved' as const,
                     analysis,
-                    position: analysis.distilledJob?.roleTitle || newJob.position,
-                    company: analysis.distilledJob?.companyName || newJob.company
+                    position: roleTitle,
+                    company: analysis.distilledJob?.companyName || newJob.company,
+                    roleId: bucket.id // Store the bucket mapping
                 };
                 await Storage.saveJob(completedJob);
                 handleUpdateJob(completedJob);
@@ -196,9 +293,8 @@ export const useAppLogic = () => {
         setState(prev => ({
             ...prev,
             targetJobs: [newTarget, ...prev.targetJobs],
-            currentView: 'coach-gap-analysis'
         }));
-        setCurrentView('coach-gap-analysis');
+        navigate('/coach/gap-analysis');
     };
 
     const handleDeleteJob = (id: string) => {
@@ -206,10 +302,9 @@ export const useAppLogic = () => {
         setState(prev => ({
             ...prev,
             jobs: prev.jobs.filter(j => j.id !== id),
-            activeJobId: null,
-            currentView: 'history'
+            activeSubmissionId: null,
         }));
-        setCurrentView('history');
+        navigate('/history');
     };
 
     const handleImportResume = async (file: File) => {
@@ -275,6 +370,7 @@ export const useAppLogic = () => {
             jobs: [newJob, ...prev.jobs],
             activeJobId: jobId
         }));
+        navigate(`/job/${jobId}`);
         showInfo("Drafting your tailored application...");
 
         try {
@@ -352,7 +448,7 @@ export const useAppLogic = () => {
         },
         actions: {
             setView,
-            setActiveJobId,
+            setActiveSubmissionId,
             handleJobCreated,
             handleUpdateJob,
             handleTargetJobCreated,

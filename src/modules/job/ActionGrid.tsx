@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import type { AppState } from '../../types';
 import { TrendingUp, PenTool, Sparkles, FileText, GraduationCap, Bookmark, Zap } from 'lucide-react';
 import { BentoCard, type BentoColorConfig } from '../../components/common/BentoCard';
 import { BENTO_CARDS } from '../../constants';
@@ -16,7 +15,7 @@ const ICON_MAP = {
 } as const;
 
 interface ActionGridProps {
-    onNavigate?: (view: AppState['currentView']) => void;
+    onNavigate?: (view: string) => void;
     isAdmin?: boolean;
     isTester?: boolean;
 }
