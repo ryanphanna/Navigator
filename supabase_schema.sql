@@ -15,6 +15,7 @@ create table profiles (
   is_admin boolean default false,
   is_tester boolean default false,
   job_analyses_count int default 0,
+  total_ai_calls int default 0,
   last_analysis_date timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -68,16 +69,22 @@ create table daily_usage (
   primary key (user_id, date)
 );
 
--- USER_SKILLS: Stores user's verified skills with proficiency levels
-create table user_skills (
-  id uuid default uuid_generate_v4() primary key,
-  user_id uuid references profiles(id) not null,
-  name text not null,
-  proficiency text not null check (proficiency in ('learning', 'comfortable', 'expert')),
-  evidence text,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
   unique(user_id, name)
+);
+
+-- LOGS: Stores individual AI interaction history
+create table logs (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references profiles(id),
+  event_type text not null,
+  model_name text not null,
+  prompt_text text,
+  response_text text,
+  latency_ms int,
+  status text check (status in ('success', 'error')),
+  error_message text,
+  metadata jsonb default '{}'::jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 -- ROLE_MODELS: Stores target professional profiles for gap analysis
@@ -127,6 +134,10 @@ create policy "Users can manage own jobs" on jobs for all using (auth.uid() = us
 
 -- User Skills Policies
 create policy "Users can manage own skills" on user_skills for all using (auth.uid() = user_id);
+
+-- Logs Policies
+create policy "Users can insert own logs" on logs for insert with check (auth.uid() = user_id);
+create policy "Users can view own logs" on logs for select using (auth.uid() = user_id);
 
 -- Role Models Policies
 create policy "Users can manage own role models" on role_models for all using (auth.uid() = user_id);
@@ -280,21 +291,26 @@ AS $$
   WHERE id = p_user_id;
 $$;
 
--- Function to track daily token usage
+-- Function to track daily token usage and total AI calls
 create or replace function track_usage(p_tokens int)
 returns void
-language plpgsql
 language plpgsql
 security definer
 set search_path = public
 as $$
 begin
+  -- 1. Daily Usage (Token based)
   insert into daily_usage (user_id, date, request_count, token_count)
   values (auth.uid(), current_date, 1, p_tokens)
   on conflict (user_id, date)
   do update set 
     request_count = daily_usage.request_count + 1,
     token_count = daily_usage.token_count + excluded.token_count;
+
+  -- 2. Profile Cumulative Stats
+  update profiles 
+  set total_ai_calls = total_ai_calls + 1
+  where id = auth.uid();
 end;
 $$;
 

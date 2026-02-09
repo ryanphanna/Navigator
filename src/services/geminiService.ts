@@ -156,15 +156,14 @@ const logToSupabase = async (params: {
         });
 
         // 2. Update Daily Usage Metrics (Fire & Forget)
-        const tokenUsage = (params.metadata?.token_usage as any)?.totalTokens;
-        if (tokenUsage && typeof tokenUsage === 'number') {
-            supabase.rpc('track_usage', { p_tokens: tokenUsage }).then(({ error }) => {
-                if (error) {
-                    // Silent fail - the user might not have applied the migration yet
-                    // console.warn("Usage tracking skipped (RPC not found or db error)");
-                }
-            });
-        }
+        // Ensure track_usage is called even if tokens are 0 to increment the total_ai_calls counter.
+        const tokenUsage = (params.metadata?.token_usage as any)?.totalTokens || 0;
+        supabase.rpc('track_usage', { p_tokens: tokenUsage }).then(({ error }) => {
+            if (error) {
+                // Silent fail in production
+                // console.warn("Usage tracking skipped (RPC error):", error.message);
+            }
+        });
 
     } catch (err) {
         console.error("Failed to write log to Supabase:", err);

@@ -11,6 +11,7 @@ export interface UsageStats {
     tier: string;
     totalAnalyses: number;
     todayAnalyses: number;
+    totalAICalls: number; // Cumulative AI events
     limit: number;
 }
 
@@ -59,7 +60,7 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
     try {
         const { data: profile } = await supabase
             .from('profiles')
-            .select('subscription_tier, job_analyses_count')
+            .select('subscription_tier, job_analyses_count, total_ai_calls')
             .eq('id', userId)
             .single();
 
@@ -71,11 +72,13 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
 
         const tier = profile?.subscription_tier || 'free';
         const totalAnalyses = profile?.job_analyses_count || 0;
+        const totalAICalls = profile?.total_ai_calls || 0;
 
         return {
             tier,
             totalAnalyses,
             todayAnalyses: todayCount || 0,
+            totalAICalls,
             limit: tier === 'free' ? 3 : Infinity
         };
     } catch (err) {
@@ -84,6 +87,7 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
             tier: 'free',
             totalAnalyses: 0,
             todayAnalyses: 0,
+            totalAICalls: 0,
             limit: 3
         };
     }

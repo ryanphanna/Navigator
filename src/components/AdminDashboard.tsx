@@ -24,7 +24,6 @@ interface LogEntry {
     user_id?: string;
 }
 
-// Lightweight type for analytics to save bandwidth
 interface AnalyticsLog {
     id: string;
     created_at: string;
@@ -42,8 +41,12 @@ export const AdminDashboard: React.FC = () => {
         totalUsers: 0,
         betaTesters: 0,
         admins: 0,
-        totalLogs: 0
+        totalLogs: 0,
+        totalAICalls: 0,
+        dailyAvg: 0
     });
+    const [topUsers, setTopUsers] = useState<any[]>([]);
+    const [dailyHighUsage, setDailyHighUsage] = useState<any[]>([]);
 
     // UI State
     const [loading, setLoading] = useState(true);
@@ -63,23 +66,43 @@ export const AdminDashboard: React.FC = () => {
     };
 
     const fetchSystemStats = async () => {
-        const [users, testers, admins, logsCount] = await Promise.all([
+        const today = new Date().toISOString().split('T')[0];
+
+        const [users, testers, admins, logsCount, profilesData, leadData, dailyData, allDaily] = await Promise.all([
             supabase.from('profiles').select('*', { count: 'exact', head: true }),
             supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_tester', true),
             supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_admin', true),
-            supabase.from('logs').select('*', { count: 'exact', head: true })
+            supabase.from('logs').select('*', { count: 'exact', head: true }),
+            supabase.from('profiles').select('total_ai_calls'),
+            supabase.from('profiles').select('email, total_ai_calls').order('total_ai_calls', { ascending: false }).limit(5),
+            supabase.from('daily_usage')
+                .select('request_count, email:profiles(email)')
+                .eq('date', today)
+                .order('request_count', { ascending: false })
+                .limit(5),
+            supabase.from('daily_usage').select('request_count').eq('date', today)
         ]);
+
+        const totalAICalls = profilesData.data?.reduce((acc: any, p: any) => acc + (p.total_ai_calls || 0), 0) || 0;
+
+        let averageUsage = 0;
+        if (allDaily.data && allDaily.data.length > 0) {
+            averageUsage = allDaily.data.reduce((acc, curr) => acc + (curr.request_count || 0), 0) / allDaily.data.length;
+        }
 
         setSysStats({
             totalUsers: users.count || 0,
             betaTesters: testers.count || 0,
             admins: admins.count || 0,
-            totalLogs: logsCount.count || 0
+            totalLogs: logsCount.count || 0,
+            totalAICalls,
+            dailyAvg: Math.round(averageUsage * 10) / 10
         });
+        setTopUsers(leadData.data || []);
+        setDailyHighUsage(dailyData.data || []);
     };
 
     const fetchAnalytics = async () => {
-        // Calculate date range
         const now = new Date();
         const past = new Date();
         if (timeRange === '24h') past.setHours(now.getHours() - 24);
@@ -88,9 +111,9 @@ export const AdminDashboard: React.FC = () => {
 
         const { data, error } = await supabase
             .from('logs')
-            .select('id, created_at, status, model_name, event_type, latency_ms') // Select ONLY what we need for charts
+            .select('id, created_at, status, model_name, event_type, latency_ms')
             .gte('created_at', past.toISOString())
-            .order('created_at', { ascending: true }); // Ascending for charts
+            .order('created_at', { ascending: true });
 
         if (!error && data) {
             setAnalyticsLogs(data as AnalyticsLog[]);
@@ -99,7 +122,6 @@ export const AdminDashboard: React.FC = () => {
 
     const fetchLogs = async () => {
         setLoading(true);
-        // Fetch detailed logs for the table (limited to 100 recent)
         const { data, error } = await supabase
             .from('logs')
             .select('*')
@@ -119,7 +141,7 @@ export const AdminDashboard: React.FC = () => {
 
     useEffect(() => {
         fetchAnalytics();
-    }, [timeRange]); // Re-fetch analytics when time range changes
+    }, [timeRange]);
 
     const filteredLogs = logs.filter(log =>
         log.event_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -129,7 +151,6 @@ export const AdminDashboard: React.FC = () => {
     );
 
     const calculateAvgLatency = (eventTypes: string[]) => {
-        // Use the larger analytics dataset for better accuracy
         const filtered = analyticsLogs.filter(l => eventTypes.includes(l.event_type));
         if (filtered.length === 0) return 0;
         return Math.round(filtered.reduce((acc, l) => acc + (l.latency_ms || 0), 0) / filtered.length);
@@ -157,7 +178,6 @@ export const AdminDashboard: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto animate-in fade-in duration-500 pb-20">
-            {/* Header & Main Nav */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
                 <div className="space-y-1">
                     <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
@@ -171,24 +191,15 @@ export const AdminDashboard: React.FC = () => {
 
                 <div className="flex items-center gap-2">
                     <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex gap-1 shadow-inner">
-                        <button
-                            onClick={() => setTimeRange('24h')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${timeRange === '24h' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-                        >
-                            24h
-                        </button>
-                        <button
-                            onClick={() => setTimeRange('7d')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${timeRange === '7d' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-                        >
-                            7d
-                        </button>
-                        <button
-                            onClick={() => setTimeRange('30d')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${timeRange === '30d' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-                        >
-                            30d
-                        </button>
+                        {['24h', '7d', '30d'].map(range => (
+                            <button
+                                key={range}
+                                onClick={() => setTimeRange(range as any)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${timeRange === range ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                            >
+                                {range}
+                            </button>
+                        ))}
                     </div>
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
@@ -213,7 +224,6 @@ export const AdminDashboard: React.FC = () => {
                         onClick={() => { fetchLogs(); fetchAnalytics(); fetchSystemStats(); }}
                         disabled={loading}
                         className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm active:scale-95 disabled:opacity-50"
-                        title="Refresh Data"
                     >
                         <RefreshCw className={`w-4 h-4 text-slate-500 ${loading ? 'animate-spin' : ''}`} />
                     </button>
@@ -222,102 +232,37 @@ export const AdminDashboard: React.FC = () => {
 
             {activeTab === 'analytics' ? (
                 <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                    {/* Top Stats Strip with Sparklines */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {[
-                            {
-                                label: 'Users',
-                                val: sysStats.totalUsers,
-                                icon: Users,
-                                color: 'text-indigo-500',
-                                bg: 'bg-indigo-50 dark:bg-indigo-900/20',
-                                sparkLine: true, // Only this one really has time-series data we can mock or map if available, but for now we'll use logs as proxy for activity
-                                dataKey: 'users'
-                            },
-                            {
-                                label: 'Testers',
-                                val: sysStats.betaTesters,
-                                icon: ShieldCheck,
-                                color: 'text-purple-500',
-                                bg: 'bg-purple-50 dark:bg-purple-900/20',
-                                sparkLine: false
-                            },
-                            {
-                                label: 'AI Events',
-                                val: sysStats.totalLogs,
-                                icon: TrendingUp,
-                                color: 'text-emerald-500',
-                                bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-                                sparkLine: true,
-                                dataKey: 'logs'
-                            },
-                            {
-                                label: 'Uptime',
-                                val: '99.9%',
-                                icon: Zap,
-                                color: 'text-amber-500',
-                                bg: 'bg-amber-50 dark:bg-amber-900/20',
-                                sparkLine: false
-                            }
-                        ].map((s, i) => {
-                            // Generate simple sparkline data based on logs timestamp if this card supports it
-                            const sparkData = s.sparkLine ? analyticsLogs.reduce((acc: any[], log) => {
-                                const hour = new Date(log.created_at).getHours();
-                                const existing = acc.find(a => a.hour === hour);
-                                if (existing) existing.count++;
-                                else acc.push({ hour, count: 1 });
-                                return acc;
-                            }, []).sort((a: any, b: any) => a.hour - b.hour).slice(-10) : [];
-
-                            return (
-                                <div key={i} className="bg-white dark:bg-slate-900 p-5 rounded-[1.5rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
-                                    <div className="flex justify-between items-start z-10 relative">
-                                        <div className="flex gap-3">
-                                            <div className={`p-3 rounded-xl ${s.bg}`}>
-                                                <s.icon className={`w-5 h-5 ${s.color}`} />
-                                            </div>
-                                            <div>
-                                                <div className="text-2xl font-black text-slate-900 dark:text-white leading-none">{s.val}</div>
-                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{s.label}</div>
-                                            </div>
-                                        </div>
+                            { label: 'Users', val: sysStats.totalUsers, icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+                            { label: 'Testers', val: sysStats.betaTesters, icon: ShieldCheck, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+                            { label: `${timeRange === '24h' ? '24h' : timeRange} AI Calls`, val: analyticsLogs.length, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+                            { label: 'Lifetime AI Calls', val: sysStats.totalAICalls, icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' }
+                        ].map((s, i) => (
+                            <div key={i} className="bg-white dark:bg-slate-900 p-5 rounded-[1.5rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                                <div className="flex gap-3 relative z-10">
+                                    <div className={`p-3 rounded-xl ${s.bg}`}>
+                                        <s.icon className={`w-5 h-5 ${s.color}`} />
                                     </div>
-
-                                    {/* Sparkline Overlay */}
-                                    {s.sparkLine && sparkData.length > 2 && (
-                                        <div className="absolute bottom-0 right-0 w-24 h-16 opacity-20 group-hover:opacity-40 transition-opacity">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <AreaChart data={sparkData}>
-                                                    <Area
-                                                        type="monotone"
-                                                        dataKey="count"
-                                                        stroke={s.color.replace('text-', '#').replace('-500', '')} // Hacky color mapping, but works for tailwind classes
-                                                        strokeWidth={2}
-                                                        fill={s.color.replace('text-', '#').replace('-500', '')}
-                                                    />
-                                                </AreaChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                    )}
+                                    <div>
+                                        <div className="text-2xl font-black text-slate-900 dark:text-white leading-none">{s.val}</div>
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{s.label}</div>
+                                    </div>
                                 </div>
-                            );
-                        })}
+                            </div>
+                        ))}
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Response Time Breakdown Widget */}
-                        <div className="lg:col-span-1 bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
-                            <div className="mb-6">
-                                <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Performance</h4>
-                            </div>
-
-                            <div className="space-y-5 flex-1">
+                        <div className="lg:col-span-1 bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mb-6">Performance</h4>
+                            <div className="space-y-5">
                                 {[
                                     { label: 'Resume Support', val: stats.resumeLatency, sub: 'Parsing & Tailoring' },
                                     { label: 'Job Analysis', val: stats.jobLatency, sub: 'Extraction' },
                                     { label: 'Docs & Letters', val: stats.docLatency, sub: 'Synthesis' }
                                 ].map((row, i) => (
-                                    <div key={i} className="group cursor-default">
+                                    <div key={i}>
                                         <div className="flex justify-between items-end mb-1.5">
                                             <div>
                                                 <div className="text-xs font-bold text-slate-700 dark:text-slate-200">{row.label}</div>
@@ -327,278 +272,150 @@ export const AdminDashboard: React.FC = () => {
                                         </div>
                                         <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                             <div
-                                                className="h-full bg-rose-500 rounded-full opacity-60 group-hover:opacity-100 transition-all duration-500"
+                                                className="h-full bg-rose-500 rounded-full opacity-60"
                                                 style={{ width: `${Math.min(100, (row.val / 10000) * 100)}%` }}
                                             />
                                         </div>
                                     </div>
                                 ))}
                             </div>
-
-                            <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 -mx-6 -mb-6 px-6 py-5 rounded-b-[2rem]">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Average Load Time</span>
-                                <span className="text-xl font-black text-indigo-600">{stats.avgLatency}ms</span>
-                            </div>
                         </div>
 
-                        {/* Model Mix & Health Widget */}
                         <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
-                                <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mb-6">Model Distribution</h4>
-                                <div className="flex-1 flex items-center justify-center relative min-h-[220px]">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={Object.entries(analyticsLogs.reduce((acc: any, log) => {
-                                                    const model = log.model_name.replace('gemini-', '');
-                                                    acc[model] = (acc[model] || 0) + 1;
-                                                    return acc;
-                                                }, {})).map(([name, value]) => ({ name, value }))}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={60}
-                                                outerRadius={75}
-                                                paddingAngle={5}
-                                                dataKey="value"
-                                            >
-                                                {Object.entries(analyticsLogs.reduce((acc: any, log) => {
-                                                    const model = log.model_name.replace('gemini-', '');
-                                                    acc[model] = (acc[model] || 0) + 1;
-                                                    return acc;
-                                                }, {})).map((_, index) => (
-                                                    <Cell key={`cell-${index}`} fill={[COLORS.primary, COLORS.success, COLORS.error][index % 3]} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip />
-                                            <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                    <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none pb-8">
-                                        <span className="text-2xl font-black text-slate-900 dark:text-white">{analyticsLogs.length}</span>
-                                        <span className="text-[10px] uppercase font-bold text-slate-400">Requests</span>
-                                    </div>
+                            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
+                                <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mb-6">Top AI Users</h4>
+                                <div className="space-y-4">
+                                    {topUsers.map((u, i) => (
+                                        <div key={i} className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl">
+                                            <div className="flex items-center gap-3 truncate">
+                                                <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 text-xs font-bold shrink-0">{i + 1}</div>
+                                                <span className="truncate text-xs font-bold text-slate-700 dark:text-slate-200">{u.email || 'Anonymous'}</span>
+                                            </div>
+                                            <span className="text-sm font-black text-indigo-600 ml-2">{u.total_ai_calls || 0}</span>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 
-                            <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 p-6 rounded-[2rem] shadow-xl shadow-indigo-600/20 text-white flex flex-col justify-between">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <CheckCircle2 className="w-4 h-4 text-indigo-200" />
-                                        <h4 className="text-lg font-black uppercase tracking-tight">System Health</h4>
+                            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Daily Alerts</h4>
+                                    <div className="flex items-center gap-1.5 px-2 py-1 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                                        <AlertCircle className="w-3 h-3" /> Abuse Spotter
                                     </div>
-                                    <p className="text-indigo-100 text-xs leading-relaxed mb-4 font-medium">All systems operational. Gemini Flash throughput is stable.</p>
                                 </div>
+                                <div className="space-y-4">
+                                    {dailyHighUsage.map((u, i) => {
+                                        const email = (u.email as any)?.email || 'Anonymous';
+                                        const count = u.request_count || 0;
+                                        // Threshold: 5x average or at least 10 for small samples
+                                        const threshold = Math.max(10, sysStats.dailyAvg * 5);
+                                        const isHigh = count >= threshold;
 
-                                <div className="space-y-1">
-                                    <div className="text-4xl font-black">{stats.successRate}%</div>
-                                    <div className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 opacity-80">Global Success Rate</div>
+                                        return (
+                                            <div key={i} className={`flex justify-between items-center p-3 rounded-2xl border ${isHigh ? 'bg-rose-50/50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-900/30' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800'}`}>
+                                                <div className="flex items-center gap-3 truncate">
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isHigh ? 'bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{i + 1}</div>
+                                                    <span className="truncate text-xs font-bold text-slate-700 dark:text-slate-200">{email}</span>
+                                                </div>
+                                                <div className="flex flex-col items-end shrink-0 ml-2">
+                                                    <span className={`text-sm font-black ${isHigh ? 'text-rose-600' : 'text-slate-600'}`}>{count}</span>
+                                                    {isHigh && sysStats.dailyAvg > 0 && (
+                                                        <span className="text-[8px] font-black uppercase text-rose-500">{(count / sysStats.dailyAvg).toFixed(1)}x avg</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    {dailyHighUsage.length === 0 && <div className="text-center py-10 text-xs text-slate-400 font-bold uppercase tracking-widest">No activity today</div>}
                                 </div>
-
-                                <div className="mt-6 grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
-                                    <div>
-                                        <div className="text-base font-black">{analyticsLogs.filter(l => l.status === 'error').length}</div>
-                                        <div className="text-[10px] font-bold uppercase tracking-widest text-white/60">Errors</div>
+                                {sysStats.dailyAvg > 0 && (
+                                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">System Avg</span>
+                                        <span className="text-sm font-black text-slate-900 dark:text-white">{sysStats.dailyAvg} req/user</span>
                                     </div>
-                                    <div>
-                                        <div className="text-base font-black text-emerald-400">0</div>
-                                        <div className="text-[10px] font-bold uppercase tracking-widest text-white/60">System Failures</div>
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Chart Section */}
-                        <div className="lg:col-span-3 bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
-                            <div className="flex items-center justify-between mb-6">
-                                <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Traffic Intelligence</h4>
-                                <div className="flex gap-2">
-                                    <div className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-full text-[10px] font-bold uppercase tracking-widest">{timeRange}</div>
-                                </div>
-                            </div>
-                            <div className="h-64 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <ComposedChart
-                                        data={analyticsLogs.reduce((acc: any[], log) => {
-                                            const date = new Date(log.created_at);
-                                            // Dynamic grouping based on timeRange could go here, but using Hour/Day generic label for now
-                                            const label = timeRange === '24h'
-                                                ? `${date.getHours()}:00`
-                                                : `${date.getMonth() + 1}/${date.getDate()}`;
-
-                                            const existing = acc.find(a => a.label === label);
-                                            if (existing) {
-                                                existing.total++;
-                                                if (log.status === 'error') existing.errors++;
-                                            } else {
-                                                acc.push({ label, total: 1, errors: log.status === 'error' ? 1 : 0 });
-                                            }
-                                            return acc;
-                                        }, []).slice(-20)} // Limit to fit nicely
-                                        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                                    >
-                                        <defs>
-                                            <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <XAxis dataKey="label" stroke={COLORS.text} fontSize={10} tickLine={false} axisLine={false} />
-                                        <YAxis stroke={COLORS.text} fontSize={10} tickLine={false} axisLine={false} />
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.grid} />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                            labelStyle={{ color: '#64748b', fontWeight: 'bold', fontSize: '10px', textTransform: 'uppercase' }}
-                                        />
-                                        <Area type="monotone" dataKey="total" stroke={COLORS.primary} strokeWidth={3} fillOpacity={1} fill="url(#colorTotal)" />
-                                        <Bar dataKey="errors" barSize={20} fill={COLORS.error} radius={[4, 4, 0, 0]} />
-                                    </ComposedChart>
-                                </ResponsiveContainer>
-                            </div>
+                        <div className="lg:col-span-3 bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm h-64">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <ComposedChart data={analyticsLogs.reduce((acc: any[], log) => {
+                                    const date = new Date(log.created_at);
+                                    const label = timeRange === '24h' ? `${date.getHours()}:00` : `${date.getMonth() + 1}/${date.getDate()}`;
+                                    const existing = acc.find(a => a.label === label);
+                                    if (existing) { existing.total++; if (log.status === 'error') existing.errors++; }
+                                    else { acc.push({ label, total: 1, errors: log.status === 'error' ? 1 : 0 }); }
+                                    return acc;
+                                }, []).slice(-20)}>
+                                    <XAxis dataKey="label" stroke={COLORS.text} fontSize={10} axisLine={false} tickLine={false} />
+                                    <YAxis stroke={COLORS.text} fontSize={10} axisLine={false} tickLine={false} />
+                                    <Tooltip />
+                                    <Area type="monotone" dataKey="total" stroke={COLORS.primary} fill={COLORS.primary} fillOpacity={0.1} strokeWidth={3} />
+                                    <Bar dataKey="errors" fill={COLORS.error} radius={[4, 4, 0, 0]} />
+                                </ComposedChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
             ) : (
                 <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                    {/* Search Strip */}
-                    <div className="relative group">
-                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                    <div className="relative">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Filter logs by event, model, or content..."
+                            placeholder="Filter logs by event..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-5 pl-14 pr-6 rounded-[2rem] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all shadow-sm"
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-5 pl-14 pr-6 rounded-[2rem] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
                         />
                     </div>
 
-                    {/* High-Density Log Table */}
-                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                                        <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Event</th>
-                                        <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Model</th>
-                                        <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Latency</th>
-                                        <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Time</th>
-                                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Details</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredLogs.map((log) => (
-                                        <React.Fragment key={log.id}>
-                                            <tr
-                                                onClick={() => toggleExpand(log.id)}
-                                                className={`group hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors border-b border-slate-50 dark:border-slate-800 ${expandedLog === log.id ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''}`}
-                                            >
-                                                <td className="px-8 py-4">
-                                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${log.status === 'success' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : 'bg-rose-50 text-rose-600 dark:bg-rose-900/20'}`}>
-                                                        {log.status === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">{formatEventType(log.event_type)}</span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 uppercase tracking-widest">{log.model_name.replace('gemini-', '')}</span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`text-xs font-bold ${log.latency_ms && log.latency_ms > 5000 ? 'text-rose-500' : 'text-slate-600 dark:text-slate-400'}`}>{log.latency_ms}ms</span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                                                </td>
-                                                <td className="px-8 py-4 text-right">
-                                                    <div className="flex justify-end gap-2 pr-1">
-                                                        <ChevronRight className={`w-4 h-4 text-slate-300 transition-transform duration-300 ${expandedLog === log.id ? 'rotate-90 text-indigo-600' : 'group-hover:translate-x-1'}`} />
+                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                    <th className="px-8 py-5">Status</th>
+                                    <th className="px-6 py-5">Event</th>
+                                    <th className="px-6 py-5">Model</th>
+                                    <th className="px-6 py-5">Latency</th>
+                                    <th className="px-8 py-5 text-right">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredLogs.map(log => (
+                                    <React.Fragment key={log.id}>
+                                        <tr onClick={() => toggleExpand(log.id)} className={`group hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer border-b border-slate-50 dark:border-slate-800 ${expandedLog === log.id ? 'bg-indigo-50/30' : ''}`}>
+                                            <td className="px-8 py-4">{log.status === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertCircle className="w-4 h-4 text-rose-500" />}</td>
+                                            <td className="px-6 py-4 text-xs font-black uppercase tracking-tight text-slate-900 dark:text-white">{formatEventType(log.event_type)}</td>
+                                            <td className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase">{log.model_name.replace('gemini-', '')}</td>
+                                            <td className="px-6 py-4 text-xs font-bold text-slate-600">{log.latency_ms}ms</td>
+                                            <td className="px-8 py-4 text-right"><ChevronRight className={`w-4 h-4 transition-transform ${expandedLog === log.id ? 'rotate-90' : ''}`} /></td>
+                                        </tr>
+                                        {expandedLog === log.id && (
+                                            <tr>
+                                                <td colSpan={5} className="px-8 py-8 bg-slate-50/30 dark:bg-indigo-900/5">
+                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                                        <div className="space-y-4">
+                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Prompt</div>
+                                                            <div className="p-4 bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 text-[10px] font-mono whitespace-pre-wrap max-h-60 overflow-y-auto">{log.prompt_text}</div>
+                                                        </div>
+                                                        <div className="space-y-4">
+                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
+                                                                <span>Response</span>
+                                                                <button onClick={(e) => { e.stopPropagation(); setShowRaw(showRaw === log.id ? null : log.id); }} className="text-indigo-600">RAW</button>
+                                                            </div>
+                                                            <div className="p-4 bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 text-[10px] font-mono whitespace-pre-wrap max-h-60 overflow-y-auto">{showRaw === log.id ? log.response_text : log.response_text?.substring(0, 500)}</div>
+                                                        </div>
                                                     </div>
                                                 </td>
                                             </tr>
-
-                                            {/* Expanded Body */}
-                                            {expandedLog === log.id && (
-                                                <tr className="bg-indigo-50/20 dark:bg-indigo-900/5">
-                                                    <td colSpan={6} className="px-8 py-8 border-b border-slate-100 dark:border-slate-800">
-                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in slide-in-from-top-2 duration-300">
-                                                            <div>
-                                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                                                    <Terminal className="w-3 h-3" />
-                                                                    Analysis Request Payload
-                                                                </div>
-                                                                <div className="bg-white dark:bg-slate-950 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-600 dark:text-slate-400 max-h-80 overflow-y-auto shadow-inner leading-relaxed">
-                                                                    {log.prompt_text}
-                                                                </div>
-                                                            </div>
-                                                            <div>
-                                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center justify-between">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <Bot className="w-3 h-3" />
-                                                                        Orchestration Response
-                                                                    </div>
-                                                                    <button
-                                                                        onClick={(e) => { e.stopPropagation(); setShowRaw(showRaw === log.id ? null : log.id); }}
-                                                                        className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 transition-colors"
-                                                                    >
-                                                                        {showRaw === log.id ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                                                                        <span className="text-[10px] font-bold uppercase tracking-widest">{showRaw === log.id ? 'Hide Raw' : 'Show JSON'}</span>
-                                                                    </button>
-                                                                </div>
-                                                                {log.status === 'success' ? (
-                                                                    <div className="bg-white dark:bg-slate-950 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 text-xs font-mono text-emerald-600 dark:text-emerald-400/80 max-h-80 overflow-y-auto shadow-inner leading-relaxed">
-                                                                        {showRaw === log.id ? log.response_text : (
-                                                                            <div className="whitespace-pre-wrap">
-                                                                                {log.response_text?.substring(0, 1000)}
-                                                                                {(log.response_text?.length || 0) > 1000 && '...'}
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="p-6 bg-rose-50 dark:bg-rose-950/30 rounded-3xl border border-rose-100 dark:border-rose-900/30">
-                                                                        <div className="text-xs font-black text-rose-600 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                                                            <AlertCircle className="w-4 h-4" />
-                                                                            Orchestration Error
-                                                                        </div>
-                                                                        <div className="text-sm font-bold text-rose-500 leading-relaxed">{log.error_message}</div>
-                                                                    </div>
-                                                                )}
-
-                                                                {log.metadata && Object.keys(log.metadata).length > 0 && (
-                                                                    <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-                                                                        {Object.entries(log.metadata).map(([k, v]) => (
-                                                                            <div key={k} className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] font-bold text-slate-500 uppercase tracking-tight whitespace-nowrap">
-                                                                                {k}: {String(v)}
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </React.Fragment>
-                                    ))}
-                                </tbody>
-                            </table>
-
-                            {filteredLogs.length === 0 && !loading && (
-                                <div className="text-center py-32">
-                                    <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                        <Bot className="w-10 h-10 text-slate-300" />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight">No Events Found</h3>
-                                    <p className="text-sm text-slate-400 mt-2 uppercase tracking-widest font-bold">Try adjusting your filters or refreshing</p>
-                                </div>
-                            )}
-
-                            {loading && logs.length === 0 && (
-                                <div className="flex flex-col items-center justify-center py-32">
-                                    <div className="w-16 h-16 bg-white dark:bg-slate-900 border-4 border-slate-100 dark:border-slate-800 border-t-indigo-600 rounded-full animate-spin mb-6" />
-                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">Synchronizing Intelligence...</span>
-                                </div>
-                            )}
-                        </div>
+                                        )}
+                                    </React.Fragment>
+                                ))}
+                            </tbody>
+                        </table>
+                        {loading && <div className="py-20 text-center text-xs font-bold text-slate-400 uppercase animate-pulse">Synchronizing Intelligence...</div>}
                     </div>
                 </div>
             )}
