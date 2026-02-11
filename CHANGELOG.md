@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.0] - 2026-02-11
+
+### Changed
+- **Design System**: Migrated entire application theme from `slate` to `neutral`. Replaced blue tints with a cleaner grey/black palette.
+- **Dark Mode**: Refined dark mode to use a true neutral black (`#0a0a0a`) for better depth and contrast.
+- **UI Architecture**: Refined theme persistence logic to strictly respect manual user preferences over OS settings.
+
+### Fixed
+- **Layout**: Resolved "weird width" issue in the `History` view by enforcing a consistent `max-w-7xl` container.
+- **Visibility**: Improved contrast and legibility for animated headlines ("Ace the...") across all theme modes.
+
+### Removed
+- **Marketing**: Cleaned up the landing page by removing the "ATS Comparison" and "Analyzing JD" preview graphics.
+
 ## [2.3.0] - 2026-02-07
 
 ### Added
