@@ -25,7 +25,7 @@ import { SkillsView } from './components/skills/SkillsView';
 import { SkillInterviewModal } from './components/skills/SkillInterviewModal';
 import { SettingsModal } from './components/SettingsModal';
 import { UpgradeModal } from './components/UpgradeModal';
-import { ROUTES } from './constants';
+import { ROUTES, STORAGE_KEYS } from './constants';
 import { SEOLandingPage } from './modules/seo/SEOLandingPage';
 import { AuthModal } from './components/AuthModal';
 import { NudgeCard } from './components/NudgeCard';
@@ -98,8 +98,22 @@ const App: React.FC = () => {
     }
   }, [currentView, isCoachMode, isEduMode, userTier, isTester, isAdmin]);
 
+  // Theme Initialization
+  useLayoutEffect(() => {
+    const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
+    if (savedTheme) {
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
   return (
-    <div className={`min-h-screen bg-white dark:bg-slate-950 font-sans selection:bg-emerald-500/30 text-slate-900 dark:text-slate-100 transition-colors duration-500 ${isCoachMode ? 'theme-coach' : isEduMode ? 'theme-edu' : 'theme-job'}`}>
+    <div className={`min-h-screen bg-white dark:bg-[#000000] font-sans selection:bg-emerald-500/30 text-neutral-900 dark:text-neutral-100 transition-colors duration-500 ${isCoachMode ? 'theme-coach' : isEduMode ? 'theme-edu' : 'theme-job'}`}>
       <style>{`
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after {
@@ -151,7 +165,7 @@ const App: React.FC = () => {
         ? 'bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/30'
         : isEduMode
           ? 'bg-amber-50/80 dark:bg-amber-950/20 border-amber-200/50 dark:border-amber-800/30'
-          : 'bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800'
+          : 'bg-white/80 dark:bg-neutral-900/80 border-neutral-200 dark:border-neutral-800'
         }`}>
         <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between relative">
 
@@ -161,7 +175,7 @@ const App: React.FC = () => {
               <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20">
                 <TrendingUp className="w-4 h-4" />
               </div>
-              <span className="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 hidden sm:block">
+              <span className="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-neutral-800 to-neutral-600 dark:from-white dark:to-neutral-300 hidden sm:block">
                 Navigator
               </span>
             </div>
@@ -169,12 +183,12 @@ const App: React.FC = () => {
 
           {/* CENTER: EXPANDING ACCORDION NAVIGATION */}
           {user && !isLoading && (
-            <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center bg-slate-100/50 dark:bg-slate-800/50 p-0.5 rounded-full border border-slate-200/50 dark:border-slate-700/50 transition-all duration-500 ease-in-out shadow-sm h-8">
+            <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center bg-neutral-100/50 dark:bg-neutral-800/50 p-0.5 rounded-full border border-neutral-200/50 dark:border-neutral-700/50 transition-all duration-500 ease-in-out shadow-sm h-8">
               {/* Navigator | Job */}
               <div className={`relative flex items-center h-full rounded-full transition-all duration-500 ${!isCoachMode && currentView !== 'grad' ? 'pr-0.5' : ''}`}>
                 {/* Dynamic Sliding Pill */}
                 <div
-                  className="absolute top-0 bottom-0 bg-white dark:bg-slate-700 shadow-sm border border-slate-200/50 dark:border-slate-600/50 rounded-full transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] z-0 block"
+                  className="absolute top-0 bottom-0 bg-white dark:bg-neutral-700 shadow-sm border border-neutral-200/50 dark:border-neutral-600/50 rounded-full transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] z-0 block"
                   style={{
                     left: jobPillStyle.left,
                     width: jobPillStyle.width,
@@ -186,32 +200,32 @@ const App: React.FC = () => {
                 <button
                   ref={el => { if (el) jobNavRefs.current.set('job-fit', el); }}
                   onClick={() => { setActiveSubmissionId(null); setView('job-fit'); }}
-                  className={`relative z-10 px-3 h-full rounded-full text-xs font-bold leading-none transition-all flex items-center gap-1.5 ${currentView === 'job-fit' || currentView === 'home' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-indigo-600 dark:text-slate-400'}`}
+                  className={`relative z-10 px-3 h-full rounded-full text-xs font-bold leading-none transition-all flex items-center gap-1.5 ${currentView === 'job-fit' || currentView === 'home' ? 'text-indigo-600 dark:text-indigo-400' : 'text-neutral-500 hover:text-indigo-600 dark:text-neutral-400'}`}
                 >
                   <Briefcase className={`w-3.5 h-3.5 ${(currentView === 'job-fit' || currentView === 'home') ? 'scale-110' : 'scale-100'}`} />
                   <span>Job</span>
                 </button>
 
                 <div className={`z-10 flex items-center h-full gap-0.5 overflow-hidden transition-all duration-200 ease-out ${!isCoachMode && currentView !== 'grad' ? 'max-w-xs opacity-100 ml-0.5' : 'max-w-0 opacity-0'}`}>
-                  <div className="w-px h-3 bg-slate-300 dark:bg-slate-600 mx-1" />
+                  <div className="w-px h-3 bg-neutral-300 dark:bg-neutral-600 mx-1" />
                   <button
                     ref={el => { if (el) jobNavRefs.current.set('history', el); }}
                     onClick={() => { setActiveSubmissionId(null); setView('history'); }}
-                    className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'history' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-500'}`}
+                    className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'history' ? 'text-indigo-600 dark:text-indigo-400' : 'text-neutral-500 dark:text-neutral-400 hover:text-indigo-500'}`}
                   >
                     History
                   </button>
                   <button
                     ref={el => { if (el) jobNavRefs.current.set('resumes', el); }}
                     onClick={() => { setActiveSubmissionId(null); setView('resumes'); }}
-                    className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'resumes' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-500'}`}
+                    className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'resumes' ? 'text-indigo-600 dark:text-indigo-400' : 'text-neutral-500 dark:text-neutral-400 hover:text-indigo-500'}`}
                   >
                     Resumes
                   </button>
                   <button
                     ref={el => { if (el) jobNavRefs.current.set('skills', el); }}
                     onClick={() => { setActiveSubmissionId(null); setView('skills'); }}
-                    className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'skills' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-500'}`}
+                    className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'skills' ? 'text-indigo-600 dark:text-indigo-400' : 'text-neutral-500 dark:text-neutral-400 hover:text-indigo-500'}`}
                   >
                     Skills
                   </button>
@@ -219,7 +233,7 @@ const App: React.FC = () => {
                     <button
                       ref={el => { if (el) jobNavRefs.current.set('pro', el); }}
                       onClick={() => { setActiveSubmissionId(null); setView('pro'); }}
-                      className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'pro' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-500'}`}
+                      className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'pro' ? 'text-indigo-600 dark:text-indigo-400' : 'text-neutral-500 dark:text-neutral-400 hover:text-indigo-500'}`}
                     >
                       Feed
                     </button>
@@ -229,10 +243,10 @@ const App: React.FC = () => {
 
               {/* Navigator | Coach */}
               {(isTester || isAdmin) && (
-                <div className={`flex items-center h-full rounded-full transition-all duration-500 ml-0.5 ${isCoachMode ? 'bg-white dark:bg-slate-700 shadow-sm border border-slate-200/50 dark:border-slate-600/50 pr-0.5' : ''}`}>
+                <div className={`flex items-center h-full rounded-full transition-all duration-500 ml-0.5 ${isCoachMode ? 'bg-white dark:bg-neutral-700 shadow-sm border border-neutral-200/50 dark:border-neutral-600/50 pr-0.5' : ''}`}>
                   <button
                     onClick={() => { setActiveSubmissionId(null); setView('coach-home'); }}
-                    className={`px-3 h-full rounded-full text-xs font-bold leading-none transition-all flex items-center gap-1.5 ${isCoachMode ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 hover:text-emerald-600 dark:text-slate-400'}`}
+                    className={`px-3 h-full rounded-full text-xs font-bold leading-none transition-all flex items-center gap-1.5 ${isCoachMode ? 'text-emerald-600 dark:text-emerald-400' : 'text-neutral-500 hover:text-emerald-600 dark:text-neutral-400'}`}
                   >
                     <TrendingUp className={`w-3.5 h-3.5 ${isCoachMode ? 'scale-110' : 'scale-100'}`} />
                     <span>Coach</span>
@@ -242,13 +256,13 @@ const App: React.FC = () => {
                     <div className="w-px h-3 bg-emerald-200 dark:bg-emerald-800 mx-1" />
                     <button
                       onClick={() => { setActiveSubmissionId(null); setView('coach-role-models'); }}
-                      className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'coach-role-models' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400 hover:text-emerald-600'}`}
+                      className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'coach-role-models' ? 'text-emerald-600 dark:text-emerald-400' : 'text-neutral-500 dark:text-neutral-400 hover:text-emerald-600'}`}
                     >
                       Role Models
                     </button>
                     <button
                       onClick={() => { setActiveSubmissionId(null); setView('coach-gap-analysis'); }}
-                      className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'coach-gap-analysis' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400 hover:text-emerald-600'}`}
+                      className={`px-2.5 h-full rounded-full text-xs font-semibold leading-none flex items-center transition-all ${currentView === 'coach-gap-analysis' ? 'text-emerald-600 dark:text-emerald-400' : 'text-neutral-500 dark:text-neutral-400 hover:text-emerald-600'}`}
                     >
                       Skills Gap
                     </button>
@@ -258,10 +272,10 @@ const App: React.FC = () => {
 
               {/* Navigator | Edu */}
               {isAdmin && (
-                <div className={`flex items-center h-full rounded-full transition-all duration-500 ml-0.5 ${currentView === 'grad' ? 'bg-white dark:bg-slate-700 shadow-sm border border-slate-200/50 dark:border-slate-600/50 pr-0.5' : ''}`}>
+                <div className={`flex items-center h-full rounded-full transition-all duration-500 ml-0.5 ${currentView === 'grad' ? 'bg-white dark:bg-neutral-700 shadow-sm border border-neutral-200/50 dark:border-neutral-600/50 pr-0.5' : ''}`}>
                   <button
                     onClick={() => { setActiveSubmissionId(null); setView('grad'); }}
-                    className={`px-3 h-full rounded-full text-xs font-bold leading-none transition-all flex items-center gap-1.5 ${currentView === 'grad' ? 'text-violet-600 dark:text-violet-400' : 'text-slate-500 hover:text-violet-600 dark:text-slate-400'}`}
+                    className={`px-3 h-full rounded-full text-xs font-bold leading-none transition-all flex items-center gap-1.5 ${currentView === 'grad' ? 'text-violet-600 dark:text-violet-400' : 'text-neutral-500 hover:text-violet-600 dark:text-neutral-400'}`}
                   >
                     <GraduationCap className={`w-3.5 h-3.5 ${currentView === 'grad' ? 'scale-110' : 'scale-100'}`} />
                     <span>Edu</span>
@@ -275,14 +289,14 @@ const App: React.FC = () => {
             {!isLoading && !user ? (
               <button
                 onClick={() => setShowAuth(true)}
-                className="px-3 py-1 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold rounded-full border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900/50 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 transition-all active:scale-95"
+                className="px-3 py-1 text-neutral-600 dark:text-neutral-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold rounded-full border border-neutral-200 dark:border-neutral-800 hover:border-indigo-200 dark:hover:border-indigo-900/50 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 transition-all active:scale-95"
               >
                 Sign In
               </button>
             ) : (
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-1.5 px-3 py-1 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-xs font-semibold rounded-full border border-transparent hover:border-slate-200 dark:hover:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all group"
+                className="flex items-center gap-1.5 px-3 py-1 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 text-xs font-semibold rounded-full border border-transparent hover:border-neutral-200 dark:hover:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-all group"
                 title="Log Out"
               >
                 <LogOut className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
@@ -293,7 +307,7 @@ const App: React.FC = () => {
             {isAdmin && (
               <button
                 onClick={() => { setActiveSubmissionId(null); setView('admin'); }}
-                className={`p-1.5 rounded-full transition-all ${currentView === 'admin' ? 'text-rose-600 bg-rose-50 dark:bg-rose-900/20' : 'text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                className={`p-1.5 rounded-full transition-all ${currentView === 'admin' ? 'text-rose-600 bg-rose-50 dark:bg-rose-900/20' : 'text-neutral-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
                 title="Admin Console"
               >
                 <ShieldAlert className="w-4 h-4" />
@@ -303,7 +317,7 @@ const App: React.FC = () => {
             {/* User Profile / Settings */}
             <button
               onClick={() => setShowSettings(true)}
-              className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all"
+              className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-all"
               title="Settings"
             >
               <Settings className="w-4 h-4" />
@@ -326,7 +340,7 @@ const App: React.FC = () => {
                   />
                 </div>
               )}
-              <div className="pt-16">
+              <div className="pt-8">
                 <HomeInput
                   resumes={state.resumes}
                   onJobCreated={handleJobCreated}

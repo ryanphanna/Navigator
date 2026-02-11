@@ -216,22 +216,22 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                 {/* Main Content Column */}
                 <div className="lg:col-span-8 space-y-6">
                     {/* Header / Controls */}
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white">
+                    <div className="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden">
+                        <div className="px-6 py-4 border-b border-neutral-100 flex justify-between items-center bg-white">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-indigo-50 rounded-lg">
                                     <PenTool className="w-4 h-4 text-indigo-600" />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-slate-900">Cover Letter Draft</h3>
-                                    <p className="text-xs text-slate-500">AI-tailored to this specific role</p>
+                                    <h3 className="font-semibold text-neutral-900">Cover Letter Draft</h3>
+                                    <p className="text-xs text-neutral-500">AI-tailored to this specific role</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 {localJob.coverLetter && (
                                     <button
                                         onClick={() => handleCopy(localJob.coverLetter!)}
-                                        className="text-xs font-medium px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-sm active:scale-95"
+                                        className="text-xs font-medium px-4 py-2 bg-white border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors flex items-center gap-2 shadow-sm active:scale-95"
                                     >
                                         {copiedState === 'cl' ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
                                         {copiedState === 'cl' ? 'Copied' : 'Copy Text'}
@@ -247,7 +247,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                             }
                                         }}
                                         disabled={generating}
-                                        className="text-xs font-medium px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-2 shadow-sm active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                                        className="text-xs font-medium px-4 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors flex items-center gap-2 shadow-sm active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
                                         {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
                                         {generating ? (analysisProgress || 'Writing...') : localJob.coverLetter ? 'Refine Draft' : 'Generate Draft'}
@@ -296,16 +296,16 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                             {comparisonVersions ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
                                     {comparisonVersions.map((v, i) => (
-                                        <div key={i} className="flex flex-col space-y-4 p-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-300 hover:border-indigo-300 transition-all group relative">
-                                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-white border border-slate-200 rounded-full text-xs font-bold text-slate-400 shadow-sm">
+                                        <div key={i} className="flex flex-col space-y-4 p-6 bg-neutral-50/50 rounded-xl border border-dashed border-neutral-300 hover:border-indigo-300 transition-all group relative">
+                                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-white border border-neutral-200 rounded-full text-xs font-bold text-neutral-400 shadow-sm">
                                                 Style Option {i + 1}
                                             </div>
-                                            <div className="flex-1 text-sm text-slate-700 font-serif leading-relaxed line-clamp-[15]">
+                                            <div className="flex-1 text-sm text-neutral-700 font-serif leading-relaxed line-clamp-[15]">
                                                 {v.text}
                                             </div>
                                             <button
                                                 onClick={() => handleSelectVariant(v)}
-                                                className="w-full py-2.5 bg-white border border-slate-200 text-slate-900 rounded-lg text-xs font-bold hover:bg-slate-900 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2 group-hover:scale-[1.02]"
+                                                className="w-full py-2.5 bg-white border border-neutral-200 text-neutral-900 rounded-lg text-xs font-bold hover:bg-neutral-900 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2 group-hover:scale-[1.02]"
                                             >
                                                 <Sparkles className="w-3.5 h-3.5" />
                                                 Use This Style
@@ -313,7 +313,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                         </div>
                                     ))}
                                     <div className="md:col-span-2 text-center pt-4">
-                                        <p className="text-xs text-slate-400 font-medium italic">
+                                        <p className="text-xs text-neutral-400 font-medium italic">
                                             Choose the draft that best fits your personal voice.
                                         </p>
                                     </div>
@@ -321,29 +321,29 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                             ) : localJob.coverLetter ? (
                                 <>
                                     <div
-                                        className="flex-1 text-slate-800 leading-relaxed font-serif whitespace-pre-wrap selection:bg-indigo-100 selection:text-indigo-900 outline-none focus:bg-slate-50 transition-colors rounded p-4 border border-transparent focus:border-indigo-100"
+                                        className="flex-1 text-neutral-800 leading-relaxed font-serif whitespace-pre-wrap selection:bg-indigo-100 selection:text-indigo-900 outline-none focus:bg-neutral-50 transition-colors rounded p-4 border border-transparent focus:border-indigo-100"
                                         contentEditable
                                         suppressContentEditableWarning
                                         onBlur={(e) => handleEditCoverLetter(e.currentTarget.innerText)}
                                     >
                                         {localJob.coverLetter}
                                     </div>
-                                    <div className="mt-8 pt-4 border-t border-slate-100 flex justify-between items-center">
-                                        <div className="text-[10px] text-slate-400 font-mono">
+                                    <div className="mt-8 pt-4 border-t border-neutral-100 flex justify-between items-center">
+                                        <div className="text-[10px] text-neutral-400 font-mono">
                                             Tailored by Job Fit AI
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs text-slate-400 mr-2">Rate this output:</span>
+                                            <span className="text-xs text-neutral-400 mr-2">Rate this output:</span>
                                             <button
                                                 onClick={() => { Storage.submitFeedback(localJob.id, 1, 'cover_letter'); setRated(1); }}
-                                                className={`p-1.5 rounded hover:bg-slate-100 transition-colors ${rated === 1 ? 'text-green-600 bg-green-50' : 'text-slate-400'}`}
+                                                className={`p-1.5 rounded hover:bg-neutral-100 transition-colors ${rated === 1 ? 'text-green-600 bg-green-50' : 'text-neutral-400'}`}
                                                 disabled={!!rated}
                                             >
                                                 <ThumbsUp className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => { Storage.submitFeedback(localJob.id, -1, 'cover_letter'); setRated(-1); }}
-                                                className={`p-1.5 rounded hover:bg-slate-100 transition-colors ${rated === -1 ? 'text-red-600 bg-red-50' : 'text-slate-400'}`}
+                                                className={`p-1.5 rounded hover:bg-neutral-100 transition-colors ${rated === -1 ? 'text-red-600 bg-red-50' : 'text-neutral-400'}`}
                                                 disabled={!!rated}
                                             >
                                                 <ThumbsDown className="w-4 h-4" />
@@ -353,12 +353,12 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                 </>
                             ) : (
                                 <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 opacity-60">
-                                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center">
-                                        {generating ? <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" /> : <PenTool className="w-10 h-10 text-slate-300" />}
+                                    <div className="w-20 h-20 bg-neutral-100 rounded-full flex items-center justify-center">
+                                        {generating ? <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" /> : <PenTool className="w-10 h-10 text-neutral-300" />}
                                     </div>
                                     <div className="max-w-md">
-                                        <h3 className="text-lg font-medium text-slate-900 mb-2">{generating ? 'Writing your first draft...' : 'No Draft Yet'}</h3>
-                                        <p className="text-slate-500 mb-6">
+                                        <h3 className="text-lg font-medium text-neutral-900 mb-2">{generating ? 'Writing your first draft...' : 'No Draft Yet'}</h3>
+                                        <p className="text-neutral-500 mb-6">
                                             {generating ? 'Analyzing requirements and matching to your experience.' : `Generate a tailored cover letter customized for ${analysis.distilledJob.companyName}.`}
                                         </p>
                                     </div>
@@ -372,9 +372,9 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                 <div className="lg:col-span-4 space-y-6 hidden lg:block">
                     <div className="sticky top-20 space-y-6">
                         {/* Context Card */}
-                        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                                <h4 className="font-bold text-slate-900 flex items-center gap-2 text-sm">
+                        <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm">
+                            <div className="px-6 py-4 border-b border-neutral-100 flex justify-between items-center bg-neutral-50/50">
+                                <h4 className="font-bold text-neutral-900 flex items-center gap-2 text-sm">
                                     <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
                                     Refinement Strategy
                                 </h4>
@@ -384,14 +384,14 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                 {showContextInput || !localJob.coverLetter ? (
                                     <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                         <div>
-                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex justify-between">
+                                            <div className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2 flex justify-between">
                                                 <span>Personal Context</span>
                                                 {localJob.coverLetter && (
                                                     <button onClick={() => setShowContextInput(false)} className="text-indigo-600 hover:text-indigo-700">Cancel</button>
                                                 )}
                                             </div>
                                             <textarea
-                                                className="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all placeholder:text-slate-400 resize-none font-sans leading-relaxed"
+                                                className="w-full text-xs p-3 bg-neutral-50 border border-neutral-200 rounded-lg focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all placeholder:text-neutral-400 resize-none font-sans leading-relaxed"
                                                 rows={4}
                                                 placeholder="Add specific details (e.g. 'I used their product in 2022...')"
                                                 value={localJob.contextNotes || ''}
@@ -415,13 +415,13 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                 ) : (
                                     <div className="space-y-6">
                                         <div>
-                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">AI Comparison Logic</div>
+                                            <div className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-3">AI Comparison Logic</div>
                                             <div className="space-y-3">
                                                 {(analysis.coverLetterTailoringInstructions || analysis.tailoringInstructions || [])
                                                     .slice(0, 3)
                                                     .map((instruction: string, idx: number) => (
-                                                        <div key={idx} className="flex gap-3 text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 italic leading-relaxed">
-                                                            <span className="font-bold text-slate-300">•</span>
+                                                        <div key={idx} className="flex gap-3 text-xs text-neutral-600 bg-neutral-50 p-3 rounded-lg border border-neutral-100 italic leading-relaxed">
+                                                            <span className="font-bold text-neutral-300">•</span>
                                                             <span>{instruction.replace(/\[Block ID: .*?\]/g, '').trim()}</span>
                                                         </div>
                                                     ))}
@@ -430,7 +430,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
 
                                         <button
                                             onClick={() => setShowContextInput(true)}
-                                            className="w-full py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                                            className="w-full py-2.5 bg-white border border-neutral-200 text-neutral-600 rounded-xl text-xs font-bold hover:bg-neutral-50 transition-all flex items-center justify-center gap-2"
                                         >
                                             <PenTool className="w-3.5 h-3.5" />
                                             Add Personal Context
@@ -442,9 +442,9 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
 
                         {/* Blind Review Card (Only visible if letter exists) */}
                         {localJob.coverLetter && (
-                            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                                    <h4 className="font-bold text-slate-900 flex items-center gap-2 text-sm">
+                            <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm">
+                                <div className="p-4 border-b border-neutral-100 flex justify-between items-center bg-neutral-50/50">
+                                    <h4 className="font-bold text-neutral-900 flex items-center gap-2 text-sm">
                                         <Users className="w-3.5 h-3.5 text-indigo-500" />
                                         Blind Review
                                     </h4>
@@ -454,28 +454,28 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                     {localJob.coverLetterCritique ? (
                                         <div className="text-sm">
                                             {typeof localJob.coverLetterCritique === 'string' ? (
-                                                <div className="text-slate-600 text-xs leading-relaxed">
+                                                <div className="text-neutral-600 text-xs leading-relaxed">
                                                     <ReactMarkdown>{localJob.coverLetterCritique}</ReactMarkdown>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-6">
                                                     <div className="flex items-center justify-between">
-                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Strength Score</span>
+                                                        <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Strength Score</span>
                                                         <div className="flex items-baseline gap-1">
                                                             <span className={`text-3xl font-black ${localJob.coverLetterCritique.score >= 80 ? 'text-emerald-600' : localJob.coverLetterCritique.score >= 60 ? 'text-indigo-600' : 'text-rose-600'}`}>
                                                                 {localJob.coverLetterCritique.score}
                                                             </span>
-                                                            <span className="text-[10px] font-bold text-slate-400">/100</span>
+                                                            <span className="text-[10px] font-bold text-neutral-400">/100</span>
                                                         </div>
                                                     </div>
 
                                                     <div className="space-y-3">
-                                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <div className="text-[10px] font-black text-neutral-400 uppercase tracking-widest flex items-center gap-2">
                                                             <Sparkles className="w-3 h-3 text-indigo-500" /> Improvement Tips
                                                         </div>
                                                         <ul className="space-y-2">
                                                             {localJob.coverLetterCritique.feedback.slice(0, 3).map((f: string, i: number) => (
-                                                                <li key={i} className="text-[11px] leading-relaxed text-slate-600 bg-amber-50/50 p-2.5 rounded-lg border border-amber-100/30 flex gap-2">
+                                                                <li key={i} className="text-[11px] leading-relaxed text-neutral-600 bg-amber-50/50 p-2.5 rounded-lg border border-amber-100/30 flex gap-2">
                                                                     <span className="text-amber-500 font-bold">•</span> {f}
                                                                 </li>
                                                             ))}
@@ -494,10 +494,10 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                         </div>
                                     ) : (
                                         <div className="text-center py-4">
-                                            <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
-                                                <Users className="w-6 h-6 text-slate-300" />
+                                            <div className="w-12 h-12 bg-neutral-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-neutral-100">
+                                                <Users className="w-6 h-6 text-neutral-300" />
                                             </div>
-                                            <p className="text-[11px] text-slate-500 mb-6 leading-relaxed px-2">
+                                            <p className="text-[11px] text-neutral-500 mb-6 leading-relaxed px-2">
                                                 Get an honest critique from our AI hiring persona to verify this letter before sending.
                                             </p>
                                             <button

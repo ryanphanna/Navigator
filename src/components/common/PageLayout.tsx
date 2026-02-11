@@ -24,11 +24,11 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
         emerald: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
         amber: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border-amber-500/20',
         rose: 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border-rose-500/20',
-        slate: 'bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400 border-slate-500/20',
+        slate: 'bg-neutral-100 dark:bg-neutral-900/30 text-neutral-600 dark:text-neutral-400 border-neutral-500/20',
     };
 
     return (
-        <div className="bg-slate-50 dark:bg-slate-900 min-h-screen animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+        <div className="bg-neutral-50 dark:bg-neutral-900 min-h-screen animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
             <div className={`${fullWidth ? 'w-full px-4 sm:px-6' : 'max-w-5xl mx-auto px-6'} py-8 sm:py-12`}>
                 {/* Premium Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
@@ -37,11 +37,11 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
                             {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { className: 'w-7 h-7' }) : icon}
                         </div>
                         <div>
-                            <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                            <h1 className="text-xl font-black text-neutral-900 dark:text-white tracking-tight">
                                 {title}
                             </h1>
                             {description && (
-                                <p className="text-slate-500 dark:text-slate-400 font-medium">
+                                <p className="text-neutral-500 dark:text-neutral-400 font-medium">
                                     {description}
                                 </p>
                             )}

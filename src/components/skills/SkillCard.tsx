@@ -14,7 +14,7 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onDelete, onVerify,
         switch (level) {
             case 'expert': return 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800';
             case 'comfortable': return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
-            default: return 'bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700';
+            default: return 'bg-neutral-50 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700';
         }
     };
 
@@ -27,7 +27,7 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onDelete, onVerify,
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-200 group">
+        <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-200 group">
             <div className="flex items-center gap-4">
                 {/* Proficiency Icon */}
                 <div className={`w-12 h-12 rounded-xl ${getProficiencyStyle(skill.proficiency)} border flex items-center justify-center text-2xl flex-shrink-0`}>
@@ -36,11 +36,11 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onDelete, onVerify,
 
                 {/* Skill Info */}
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white truncate">
+                    <h3 className="text-lg font-bold text-neutral-900 dark:text-white truncate">
                         {skill.name}
                     </h3>
                     {skill.description && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 mb-1 line-clamp-1">
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 mb-1 line-clamp-1">
                             {skill.description}
                         </p>
                     )}
@@ -49,7 +49,7 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onDelete, onVerify,
                             {skill.proficiency}
                         </span>
                         {skill.evidence && (
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                            <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium">
                                 ✓ Verified
                             </span>
                         )}
@@ -61,7 +61,7 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onDelete, onVerify,
                     {(userTier === 'admin' || userTier === 'tester') && (
                         <button
                             onClick={() => onVerify(skill.name)}
-                            className="p-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl transition-all"
+                            className="p-2.5 bg-neutral-50 dark:bg-neutral-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl transition-all"
                             title={skill.evidence ? 'Re-verify proficiency' : 'Verify with AI (Beta)'}
                         >
                             <Sparkles className="w-4 h-4" />
@@ -69,7 +69,7 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onDelete, onVerify,
                     )}
                     <button
                         onClick={() => onDelete(skill.name)}
-                        className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"
+                        className="p-2.5 text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"
                         title="Delete skill"
                     >
                         <Trash2 className="w-4 h-4" />

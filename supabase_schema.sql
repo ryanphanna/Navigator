@@ -124,7 +124,11 @@ alter table target_jobs enable row level security;
 
 -- Profile Policies
 create policy "Users can view their own profile" on profiles for select using (auth.uid() = id);
+create policy "Admins can view all profiles" on profiles for select using (
+  (select is_admin from profiles where id = auth.uid()) = true
+);
 create policy "Users can update their own profile" on profiles for update using (auth.uid() = id);
+
 
 -- Resume Policies
 create policy "Users can manage own resumes" on resumes for all using (auth.uid() = user_id);

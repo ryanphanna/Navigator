@@ -106,15 +106,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20 ring-1 ring-slate-900/5 dark:ring-white/10">
-                <div className="px-8 py-6 border-b border-slate-200/50 dark:border-slate-800/50 flex justify-between items-center bg-gradient-to-r from-indigo-50/50 to-violet-50/50 dark:from-indigo-900/20 dark:to-violet-900/20">
-                    <h3 className="font-bold text-xl text-slate-900 dark:text-white tracking-tight">
+        <div className="fixed inset-0 bg-neutral-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+            <div className="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20 ring-1 ring-neutral-900/5 dark:ring-white/10">
+                <div className="px-8 py-6 border-b border-neutral-200/50 dark:border-neutral-800/50 flex justify-between items-center bg-gradient-to-r from-indigo-50/50 to-violet-50/50 dark:from-indigo-900/20 dark:to-violet-900/20">
+                    <h3 className="font-bold text-xl text-neutral-900 dark:text-white tracking-tight">
                         {successMessage ? 'Success' : step === 0 ? 'Sign In or Join' : isSignUp ? 'Join the Beta' : 'Welcome Back'}
                     </h3>
                     <button
                         onClick={onClose}
-                        className="p-2 -mr-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"
+                        className="p-2 -mr-2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -126,11 +126,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                             <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
                                 <CheckCircle className="w-10 h-10" />
                             </div>
-                            <h4 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Check your inbox</h4>
-                            <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-xs mx-auto leading-relaxed">{successMessage}</p>
+                            <h4 className="text-2xl font-bold text-neutral-900 dark:text-white mb-3">Check your inbox</h4>
+                            <p className="text-neutral-600 dark:text-neutral-400 mb-8 max-w-xs mx-auto leading-relaxed">{successMessage}</p>
                             <button
                                 onClick={onClose}
-                                className="text-indigo-600 dark:text-indigo-400 font-semibold hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors flex items-center justify-center gap-2 w-full py-3 bg-slate-100 dark:bg-slate-800 rounded-xl"
+                                className="text-indigo-600 dark:text-indigo-400 font-semibold hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors flex items-center justify-center gap-2 w-full py-3 bg-neutral-100 dark:bg-neutral-800 rounded-xl"
                             >
                                 Close
                             </button>
@@ -138,10 +138,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     ) : step === 0 ? (
                         <form onSubmit={handleEmailSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-1">Email</label>
+                                <label className="block text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2 ml-1">Email</label>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-md text-slate-500 dark:text-slate-400 group-focus-within:bg-slate-800 dark:group-focus-within:bg-slate-200 group-focus-within:text-white dark:group-focus-within:text-slate-900 transition-colors">
+                                        <div className="bg-neutral-100 dark:bg-neutral-800 p-1.5 rounded-md text-neutral-500 dark:text-neutral-400 group-focus-within:bg-neutral-800 dark:group-focus-within:bg-neutral-200 group-focus-within:text-white dark:group-focus-within:text-neutral-900 transition-colors">
                                             <Mail className="w-4 h-4" />
                                         </div>
                                     </div>
@@ -150,7 +150,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
-                                        className="w-full pl-14 pr-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-slate-900 dark:text-white"
+                                        className="w-full pl-14 pr-4 py-3.5 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 focus:bg-white dark:focus:bg-neutral-800 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-neutral-900 dark:text-white"
                                         placeholder="you@company.com"
                                     />
                                 </div>
@@ -159,22 +159,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-4 rounded-2xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                className="w-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold py-4 rounded-2xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                             >
                                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>Continue</span>}
                                 <ArrowRight className="w-5 h-5" />
                             </button>
 
-                            <p className="text-center text-xs text-slate-400">
+                            <p className="text-center text-xs text-neutral-400">
                                 Use your work email for direct access.
                             </p>
                         </form>
                     ) : (
                         <form onSubmit={handleAuthSubmit} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl flex items-center justify-between border border-slate-100 dark:border-slate-700 mb-4">
+                            <div className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl flex items-center justify-between border border-neutral-100 dark:border-neutral-700 mb-4">
                                 <div className="flex items-center gap-2">
-                                    <Mail className="w-4 h-4 text-slate-400" />
-                                    <span className="text-sm font-medium text-slate-600 dark:text-slate-300 truncate max-w-[200px]">{email}</span>
+                                    <Mail className="w-4 h-4 text-neutral-400" />
+                                    <span className="text-sm font-medium text-neutral-600 dark:text-neutral-300 truncate max-w-[200px]">{email}</span>
                                 </div>
                                 <button
                                     type="button"
@@ -189,7 +189,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
                             <div>
                                 <div className="flex justify-between items-center mb-2 ml-1">
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Password</label>
+                                    <label className="block text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Password</label>
                                     {!isSignUp && (
                                         <button type="button" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
                                             Forgot?
@@ -198,7 +198,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                                 </div>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-md text-slate-500 dark:text-slate-400 group-focus-within:bg-slate-800 dark:group-focus-within:bg-slate-200 group-focus-within:text-white dark:group-focus-within:text-slate-900 transition-colors">
+                                        <div className="bg-neutral-100 dark:bg-neutral-800 p-1.5 rounded-md text-neutral-500 dark:text-neutral-400 group-focus-within:bg-neutral-800 dark:group-focus-within:bg-neutral-200 group-focus-within:text-white dark:group-focus-within:text-neutral-900 transition-colors">
                                             <Lock className="w-4 h-4" />
                                         </div>
                                     </div>
@@ -208,7 +208,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
                                         minLength={6}
-                                        className="w-full pl-14 pr-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-slate-900 dark:text-white"
+                                        className="w-full pl-14 pr-4 py-3.5 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 focus:bg-white dark:focus:bg-neutral-800 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-neutral-900 dark:text-white"
                                         placeholder="••••••••"
                                         autoFocus
                                     />
@@ -237,7 +237,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                                 <button
                                     type="button"
                                     onClick={() => setIsSignUp(!isSignUp)}
-                                    className="text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                    className="text-xs text-neutral-500 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                                 >
                                     {isSignUp ? 'Actually, I have an account' : "Wait, I don't have an account"}
                                 </button>

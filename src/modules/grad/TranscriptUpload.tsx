@@ -75,7 +75,7 @@ export const TranscriptUpload: React.FC<TranscriptUploadProps> = ({ onUploadComp
                     relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200
                     ${isDragging
                         ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 scale-[1.02]'
-                        : 'border-slate-300 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                        : 'border-neutral-300 dark:border-neutral-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
                     }
                     ${isParsing ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
@@ -96,24 +96,24 @@ export const TranscriptUpload: React.FC<TranscriptUploadProps> = ({ onUploadComp
                                 <Loader2 className="w-8 h-8 text-indigo-600 dark:text-indigo-400 animate-spin" />
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Analyzing Transcript...</h3>
-                                <p className="text-slate-500 dark:text-slate-400">Extracting courses, grades, and GPA</p>
+                                <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">Analyzing Transcript...</h3>
+                                <p className="text-neutral-500 dark:text-neutral-400">Extracting courses, grades, and GPA</p>
                             </div>
                         </>
                     ) : (
                         <>
-                            <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${isDragging ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                            <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${isDragging ? 'bg-indigo-100 text-indigo-600' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400'}`}>
                                 <Upload className="w-8 h-8" />
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                                <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
                                     Upload Transcript
                                 </h3>
-                                <p className="text-slate-500 dark:text-slate-400 mt-1">
+                                <p className="text-neutral-500 dark:text-neutral-400 mt-1">
                                     Drag & drop your PDF here, or click to browse
                                 </p>
                             </div>
-                            <div className="flex gap-4 text-xs text-slate-400">
+                            <div className="flex gap-4 text-xs text-neutral-400">
                                 <span className="flex items-center gap-1"><FileText className="w-3 h-3" /> PDF only</span>
                                 <span className="flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Encrypted & Private</span>
                             </div>

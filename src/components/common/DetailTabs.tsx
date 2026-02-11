@@ -29,8 +29,8 @@ export const DetailTabs: React.FC<DetailTabsProps> = ({
         : 'hover:text-indigo-700';
 
     return (
-        <div className="px-6 pb-6 pt-2 border-b border-slate-200">
-            <div className="flex p-1 bg-slate-100/80 rounded-xl w-fit">
+        <div className="px-6 pb-6 pt-2 border-b border-neutral-200">
+            <div className="flex p-1 bg-neutral-100/80 rounded-xl w-fit">
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
@@ -38,8 +38,8 @@ export const DetailTabs: React.FC<DetailTabsProps> = ({
                         className={`
                             px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2
                             ${activeTab === tab.id
-                                ? `bg-white ${activeTextClass} shadow-sm ring-1 ring-slate-200`
-                                : `text-slate-500 ${hoverTextClass} hover:bg-slate-200/50`
+                                ? `bg-white ${activeTextClass} shadow-sm ring-1 ring-neutral-200`
+                                : `text-neutral-500 ${hoverTextClass} hover:bg-neutral-200/50`
                             }
                         `}
                     >

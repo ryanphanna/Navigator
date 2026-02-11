@@ -76,6 +76,7 @@ export const useAppLogic = () => {
         tier: 'free',
         totalAnalyses: 0,
         todayAnalyses: 0,
+        totalAICalls: 0,
         limit: 3
     });
     const [showUpgradeModal, setShowUpgradeModal] = useState<UsageLimitResult | null>(null);
@@ -131,7 +132,7 @@ export const useAppLogic = () => {
         if (user) {
             getUsageStats(user.id).then(setUsageStats).catch(console.error);
         } else {
-            setUsageStats({ tier: 'free', totalAnalyses: 0, todayAnalyses: 0, limit: 3 });
+            setUsageStats({ tier: 'free', totalAnalyses: 0, todayAnalyses: 0, totalAICalls: 0, limit: 3 });
         }
     }, [user]);
 

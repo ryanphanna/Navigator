@@ -33,12 +33,12 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/50 backdrop-blur-sm">
+            <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full max-w-md border border-neutral-200 dark:border-neutral-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
-                    <h3 className="font-black text-lg text-slate-900 dark:text-white">Edit Course</h3>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500">
+                <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-800/50">
+                    <h3 className="font-black text-lg text-neutral-900 dark:text-white">Edit Course</h3>
+                    <button onClick={onClose} className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full transition-colors text-neutral-500">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -48,21 +48,21 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
                     {/* Course Code & Title */}
                     <div className="grid grid-cols-3 gap-4">
                         <div className="col-span-1 space-y-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 pl-1">Code</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 pl-1">Code</label>
                             <input
                                 type="text"
                                 value={editedCourse.code}
                                 onChange={(e) => setEditedCourse({ ...editedCourse, code: e.target.value })}
-                                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl font-mono text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
                             />
                         </div>
                         <div className="col-span-2 space-y-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 pl-1">Title</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 pl-1">Title</label>
                             <input
                                 type="text"
                                 value={editedCourse.title}
                                 onChange={(e) => setEditedCourse({ ...editedCourse, title: e.target.value })}
-                                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
                             />
                         </div>
                     </div>
@@ -70,22 +70,22 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
                     {/* Numeric Grade & Letter Grade */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 pl-1">Grade</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 pl-1">Grade</label>
                             <input
                                 type="text"
                                 value={editedCourse.grade}
                                 onChange={(e) => setEditedCourse({ ...editedCourse, grade: e.target.value })}
-                                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-black focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-black focus:ring-2 focus:ring-indigo-500 outline-none"
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 pl-1">Credits</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 pl-1">Credits</label>
                             <input
                                 type="number"
                                 step="0.5"
                                 value={editedCourse.credits || 0.5}
                                 onChange={(e) => setEditedCourse({ ...editedCourse, credits: parseFloat(e.target.value) })}
-                                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
                             />
                         </div>
                     </div>
@@ -100,7 +100,7 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setConfirmDelete(false)}
-                                    className="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-white rounded-lg transition-colors"
+                                    className="px-3 py-1.5 text-xs font-bold text-neutral-500 hover:bg-white rounded-lg transition-colors"
                                 >
                                     Cancel
                                 </button>
@@ -126,10 +126,10 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+                <div className="p-6 bg-neutral-50 dark:bg-neutral-800/50 border-t border-neutral-100 dark:border-neutral-800 flex justify-end gap-3">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+                        className="px-4 py-2 text-sm font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"
                     >
                         Cancel
                     </button>

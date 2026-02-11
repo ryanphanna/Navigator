@@ -122,7 +122,6 @@ const HomeInput: React.FC<HomeInputProps> = ({
         setManualText('');
         setIsScrapingUrl(false);
         setIsAnalyzing(false);
-        // Ensure strictly fresh state
     }, []);
 
     // Bookmarklet Handler: Check for ?job= URL param
@@ -268,26 +267,15 @@ const HomeInput: React.FC<HomeInputProps> = ({
     }, [resumes, pendingJobInput, showResumePrompt]);
 
     return (
-        <div className="flex flex-col items-center justify-start animate-in fade-in duration-700 relative min-h-[80vh] pt-16 pb-12">
-            {/* Ambient Background Glow - Now dynamic based on theme */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-full pointer-events-none -z-10 overflow-hidden">
-                <div
-                    className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl mix-blend-multiply animate-blob transition-colors duration-1000"
-                    style={{ backgroundColor: 'rgb(var(--accent-glow) / 0.15)' }}
-                />
-                <div
-                    className="absolute top-40 right-1/4 w-96 h-96 rounded-full blur-3xl mix-blend-multiply animate-blob animation-delay-2000 transition-colors duration-1000"
-                    style={{ backgroundColor: 'rgb(var(--accent-glow) / 0.1)' }}
-                />
-            </div>
+        <div className="flex flex-col items-center justify-start animate-in fade-in duration-700 relative min-h-[80vh] pt-4 pb-12">
 
             <div className={`w-full ${mode === 'all' ? 'max-w-[1920px]' : 'max-w-4xl'} px-4 relative`}>
                 {user && (
                     <div className="text-center mb-10">
-                        <h2 className="text-6xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
-                            {activeHeadline.text} <span className="text-transparent bg-clip-text animate-gradient-x transition-colors duration-1000" style={{ backgroundImage: 'linear-gradient(to right, rgb(var(--accent-primary)), rgb(var(--accent-primary) / 0.7), rgb(var(--accent-primary)))' }}>{activeHeadline.highlight}</span>
+                        <h2 className="text-6xl md:text-7xl font-black text-neutral-900 dark:text-white tracking-tight mb-6">
+                            {activeHeadline.text} <span className="text-transparent bg-clip-text animate-gradient-x transition-colors duration-1000 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500" style={{ backgroundSize: '200% auto' }}>{activeHeadline.highlight}</span>
                         </h2>
-                        <p className="text-2xl text-slate-500 dark:text-slate-400 leading-relaxed max-w-4xl mx-auto mb-16">
+                        <p className="text-2xl text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-4xl mx-auto mb-16">
                             {mode === 'all'
                                 ? "Tailor your resume and write your cover letter in seconds."
                                 : isTargetMode
@@ -296,49 +284,6 @@ const HomeInput: React.FC<HomeInputProps> = ({
                             }
                         </p>
 
-                        {/* Interactive UI Hero Stack */}
-                        <div className="relative h-48 mb-16 hidden md:block select-none pointer-events-none">
-                            <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-2xl h-full flex items-center justify-center">
-                                {/* Back Card: Terminal Output */}
-                                <div className="absolute -translate-x-32 -translate-y-4 glass-card w-64 p-4 rounded-2xl animate-float-y flex flex-col gap-2 shadow-2xl opacity-80 scale-90">
-                                    <div className="flex gap-1.5 mb-1">
-                                        <div className="w-2 h-2 rounded-full bg-rose-500/50" />
-                                        <div className="w-2 h-2 rounded-full bg-amber-500/50" />
-                                        <div className="w-2 h-2 rounded-full bg-emerald-500/50" />
-                                    </div>
-                                    <div className="font-mono text-[10px] text-slate-400 space-y-1">
-                                        <div className="text-emerald-500">{'>'} Analyzing JD... done</div>
-                                        <div className="text-indigo-400">{'>'} Matching skills... 76%</div>
-                                        <div className="text-slate-500">{'>'} Optimizing summary...</div>
-                                        <div className="animate-pulse">_</div>
-                                    </div>
-                                </div>
-
-                                {/* Front Card: Match Score Card */}
-                                <div className="absolute translate-x-20 translate-y-6 glass-card w-56 p-6 rounded-3xl animate-float-y [animation-delay:1s] shadow-2xl z-10">
-                                    <div className="flex flex-col items-center gap-3">
-                                        <div className="relative w-16 h-16">
-                                            <svg className="w-full h-full transform -rotate-90">
-                                                <circle cx="32" cy="32" r="28" fill="transparent" stroke="currentColor" strokeWidth="4" className="text-slate-100 dark:text-slate-800" />
-                                                <circle cx="32" cy="32" r="28" fill="transparent" stroke="rgb(var(--accent-primary))" strokeWidth="4" strokeDasharray="175.84" strokeDashoffset="35.16" className="animate-[dash_2s_ease-out_forwards]" />
-                                            </svg>
-                                            <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-slate-900 dark:text-white">92%</span>
-                                        </div>
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Interview Probable</span>
-                                    </div>
-                                </div>
-
-                                {/* Floating Tags */}
-                                <div className="absolute -translate-y-16 translate-x-12 glass-card px-3 py-1.5 rounded-full text-[10px] font-bold text-emerald-500 border-emerald-500/20 shadow-lg animate-float-y [animation-delay:0.5s] flex items-center gap-2">
-                                    <Sparkles className="w-3 h-3" />
-                                    Technical Skills Match
-                                </div>
-                                <div className="absolute translate-y-20 -translate-x-45 glass-card px-3 py-1.5 rounded-full text-[10px] font-bold text-indigo-500 border-indigo-500/20 shadow-lg animate-float-y [animation-delay:1.5s] flex items-center gap-2">
-                                    <TrendingUp className="w-3 h-3" />
-                                    Salary Multiplier
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 )}
 
@@ -358,7 +303,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                             : 'bg-gradient-to-r from-pink-500 via-indigo-500 to-violet-500 opacity-20 group-hover:opacity-100 animate-gradient-x'
                                         }`}></div>
 
-                                    <div className={`relative bg-white dark:bg-slate-950/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800/30 rounded-[2.5rem] p-4 shadow-2xl flex flex-col md:flex-row items-center gap-6 transition-all duration-500 ease-in-out min-h-[100px] overflow-hidden ${isAnalyzing ? 'border-indigo-500/50 shadow-indigo-500/20' :
+                                    <div className={`relative bg-white dark:bg-neutral-950/80 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800/30 rounded-[2.5rem] p-4 shadow-2xl flex flex-col md:flex-row items-center gap-6 transition-all duration-500 ease-in-out min-h-[100px] overflow-hidden ${isAnalyzing ? 'border-indigo-500/50 shadow-indigo-500/20' :
                                         'group-hover:border-indigo-500/30 dark:group-hover:border-indigo-400/30'
                                         }`}>
                                         {/* Scanner Radar Effect */}
@@ -376,7 +321,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
 
                                         <div className="flex-1 w-full text-center md:text-left flex flex-col justify-center min-h-[60px]">
                                             <div className="flex items-center justify-between mb-1">
-                                                <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+                                                <div className="text-sm font-bold text-neutral-400 uppercase tracking-widest">
 
                                                 </div>
                                                 {error && (
@@ -391,7 +336,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                                     value={url}
                                                     onChange={(e) => setUrl(e.target.value)}
                                                     placeholder="Paste full job description..."
-                                                    className="w-full bg-transparent border-none rounded-xl text-lg text-slate-900 dark:text-white placeholder:text-slate-500 focus:ring-0 focus:outline-none resize-none animate-in fade-in duration-300 py-3 leading-relaxed h-[60px]"
+                                                    className="w-full bg-transparent border-none rounded-xl text-lg text-neutral-900 dark:text-white placeholder:text-neutral-500 focus:ring-0 focus:outline-none resize-none animate-in fade-in duration-300 py-3 leading-relaxed h-[60px]"
                                                     onKeyDown={(e) => {
                                                         if (e.key === 'Enter' && !e.shiftKey) {
                                                             e.preventDefault();
@@ -415,7 +360,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                                                 ? "Enter your target role or destination..."
                                                                 : "Paste job URL to tailor your resume..."
                                                     }
-                                                    className="w-full bg-transparent border-none rounded-xl text-lg font-medium text-slate-600 dark:text-slate-300 placeholder:text-slate-400 focus:ring-0 focus:outline-none transition-all duration-300"
+                                                    className="w-full bg-transparent border-none rounded-xl text-lg font-medium text-neutral-600 dark:text-neutral-300 placeholder:text-neutral-400 focus:ring-0 focus:outline-none transition-all duration-300"
                                                     autoFocus
                                                     disabled={isScrapingUrl}
                                                 />
@@ -453,7 +398,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
                         <div className="relative">
                             <textarea
-                                className={`w-full h-64 p-4 text-sm bg-white border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-50/50 transition-all resize-none ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-50/50' : 'border-slate-200 focus:border-indigo-500'}`}
+                                className={`w-full h-64 p-4 text-sm bg-white border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-50/50 transition-all resize-none ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-50/50' : 'border-neutral-200 focus:border-indigo-500'}`}
                                 placeholder={error
                                     ? "We couldn't scrape that URL. Please paste the full job description here..."
                                     : isTargetMode
@@ -465,7 +410,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                 onKeyDown={handleManualKeyDown}
                                 autoFocus
                             />
-                            <div className="absolute bottom-4 right-4 text-xs text-slate-400 pointer-events-none bg-white/80 px-2 py-1 rounded backdrop-blur-sm">
+                            <div className="absolute bottom-4 right-4 text-xs text-neutral-400 pointer-events-none bg-white/80 px-2 py-1 rounded backdrop-blur-sm">
                                 Press <strong>Enter</strong> to analyze • <strong>Shift+Enter</strong> for new line
                             </div>
                             {error && (
@@ -475,10 +420,10 @@ const HomeInput: React.FC<HomeInputProps> = ({
                             )}
                         </div>
 
-                        <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div className="flex justify-between items-center bg-neutral-50 dark:bg-neutral-800/50 p-3 rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-sm">
                             <button
                                 onClick={() => { setIsManualMode(false); setError(null); }}
-                                className="text-sm text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 font-bold px-4 py-2 transition-colors"
+                                className="text-sm text-neutral-500 hover:text-indigo-600 dark:hover:text-indigo-400 font-bold px-4 py-2 transition-colors"
                             >
                                 Back to URL
                             </button>
@@ -506,114 +451,118 @@ const HomeInput: React.FC<HomeInputProps> = ({
             </div>
 
             {/* Logged In User: Bookmarklet Tip */}
-            {user && showBookmarkletTip && (
-                <div className="w-full max-w-xl px-4 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="bg-sky-50 dark:bg-sky-900/10 border border-sky-100 dark:border-sky-800 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 to-transparent pointer-events-none" />
+            {
+                user && showBookmarkletTip && (
+                    <div className="w-full max-w-xl px-4 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="bg-sky-50 dark:bg-sky-900/10 border border-sky-100 dark:border-sky-800 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm relative overflow-hidden group">
+                            <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 to-transparent pointer-events-none" />
 
-                        <div className="flex items-center gap-4 relative z-10 flex-1">
-                            <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-xl flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
-                                <Bookmark className="w-5 h-5" />
+                            <div className="flex items-center gap-4 relative z-10 flex-1">
+                                <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-xl flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
+                                    <Bookmark className="w-5 h-5" />
+                                </div>
+                                <div className="text-sm text-neutral-600 dark:text-neutral-300">
+                                    <strong className="font-semibold text-neutral-900 dark:text-sky-100 block mb-0.5">Save from anywhere</strong>
+                                    Drag the button to your bookmarks bar to save jobs from any site.
+                                </div>
                             </div>
-                            <div className="text-sm text-slate-600 dark:text-slate-300">
-                                <strong className="font-semibold text-slate-900 dark:text-sky-100 block mb-0.5">Save from anywhere</strong>
-                                Drag the button to your bookmarks bar to save jobs from any site.
-                            </div>
-                        </div>
 
-                        <div className="flex items-center gap-3 relative z-10">
-                            <a
-                                href={`javascript:(function(){window.open('${window.location.origin}/?job='+encodeURIComponent(window.location.href),'_blank');})();`}
-                                className="flex items-center gap-2 px-3 py-2 bg-sky-600 text-white rounded-lg text-sm font-bold shadow-md hover:bg-sky-500 transition-colors cursor-grab active:cursor-grabbing hover:scale-105 whitespace-nowrap"
-                                onClick={(e) => e.preventDefault()}
-                                title="Drag me to your bookmarks bar!"
-                            >
-                                <Plus className="w-3 h-3" />
-                                Save to JobFit
-                            </a>
-                            <button
-                                onClick={() => {
-                                    setShowBookmarkletTip(false);
-                                    localStorage.setItem(STORAGE_KEYS.BOOKMARKLET_TIP_DISMISSED, 'true');
-                                }}
-                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1"
-                            >
-                                <div className="sr-only">Dismiss</div>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                            </button>
+                            <div className="flex items-center gap-3 relative z-10">
+                                <a
+                                    href={`javascript:(function(){window.open('${window.location.origin}/?job='+encodeURIComponent(window.location.href),'_blank');})();`}
+                                    className="flex items-center gap-2 px-3 py-2 bg-sky-600 text-white rounded-lg text-sm font-bold shadow-md hover:bg-sky-500 transition-colors cursor-grab active:cursor-grabbing hover:scale-105 whitespace-nowrap"
+                                    onClick={(e) => e.preventDefault()}
+                                    title="Drag me to your bookmarks bar!"
+                                >
+                                    <Plus className="w-3 h-3" />
+                                    Save to JobFit
+                                </a>
+                                <button
+                                    onClick={() => {
+                                        setShowBookmarkletTip(false);
+                                        localStorage.setItem(STORAGE_KEYS.BOOKMARKLET_TIP_DISMISSED, 'true');
+                                    }}
+                                    className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors p-1"
+                                >
+                                    <div className="sr-only">Dismiss</div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Resume Upload Modal */}
-            {showResumePrompt && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8 text-center animate-in zoom-in-95 duration-200 relative">
-                        <button
-                            onClick={() => { setShowResumePrompt(false); setPendingJobInput(null); }}
-                            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1"
-                        >
-                            <ArrowRight className="w-4 h-4 rotate-45" />
-                        </button>
+            {
+                showResumePrompt && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-neutral-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-neutral-100 p-8 text-center animate-in zoom-in-95 duration-200 relative">
+                            <button
+                                onClick={() => { setShowResumePrompt(false); setPendingJobInput(null); }}
+                                className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600 p-1"
+                            >
+                                <ArrowRight className="w-4 h-4 rotate-45" />
+                            </button>
 
-                        <div className="h-16 w-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                            <FileText className="w-8 h-8" />
-                        </div>
+                            <div className="h-16 w-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                <FileText className="w-8 h-8" />
+                            </div>
 
-                        <h2 className="text-2xl font-bold text-slate-900 mb-2">One last step!</h2>
-                        <p className="text-slate-500 mb-8">
-                            To tailor your application for this job, we need your resume.
-                        </p>
+                            <h2 className="text-2xl font-bold text-neutral-900 mb-2">One last step!</h2>
+                            <p className="text-neutral-500 mb-8">
+                                To tailor your application for this job, we need your resume.
+                            </p>
 
-                        <label className={`
+                            <label className={`
                             block w-full border-2 border-dashed rounded-xl p-8 cursor-pointer transition-all
                             ${isParsing
-                                ? 'border-indigo-300 bg-indigo-50 cursor-wait'
-                                : 'border-slate-200 hover:border-indigo-400 hover:bg-slate-50'
-                            }
+                                    ? 'border-indigo-300 bg-indigo-50 cursor-wait'
+                                    : 'border-neutral-200 hover:border-indigo-400 hover:bg-neutral-50'
+                                }
                         `}>
-                            <input
-                                type="file"
-                                accept=".pdf,.txt"
-                                className="hidden"
-                                onChange={(e) => {
-                                    if (e.target.files && e.target.files[0]) {
-                                        onImportResume(e.target.files[0]);
-                                    }
-                                }}
-                                disabled={isParsing}
-                            />
+                                <input
+                                    type="file"
+                                    accept=".pdf,.txt"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        if (e.target.files && e.target.files[0]) {
+                                            onImportResume(e.target.files[0]);
+                                        }
+                                    }}
+                                    disabled={isParsing}
+                                />
 
-                            {isParsing ? (
-                                <div className="flex flex-col items-center gap-3">
-                                    <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                                    <span className="text-sm font-medium text-indigo-600">Analyzing Resume...</span>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center gap-2">
-                                    <span className="text-sm font-semibold text-slate-700">Upload PDF or Text</span>
-                                    <span className="text-xs text-slate-400">We'll extract your experience blocks locally.</span>
+                                {isParsing ? (
+                                    <div className="flex flex-col items-center gap-3">
+                                        <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                                        <span className="text-sm font-medium text-indigo-600">Analyzing Resume...</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-sm font-semibold text-neutral-700">Upload PDF or Text</span>
+                                        <span className="text-xs text-neutral-400">We'll extract your experience blocks locally.</span>
+                                    </div>
+                                )}
+                            </label>
+
+                            {importError && (
+                                <div className="mt-4 p-3 bg-rose-50 border border-rose-100 rounded-lg flex items-center gap-2 text-rose-600 text-sm text-left">
+                                    <AlertCircle className="w-4 h-4 shrink-0" />
+                                    <p>{importError}</p>
                                 </div>
                             )}
-                        </label>
-
-                        {importError && (
-                            <div className="mt-4 p-3 bg-rose-50 border border-rose-100 rounded-lg flex items-center gap-2 text-rose-600 text-sm text-left">
-                                <AlertCircle className="w-4 h-4 shrink-0" />
-                                <p>{importError}</p>
-                            </div>
-                        )}
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Bento Grid Features - Only for Non-Logged In Users (Extracted to MarketingGrid) */}
             {!user && <MarketingGrid />}
 
             {/* Additional Landing Content for Logged Out Users */}
             {!user && <LandingContent />}
-        </div>
+        </div >
     );
 };
 

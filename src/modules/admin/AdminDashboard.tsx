@@ -3,11 +3,11 @@ import { getUsageOutliers, type UsageOutlier } from '../../services/adminService
 import { Loader2, AlertTriangle, ShieldAlert, Activity, RefreshCw, TrendingUp, Users } from 'lucide-react';
 
 const StatsCard = ({ title, value, subtext, icon: Icon, color }: { title: string, value: string, subtext?: string, icon: any, color: string }) => (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-start justify-between">
+    <div className="bg-white dark:bg-neutral-800 p-6 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm flex items-start justify-between">
         <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{title}</p>
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white">{value}</h3>
-            {subtext && <p className="text-xs text-slate-500 mt-2">{subtext}</p>}
+            <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-1">{title}</p>
+            <h3 className="text-2xl font-black text-neutral-900 dark:text-white">{value}</h3>
+            {subtext && <p className="text-xs text-neutral-500 mt-2">{subtext}</p>}
         </div>
         <div className={`p-3 rounded-xl ${color} bg-opacity-10 dark:bg-opacity-20`}>
             <Icon className={`w-5 h-5 ${color.replace('bg-', 'text-')}`} />
@@ -79,29 +79,29 @@ export const AdminDashboard: React.FC = () => {
     });
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-8 pt-24">
+        <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 p-8 pt-24">
             <div className="max-w-7xl mx-auto space-y-8">
 
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+                        <h1 className="text-3xl font-black text-neutral-900 dark:text-white flex items-center gap-3">
                             <ShieldAlert className="w-8 h-8 text-indigo-600" />
                             Admin Console
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-1">
+                        <p className="text-neutral-500 dark:text-neutral-400 mt-1">
                             Dynamic usage analysis based on network behavior.
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <div className="flex bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <div className="flex bg-white dark:bg-neutral-800 p-1 rounded-lg border border-neutral-200 dark:border-neutral-700">
                             {(['all', 'free', 'pro'] as const).map(tier => (
                                 <button
                                     key={tier}
                                     onClick={() => setCohortFilter(tier)}
                                     className={`px-3 py-1.5 text-xs font-bold rounded-md capitalize transition-all ${cohortFilter === tier
-                                            ? 'bg-slate-900 text-white shadow-sm'
-                                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                                            ? 'bg-neutral-900 text-white shadow-sm'
+                                            : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
                                         }`}
                                 >
                                     {tier}
@@ -111,7 +111,7 @@ export const AdminDashboard: React.FC = () => {
                         <button
                             onClick={loadData}
                             disabled={loading}
-                            className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50"
+                            className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-sm hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50"
                         >
                             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         </button>
@@ -155,23 +155,23 @@ export const AdminDashboard: React.FC = () => {
                 {loading ? (
                     <div className="flex flex-col items-center justify-center h-64 space-y-4">
                         <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-                        <p className="text-slate-400 text-sm">Crunching numbers...</p>
+                        <p className="text-neutral-400 text-sm">Crunching numbers...</p>
                     </div>
                 ) : (
-                    <div className="bg-white dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden">
+                    <div className="bg-white dark:bg-neutral-800/50 backdrop-blur-xl rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-xl overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800">
-                                        <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">User ID</th>
-                                        <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Calls</th>
-                                        <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Input Tokens</th>
-                                        <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Output Tokens</th>
-                                        <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Deviation</th>
-                                        <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Last Active</th>
+                                    <tr className="border-b border-neutral-100 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800">
+                                        <th className="p-4 text-xs font-bold text-neutral-400 uppercase tracking-wider">User ID</th>
+                                        <th className="p-4 text-xs font-bold text-neutral-400 uppercase tracking-wider text-right">Calls</th>
+                                        <th className="p-4 text-xs font-bold text-neutral-400 uppercase tracking-wider text-right">Input Tokens</th>
+                                        <th className="p-4 text-xs font-bold text-neutral-400 uppercase tracking-wider text-right">Output Tokens</th>
+                                        <th className="p-4 text-xs font-bold text-neutral-400 uppercase tracking-wider text-right">Deviation</th>
+                                        <th className="p-4 text-xs font-bold text-neutral-400 uppercase tracking-wider">Last Active</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                <tbody className="divide-y divide-neutral-100 dark:divide-neutral-700">
                                     {displayedUsers.map((row) => {
                                         // Dynamic Outlier Logic based on CURRENT COHORT stats
                                         const mean = activeStats.meanOutput;
@@ -186,18 +186,18 @@ export const AdminDashboard: React.FC = () => {
                                                 key={row.user_id}
                                                 className={`transition-colors border-l-4 ${isExtreme ? 'bg-red-50/50 border-red-500' :
                                                         isHigh ? 'bg-amber-50/30 border-amber-400' :
-                                                            'hover:bg-slate-50 border-transparent'
+                                                            'hover:bg-neutral-50 border-transparent'
                                                     }`}
                                             >
                                                 <td className="p-4">
                                                     <div className="flex items-center gap-3">
                                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isExtreme ? 'bg-red-100 text-red-700' :
                                                                 isHigh ? 'bg-amber-100 text-amber-700' :
-                                                                    'bg-slate-100 text-slate-500'
+                                                                    'bg-neutral-100 text-neutral-500'
                                                             }`}>
                                                             {row.user_id.substring(0, 2).toUpperCase()}
                                                         </div>
-                                                        <span className="font-mono text-xs text-slate-500 truncate max-w-[120px]" title={row.user_id}>
+                                                        <span className="font-mono text-xs text-neutral-500 truncate max-w-[120px]" title={row.user_id}>
                                                             {row.user_id}
                                                         </span>
                                                         {isExtreme && (
@@ -207,23 +207,23 @@ export const AdminDashboard: React.FC = () => {
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="p-4 text-right font-medium text-slate-700 dark:text-slate-300">
+                                                <td className="p-4 text-right font-medium text-neutral-700 dark:text-neutral-300">
                                                     {row.total_operations.toLocaleString()}
                                                 </td>
-                                                <td className="p-4 text-right text-slate-500">
+                                                <td className="p-4 text-right text-neutral-500">
                                                     {row.total_input_tokens.toLocaleString()}
                                                 </td>
-                                                <td className={`p-4 text-right font-bold ${isExtreme ? 'text-red-700' : isHigh ? 'text-amber-700' : 'text-slate-700'}`}>
+                                                <td className={`p-4 text-right font-bold ${isExtreme ? 'text-red-700' : isHigh ? 'text-amber-700' : 'text-neutral-700'}`}>
                                                     {row.total_output_tokens.toLocaleString()}
                                                 </td>
                                                 <td className="p-4 text-right">
-                                                    <span className={`text-xs font-bold ${isHigh ? 'text-amber-600' : 'text-slate-400'
+                                                    <span className={`text-xs font-bold ${isHigh ? 'text-amber-600' : 'text-neutral-400'
                                                         }`}>
                                                         {multiplier.toFixed(1)}x avg
                                                     </span>
                                                 </td>
-                                                <td className="p-4 text-sm text-slate-500 flex items-center gap-2">
-                                                    <Activity className="w-3 h-3 text-slate-300" />
+                                                <td className="p-4 text-sm text-neutral-500 flex items-center gap-2">
+                                                    <Activity className="w-3 h-3 text-neutral-300" />
                                                     {new Date(row.last_active).toLocaleDateString()}
                                                 </td>
                                             </tr>
@@ -232,7 +232,7 @@ export const AdminDashboard: React.FC = () => {
 
                                     {displayedUsers.length === 0 && (
                                         <tr>
-                                            <td colSpan={6} className="p-12 text-center text-slate-400">
+                                            <td colSpan={6} className="p-12 text-center text-neutral-400">
                                                 No users found in this cohort.
                                             </td>
                                         </tr>

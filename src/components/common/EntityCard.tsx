@@ -47,7 +47,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
     return (
         <div
             onClick={() => !isAnalyzing && onClick?.()}
-            className={`group relative bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300 flex flex-col h-full
+            className={`group relative bg-white dark:bg-neutral-900 rounded-[2rem] p-6 border border-neutral-200 dark:border-neutral-800 shadow-sm transition-all duration-300 flex flex-col h-full
                 ${isAnalyzing
                     ? 'opacity-90 border-indigo-100 dark:border-indigo-900/30'
                     : isError
@@ -87,9 +87,9 @@ export const EntityCard: React.FC<EntityCardProps> = ({
             <div className="flex-1 min-h-[5rem]">
                 {isAnalyzing ? (
                     <div className="space-y-3">
-                        <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">Analyzing...</h3>
-                        <div className="h-4 w-3/4 bg-slate-100 dark:bg-slate-800 rounded-full animate-pulse" />
-                        <div className="h-4 w-1/2 bg-slate-100 dark:bg-slate-800 rounded-full animate-pulse delay-75" />
+                        <h3 className="text-lg font-bold text-neutral-700 dark:text-neutral-300">Analyzing...</h3>
+                        <div className="h-4 w-3/4 bg-neutral-100 dark:bg-neutral-800 rounded-full animate-pulse" />
+                        <div className="h-4 w-1/2 bg-neutral-100 dark:bg-neutral-800 rounded-full animate-pulse delay-75" />
                     </div>
                 ) : isError ? (
                     <div>
@@ -106,16 +106,16 @@ export const EntityCard: React.FC<EntityCardProps> = ({
                     </div>
                 ) : (
                     <>
-                        <h3 className={`text-lg font-bold text-slate-900 dark:text-white transition-colors line-clamp-2 mb-1 ${variant === 'role-model' ? 'group-hover:text-emerald-600' : 'group-hover:text-indigo-600'}`} title={title}>
+                        <h3 className={`text-lg font-bold text-neutral-900 dark:text-white transition-colors line-clamp-2 mb-1 ${variant === 'role-model' ? 'group-hover:text-emerald-600' : 'group-hover:text-indigo-600'}`} title={title}>
                             {title}
                         </h3>
-                        <div className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 mb-4">
+                        <div className="flex items-center gap-2 text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-4">
                             {variant === 'job' && <Building className="w-4 h-4" />}
                             <span className="truncate">{subtitle}</span>
                         </div>
 
                         {description && (
-                            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed mb-4">
+                            <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-3 leading-relaxed mb-4">
                                 {description}
                             </p>
                         )}
@@ -123,7 +123,7 @@ export const EntityCard: React.FC<EntityCardProps> = ({
                         {tags && tags.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 mt-2">
                                 {tags.map(tag => (
-                                    <span key={tag} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded text-[10px] font-medium border border-slate-200/50 dark:border-slate-700">
+                                    <span key={tag} className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 rounded text-[10px] font-medium border border-neutral-200/50 dark:border-neutral-700">
                                         {tag}
                                     </span>
                                 ))}
@@ -134,15 +134,15 @@ export const EntityCard: React.FC<EntityCardProps> = ({
             </div>
 
             {/* Card Footer */}
-            <div className="pt-4 mt-auto border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-400">
+            <div className="pt-4 mt-auto border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+                <span className="text-xs font-medium text-neutral-400">
                     {date}
                 </span>
 
                 <div className="flex items-center gap-1">
                     <button
                         onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
-                        className={`p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all ${variant === 'role-model' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                        className={`p-2 text-neutral-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all ${variant === 'role-model' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                         title="Delete"
                     >
                         <Trash2 className="w-4 h-4" />

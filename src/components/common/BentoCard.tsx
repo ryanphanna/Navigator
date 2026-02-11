@@ -66,7 +66,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
                 transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
                 transition: tilt.x === 0 ? 'transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)' : 'none'
             }}
-            className={`group relative bg-white dark:bg-slate-900/40 backdrop-blur-2xl rounded-3xl p-8 border ${color.accent} shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 text-left overflow-hidden h-full flex flex-col ${className}`}
+            className={`group relative bg-white dark:bg-neutral-900/40 backdrop-blur-2xl rounded-3xl p-6 border ${color.accent} shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 text-left overflow-hidden h-full flex flex-col ${className}`}
         >
             {/* Dynamic Mouse Shimmer */}
             <div
@@ -79,34 +79,32 @@ export const BentoCard: React.FC<BentoCardProps> = ({
             {/* Ambient Background Glow */}
             <div className={`absolute top-0 right-0 w-48 h-48 ${color.glow} rounded-full blur-[80px] -mr-24 -mt-24 transition-all duration-1000 opacity-30 group-hover:opacity-60 group-hover:scale-125`} />
 
-            <div className="flex items-center gap-5 relative z-10 mb-6">
+            <div className="flex items-center gap-5 relative z-10 mb-4">
                 <div className={`w-14 h-14 ${color.iconBg} text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/10 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out`}>
                     <Icon className="w-7 h-7" />
                 </div>
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                <h3 className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight leading-none">
                     {title}
                 </h3>
             </div>
 
-            <p className="text-base text-slate-500 dark:text-slate-400 leading-relaxed mb-10 relative z-10 font-medium">
+            <p className="text-base text-neutral-500 dark:text-neutral-400 leading-relaxed mb-6 relative z-10 font-medium">
                 {description}
             </p>
 
             {/* Preview Section - More dynamic height and better integration */}
-            <div className="relative mt-auto pt-8 border-t border-slate-100 dark:border-white/5">
-                <div className="relative z-10 flex items-center justify-center min-h-[100px] transform group-hover:scale-105 transition-transform duration-700 ease-out">
+            <div className="relative mt-auto pt-6 border-t border-neutral-100 dark:border-white/5">
+                <div className="relative z-10 flex items-center justify-center min-h-[80px] transform group-hover:scale-105 transition-transform duration-700 ease-out">
                     {previewContent}
                 </div>
 
                 {/* Modern Action Bar */}
                 <div
-                    className={`mt-10 flex items-center justify-end gap-2 ${color.text} font-black text-xs group-hover:gap-3 transition-all relative z-10 cursor-pointer group/btn`}
+                    className={`mt-6 flex items-center justify-end gap-2 ${color.text} font-black text-[10px] tracking-[0.15em] uppercase transition-all relative z-10 cursor-pointer group/btn`}
                     onClick={onAction}
                 >
-                    <span className="uppercase tracking-[0.2em]">{actionLabel}</span>
-                    <div className={`p-2 rounded-full ${color.bg} group-hover/btn:scale-110 transition-all`}>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
+                    <span>{actionLabel}</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
                 </div>
             </div>
         </div>

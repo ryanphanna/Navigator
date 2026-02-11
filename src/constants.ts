@@ -143,9 +143,9 @@ export const BENTO_CARDS = {
     title: { marketing: 'JobFit Score', action: 'Analyze' },
     description: {
       marketing: 'Stop guessing. Get an instant 0-100 compatibility rating for any job description.',
-      action: 'Get an instant match score and detailed fit analysis for any job description.'
+      action: 'Get an instant match score and detailed fit analysis. We break down exactly how well you align with any job description in seconds.'
     },
-    action: { marketing: 'Get Started', action: 'Get Hired' },
+    action: { marketing: 'Get started', action: 'Analyze' },
     colors: {
       bg: 'bg-indigo-50/50 dark:bg-indigo-500/5',
       text: 'text-indigo-600 dark:text-indigo-400',
@@ -162,9 +162,9 @@ export const BENTO_CARDS = {
     title: { marketing: 'Keyword Targeting', action: 'Skills' },
     description: {
       marketing: 'Beat the ATS. We identify exactly which skills and keywords your resume is missing.',
-      action: 'Identify and bridge your skill gaps with AI.'
+      action: 'Identify and bridge your skill gaps with AI. We scan descriptions for missing keywords so you can optimize your profile for every role.'
     },
-    action: { marketing: 'Optimize Now', action: 'Audit Gaps' },
+    action: { marketing: 'Optimize now', action: 'Audit gaps' },
     colors: {
       bg: 'bg-violet-50/50 dark:bg-violet-500/5',
       text: 'text-violet-600 dark:text-violet-400',
@@ -181,9 +181,9 @@ export const BENTO_CARDS = {
     title: { marketing: 'Tailored Summaries', action: 'Resumes' },
     description: {
       marketing: 'We rewrite your professional summary to perfection for every single application.',
-      action: 'Store and edit your resume profiles.'
+      action: 'Store and edit your resume profiles. We help you maintain multiple versions of your experience to target different industries effectively.'
     },
-    action: { marketing: 'Try It', action: 'Manage All' },
+    action: { marketing: 'Try it', action: 'Manage' },
     colors: {
       bg: 'bg-rose-50/50 dark:bg-rose-500/5',
       text: 'text-rose-600 dark:text-rose-400',
@@ -193,16 +193,16 @@ export const BENTO_CARDS = {
       glow: 'bg-rose-500/10 group-hover:bg-rose-500/20'
     }
   },
-  COUCH: {
+  COACH: {
     id: 'coach',
     iconName: 'TrendingUp',
     targetView: 'coach-home',
     title: { marketing: 'Career Coach', action: 'Roadmap' },
     description: {
       marketing: 'AI-driven mentorship to guide your professional transition.',
-      action: 'Build your roadmap to land major target roles.'
+      action: 'Build your roadmap to land major target roles. Get personalized advice on how to transition into higher-paying career paths.'
     },
-    action: { marketing: 'Learn More', action: 'Scale Up' },
+    action: { marketing: 'Learn more', action: 'Scale up' },
     colors: {
       bg: 'bg-emerald-50/50 dark:bg-emerald-500/5',
       text: 'text-emerald-600 dark:text-emerald-400',
@@ -219,9 +219,9 @@ export const BENTO_CARDS = {
     title: { marketing: 'Save from Anywhere', action: 'History' },
     description: {
       marketing: 'Found a job on LinkedIn or Indeed? Save it to JobFit with a single click.',
-      action: 'Review your analyzed jobs and insights.'
+      action: 'Review your analyzed jobs and insights. Keep track of every application and see how your compatibility scores evolve over time.'
     },
-    action: { marketing: 'Install', action: 'View All' },
+    action: { marketing: 'Install', action: 'View all' },
     colors: {
       bg: 'bg-blue-50/50 dark:bg-blue-500/5',
       text: 'text-blue-600 dark:text-blue-400',
@@ -238,9 +238,9 @@ export const BENTO_CARDS = {
     title: { marketing: 'Smart Cover Letters', action: 'Cover Letters' },
     description: {
       marketing: 'Generate unique, persuasive letters that cite your actual experience.',
-      action: 'Generate AI-tailored cover letters.'
+      action: 'Generate AI-tailored cover letters. Our engine synthesizes your experience and the job description to write unique, persuasive applications.'
     },
-    action: { marketing: 'Start Writing', action: 'Create New' },
+    action: { marketing: 'Start writing', action: 'Create new' },
     colors: {
       bg: 'bg-purple-50/50 dark:bg-purple-500/5',
       text: 'text-purple-600 dark:text-purple-400',
@@ -258,7 +258,7 @@ export const BENTO_CARDS = {
     title: { marketing: 'Edu HQ', action: 'Edu' },
     description: {
       marketing: 'High-fidelity academic reconnaissance and pathfinding.',
-      action: 'High-fidelity academic reconnaissance and pathfinding.'
+      action: 'Explore degree programs and certifications. We match your career goals with the precise educational paths needed to achieve them.'
     },
     action: { marketing: 'Scout Programs', action: 'Scout Programs' },
     colors: {

@@ -45,27 +45,27 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
     };
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white dark:bg-neutral-900 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-800 flex flex-col overflow-hidden">
                 {/* Header */}
-                <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+                <div className="p-6 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/50 dark:bg-neutral-800/50">
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                             <Check className="w-6 h-6 text-emerald-500" />
                             Verify Transcript Data
                         </h2>
-                        <p className="text-sm text-slate-500 mt-1">Gemini extracted these courses. Please confirm they are accurate.</p>
+                        <p className="text-sm text-neutral-500 mt-1">Gemini extracted these courses. Please confirm they are accurate.</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors">
-                        <X className="w-5 h-5 text-slate-500" />
+                    <button onClick={onClose} className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full transition-colors">
+                        <X className="w-5 h-5 text-neutral-500" />
                     </button>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Student Name</label>
+                        <div className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg border border-neutral-100 dark:border-neutral-700">
+                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Student Name</label>
                             <input
                                 type="text"
                                 value={editableTranscript.studentName || ''}
@@ -73,8 +73,8 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                                 className="w-full bg-transparent border-none p-0 text-sm font-semibold focus:ring-0"
                             />
                         </div>
-                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">University</label>
+                        <div className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg border border-neutral-100 dark:border-neutral-700">
+                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">University</label>
                             <input
                                 type="text"
                                 value={editableTranscript.university || ''}
@@ -82,8 +82,8 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                                 className="w-full bg-transparent border-none p-0 text-sm font-semibold focus:ring-0"
                             />
                         </div>
-                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Stated cGPA</label>
+                        <div className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg border border-neutral-100 dark:border-neutral-700">
+                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Stated cGPA</label>
                             <input
                                 type="number"
                                 step="0.01"
@@ -96,8 +96,8 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
 
                     {editableTranscript.semesters.map((sem, sIdx) => (
                         <div key={sIdx} className="space-y-3">
-                            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                                <h3 className="font-bold text-slate-800 dark:text-slate-200">{sem.term} {sem.year}</h3>
+                            <div className="flex items-center justify-between pb-2 border-b border-neutral-100 dark:border-neutral-800">
+                                <h3 className="font-bold text-neutral-800 dark:text-neutral-200">{sem.term} {sem.year}</h3>
                                 <button
                                     onClick={() => addCourse(sIdx)}
                                     className="text-xs flex items-center gap-1 text-indigo-600 hover:text-indigo-700 font-medium"
@@ -105,7 +105,7 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                                     <Plus className="w-3 h-3" /> Add Course
                                 </button>
                             </div>
-                            <div className="grid grid-cols-12 gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2">
+                            <div className="grid grid-cols-12 gap-3 text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-2">
                                 <div className="col-span-2">Code</div>
                                 <div className="col-span-6">Title</div>
                                 <div className="col-span-2 text-center">Grade</div>
@@ -114,7 +114,7 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                             </div>
                             <div className="space-y-2">
                                 {sem.courses.map((course, cIdx) => (
-                                    <div key={cIdx} className="grid grid-cols-12 gap-3 items-center bg-slate-50 dark:bg-slate-800/30 p-2 rounded-lg group transition-all hover:bg-slate-100 dark:hover:bg-slate-800/50">
+                                    <div key={cIdx} className="grid grid-cols-12 gap-3 items-center bg-neutral-50 dark:bg-neutral-800/30 p-2 rounded-lg group transition-all hover:bg-neutral-100 dark:hover:bg-neutral-800/50">
                                         <div className="col-span-2">
                                             <input
                                                 type="text"
@@ -151,7 +151,7 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                                         <div className="col-span-1 flex justify-end">
                                             <button
                                                 onClick={() => removeCourse(sIdx, cIdx)}
-                                                className="p-1.5 text-slate-300 hover:text-red-500 rounded transition-colors"
+                                                className="p-1.5 text-neutral-300 hover:text-red-500 rounded transition-colors"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                             </button>
@@ -164,7 +164,7 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+                <div className="p-6 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/50 dark:bg-neutral-800/50">
                     <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-500 font-medium">
                         <AlertCircle className="w-4 h-4" />
                         Changes will be saved to your local vault.
@@ -172,7 +172,7 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                     <div className="flex items-center gap-3">
                         <button
                             onClick={onClose}
-                            className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                            className="px-4 py-2 text-sm font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
                         >
                             Cancel
                         </button>

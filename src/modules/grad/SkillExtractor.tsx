@@ -60,7 +60,7 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ transcript, onAd
     };
 
     return (
-        <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-slate-700/50 p-8 shadow-2xl shadow-violet-500/5 relative overflow-hidden group">
+        <div className="bg-white/70 dark:bg-neutral-800/70 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-neutral-700/50 p-8 shadow-2xl shadow-violet-500/5 relative overflow-hidden group">
             <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-violet-500/5 rounded-full blur-3xl group-hover:bg-violet-500/10 transition-colors duration-700" />
 
             <div className="flex items-center justify-between mb-8 relative">
@@ -69,15 +69,15 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ transcript, onAd
                         <Award className="w-6 h-6" />
                     </div>
                     <div>
-                        <h3 className="font-black text-xl text-slate-900 dark:text-white tracking-tight">Skill Extraction</h3>
-                        <p className="text-sm text-slate-500 font-medium">Academic path to professional mastery.</p>
+                        <h3 className="font-black text-xl text-neutral-900 dark:text-white tracking-tight">Skill Extraction</h3>
+                        <p className="text-sm text-neutral-500 font-medium">Academic path to professional mastery.</p>
                     </div>
                 </div>
             </div>
 
             {!extractedSkills ? (
-                <div className="text-center py-12 bg-slate-50/50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 relative">
-                    <p className="text-slate-500 font-bold mb-6">
+                <div className="text-center py-12 bg-neutral-50/50 dark:bg-neutral-900/50 rounded-3xl border-2 border-dashed border-neutral-200 dark:border-neutral-800 relative">
+                    <p className="text-neutral-500 font-bold mb-6">
                         Ready to analyze <strong>{transcript.semesters.reduce((acc, s) => acc + s.courses.length, 0)} courses</strong> for professional skills.
                     </p>
                     <button
@@ -97,11 +97,11 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ transcript, onAd
                             </>
                         )}
                     </button>
-                    {isAnalyzing && <p className="text-[10px] text-slate-400 mt-4 font-black uppercase tracking-widest animate-pulse">Consulting the Knowledge Graph...</p>}
+                    {isAnalyzing && <p className="text-[10px] text-neutral-400 mt-4 font-black uppercase tracking-widest animate-pulse">Consulting the Knowledge Graph...</p>}
                 </div>
             ) : (
                 <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700 relative">
-                    <div className="flex items-center justify-between bg-slate-900 dark:bg-black p-4 rounded-2xl shadow-lg">
+                    <div className="flex items-center justify-between bg-neutral-900 dark:bg-black p-4 rounded-2xl shadow-lg">
                         <div className="text-xs font-black text-white uppercase tracking-widest pl-2">Found {extractedSkills.length} Professional Assets</div>
                         <button
                             onClick={handleSave}
@@ -115,7 +115,7 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ transcript, onAd
 
                     {/* Hard Skills */}
                     <div className="space-y-4">
-                        <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-2">
+                        <h4 className="text-[11px] font-black text-neutral-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-2">
                             <div className="p-1 bg-violet-100 text-violet-600 rounded">
                                 <Hammer className="w-3 h-3" />
                             </div>
@@ -132,7 +132,7 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ transcript, onAd
 
                     {/* Soft Skills */}
                     <div className="space-y-4">
-                        <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-2">
+                        <h4 className="text-[11px] font-black text-neutral-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-2">
                             <div className="p-1 bg-amber-100 text-amber-600 rounded">
                                 <Brain className="w-3 h-3" />
                             </div>
@@ -157,7 +157,7 @@ const SkillCard: React.FC<{ skill: ExtractedSkill; idx: number; toggleSkill: (i:
         onClick={() => toggleSkill(idx)}
         className={`p-5 rounded-[2rem] border-2 cursor-pointer transition-all flex items-start gap-4 group relative overflow-hidden ${skill.selected
             ? 'bg-violet-600 border-violet-500 text-white shadow-xl shadow-violet-500/20'
-            : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 opacity-60 hover:opacity-100 hover:border-violet-200'
+            : 'bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800 opacity-60 hover:opacity-100 hover:border-violet-200'
             }`}
     >
         {skill.selected && (
@@ -166,13 +166,13 @@ const SkillCard: React.FC<{ skill: ExtractedSkill; idx: number; toggleSkill: (i:
 
         <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 mt-0.5 transition-all ${skill.selected
             ? 'bg-white border-white text-violet-600'
-            : 'border-slate-200 dark:border-slate-700'
+            : 'border-neutral-200 dark:border-neutral-700'
             }`}>
             {skill.selected && <Check className="w-4 h-4 scale-110 font-black" />}
         </div>
 
         <div className="flex-1">
-            <div className={`font-black text-sm tracking-tight ${skill.selected ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+            <div className={`font-black text-sm tracking-tight ${skill.selected ? 'text-white' : 'text-neutral-900 dark:text-white'}`}>
                 {skill.name}
             </div>
             <div className="flex items-center gap-3 mt-2">
@@ -180,11 +180,11 @@ const SkillCard: React.FC<{ skill: ExtractedSkill; idx: number; toggleSkill: (i:
                     ? 'bg-white/20 text-white'
                     : skill.proficiency === 'expert' ? 'bg-emerald-100 text-emerald-700' :
                         skill.proficiency === 'comfortable' ? 'bg-blue-100 text-blue-700' :
-                            'bg-slate-100 text-slate-600'
+                            'bg-neutral-100 text-neutral-600'
                     }`}>
                     {skill.proficiency}
                 </span>
-                <span className={`text-[10px] font-medium truncate max-w-[150px] ${skill.selected ? 'text-white/80' : 'text-slate-400'}`}>
+                <span className={`text-[10px] font-medium truncate max-w-[150px] ${skill.selected ? 'text-white/80' : 'text-neutral-400'}`}>
                     {skill.evidence}
                 </span>
             </div>

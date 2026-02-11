@@ -134,13 +134,13 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
 
             {/* Filter & Search */}
             <div className="relative mb-8 group">
-                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 group-focus-within:text-indigo-600 transition-colors" />
                 <input
                     type="text"
                     placeholder="Search your skills..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-5 pl-14 pr-6 rounded-[2rem] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all shadow-sm"
+                    className="w-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 py-5 pl-14 pr-6 rounded-[2rem] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all shadow-sm"
                 />
             </div>
 
@@ -163,7 +163,7 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
                         <div className="flex justify-center pb-20">
                             <button
                                 onClick={() => setVisibleCount(prev => prev + 12)}
-                                className="px-8 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm active:scale-95"
+                                className="px-8 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl text-neutral-600 dark:text-neutral-300 font-bold text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-all shadow-sm active:scale-95"
                             >
                                 Show More Skills ({filteredSkills.length - visibleCount} remaining)
                             </button>
@@ -171,12 +171,12 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
                     )}
                 </>
             ) : (
-                <div className="text-center py-32 bg-slate-50 dark:bg-slate-900/50 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
-                    <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                        <Zap className="w-10 h-10 text-slate-200" />
+                <div className="text-center py-32 bg-neutral-50 dark:bg-neutral-900/50 rounded-[3rem] border-2 border-dashed border-neutral-200 dark:border-neutral-800">
+                    <div className="w-20 h-20 bg-white dark:bg-neutral-800 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                        <Zap className="w-10 h-10 text-neutral-200" />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight">Your Skills list is Empty</h3>
-                    <p className="text-sm text-slate-400 mt-2 uppercase tracking-widest font-bold">Start adding skills to analyze gaps</p>
+                    <h3 className="text-xl font-bold text-neutral-900 dark:text-white uppercase tracking-tight">Your Skills list is Empty</h3>
+                    <p className="text-sm text-neutral-400 mt-2 uppercase tracking-widest font-bold">Start adding skills to analyze gaps</p>
                     <button
                         onClick={() => setIsAdding(true)}
                         className="mt-8 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20"

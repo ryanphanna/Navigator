@@ -33,7 +33,7 @@ export const SEOLandingPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-20 pb-20 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 pt-20 pb-20 px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto space-y-16">
 
                 {/* Hero Section */}
@@ -42,13 +42,13 @@ export const SEOLandingPage: React.FC = () => {
                         <Star className="w-3 h-3" />
                         2025 Resume Guide
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight">
+                    <h1 className="text-4xl md:text-6xl font-black text-neutral-900 dark:text-white tracking-tight">
                         The Best Resume for <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">
                             {displayTitle}
                         </span>
                     </h1>
-                    <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-xl text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto leading-relaxed">
                         {bucket.content.subheadline.replace('We help you', `For a ${displayTitle}, you need to`)}
                     </p>
 
@@ -59,13 +59,13 @@ export const SEOLandingPage: React.FC = () => {
                         Build This Resume Now
                         <ArrowRight className="w-5 h-5" />
                     </button>
-                    <p className="text-sm text-slate-500">Free • No Sign Up Required</p>
+                    <p className="text-sm text-neutral-500">Free • No Sign Up Required</p>
                 </div>
 
                 {/* Core Skills Section */}
                 <div className="grid md:grid-cols-2 gap-8">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                    <div className="bg-white dark:bg-neutral-900 rounded-3xl p-8 border border-neutral-200 dark:border-neutral-800 shadow-sm">
+                        <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-6 flex items-center gap-2">
                             <TrendingUp className="w-5 h-5 text-emerald-500" />
                             Must-Have Skills for {displayTitle}s
                         </h3>
@@ -73,14 +73,14 @@ export const SEOLandingPage: React.FC = () => {
                             {bucket.content.topSkills.map((skill, i) => (
                                 <div key={i} className="flex items-center gap-3">
                                     <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-                                    <span className="text-slate-700 dark:text-slate-300 font-medium">{skill}</span>
+                                    <span className="text-neutral-700 dark:text-neutral-300 font-medium">{skill}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                    <div className="bg-white dark:bg-neutral-900 rounded-3xl p-8 border border-neutral-200 dark:border-neutral-800 shadow-sm">
+                        <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-6 flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5 text-amber-500" />
                             Common Mistakes to Avoid
                         </h3>
@@ -88,7 +88,7 @@ export const SEOLandingPage: React.FC = () => {
                             {bucket.content.commonMistakes.map((mistake, i) => (
                                 <div key={i} className="flex items-start gap-3">
                                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
-                                    <span className="text-slate-600 dark:text-slate-400">{mistake}</span>
+                                    <span className="text-neutral-600 dark:text-neutral-400">{mistake}</span>
                                 </div>
                             ))}
                         </div>
@@ -100,28 +100,28 @@ export const SEOLandingPage: React.FC = () => {
                     <div className="inline-block p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl mb-4 text-indigo-600 dark:text-indigo-400">
                         <Briefcase className="w-6 h-6" />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Pro Tip for {displayTitle}s</h3>
-                    <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto italic">
+                    <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">Pro Tip for {displayTitle}s</h3>
+                    <p className="text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto italic">
                         "{bucket.content.proTip}"
                     </p>
                 </div>
 
                 {/* Internal Linking / Discovery */}
-                <div className="border-t border-slate-200 dark:border-slate-800 pt-12">
-                    <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Popular Roles</h4>
+                <div className="border-t border-neutral-200 dark:border-neutral-800 pt-12">
+                    <h4 className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-6">Popular Roles</h4>
                     <div className="flex flex-wrap gap-4">
                         {SEO_BUCKETS.filter(b => b.id !== 'general').map(b => (
                             <Link
                                 key={b.slug}
                                 to={ROUTES.SEO_LANDING.replace(':role', b.slug)}
-                                className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:border-indigo-500 hover:text-indigo-500 transition-colors"
+                                className="px-4 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:border-indigo-500 hover:text-indigo-500 transition-colors"
                             >
                                 {b.title} Resume
                             </Link>
                         ))}
                         <Link
                             to={ROUTES.SEO_LANDING.replace(':role', 'digital-marketing-specialist')}
-                            className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:border-indigo-500 hover:text-indigo-500 transition-colors"
+                            className="px-4 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:border-indigo-500 hover:text-indigo-500 transition-colors"
                         >
                             Digital Marketing Specialist
                         </Link>

@@ -116,8 +116,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
             case 'work': return 'text-indigo-600 bg-indigo-50 border-indigo-200';
             case 'education': return 'text-emerald-600 bg-emerald-50 border-emerald-200';
             case 'project': return 'text-amber-600 bg-amber-50 border-amber-200';
-            case 'other': return 'text-slate-600 bg-slate-50 border-slate-200';
-            default: return 'text-slate-600 bg-slate-50 border-slate-200';
+            case 'other': return 'text-neutral-600 bg-neutral-50 border-neutral-200';
+            default: return 'text-neutral-600 bg-neutral-50 border-neutral-200';
         }
     };
 
@@ -156,8 +156,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                         <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-indigo-100">
                             <Briefcase className="w-10 h-10 text-indigo-600" />
                         </div>
-                        <h2 className="text-3xl font-bold text-slate-900">Let's build your resume</h2>
-                        <p className="text-slate-500 text-lg max-w-md mx-auto">
+                        <h2 className="text-3xl font-bold text-neutral-900">Let's build your resume</h2>
+                        <p className="text-neutral-500 text-lg max-w-md mx-auto">
                             Import your existing resume to get a head start, or build one from scratch.
                         </p>
                     </div>
@@ -165,33 +165,33 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-lg mx-auto">
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="group relative flex flex-col items-center gap-4 p-8 bg-white border-2 border-slate-200 hover:border-indigo-600 hover:bg-slate-50/50 rounded-2xl transition-all duration-300 text-left hover:shadow-xl hover:shadow-indigo-500/10"
+                            className="group relative flex flex-col items-center gap-4 p-8 bg-white border-2 border-neutral-200 hover:border-indigo-600 hover:bg-neutral-50/50 rounded-2xl transition-all duration-300 text-left hover:shadow-xl hover:shadow-indigo-500/10"
                         >
                             <div className="p-4 bg-indigo-50 group-hover:bg-indigo-600 rounded-xl transition-colors duration-300">
                                 <Upload className="w-8 h-8 text-indigo-600 group-hover:text-white transition-colors duration-300" />
                             </div>
                             <div className="text-center">
-                                <h3 className="text-lg font-bold text-slate-900 group-hover:text-indigo-700 transition-colors">Import Resume</h3>
-                                <p className="text-sm text-slate-500 mt-1">Upload PDF or Image</p>
+                                <h3 className="text-lg font-bold text-neutral-900 group-hover:text-indigo-700 transition-colors">Import Resume</h3>
+                                <p className="text-sm text-neutral-500 mt-1">Upload PDF or Image</p>
                             </div>
                         </button>
 
                         <button
                             onClick={() => setHasStartedManually(true)}
-                            className="group relative flex flex-col items-center gap-4 p-8 bg-white border-2 border-slate-200 hover:border-slate-400 hover:bg-slate-50/50 rounded-2xl transition-all duration-300 text-left hover:shadow-lg"
+                            className="group relative flex flex-col items-center gap-4 p-8 bg-white border-2 border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50/50 rounded-2xl transition-all duration-300 text-left hover:shadow-lg"
                         >
-                            <div className="p-4 bg-slate-100 group-hover:bg-slate-800 rounded-xl transition-colors duration-300">
-                                <Plus className="w-8 h-8 text-slate-600 group-hover:text-white transition-colors duration-300" />
+                            <div className="p-4 bg-neutral-100 group-hover:bg-neutral-800 rounded-xl transition-colors duration-300">
+                                <Plus className="w-8 h-8 text-neutral-600 group-hover:text-white transition-colors duration-300" />
                             </div>
                             <div className="text-center">
-                                <h3 className="text-lg font-bold text-slate-900">Start Fresh</h3>
-                                <p className="text-sm text-slate-500 mt-1">Enter details manually</p>
+                                <h3 className="text-lg font-bold text-neutral-900">Start Fresh</h3>
+                                <p className="text-sm text-neutral-500 mt-1">Enter details manually</p>
                             </div>
                         </button>
                     </div>
 
-                    <div className="pt-8 border-t border-slate-100 mt-8">
-                        <p className="text-xs text-slate-400">
+                    <div className="pt-8 border-t border-neutral-100 mt-8">
+                        <p className="text-xs text-neutral-400">
                             Works with standard PDF resumes and clear images. Your data stays private.
                         </p>
                     </div>
@@ -212,12 +212,12 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
                             return (
                                 <div key={section.type} className="scroll-mt-20">
-                                    <div className="flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
+                                    <div className="flex items-center gap-2 mb-4 border-b border-neutral-200 pb-2">
                                         <div className={`p-1.5 rounded-md ${getTypeColor(section.type)} bg-opacity-50`}>
                                             {section.icon}
                                         </div>
-                                        <h2 className="text-lg font-bold text-slate-900">{section.label}</h2>
-                                        <span className="ml-auto text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                                        <h2 className="text-lg font-bold text-neutral-900">{section.label}</h2>
+                                        <span className="ml-auto text-xs font-medium text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-full">
                                             {sectionBlocks.length}
                                         </span>
                                     </div>
@@ -226,7 +226,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                         {sectionBlocks.map((block) => (
                                             <div
                                                 key={block.id}
-                                                className="group relative bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-8 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300"
+                                                className="group relative bg-white dark:bg-neutral-900 rounded-[2.5rem] border border-neutral-200 dark:border-neutral-800 p-8 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300"
                                             >
                                                 {/* Top Controls */}
                                                 <div className="flex flex-col gap-6 mb-6">
@@ -239,7 +239,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                         <div className="flex gap-2">
                                                             {/* Type Switcher (Hidden but accessible) */}
                                                             <div className="relative group/type">
-                                                                <button className="p-2 text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors">
+                                                                <button className="p-2 text-neutral-300 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors">
                                                                     <Layers className="w-4 h-4" />
                                                                 </button>
                                                                 <select
@@ -252,7 +252,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                             </div>
                                                             <button
                                                                 onClick={() => removeBlock(block.id)}
-                                                                className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-colors"
+                                                                className="p-2 text-neutral-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-colors"
                                                                 title="Delete Block"
                                                             >
                                                                 <Trash2 className="w-4 h-4" />
@@ -267,7 +267,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                                 <textarea
                                                                     value={block.title}
                                                                     onChange={(e) => updateBlock(block.id, 'title', e.target.value)}
-                                                                    className="w-full text-2xl font-black text-slate-900 dark:text-white bg-transparent border-none placeholder:text-slate-300 focus:ring-0 p-0 resize-none overflow-hidden"
+                                                                    className="w-full text-2xl font-black text-neutral-900 dark:text-white bg-transparent border-none placeholder:text-neutral-300 focus:ring-0 p-0 resize-none overflow-hidden"
                                                                     placeholder={block.type === 'skill' ? "Technical Skills" : "Role / Title"}
                                                                     rows={1}
                                                                     ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
@@ -279,23 +279,23 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                         {block.type !== 'summary' && block.type !== 'skill' && (
                                                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                                                 <div className="flex items-center gap-2 flex-1">
-                                                                    <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
+                                                                    <Building2 className="w-4 h-4 text-neutral-400 shrink-0" />
                                                                     <textarea
                                                                         value={block.organization}
                                                                         onChange={(e) => updateBlock(block.id, 'organization', e.target.value)}
-                                                                        className="w-full text-base font-bold text-slate-600 dark:text-slate-300 bg-transparent border-none placeholder:text-slate-300 focus:ring-0 p-0 resize-none overflow-hidden"
+                                                                        className="w-full text-base font-bold text-neutral-600 dark:text-neutral-300 bg-transparent border-none placeholder:text-neutral-300 focus:ring-0 p-0 resize-none overflow-hidden"
                                                                         placeholder="Organization"
                                                                         rows={1}
                                                                         ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
                                                                     />
                                                                 </div>
 
-                                                                <div className="flex items-center gap-2 text-slate-400 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700">
+                                                                <div className="flex items-center gap-2 text-neutral-400 bg-neutral-50 dark:bg-neutral-800 px-3 py-1.5 rounded-lg border border-neutral-100 dark:border-neutral-700">
                                                                     <Calendar className="w-3 h-3" />
                                                                     <input
                                                                         value={block.dateRange}
                                                                         onChange={(e) => updateBlock(block.id, 'dateRange', e.target.value)}
-                                                                        className="bg-transparent text-xs font-bold text-slate-500 uppercase tracking-wide w-32 focus:outline-none text-right"
+                                                                        className="bg-transparent text-xs font-bold text-neutral-500 uppercase tracking-wide w-32 focus:outline-none text-right"
                                                                         placeholder="JAN 2023 - PRESENT"
                                                                     />
                                                                 </div>
@@ -306,7 +306,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                             <div className="space-y-2">
                                                                 {block.bullets.map((bullet: string, idx: number) => (
                                                                     <div key={idx} className="group/line flex items-start gap-3 relative pl-1">
-                                                                        <span className={`mt-2.5 w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${bullet.trim() ? 'bg-slate-400' : 'bg-slate-200'}`} />
+                                                                        <span className={`mt-2.5 w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${bullet.trim() ? 'bg-neutral-400' : 'bg-neutral-200'}`} />
                                                                         <textarea
                                                                             value={bullet}
                                                                             onChange={(e) => updateBullet(block.id, idx, e.target.value)}
@@ -320,7 +320,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                                                     removeBullet(block.id, idx);
                                                                                 }
                                                                             }}
-                                                                            className="w-full text-sm text-slate-700 leading-relaxed bg-transparent border-b border-transparent hover:border-slate-100 focus:border-indigo-300 rounded-none px-1 py-1 resize-none overflow-hidden focus:outline-none transition-all placeholder:text-slate-300"
+                                                                            className="w-full text-sm text-neutral-700 leading-relaxed bg-transparent border-b border-transparent hover:border-neutral-100 focus:border-indigo-300 rounded-none px-1 py-1 resize-none overflow-hidden focus:outline-none transition-all placeholder:text-neutral-300"
                                                                             placeholder="Add details..."
                                                                             rows={1}
                                                                             ref={(el) => {
@@ -332,7 +332,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                                         />
                                                                         <button
                                                                             onClick={() => removeBullet(block.id, idx)}
-                                                                            className="absolute -right-2 top-1 opacity-0 group-hover/line:opacity-100 p-1 text-slate-300 hover:text-red-400 transition-opacity"
+                                                                            className="absolute -right-2 top-1 opacity-0 group-hover/line:opacity-100 p-1 text-neutral-300 hover:text-red-400 transition-opacity"
                                                                             tabIndex={-1}
                                                                         >
                                                                             <Trash2 className="w-3 h-3" />
@@ -343,7 +343,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
                                                             <button
                                                                 onClick={() => addBullet(block.id)}
-                                                                className="mt-2 ml-4 text-[10px] font-bold uppercase tracking-wider text-slate-300 hover:text-indigo-500 flex items-center gap-1 transition-colors"
+                                                                className="mt-2 ml-4 text-[10px] font-bold uppercase tracking-wider text-neutral-300 hover:text-indigo-500 flex items-center gap-1 transition-colors"
                                                             >
                                                                 <Plus className="w-3 h-3" /> Add Point
                                                             </button>
@@ -355,15 +355,15 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
                                         {/* Empty State for Section */}
                                         {sectionBlocks.length === 0 && (
-                                            <div className="text-center py-6 border-2 border-dashed border-slate-100 rounded-xl">
-                                                <p className="text-xs text-slate-400 mb-2">No {section.label.toLowerCase()} added yet.</p>
+                                            <div className="text-center py-6 border-2 border-dashed border-neutral-100 rounded-xl">
+                                                <p className="text-xs text-neutral-400 mb-2">No {section.label.toLowerCase()} added yet.</p>
                                             </div>
                                         )}
 
                                         {/* Add Block Button for Section */}
                                         <button
                                             onClick={() => addBlock(section.type)}
-                                            className="w-full py-2 flex items-center justify-center gap-2 text-sm font-medium text-slate-400 hover:text-indigo-600 border border-transparent hover:border-indigo-100 hover:bg-indigo-50 rounded-lg transition-all border-dashed"
+                                            className="w-full py-2 flex items-center justify-center gap-2 text-sm font-medium text-neutral-400 hover:text-indigo-600 border border-transparent hover:border-indigo-100 hover:bg-indigo-50 rounded-lg transition-all border-dashed"
                                         >
                                             <Plus className="w-4 h-4" /> Add {section.label}
                                         </button>

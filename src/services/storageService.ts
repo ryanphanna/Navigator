@@ -651,5 +651,9 @@ export const Storage = {
             await supabase.from('target_jobs').delete().eq('id', id);
         }
         return updated;
+    },
+
+    async signOut() {
+        await supabase.auth.signOut();
     }
 };

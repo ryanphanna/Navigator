@@ -140,12 +140,12 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                         <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
                     </div>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">Analyzing Job Fit</h3>
+                <h3 className="text-2xl font-bold text-neutral-900 mb-3">Analyzing Job Fit</h3>
                 <div className="flex flex-col items-center gap-2">
-                    <p className="text-slate-500 font-medium animate-pulse text-lg">
+                    <p className="text-neutral-500 font-medium animate-pulse text-lg">
                         {analysisProgress || "Starting analysis..."}
                     </p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-neutral-400">
                         This usually takes about 10-15 seconds
                     </p>
                 </div>
@@ -180,7 +180,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                 <div className="flex items-center mb-6">
                     <button
                         onClick={onBack}
-                        className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+                        className="flex items-center gap-2 text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" /> Back to History
                     </button>
@@ -196,16 +196,16 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                                     </div>
                                 </div>
                                 <div className="flex-1">
-                                    <h2 className="text-lg font-bold text-slate-900 mb-1">Couldn't auto-fill job details</h2>
-                                    <p className="text-slate-700 text-sm leading-relaxed">
+                                    <h2 className="text-lg font-bold text-neutral-900 mb-1">Couldn't auto-fill job details</h2>
+                                    <p className="text-neutral-700 text-sm leading-relaxed">
                                         The website blocked automatic extraction. No problem—you can paste it manually instead.
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm h-full flex flex-col justify-center">
-                            <h3 className="text-base font-semibold text-slate-900 mb-3">Copy the job description:</h3>
+                        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm h-full flex flex-col justify-center">
+                            <h3 className="text-base font-semibold text-neutral-900 mb-3">Copy the job description:</h3>
                             <div className="space-y-3">
                                 {job.url ? (
                                     <a
@@ -223,9 +223,9 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                                             value={editUrl}
                                             onChange={(e) => setEditUrl(e.target.value)}
                                             placeholder="Paste URL here (optional)..."
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                            className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                                         />
-                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none">
                                             <LinkIcon className="w-4 h-4" />
                                         </div>
                                     </div>
@@ -234,20 +234,20 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                        <label className="block text-base font-semibold text-slate-900 mb-3">Paste it here:</label>
+                    <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-6">
+                        <label className="block text-base font-semibold text-neutral-900 mb-3">Paste it here:</label>
                         <textarea
-                            className="w-full h-40 p-4 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 text-sm leading-relaxed transition-all resize-none"
+                            className="w-full h-40 p-4 border-2 border-neutral-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 text-sm leading-relaxed transition-all resize-none"
                             value={manualText}
                             onChange={e => setManualText(e.target.value)}
                             autoFocus
                         />
                         <div className="flex justify-between items-center pt-4">
-                            <div className="text-xs text-slate-500">
+                            <div className="text-xs text-neutral-500">
                                 {manualText.length} characters
                             </div>
                             <div className="flex gap-3">
-                                <button onClick={onBack} className="px-4 py-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-sm font-medium transition-colors">Cancel</button>
+                                <button onClick={onBack} className="px-4 py-2.5 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg text-sm font-medium transition-colors">Cancel</button>
                                 <button
                                     onClick={handleRetry}
                                     disabled={!manualText.trim() || manualText.length < 100 || retrying}
@@ -313,12 +313,12 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
     };
 
     const getScoreColor = (score?: number) => {
-        if (score === undefined) return 'text-slate-400 bg-slate-200';
+        if (score === undefined) return 'text-neutral-400 bg-neutral-200';
         if (score >= 90) return 'text-red-600 bg-red-100 border-red-200';        // Hot (Excellent)
         if (score >= 80) return 'text-orange-600 bg-orange-100 border-orange-200'; // Warmer (Great)
         if (score >= 70) return 'text-amber-600 bg-amber-100 border-amber-200';   // Warm (Good)
         if (score >= 50) return 'text-yellow-600 bg-yellow-100 border-yellow-200'; // Mild (Fair)
-        return 'text-slate-500 bg-slate-100 border-slate-200';                   // Cold (Low)
+        return 'text-neutral-500 bg-neutral-100 border-neutral-200';                   // Cold (Low)
     };
 
     const getScoreLabel = (score?: number) => {
@@ -344,7 +344,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                     href={job.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 transition-colors rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-indigo-600 border border-slate-200"
+                    className="p-2 transition-colors rounded-lg bg-neutral-50 hover:bg-neutral-100 text-neutral-500 hover:text-indigo-600 border border-neutral-200"
                 >
                     <ExternalLink className="w-4 h-4" />
                 </a>
@@ -356,7 +356,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                     Storage.updateJob(updated);
                     onUpdateJob(updated);
                 }}
-                className="text-sm border-none bg-slate-50 rounded-lg px-3 py-2 font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                className="text-sm border-none bg-neutral-50 rounded-lg px-3 py-2 font-medium text-neutral-600 focus:ring-2 focus:ring-indigo-500 cursor-pointer"
             >
                 <option value="new">New</option>
                 <option value="applied">Applied</option>
@@ -368,23 +368,23 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
     );
 
     const sidebar = (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-neutral-200">
             {analysis.compatibilityScore !== undefined ? (
                 <>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-slate-400">Compatibility</h3>
+                        <h3 className="text-sm font-bold text-neutral-400">Compatibility</h3>
                         <div className="flex flex-col items-end">
                             <span className={`text-xl font-black px-2 py-0.5 rounded ${getScoreColor(analysis.compatibilityScore)}`}>
                                 {getScoreLabel(analysis.compatibilityScore)}
                             </span>
                             {userTier !== 'free' && (
-                                <span className="text-xs font-medium text-slate-400 mt-1">
+                                <span className="text-xs font-medium text-neutral-400 mt-1">
                                     {analysis.compatibilityScore}% Match
                                 </span>
                             )}
                         </div>
                     </div>
-                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden mb-6">
+                    <div className="h-3 w-full bg-neutral-100 rounded-full overflow-hidden mb-6">
                         <div
                             className={`h-full rounded-full transition-all duration-1000 ${getScoreColor(analysis.compatibilityScore).split(' ')[1].replace('bg-', 'bg-')}`}
                             style={{
@@ -393,7 +393,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                                     analysis.compatibilityScore >= 80 ? '#ea580c' : // orange-600
                                         analysis.compatibilityScore >= 70 ? '#d97706' : // amber-600
                                             analysis.compatibilityScore >= 50 ? '#ca8a04' : // yellow-600
-                                                '#64748b' // slate-500
+                                                '#64748b' // neutral-500
                             }}
                         />
                     </div>
@@ -409,11 +409,11 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                             </div>
                         </div>
                     )}
-                    <div className="mt-6 pt-6 border-t border-slate-100">
-                        <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2 text-sm">
+                    <div className="mt-6 pt-6 border-t border-neutral-100">
+                        <h3 className="font-bold text-neutral-900 mb-4 flex items-center gap-2 text-sm">
                             <Sparkles className="w-3 h-3 text-indigo-500" /> AI compatibility Analysis
                         </h3>
-                        <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 font-medium">
+                        <p className="text-xs text-neutral-700 leading-relaxed bg-neutral-50 p-3 rounded-lg border border-neutral-100 font-medium">
                             {analysis.reasoning}
                         </p>
                     </div>
@@ -423,8 +423,8 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                     <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-4">
                         <UserPlus className="w-6 h-6" />
                     </div>
-                    <h3 className="text-sm font-bold text-slate-900 mb-2">Want a Match Score?</h3>
-                    <p className="text-xs text-slate-500 mb-4">
+                    <h3 className="text-sm font-bold text-neutral-900 mb-2">Want a Match Score?</h3>
+                    <p className="text-xs text-neutral-500 mb-4">
                         Upload your resume to see how well you fit this role and get tailored advice.
                     </p>
                     <button className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-colors">
@@ -455,13 +455,13 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
             }>
                 {activeTab === 'analysis' && (
                     <div className="space-y-6">
-                        <div className="bg-white rounded-xl p-8 shadow-sm border border-slate-200">
-                            <h4 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <div className="bg-white rounded-xl p-8 shadow-sm border border-neutral-200">
+                            <h4 className="text-sm font-bold text-neutral-900 mb-4 flex items-center gap-2">
                                 <Sparkles className="w-4 h-4 text-indigo-600" /> Required Skills
                             </h4>
                             <div className="flex flex-wrap gap-2">
                                 {analysis.distilledJob.keySkills.map((skill, i) => (
-                                    <span key={i} className="text-sm font-medium text-slate-700 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                                    <span key={i} className="text-sm font-medium text-neutral-700 bg-neutral-50 px-3 py-1.5 rounded-lg border border-neutral-200">
                                         {skill}
                                     </span>
                                 ))}
@@ -469,8 +469,8 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                         </div>
 
                         {analysis.distilledJob.requiredSkills && analysis.distilledJob.requiredSkills.length > 0 && (
-                            <div className="bg-white rounded-xl p-8 shadow-sm border border-slate-200">
-                                <h4 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
+                            <div className="bg-white rounded-xl p-8 shadow-sm border border-neutral-200">
+                                <h4 className="font-bold text-neutral-900 mb-6 flex items-center gap-2">
                                     <ShieldCheck className="w-5 h-5 text-indigo-600" /> Gap Analysis
                                 </h4>
                                 <div className="space-y-4">
@@ -481,14 +481,14 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                                         const isUnderLevelled = mySkill && levels[mySkill.proficiency] < levels[req.level];
 
                                         return (
-                                            <div key={i} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                                            <div key={i} className="flex items-center justify-between p-4 bg-neutral-50 border border-neutral-100 rounded-2xl">
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`p-2 rounded-xl ${isMatch ? 'bg-emerald-100 text-emerald-600' : isUnderLevelled ? 'bg-amber-100 text-amber-600' : 'bg-slate-200 text-slate-400'}`}>
+                                                    <div className={`p-2 rounded-xl ${isMatch ? 'bg-emerald-100 text-emerald-600' : isUnderLevelled ? 'bg-amber-100 text-amber-600' : 'bg-neutral-200 text-neutral-400'}`}>
                                                         {isMatch ? <CheckCircle className="w-5 h-5" /> : isUnderLevelled ? <AlertTriangle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
                                                     </div>
                                                     <div>
-                                                        <div className="text-sm font-black text-slate-900">{req.name}</div>
-                                                        <div className="text-xs font-bold text-slate-400">Required: {req.level}</div>
+                                                        <div className="text-sm font-black text-neutral-900">{req.name}</div>
+                                                        <div className="text-xs font-bold text-neutral-400">Required: {req.level}</div>
                                                     </div>
                                                 </div>
                                                 {mySkill ? (
@@ -509,13 +509,13 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                             </div>
                         )}
 
-                        <div className="bg-white rounded-xl p-8 shadow-sm border border-slate-200">
-                            <h4 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <div className="bg-white rounded-xl p-8 shadow-sm border border-neutral-200">
+                            <h4 className="font-bold text-neutral-900 mb-6 flex items-center gap-2">
                                 <CheckCircle className="w-5 h-5 text-indigo-600" /> Core Responsibilities
                             </h4>
                             <ul className="space-y-4">
                                 {analysis.distilledJob.coreResponsibilities.map((resp, i) => (
-                                    <li key={i} className="flex gap-4 text-slate-600 leading-relaxed text-sm">
+                                    <li key={i} className="flex gap-4 text-neutral-600 leading-relaxed text-sm">
                                         <div className="w-1.5 h-1.5 rounded-full bg-indigo-300 mt-2 shrink-0" />
                                         {resp}
                                     </li>
@@ -553,37 +553,37 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                 )}
 
                 {activeTab === 'job-post' && (
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-                        <h4 className="flex items-center gap-2 font-bold text-slate-900 mb-6 uppercase text-sm">
-                            <FileText className="w-4 h-4 text-slate-400" /> Full Description
+                    <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
+                        <h4 className="flex items-center gap-2 font-bold text-neutral-900 mb-6 uppercase text-sm">
+                            <FileText className="w-4 h-4 text-neutral-400" /> Full Description
                         </h4>
-                        <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap font-sans">
+                        <div className="text-sm text-neutral-600 leading-relaxed whitespace-pre-wrap font-sans">
                             {job.description}
                         </div>
                     </div>
                 )}
 
                 {activeTab === 'resume' && (
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div className="border-b border-slate-100 p-6 flex justify-between items-center">
-                            <h3 className="font-semibold text-slate-900">Experience Blocks</h3>
-                            <button onClick={handleCopyResume} disabled={generating} className="text-xs font-medium px-4 py-2 bg-slate-900 text-white rounded-lg flex items-center gap-2">
+                    <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 overflow-hidden">
+                        <div className="border-b border-neutral-100 p-6 flex justify-between items-center">
+                            <h3 className="font-semibold text-neutral-900">Experience Blocks</h3>
+                            <button onClick={handleCopyResume} disabled={generating} className="text-xs font-medium px-4 py-2 bg-neutral-900 text-white rounded-lg flex items-center gap-2">
                                 {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Copy className="w-3.5 h-3.5" />}
                                 {generating ? 'Assembling...' : 'Copy Full'}
                             </button>
                         </div>
-                        <div className="divide-y divide-slate-100">
+                        <div className="divide-y divide-neutral-100">
                             {resumes.find(r => r.id === analysis.bestResumeProfileId)?.blocks
                                 .filter(b => analysis.recommendedBlockIds?.includes(b.id))
                                 .map(block => {
                                     const tailoredBullets = job.tailoredResumes?.[block.id];
                                     const isTailoring = tailoringBlock === block.id;
                                     return (
-                                        <div key={block.id} className="p-6 hover:bg-slate-50 transition-colors group">
+                                        <div key={block.id} className="p-6 hover:bg-neutral-50 transition-colors group">
                                             <div className="flex justify-between items-start mb-2">
                                                 <div>
-                                                    <h5 className="font-medium text-slate-900 text-sm">{block.title}</h5>
-                                                    <div className="text-xs text-slate-500 font-medium">{block.organization} | {block.dateRange}</div>
+                                                    <h5 className="font-medium text-neutral-900 text-sm">{block.title}</h5>
+                                                    <div className="text-xs text-neutral-500 font-medium">{block.organization} | {block.dateRange}</div>
                                                 </div>
                                             </div>
                                             <div className="mt-3">
@@ -595,7 +595,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
                                                     </div>
                                                 ) : (
                                                     <ul className="space-y-1.5">
-                                                        {block.bullets.map((b, i) => <li key={i} className="text-xs text-slate-600 pl-3 border-l-2 border-slate-200 group-hover:border-indigo-300 transition-colors">{b}</li>)}
+                                                        {block.bullets.map((b, i) => <li key={i} className="text-xs text-neutral-600 pl-3 border-l-2 border-neutral-200 group-hover:border-indigo-300 transition-colors">{b}</li>)}
                                                     </ul>
                                                 )}
                                             </div>
@@ -630,15 +630,15 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, resumes, onBack, onUpdateJob
 };
 
 const ResumeSidebar: React.FC<{ analysis: any }> = ({ analysis }) => (
-    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-        <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2 text-sm">
+    <div className="bg-white border border-neutral-200 rounded-xl p-6 shadow-sm">
+        <h4 className="font-bold text-neutral-900 mb-4 flex items-center gap-2 text-sm">
             <Sparkles className="w-3 h-3 text-indigo-500" /> Tailoring Strategy
         </h4>
         <div className="space-y-3">
             {(analysis.resumeTailoringInstructions || analysis.tailoringInstructions || [])
                 .slice(0, 3).map((instruction: string, idx: number) => (
-                    <div key={idx} className="flex gap-3 text-sm text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                        <span className="font-bold text-slate-400 text-xs mt-0.5">0{idx + 1}</span>
+                    <div key={idx} className="flex gap-3 text-sm text-neutral-700 bg-neutral-50 p-3 rounded-lg border border-neutral-100">
+                        <span className="font-bold text-neutral-400 text-xs mt-0.5">0{idx + 1}</span>
                         <span className="text-xs font-medium">{instruction}</span>
                     </div>
                 ))}

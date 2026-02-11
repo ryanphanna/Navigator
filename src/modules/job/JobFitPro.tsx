@@ -186,7 +186,7 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
         <button
             onClick={loadFeed}
             disabled={loading}
-            className="p-3 bg-white dark:bg-slate-800 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all disabled:opacity-50 shrink-0"
+            className="p-3 bg-white dark:bg-neutral-800 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm transition-all disabled:opacity-50 shrink-0"
         >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
         </button>
@@ -202,12 +202,12 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
         >
             {/* Filters Row */}
             <div className="flex items-center gap-3 mb-10 overflow-x-auto pb-2 scrollbar-hide">
-                <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-[1.5rem] border border-slate-200 dark:border-slate-700">
+                <div className="flex items-center gap-1.5 bg-neutral-100 dark:bg-neutral-800/50 p-1 rounded-[1.5rem] border border-neutral-200 dark:border-neutral-700">
                     <button
                         onClick={() => setSort('date')}
                         className={`px-5 py-2 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 ${sort === 'date'
-                            ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-sm'
-                            : 'text-slate-400 hover:text-slate-500'
+                            ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm'
+                            : 'text-neutral-400 hover:text-neutral-500'
                             }`}
                     >
                         Newest
@@ -215,34 +215,34 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
                     <button
                         onClick={() => setSort('match')}
                         className={`px-5 py-2 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 ${sort === 'match'
-                            ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-sm'
-                            : 'text-slate-400 hover:text-slate-500'
+                            ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm'
+                            : 'text-neutral-400 hover:text-neutral-500'
                             }`}
                     >
                         Best Fit
                     </button>
                 </div>
 
-                <div className="w-px h-8 bg-slate-200 dark:bg-slate-800 mx-1" />
+                <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-800 mx-1" />
 
                 <button
                     onClick={() => setFilterHighMatch(!filterHighMatch)}
                     className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 border whitespace-nowrap ${filterHighMatch
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/20'
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-indigo-300 dark:hover:border-indigo-700'
+                        : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:border-indigo-300 dark:hover:border-indigo-700'
                         }`}
                 >
-                    <Sparkles className={`w-4 h-4 ${filterHighMatch ? 'text-indigo-200' : 'text-slate-400'}`} />
+                    <Sparkles className={`w-4 h-4 ${filterHighMatch ? 'text-indigo-200' : 'text-neutral-400'}`} />
                     High Match
                 </button>
                 <button
                     onClick={() => setFilterClosingSoon(!filterClosingSoon)}
                     className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 border whitespace-nowrap ${filterClosingSoon
                         ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20'
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-orange-300 dark:hover:border-orange-700'
+                        : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:border-orange-300 dark:hover:border-orange-700'
                         }`}
                 >
-                    <Zap className={`w-4 h-4 ${filterClosingSoon ? 'text-orange-200' : 'text-slate-400'}`} />
+                    <Zap className={`w-4 h-4 ${filterClosingSoon ? 'text-orange-200' : 'text-neutral-400'}`} />
                     Closing Soon
                 </button>
             </div>
@@ -251,18 +251,18 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
             {loading && feed.length === 0 ? (
                 <div className="space-y-4">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 h-40 animate-pulse"></div>
+                        <div key={i} className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 h-40 animate-pulse"></div>
                     ))}
                 </div>
             ) : (
                 <div className="space-y-4">
                     {displayFeed.length === 0 && (
-                        <div className="text-center py-12 text-slate-500">
+                        <div className="text-center py-12 text-neutral-500">
                             No jobs found matching your filter.
                         </div>
                     )}
                     {displayFeed.map((job) => (
-                        <div key={job.id} className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 group relative overflow-hidden">
+                        <div key={job.id} className="bg-white dark:bg-neutral-900 rounded-[2.5rem] p-8 shadow-sm border border-neutral-200 dark:border-neutral-800 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 group relative overflow-hidden">
                             {job.isNew && (
                                 <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-bold px-4 py-2 rounded-bl-2xl shadow-sm z-10">
                                     NEW
@@ -280,11 +280,11 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-start justify-between gap-4">
                                         <div>
-                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-indigo-600 transition-colors">
+                                            <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-1 group-hover:text-indigo-600 transition-colors">
                                                 {job.title}
                                             </h3>
-                                            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                                                <span className="font-medium text-slate-700 dark:text-slate-300">{job.company}</span>
+                                            <div className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+                                                <span className="font-medium text-neutral-700 dark:text-neutral-300">{job.company}</span>
                                                 <span>•</span>
                                                 <span>{job.location}</span>
                                                 <span>•</span>
@@ -321,7 +321,7 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
                                             href={job.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-medium transition-colors flex items-center gap-2"
+                                            className="px-4 py-2.5 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 text-neutral-700 dark:text-neutral-300 rounded-xl font-medium transition-colors flex items-center gap-2"
                                         >
                                             <span>View</span>
                                             <ExternalLink className="w-4 h-4" />
