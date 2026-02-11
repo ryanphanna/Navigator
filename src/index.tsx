@@ -71,7 +71,7 @@ root.render(
       {isEnvValid() ? (
         <ToastProvider>
           <UserProvider>
-            <BrowserRouter>
+            <BrowserRouter basename="/Navigator">
               <App />
             </BrowserRouter>
           </UserProvider>
