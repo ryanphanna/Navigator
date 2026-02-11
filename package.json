@@ -1,5 +1,5 @@
 {
-  "name": "job-fit-minimalist",
+  "name": "navigator",
   "description": "A minimalist tool to analyze job compatibility, suggest resume tailoring, and generate cover letters using Gemini.",
   "private": true,
   "version": "2.3.1",
