@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.3.2] - 2026-02-11
+
+### Fixed
+- **Routing**: Fixed a routing configuration mismatch (`base` vs `basename`) that caused a blank screen on deployment.
+
 ## [2.3.1] - 2026-02-11
 
 ### Fixed
