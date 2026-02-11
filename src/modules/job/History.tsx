@@ -14,6 +14,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
 
     const filteredJobs = useMemo(() => {
         return jobs.filter(job => {
+            if (!job) return false;
             if (!searchQuery.trim()) return true;
             const query = searchQuery.toLowerCase();
             const role = job.analysis?.distilledJob.roleTitle?.toLowerCase() || '';
@@ -73,7 +74,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                             <p className="text-sm text-neutral-500 dark:text-neutral-400">Paste a job URL on the home page to get started.</p>
                         </div>
                     ) : filteredJobs.length > 0 ? (
-                        filteredJobs.map((job) => (
+                        filteredJobs.filter(Boolean).map((job) => (
                             <EntityCard
                                 key={job.id}
                                 title={job.analysis?.distilledJob.roleTitle || job.position || 'Unknown Role'}
