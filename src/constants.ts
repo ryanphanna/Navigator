@@ -58,28 +58,7 @@ export const AI_MODELS = {
 } as const;
 
 // Tier-to-Model mapping to control costs and access
-export const TIER_MODELS: Record<string, { extraction: string; analysis: string }> = {
-  free: {
-    extraction: AI_MODELS.EXTRACTION,
-    analysis: AI_MODELS.ANALYSIS_BASIC,
-  },
-  plus: {
-    extraction: AI_MODELS.EXTRACTION,
-    analysis: AI_MODELS.ANALYSIS_BASIC,
-  },
-  pro: {
-    extraction: AI_MODELS.EXTRACTION,
-    analysis: AI_MODELS.ANALYSIS_PRO,
-  },
-  admin: {
-    extraction: AI_MODELS.EXTRACTION,
-    analysis: AI_MODELS.ANALYSIS_ULTRA,
-  },
-  tester: {
-    extraction: AI_MODELS.EXTRACTION,
-    analysis: AI_MODELS.ANALYSIS_ULTRA,
-  }
-} as const;
+// TIER_MODELS removed - resolved securely on backend
 
 // Temperature Settings for AI
 export const AI_TEMPERATURE = {

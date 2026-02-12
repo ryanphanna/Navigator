@@ -1,9 +1,32 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-console.log("Gemini Proxy Function Started (Deno.serve)");
+const TIER_MODELS: Record<string, { extraction: string; analysis: string }> = {
+    free: {
+        extraction: 'gemini-2.0-flash',
+        analysis: 'gemini-2.0-flash',
+    },
+    plus: {
+        extraction: 'gemini-2.0-flash',
+        analysis: 'gemini-2.0-flash',
+    },
+    pro: {
+        extraction: 'gemini-2.0-flash',
+        analysis: 'gemini-2.5-pro',
+    },
+    admin: {
+        extraction: 'gemini-2.0-flash',
+        analysis: 'gemini-3-pro',
+    },
+    tester: {
+        extraction: 'gemini-2.0-flash',
+        analysis: 'gemini-3-pro',
+    }
+};
 
 Deno.serve(async (req) => {
     // Handle CORS preflight request
@@ -12,14 +35,45 @@ Deno.serve(async (req) => {
     }
 
     try {
-        // 1. AUTHORIZATION CHECK
+        // 1. AUTHORIZATION & USER TIER CHECK
         const authHeader = req.headers.get('Authorization')
         if (!authHeader) {
             throw new Error('Missing Authorization header')
         }
 
-        // 2. PARSE REQUEST
-        const { payload, modelName = "gemini-2.0-flash", generationConfig } = await req.json()
+        const supabase = createClient(
+            Deno.env.get('SUPABASE_URL') ?? '',
+            Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+            { global: { headers: { Authorization: authHeader } } }
+        )
+
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        if (authError || !user) {
+            throw new Error('Unauthorized')
+        }
+
+        // Fetch user's subscription tier
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('subscription_tier')
+            .eq('id', user.id)
+            .single()
+
+        if (profileError || !profile) {
+            console.error("Profile lookup error:", profileError);
+            throw new Error('Failed to retrieve user profile')
+        }
+
+        const userTier = profile.subscription_tier || 'free';
+
+        // 2. PARSE REQUEST & RESOLVE MODEL
+        // We no longer trust the client to provide modelName
+        const { payload, task = "analysis", generationConfig } = await req.json()
+
+        const tierConfig = TIER_MODELS[userTier] || TIER_MODELS.free;
+        const modelName = task === 'extraction' ? tierConfig.extraction : tierConfig.analysis;
+
+        console.log(`User ${user.id} (${userTier}) performing ${task} using ${modelName}`);
 
         // 3. RETRIEVE API KEY
         const apiKey = Deno.env.get('GEMINI_API_KEY')
@@ -28,11 +82,8 @@ Deno.serve(async (req) => {
             throw new Error('GEMINI_API_KEY not set in Edge Function secrets.')
         }
 
-        // 4. CALL GEMINI API VIA FETCH (No SDK Dependencies)
-        // using gemini-2.0-flash by default
+        // 4. CALL GEMINI API VIA FETCH
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-
-        console.log(`Proxying to ${modelName}...`);
 
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -65,7 +116,7 @@ Deno.serve(async (req) => {
         })
 
     } catch (error: any) {
-        console.error("Link Proxy Error:", error.message);
+        console.error("Gemini Proxy Error:", error.message);
         return new Response(JSON.stringify({ error: `Edge Function Error: ${error.message}` }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200, // Return 200 so client gets the error message JSON

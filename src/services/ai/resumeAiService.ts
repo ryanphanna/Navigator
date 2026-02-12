@@ -1,4 +1,4 @@
-import { getModel, callWithRetry, cleanJsonOutput, resolveModel } from "./aiCore";
+import { getModel, callWithRetry, cleanJsonOutput } from "./aiCore";
 import type {
     ExperienceBlock,
     CustomSkill
@@ -39,7 +39,7 @@ export const parseResumeFile = async (
     promptParts.push({ text: prompt });
 
     return callWithRetry(async () => {
-        const model = await getModel({ model: AI_MODELS.EXTRACTION, generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: promptParts }] });
         const parsed = JSON.parse(cleanJsonOutput(response.response.text()));
         return parsed.map((p: any) => ({ ...p, id: crypto.randomUUID(), isVisible: true }));
@@ -49,17 +49,14 @@ export const parseResumeFile = async (
 export const tailorExperienceBlock = async (
     block: ExperienceBlock,
     jobDescription: string,
-    instructions: string[],
-    userTier: string = 'free'
+    instructions: string[]
 ): Promise<string[]> => {
     const prompt = ANALYSIS_PROMPTS.TAILOR_EXPERIENCE_BLOCK(jobDescription, block.title, block.organization, block.bullets, instructions);
-    const modelName = resolveModel(userTier, 'analysis');
-
     return callWithRetry(async () => {
-        const model = await getModel({ model: modelName, generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         return JSON.parse(cleanJsonOutput(response.response.text()));
-    }, { event_type: 'tailoring_block', prompt, model: modelName });
+    }, { event_type: 'tailoring_block', prompt, model: 'dynamic' });
 };
 
 export const inferProficiencyFromResponse = async (
@@ -68,7 +65,7 @@ export const inferProficiencyFromResponse = async (
 ): Promise<{ proficiency: CustomSkill['proficiency']; evidence: string }> => {
     const prompt = `Analyze proficiency for ${skillName} based on the user's response. Categorize as 'learning', 'comfortable', or 'expert'. Return JSON: { "proficiency": "...", "evidence": "..." }`;
     return callWithRetry(async () => {
-        const model = await getModel({ model: AI_MODELS.EXTRACTION, generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         return JSON.parse(cleanJsonOutput(response.response.text()));
     }, { event_type: 'proficiency_inference', prompt, model: AI_MODELS.EXTRACTION });
@@ -80,7 +77,7 @@ export const generateSkillQuestions = async (
 ): Promise<{ questions: string[] }> => {
     const prompt = ANALYSIS_PROMPTS.SKILL_VERIFICATION(skillName, proficiency);
     return callWithRetry(async () => {
-        const model = await getModel({ model: AI_MODELS.EXTRACTION, generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         const questions = JSON.parse(cleanJsonOutput(response.response.text()));
         return { questions };
@@ -93,7 +90,7 @@ export const suggestSkillsFromResumes = async (
     const resumeContext = JSON.stringify(resumes);
     const prompt = ANALYSIS_PROMPTS.SUGGEST_SKILLS(resumeContext);
     return callWithRetry(async () => {
-        const model = await getModel({ model: AI_MODELS.EXTRACTION, generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         return JSON.parse(cleanJsonOutput(response.response.text()));
     }, { event_type: 'skill_suggestion', prompt, model: AI_MODELS.EXTRACTION });

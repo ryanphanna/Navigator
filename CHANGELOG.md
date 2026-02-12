@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-02-12
+
+### Security
+- **Backend AI Selection**: Migrated model resolution and Gemini API calls to a secure Supabase Edge Function to prevent client-side tampering and enforce subscription tiers.
+- **JWT Verification**: Implemented mandatory authentication for all AI requests via the backend proxy.
+
+### Changed
+- Refactored `jobAiService`, `resumeAiService`, and `eduAiService` to use task-based model selection.
+- Removed `TIER_MODELS` configuration from frontend to better hide backend logic.
+
 ## [2.5.0] - 2026-02-12
 
 ### Added

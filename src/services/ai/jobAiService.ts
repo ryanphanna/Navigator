@@ -1,4 +1,4 @@
-import { getModel, callWithRetry, cleanJsonOutput, resolveModel } from "./aiCore";
+import { getModel, callWithRetry, cleanJsonOutput } from "./aiCore";
 import type { RetryProgressCallback } from "./aiCore";
 import type {
     JobAnalysis,
@@ -25,8 +25,7 @@ const sanitizeInput = (text: string): string => {
 };
 
 const extractJobInfo = async (
-    rawJobText: string,
-    tier: UserTier | string = 'free'
+    rawJobText: string
 ): Promise<{ distilledJob: DistilledJob; cleanedDescription: string }> => {
     const extractionPrompt = `
     Extract key info from this job posting: ${rawJobText.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}...
@@ -44,10 +43,8 @@ const extractJobInfo = async (
     Return JSON with 'category', 'isAiBanned', and 'aiBanReason' fields included.
     `;
 
-    const modelName = resolveModel(tier, 'extraction');
-
     return callWithRetry(async () => {
-        const model = await getModel({ model: modelName });
+        const model = await getModel({ task: 'extraction' });
         const response = await model.generateContent({
             contents: [{ role: "user", parts: [{ text: extractionPrompt }] }],
             generationConfig: {
@@ -56,18 +53,17 @@ const extractJobInfo = async (
             }
         });
         return JSON.parse(cleanJsonOutput(response.response.text()));
-    }, { event_type: 'job_extraction', prompt: extractionPrompt, model: modelName });
+    }, { event_type: 'job_extraction', prompt: extractionPrompt, model: AI_MODELS.EXTRACTION });
 };
 
 export const analyzeJobFit = async (
     jobDescription: string,
     resumes: ResumeProfile[],
     userSkills: CustomSkill[] = [],
-    onProgress?: RetryProgressCallback,
-    tier: UserTier | string = 'free'
+    onProgress?: RetryProgressCallback
 ): Promise<JobAnalysis> => {
     if (onProgress) onProgress("Extracting job details...", 1, 2);
-    const { distilledJob, cleanedDescription } = await extractJobInfo(jobDescription, tier);
+    const { distilledJob, cleanedDescription } = await extractJobInfo(jobDescription);
     if (resumes.length === 0) return { distilledJob, cleanedDescription } as JobAnalysis;
 
     if (onProgress) onProgress("Analyzing your fit (Pro model)...", 2, 2);
@@ -84,13 +80,11 @@ export const analyzeJobFit = async (
 
     const analysisPrompt = selectedPromptTemplate(cleanedDescription, resumeContext + skillsContext);
 
-    const modelName = resolveModel(tier, 'analysis');
-
     const analysis = await callWithRetry(async () => {
-        const model = await getModel({ model: modelName, generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: analysisPrompt }] }] });
         return JSON.parse(sanitizeInput(cleanJsonOutput(response.response.text())));
-    }, { event_type: 'analysis', prompt: analysisPrompt, model: modelName });
+    }, { event_type: 'analysis', prompt: analysisPrompt, model: 'dynamic' });
 
     return { ...analysis, distilledJob, cleanedDescription };
 };
@@ -101,35 +95,29 @@ export const generateCoverLetter = async (
     tailoringInstructions: string[],
     additionalContext?: string,
     forceVariant?: string,
-    trajectoryContext?: string,
-    userTier: UserTier | string = 'free'
+    trajectoryContext?: string
 ): Promise<{ text: string; promptVersion: string }> => {
     const resumeText = stringifyProfile(selectedResume);
     const template = forceVariant ? (ANALYSIS_PROMPTS.COVER_LETTER.VARIANTS as any)[forceVariant] : ANALYSIS_PROMPTS.COVER_LETTER.VARIANTS.v1_direct;
     const prompt = ANALYSIS_PROMPTS.COVER_LETTER.GENERATE(template, jobDescription, resumeText, tailoringInstructions, additionalContext, trajectoryContext);
 
-    const modelName = resolveModel(userTier, 'analysis');
-
     return callWithRetry(async () => {
-        const model = await getModel({ model: modelName });
+        const model = await getModel({ task: 'analysis' });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         return { text: sanitizeInput(response.response.text()), promptVersion: forceVariant || "v1" };
-    }, { event_type: 'cover_letter', prompt, model: modelName });
+    }, { event_type: 'cover_letter', prompt, model: 'dynamic' });
 };
 
 export const critiqueCoverLetter = async (
     jobDescription: string,
-    coverLetter: string,
-    userTier: UserTier | string = 'pro' // Default to pro for critique
+    coverLetter: string
 ): Promise<{ score: number; decision: 'interview' | 'reject' | 'maybe'; feedback: string[]; strengths: string[] }> => {
     const prompt = ANALYSIS_PROMPTS.CRITIQUE_COVER_LETTER(jobDescription, coverLetter);
-    const modelName = resolveModel(userTier, 'analysis');
-
     return callWithRetry(async () => {
-        const model = await getModel({ model: modelName, generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         return JSON.parse(cleanJsonOutput(response.response.text()));
-    }, { event_type: 'critique', prompt, model: modelName });
+    }, { event_type: 'critique', prompt, model: 'dynamic' });
 };
 
 export const generateCoverLetterWithQuality = async (
@@ -144,7 +132,7 @@ export const generateCoverLetterWithQuality = async (
 
     // 1. Initial Draft
     if (onProgress) onProgress("Drafting initial cover letter...");
-    let result = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, additionalContext, undefined, trajectoryContext, userTier);
+    let result = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, additionalContext, undefined, trajectoryContext);
     let attempts = 1;
 
     // Fast Path for Free/Plus tiers (No Loop)
@@ -158,7 +146,7 @@ export const generateCoverLetterWithQuality = async (
     while (attempts <= AGENT_LOOP.MAX_RETRIES + 1) { // +1 for initial draft
         // Critique current draft
         if (onProgress) onProgress(`Critiquing draft (Attempt ${attempts})...`);
-        const critique = await critiqueCoverLetter(jobDescription, result.text, userTier);
+        const critique = await critiqueCoverLetter(jobDescription, result.text);
         currentScore = critique.score;
 
         // Success condition
@@ -182,7 +170,7 @@ export const generateCoverLetterWithQuality = async (
         // We append the critique to any existing context
         const newContext = additionalContext ? `${additionalContext}\n\n${improvementContext}` : improvementContext;
 
-        result = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, newContext, undefined, trajectoryContext, userTier);
+        result = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, newContext, undefined, trajectoryContext);
         attempts++;
     }
 
@@ -196,12 +184,9 @@ export const generateTailoredSummary = async (
     const resumeContext = resumes.map(stringifyProfile).join('\n---\n');
     const prompt = ANALYSIS_PROMPTS.TAILORED_SUMMARY(jobDescription, resumeContext);
 
-    // Summaries are always 'extraction' level for cost efficiency
-    const modelName = AI_MODELS.EXTRACTION;
-
     return callWithRetry(async () => {
-        const model = await getModel({ model: modelName, generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         return JSON.parse(sanitizeInput(cleanJsonOutput(response.response.text()))).summary;
-    }, { event_type: 'tailored_summary', prompt, model: modelName });
+    }, { event_type: 'tailored_summary', prompt, model: AI_MODELS.EXTRACTION });
 };

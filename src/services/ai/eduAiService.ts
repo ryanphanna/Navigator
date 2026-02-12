@@ -1,4 +1,4 @@
-import { getModel, callWithRetry, cleanJsonOutput, resolveModel } from "./aiCore";
+import { getModel, callWithRetry, cleanJsonOutput } from "./aiCore";
 import type {
     Transcript,
     RoleModelProfile,
@@ -9,7 +9,6 @@ import type {
 } from "../../types";
 import { AI_MODELS, AI_TEMPERATURE } from "../../constants";
 import { ANALYSIS_PROMPTS, PARSING_PROMPTS } from "../../prompts/index";
-import type { UserTier } from "../../types";
 
 export const analyzeMAEligibility = async (
     transcript: Transcript,
@@ -18,14 +17,11 @@ export const analyzeMAEligibility = async (
     const transcriptText = JSON.stringify(transcript);
     const prompt = ANALYSIS_PROMPTS.GRAD_SCHOOL_ELIGIBILITY(transcriptText, targetProgram);
 
-    // MA eligibility is 'extraction' level as it's a basic check
-    const modelName = AI_MODELS.EXTRACTION;
-
     return callWithRetry(async () => {
-        const model = await getModel({ model: modelName, generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         return JSON.parse(cleanJsonOutput(response.response.text()));
-    }, { event_type: 'ma_eligibility', prompt, model: modelName });
+    }, { event_type: 'ma_eligibility', prompt, model: AI_MODELS.EXTRACTION });
 };
 
 export const parseRoleModel = async (
@@ -33,11 +29,9 @@ export const parseRoleModel = async (
     mimeType: string
 ): Promise<RoleModelProfile> => {
     const metadataPrompt = PARSING_PROMPTS.ROLE_MODEL_METADATA();
-    const modelName = AI_MODELS.EXTRACTION;
-
     return callWithRetry(async () => {
         const model = await getModel({
-            model: modelName,
+            task: 'extraction',
             generationConfig: { temperature: AI_TEMPERATURE.STRICT, responseMimeType: "application/json" }
         });
         const response = await model.generateContent({
@@ -50,7 +44,7 @@ export const parseRoleModel = async (
             }]
         });
         return JSON.parse(cleanJsonOutput(response.response.text()));
-    }, { event_type: 'role_model_metadata', prompt: metadataPrompt, model: modelName });
+    }, { event_type: 'role_model_metadata', prompt: metadataPrompt, model: AI_MODELS.EXTRACTION });
 };
 
 export const analyzeGap = async (
@@ -58,8 +52,7 @@ export const analyzeGap = async (
     userResumes: ResumeProfile[],
     userSkills: CustomSkill[],
     transcript: Transcript | null = null,
-    _strictMode: boolean = true,
-    userTier: UserTier | string = 'free'
+    _strictMode: boolean = true
 ): Promise<GapAnalysisResult> => {
     const roleModelContext = JSON.stringify(roleModels);
     const resumeContext = JSON.stringify(userResumes);
@@ -67,36 +60,30 @@ export const analyzeGap = async (
     const transcriptContext = transcript ? JSON.stringify(transcript) : '';
     const prompt = ANALYSIS_PROMPTS.GAP_ANALYSIS(roleModelContext, resumeContext, skillContext + transcriptContext);
 
-    const modelName = resolveModel(userTier, 'analysis');
-
     return callWithRetry(async () => {
-        const model = await getModel({ model: modelName, generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         return JSON.parse(cleanJsonOutput(response.response.text()));
-    }, { event_type: 'gap_analysis', prompt, model: modelName });
+    }, { event_type: 'gap_analysis', prompt, model: 'dynamic' });
 };
 
 export const generateRoadmap = async (
-    gapAnalysis: GapAnalysisResult,
-    userTier: UserTier | string = 'free'
+    gapAnalysis: GapAnalysisResult
 ): Promise<RoadmapMilestone[]> => {
     const prompt = ANALYSIS_PROMPTS.GENERATE_ROADMAP(JSON.stringify(gapAnalysis));
-    const modelName = resolveModel(userTier, 'analysis');
-
     return callWithRetry(async () => {
-        const model = await getModel({ model: modelName, generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         const parsed = JSON.parse(cleanJsonOutput(response.response.text()));
         return parsed.milestones.map((m: any) => ({ ...m, status: 'pending' }));
-    }, { event_type: 'roadmap_generation', prompt, model: modelName });
+    }, { event_type: 'roadmap_generation', prompt, model: 'dynamic' });
 };
 
 export const analyzeRoleModelGap = async (
     roleModel: RoleModelProfile,
     resumes: ResumeProfile[],
     userSkills: CustomSkill[] = [],
-    onProgress?: (message: string, current: number, total: number) => void,
-    userTier: UserTier | string = 'pro'
+    onProgress?: (message: string, current: number, total: number) => void
 ): Promise<GapAnalysisResult> => {
     if (onProgress) onProgress("Simulating career emulation...", 1, 1);
     const roleModelContext = JSON.stringify(roleModel);
@@ -104,13 +91,11 @@ export const analyzeRoleModelGap = async (
     const skillsContext = JSON.stringify(userSkills);
     const analysisPrompt = ANALYSIS_PROMPTS.ROLE_MODEL_GAP_ANALYSIS(roleModelContext, resumeContext + skillsContext);
 
-    const modelName = resolveModel(userTier, 'analysis');
-
     return callWithRetry(async () => {
-        const model = await getModel({ model: modelName, generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: analysisPrompt }] }] });
         return JSON.parse(cleanJsonOutput(response.response.text()));
-    }, { event_type: 'role_model_emulation', prompt: analysisPrompt, model: modelName });
+    }, { event_type: 'role_model_emulation', prompt: analysisPrompt, model: 'dynamic' });
 };
 
 export const parseTranscript = async (
@@ -118,11 +103,9 @@ export const parseTranscript = async (
     mimeType: string
 ): Promise<Transcript> => {
     const prompt = PARSING_PROMPTS.TRANSCRIPT_PARSE("");
-    const modelName = AI_MODELS.EXTRACTION;
-
     return callWithRetry(async () => {
         const model = await getModel({
-            model: modelName,
+            task: 'extraction',
             generationConfig: { temperature: AI_TEMPERATURE.STRICT, responseMimeType: "application/json" }
         });
         const response = await model.generateContent({
@@ -135,7 +118,7 @@ export const parseTranscript = async (
             }]
         });
         return JSON.parse(cleanJsonOutput(response.response.text()));
-    }, { event_type: 'transcript_parse', prompt, model: modelName });
+    }, { event_type: 'transcript_parse', prompt, model: AI_MODELS.EXTRACTION });
 };
 
 export const extractSkillsFromCourses = async (
@@ -144,11 +127,9 @@ export const extractSkillsFromCourses = async (
     const allCourses = transcript.semesters.flatMap(s => s.courses);
     const coursesList = JSON.stringify(allCourses);
     const prompt = ANALYSIS_PROMPTS.COURSE_SKILL_EXTRACTION(coursesList);
-    const modelName = AI_MODELS.EXTRACTION;
-
     return callWithRetry(async () => {
-        const model = await getModel({ model: modelName, generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         return JSON.parse(cleanJsonOutput(response.response.text()));
-    }, { event_type: 'skill_extraction', prompt, model: modelName });
+    }, { event_type: 'skill_extraction', prompt, model: AI_MODELS.EXTRACTION });
 };

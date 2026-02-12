@@ -2,18 +2,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabase } from "../supabase";
 import { getSecureItem, setSecureItem, removeSecureItem, migrateToSecureStorage } from "../../utils/secureStorage";
 import { getUserFriendlyError, getRetryMessage } from "../../utils/errorMessages";
-import { API_CONFIG, STORAGE_KEYS, TIER_MODELS } from "../../constants";
-import type { UserTier } from "../../types";
+import { API_CONFIG, STORAGE_KEYS } from "../../constants";
 
 export type RetryProgressCallback = (message: string, attempt: number, maxAttempts: number) => void;
-
-/**
- * Resolves the correct model name based on user tier and task complexity
- */
-export function resolveModel(tier: UserTier | string = 'free', task: 'extraction' | 'analysis' = 'analysis'): string {
-    const config = TIER_MODELS[tier] || TIER_MODELS.free;
-    return task === 'extraction' ? config.extraction : config.analysis;
-}
 
 let migrationDone = false;
 const migrateApiKeyIfNeeded = async () => {
@@ -37,30 +28,36 @@ export const clearApiKey = (): void => {
 };
 
 export interface ModelParams {
-    model: string;
+    task: 'extraction' | 'analysis';
     generationConfig?: {
         temperature?: number;
         maxOutputTokens?: number;
         responseMimeType?: string;
         responseSchema?: any;
     };
+    model?: string; // Accepted for legacy/local key compatibility
 }
 
 export const getModel = async (params: ModelParams) => {
     const key = await getApiKey();
 
     if (key) {
+        // Use local key if provided (User pays for their own usage)
         const genAI = new GoogleGenerativeAI(key);
-        return genAI.getGenerativeModel(params);
+        // If they have a key, we'll use the model they asked for, or default to Flash
+        return genAI.getGenerativeModel({
+            model: params.model || "gemini-2.0-flash",
+            generationConfig: params.generationConfig
+        });
     }
 
     return {
         generateContent: async (payload: any) => {
-            console.log("Using Gemini Proxy (Edge Function)...");
+            console.log(`Using Gemini Proxy (Edge Function) for ${params.task}...`);
             const { data, error } = await supabase.functions.invoke('gemini-proxy', {
                 body: {
                     payload: payload,
-                    modelName: params.model,
+                    task: params.task,
                     generationConfig: params.generationConfig
                 }
             });
