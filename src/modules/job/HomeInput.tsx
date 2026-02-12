@@ -87,7 +87,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     // ActionGrid handles its own card logic now
-    const [activeHeadline, setActiveHeadline] = useState({ text: '', highlight: '' });
+    const [activeHeadline, setActiveHeadline] = useState(mode === 'goal' ? HEADLINES.goal[0] : HEADLINES.all[0]);
 
     // Ref to store the LAST URL attempted, so it persists even if we clear state for manual entry
     const lastUrlRef = React.useRef<string>('');
