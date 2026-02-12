@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.3.3] - 2026-02-11
+
+### Fixed
+- **Deployment**: Removed `/Navigator` base path configuration to support root domain deployment on Vercel.
+
 ## [2.3.2] - 2026-02-11
 
 ### Fixed
