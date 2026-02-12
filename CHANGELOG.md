@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.3.4] - 2026-02-11
+
+### Changed
+- **Header**: Refactored `HeroHeader` into a reusable component for consistent branding across Job, Coach, and Grad pages.
+- **Performance**: Removed expensive ambient background animations to reduce system resource usage.
+
+### Fixed
+- **Layout**: Fixed vertical alignment offset in `HomeInput` (Analyze page) by standardizing top padding.
+- **Stability**: Resolved syntax errors and conditional rendering logic in `CoachDashboard` that caused white screens.
+
 ## [2.3.3] - 2026-02-11
 
 ### Fixed
