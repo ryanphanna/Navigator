@@ -64,7 +64,6 @@ const JobDetail: React.FC<JobDetailProps> = ({
         onUpdateJob,
         showError,
         showSuccess,
-        userTier,
         onAnalyzeJob
     });
 

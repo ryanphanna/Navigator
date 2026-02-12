@@ -36,8 +36,8 @@ export const useAppLogic = () => {
     const [showUpgradeModal, setShowUpgradeModal] = useState<UsageLimitResult | null>(null);
     const [activeAnalysisIds, setActiveAnalysisIds] = useState<Set<string>>(new Set());
 
-    const coachLogic = useCoachLogic(state, setState, usageStats, transcript, setActiveAnalysisIds);
-    const jobLogic = useJobLogic(state, setState, usageStats, setUsageStats, setShowUpgradeModal);
+    const coachLogic = useCoachLogic(state, setState, transcript, setActiveAnalysisIds);
+    const jobLogic = useJobLogic(state, setState, setUsageStats, setShowUpgradeModal);
 
     const currentView = (() => {
         const path = location.pathname;

@@ -12,7 +12,6 @@ import type { AppState, SavedJob } from '../types';
 export const useJobLogic = (
     state: AppState,
     setState: React.Dispatch<React.SetStateAction<AppState>>,
-    usageStats: UsageStats,
     setUsageStats: React.Dispatch<React.SetStateAction<UsageStats>>,
     setShowUpgradeModal: React.Dispatch<React.SetStateAction<UsageLimitResult | null>>
 ) => {
@@ -46,7 +45,7 @@ export const useJobLogic = (
                 throw new Error("No job description found.");
             }
 
-            const analysis = await analyzeJobFit(textToAnalyze, state.resumes, state.skills, undefined, usageStats.tier);
+            const analysis = await analyzeJobFit(textToAnalyze, state.resumes, state.skills, undefined);
             const roleTitle = analysis.distilledJob?.roleTitle || job.position;
             const { bucket } = CanonicalService.getCanonicalRole(roleTitle);
 
@@ -129,7 +128,7 @@ export const useJobLogic = (
             const jobWithText = { ...newJob, description: text };
             await Storage.updateJob(jobWithText);
 
-            const analysis = await analyzeJobFit(text, state.resumes, state.skills, undefined, usageStats.tier);
+            const analysis = await analyzeJobFit(text, state.resumes, state.skills, undefined);
             const completedJob = {
                 ...jobWithText,
                 status: 'saved' as const,

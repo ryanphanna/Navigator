@@ -10,7 +10,6 @@ export const useJobDetailLogic = ({
     onUpdateJob,
     showError,
     showSuccess,
-    userTier,
     onAnalyzeJob
 }: {
     job: SavedJob;
@@ -19,7 +18,6 @@ export const useJobDetailLogic = ({
     onUpdateJob: (job: SavedJob) => void;
     showError: (msg: string) => void;
     showSuccess: (msg: string) => void;
-    userTier?: string;
     onAnalyzeJob?: (job: SavedJob) => Promise<SavedJob>;
 }) => {
     const [activeTab, setActiveTab] = useState<'analysis' | 'resume' | 'cover-letter' | 'job-post'>('analysis');
@@ -43,7 +41,7 @@ export const useJobDetailLogic = ({
             if (onAnalyzeJob) {
                 await onAnalyzeJob(job);
             } else {
-                const result = await analyzeJobFit(job.description || '', resumes, userSkills, (msg) => setAnalysisProgress(msg), userTier);
+                const result = await analyzeJobFit(job.description || '', resumes, userSkills, (msg) => setAnalysisProgress(msg));
                 const finalJob: SavedJob = { ...job, analysis: result, status: 'saved' as const };
                 await Storage.updateJob(finalJob);
                 onUpdateJob(finalJob);
@@ -62,7 +60,7 @@ export const useJobDetailLogic = ({
         try {
             const textToUse = analysis.cleanedDescription || job.description || `Role: ${analysis.distilledJob?.roleTitle}`;
             const instructions = analysis.resumeTailoringInstructions || analysis.tailoringInstructions || [];
-            const tailoredBullets = await tailorExperienceBlock(block, textToUse, instructions, userTier);
+            const tailoredBullets = await tailorExperienceBlock(block, textToUse, instructions);
 
             const updatedJob: SavedJob = {
                 ...job,

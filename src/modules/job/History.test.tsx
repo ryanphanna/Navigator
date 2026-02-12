@@ -71,7 +71,7 @@ describe('History', () => {
       />
     );
 
-    expect(screen.getByText('No jobs analyzed yet')).toBeInTheDocument();
+    expect(screen.getByText('No history yet')).toBeInTheDocument();
   });
 
   it('should render job list', () => {

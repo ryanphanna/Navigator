@@ -3,12 +3,10 @@ import { parseRoleModel, analyzeGap, analyzeRoleModelGap, generateRoadmap } from
 import { ScraperService } from '../services/scraperService';
 import { useToast } from '../contexts/ToastContext';
 import type { AppState, TargetJob, GapAnalysisResult, Transcript } from '../types';
-import type { UsageStats } from '../services/usageLimits';
 
 export const useCoachLogic = (
     state: AppState,
     setState: React.Dispatch<React.SetStateAction<AppState>>,
-    usageStats: UsageStats,
     transcript: Transcript | null,
     setActiveAnalysisIds: React.Dispatch<React.SetStateAction<Set<string>>>
 ) => {
@@ -45,10 +43,10 @@ export const useCoachLogic = (
             ? (() => {
                 const rm = state.roleModels.find(r => r.id === targetJob.roleModelId);
                 return rm
-                    ? analyzeRoleModelGap(rm, state.resumes, state.skills, undefined, usageStats.tier)
+                    ? analyzeRoleModelGap(rm, state.resumes, state.skills)
                     : Promise.reject(new Error("Role Model not found"));
             })()
-            : analyzeGap(state.roleModels, state.resumes, state.skills, transcript, targetJob.strictMode ?? true, usageStats.tier);
+            : analyzeGap(state.roleModels, state.resumes, state.skills, transcript, targetJob.strictMode ?? true);
 
         analysisPromise
             .then(async (analysis: GapAnalysisResult) => {
@@ -72,7 +70,7 @@ export const useCoachLogic = (
         setActiveAnalysisIds(prev => new Set(prev).add(`${targetJobId}-roadmap`));
         showInfo && showInfo("AI Coach is building your 12-month roadmap...");
 
-        generateRoadmap(targetJob.gapAnalysis, usageStats.tier)
+        generateRoadmap(targetJob.gapAnalysis)
             .then(async (roadmap) => {
                 const updatedTargetJob = { ...targetJob, roadmap };
                 const updatedList = await Storage.saveTargetJob(updatedTargetJob);
