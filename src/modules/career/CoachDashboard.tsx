@@ -13,7 +13,7 @@ import {
     Sparkles,
     GraduationCap
 } from 'lucide-react';
-import { LoadingState } from '../../components/common/LoadingState';
+
 import { HeroHeader } from '../../components/common/HeroHeader';
 import { EntityCard } from '../../components/common/EntityCard';
 import type { CustomSkill, RoleModelProfile, TargetJob, Transcript } from '../../types';
