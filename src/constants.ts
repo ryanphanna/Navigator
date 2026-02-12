@@ -142,7 +142,7 @@ export const BENTO_CARDS = {
     targetView: 'job-fit',
     title: { marketing: 'JobFit Score', action: 'Analyze' },
     description: {
-      marketing: 'Stop guessing. Get an instant 0-100 compatibility rating for any job description.',
+      marketing: 'Instant 0-100 compatibility rating.',
       action: 'Get an instant match score and detailed fit analysis. We break down exactly how well you align with any job description in seconds.'
     },
     action: { marketing: 'Get started', action: 'Analyze' },
@@ -161,7 +161,7 @@ export const BENTO_CARDS = {
     targetView: 'skills',
     title: { marketing: 'Keyword Targeting', action: 'Skills' },
     description: {
-      marketing: 'Beat the ATS. We identify exactly which skills and keywords your resume is missing.',
+      marketing: 'Identify missing skills to beat the ATS.',
       action: 'Identify and bridge your skill gaps with AI. We scan descriptions for missing keywords so you can optimize your profile for every role.'
     },
     action: { marketing: 'Optimize now', action: 'Audit gaps' },
@@ -180,7 +180,7 @@ export const BENTO_CARDS = {
     targetView: 'resumes',
     title: { marketing: 'Tailored Summaries', action: 'Resumes' },
     description: {
-      marketing: 'We rewrite your professional summary to perfection for every single application.',
+      marketing: 'Tailored summaries for every application.',
       action: 'Store and edit your resume profiles. We help you maintain multiple versions of your experience to target different industries effectively.'
     },
     action: { marketing: 'Try it', action: 'Manage' },
@@ -199,7 +199,7 @@ export const BENTO_CARDS = {
     targetView: 'coach-home',
     title: { marketing: 'Career Coach', action: 'Roadmap' },
     description: {
-      marketing: 'AI-driven mentorship to guide your professional transition.',
+      marketing: 'AI mentorship for your career transition.',
       action: 'Build your roadmap to land major target roles. Get personalized advice on how to transition into higher-paying career paths.'
     },
     action: { marketing: 'Learn more', action: 'Scale up' },
@@ -218,7 +218,7 @@ export const BENTO_CARDS = {
     targetView: 'history',
     title: { marketing: 'Save from Anywhere', action: 'History' },
     description: {
-      marketing: 'Found a job on LinkedIn or Indeed? Save it to JobFit with a single click.',
+      marketing: 'Save jobs from any site with one click.',
       action: 'Review your analyzed jobs and insights. Keep track of every application and see how your compatibility scores evolve over time.'
     },
     action: { marketing: 'Install', action: 'View all' },
@@ -237,7 +237,7 @@ export const BENTO_CARDS = {
     targetView: 'cover-letters',
     title: { marketing: 'Smart Cover Letters', action: 'Cover Letters' },
     description: {
-      marketing: 'Generate unique, persuasive letters that cite your actual experience.',
+      marketing: 'Generate persuasive cover letters instantly.',
       action: 'Generate AI-tailored cover letters. Our engine synthesizes your experience and the job description to write unique, persuasive applications.'
     },
     action: { marketing: 'Start writing', action: 'Create new' },
@@ -257,7 +257,7 @@ export const BENTO_CARDS = {
     targetView: 'grad',
     title: { marketing: 'Edu HQ', action: 'Edu' },
     description: {
-      marketing: 'High-fidelity academic reconnaissance and pathfinding.',
+      marketing: 'High-fidelity academic pathfinding.',
       action: 'Explore degree programs and certifications. We match your career goals with the precise educational paths needed to achieve them.'
     },
     action: { marketing: 'Scout Programs', action: 'Scout Programs' },

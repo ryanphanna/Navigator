@@ -17,7 +17,7 @@ const ICON_MAP = {
 export const MarketingGrid: React.FC = () => {
     const [shuffledCards] = useState<string[]>(() => {
         // Reduced to 5 cards to match ActionGrid count
-        const marketingCards = ['JOBFIT', 'KEYWORDS', 'RESUMES', 'COVER_LETTERS', 'HISTORY', 'COUCH'];
+        const marketingCards = ['JOBFIT', 'KEYWORDS', 'RESUMES', 'COVER_LETTERS', 'HISTORY', 'COACH'];
         return [...marketingCards].sort(() => Math.random() - 0.5);
     });
 
@@ -100,24 +100,13 @@ export const MarketingGrid: React.FC = () => {
     return (
         <div className="mt-8 w-full max-w-7xl mx-auto px-4 pb-24">
             {/* HUB: The Central Mission Statement */}
-            <div className="flex flex-col items-center justify-center text-center pt-4 pb-32 relative overflow-hidden mb-8">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(79,70,229,0.08)_0%,_transparent_70%)] opacity-100" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-indigo-500/5 blur-[120px] rounded-full pointer-events-none" />
-
-                <div className="relative z-10 max-w-5xl mx-auto px-6">
-                    <h2 className="text-6xl md:text-[9rem] font-black text-neutral-900 dark:text-white mb-10 tracking-tighter leading-[0.85] animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                        Get hired.<br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 animate-gradient-x">Delete us.</span>
-                    </h2>
-                    <p className="text-2xl md:text-3xl text-neutral-500 dark:text-neutral-400 font-medium max-w-3xl mx-auto leading-relaxed opacity-80">
-                        We measure success by how fast you leave. Get your forever job, delete your account, and <span className="text-neutral-900 dark:text-white font-bold">get on with your life.</span>
-                    </p>
-                </div>
-            </div>
-
             <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12`}>
                 {shuffledCards.map((key) => {
                     const config = BENTO_CARDS[key as keyof typeof BENTO_CARDS];
+                    if (!config) {
+                        console.error(`Missing config for key: ${key}`, { BENTO_CARDS_KEYS: Object.keys(BENTO_CARDS) });
+                        return null;
+                    }
                     return (
                         <BentoCard
                             key={config.id}

@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { BookOpen, Calculator, Award } from 'lucide-react';
 import { TranscriptUpload } from './TranscriptUpload';
 import { GPACalculator } from './GPACalculator';
+import { ActionGrid } from '../job/ActionGrid';
+import { HeroHeader } from '../../components/common/HeroHeader';
 import { MAEligibility } from './MAEligibility';
 import { SkillExtractor } from './SkillExtractor';
 import { CourseVerificationModal } from '../../components/edu/CourseVerificationModal';
@@ -79,14 +81,12 @@ export const GradFitPlaceholder: React.FC<GradFitPlaceholderProps> = ({ onAddSki
             <div className="flex flex-col items-center justify-start animate-in fade-in duration-700 relative min-h-[80vh] pt-16 pb-12">
                 <div className="w-full max-w-6xl px-4 relative">
                     {/* Hero Section */}
-                    <div className="text-center mb-16">
-                        <h2 className="text-6xl md:text-7xl font-black text-neutral-900 dark:text-white tracking-tight mb-6">
-                            Academic <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-500">Headquarters</span>
-                        </h2>
-                        <p className="text-2xl text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-3xl mx-auto">
-                            Your permanent academic record and career reconnaissance operations.
-                        </p>
-                    </div>
+                    <HeroHeader
+                        title="Master your"
+                        highlight="Craft"
+                        highlightGradient="from-indigo-600 to-violet-500"
+                        subtitle="Your permanent academic record and career reconnaissance operations."
+                    />
 
                     {!transcript ? (
                         <div className="max-w-4xl mx-auto space-y-16">
@@ -249,10 +249,10 @@ export const GradFitPlaceholder: React.FC<GradFitPlaceholderProps> = ({ onAddSki
                                                         </div>
                                                         <div className="flex items-center gap-4">
                                                             <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">{c.credits || 0.5} CR</span>
-                                                            <div className={`w-10 h-10 flex items-center justify-center rounded-xl font-black text-sm shadow-xl transition-colors ${['A+', 'A', 'A-'].some(g => c.grade.includes(g)) ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
-                                                                ['F', 'FAIL'].some(g => c.grade.toUpperCase().includes(g)) ? 'bg-red-500 text-white shadow-red-500/20' :
-                                                                    'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-neutral-900/10'
-                                                                }`}>
+                                                            <div className={`w - 10 h - 10 flex items - center justify - center rounded - xl font - black text - sm shadow - xl transition - colors ${['A+', 'A', 'A-'].some(g => c.grade.includes(g)) ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
+                                                                    ['F', 'FAIL'].some(g => c.grade.toUpperCase().includes(g)) ? 'bg-red-500 text-white shadow-red-500/20' :
+                                                                        'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-neutral-900/10'
+                                                                } `}>
                                                                 {c.grade}
                                                             </div>
                                                         </div>

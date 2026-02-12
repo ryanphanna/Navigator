@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { LandingContent } from './LandingContent';
 import { MarketingGrid } from './MarketingGrid';
+import { HeroHeader } from '../../components/common/HeroHeader';
 import { ActionGrid } from './ActionGrid';
 import { UsageIndicator } from './UsageIndicator';
 import { useToast } from '../../contexts/ToastContext';
@@ -267,24 +268,22 @@ const HomeInput: React.FC<HomeInputProps> = ({
     }, [resumes, pendingJobInput, showResumePrompt]);
 
     return (
-        <div className="flex flex-col items-center justify-start animate-in fade-in duration-700 relative min-h-[80vh] pt-4 pb-12">
+        <div className="flex flex-col items-center justify-start animate-in fade-in duration-700 relative min-h-[80vh] pt-16 pb-12">
+
+
 
             <div className={`w-full ${mode === 'all' ? 'max-w-[1920px]' : 'max-w-4xl'} px-4 relative`}>
                 {user && (
-                    <div className="text-center mb-10">
-                        <h2 className="text-6xl md:text-7xl font-black text-neutral-900 dark:text-white tracking-tight mb-6">
-                            {activeHeadline.text} <span className="text-transparent bg-clip-text animate-gradient-x transition-colors duration-1000 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500" style={{ backgroundSize: '200% auto' }}>{activeHeadline.highlight}</span>
-                        </h2>
-                        <p className="text-2xl text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-4xl mx-auto mb-16">
-                            {mode === 'all'
-                                ? "Tailor your resume and write your cover letter in seconds."
-                                : isTargetMode
-                                    ? "Distill career paths into your personalized growth roadmap."
-                                    : "Tailor your resume for any opening with a single click."
-                            }
-                        </p>
-
-                    </div>
+                    <HeroHeader
+                        title={activeHeadline.text}
+                        highlight={activeHeadline.highlight}
+                        subtitle={mode === 'all'
+                            ? "Tailor your resume and write your cover letter in seconds."
+                            : isTargetMode
+                                ? "Distill career paths into your personalized growth roadmap."
+                                : "Tailor your resume for any opening with a single click."
+                        }
+                    />
                 )}
 
                 {!isManualMode ? (
@@ -293,7 +292,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                         {user && mode === 'all' && (
                             <ActionGrid onNavigate={onNavigate} isAdmin={isAdmin} isTester={isTester} />
                         )}
-                        {mode !== 'all' && (
+                        {(mode !== 'all' || !user) && (
                             <div className="w-full max-w-3xl mx-auto animate-in zoom-in-95 fade-in duration-500">
                                 <form onSubmit={error ? (e) => { e.preventDefault(); handleJobSubmission({ type: 'text', content: url }); } : handleUrlSubmit} className="relative group perspective-1000">
                                     <div className={`absolute -inset-1 rounded-[2.5rem] blur-xl transition-all duration-1000 ${error
