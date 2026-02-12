@@ -62,13 +62,13 @@ describe('constants', () => {
 
   describe('AI_MODELS', () => {
     it('should have valid model names', () => {
-      expect(AI_MODELS.FLASH).toBeTruthy();
-      expect(AI_MODELS.PRO).toBeTruthy();
+      expect(AI_MODELS.EXTRACTION).toBeTruthy();
+      expect(AI_MODELS.ANALYSIS_PRO).toBeTruthy();
     });
 
     it('should have gemini model names', () => {
-      expect(AI_MODELS.FLASH).toContain('gemini');
-      expect(AI_MODELS.PRO).toContain('gemini');
+      expect(AI_MODELS.EXTRACTION).toContain('gemini');
+      expect(AI_MODELS.ANALYSIS_PRO).toContain('gemini');
     });
   });
 

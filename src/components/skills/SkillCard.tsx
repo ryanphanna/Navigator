@@ -1,12 +1,13 @@
 import React from 'react';
 import { Trash2, Sparkles } from 'lucide-react';
+import type { UserTier } from '../../types/app';
 import type { CustomSkill } from '../../types';
 
 interface SkillCardProps {
     skill: CustomSkill;
     onDelete: (name: string) => void;
     onVerify: (name: string) => void;
-    userTier: 'free' | 'pro' | 'admin' | 'tester';
+    userTier: UserTier;
 }
 
 export const SkillCard: React.FC<SkillCardProps> = ({ skill, onDelete, onVerify, userTier }) => {

@@ -14,6 +14,11 @@ export const API_CONFIG = {
   REQUEST_TIMEOUT_MS: 120000, // 2 minutes
 } as const;
 
+export const AGENT_LOOP = {
+  MAX_RETRIES: 2,           // Maximum times the agent can self-correct
+  QUALITY_THRESHOLD: 70,    // Score below which the agent triggers a rewrite
+} as const;
+
 // Content Validation
 export const CONTENT_VALIDATION = {
   MIN_PDF_TEXT_LENGTH: 50,
@@ -44,10 +49,36 @@ export const UI_CONFIG = {
   TOAST_DURATION_MS: 3000,
 } as const;
 
-// AI Model Configuration
+// AI Model Configuration - Task-based mapping
 export const AI_MODELS = {
-  FLASH: 'gemini-2.0-flash',
-  PRO: 'gemini-1.5-pro',
+  EXTRACTION: 'gemini-2.0-flash', // Fast & Cheap
+  ANALYSIS_BASIC: 'gemini-2.0-flash',
+  ANALYSIS_PRO: 'gemini-2.5-pro',    // High Reasoning (Standard Pro)
+  ANALYSIS_ULTRA: 'gemini-3-pro',   // State of the Art (Premium)
+} as const;
+
+// Tier-to-Model mapping to control costs and access
+export const TIER_MODELS: Record<string, { extraction: string; analysis: string }> = {
+  free: {
+    extraction: AI_MODELS.EXTRACTION,
+    analysis: AI_MODELS.ANALYSIS_BASIC,
+  },
+  plus: {
+    extraction: AI_MODELS.EXTRACTION,
+    analysis: AI_MODELS.ANALYSIS_BASIC,
+  },
+  pro: {
+    extraction: AI_MODELS.EXTRACTION,
+    analysis: AI_MODELS.ANALYSIS_PRO,
+  },
+  admin: {
+    extraction: AI_MODELS.EXTRACTION,
+    analysis: AI_MODELS.ANALYSIS_ULTRA,
+  },
+  tester: {
+    extraction: AI_MODELS.EXTRACTION,
+    analysis: AI_MODELS.ANALYSIS_ULTRA,
+  }
 } as const;
 
 // Temperature Settings for AI

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { CustomSkill, ResumeProfile } from '../../types';
+import type { UserTier } from '../../types/app';
 import { Storage } from '../../services/storageService';
 import { Target, Zap, Plus, Search } from 'lucide-react';
 import { suggestSkillsFromResumes } from '../../services/geminiService';
@@ -17,7 +18,7 @@ interface SkillsViewProps {
     resumes: ResumeProfile[];
     onSkillsUpdated: (skills: CustomSkill[]) => void;
     onStartInterview: (skillName: string) => void;
-    userTier: 'free' | 'pro' | 'admin' | 'tester';
+    userTier: UserTier;
 }
 
 export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkillsUpdated, onStartInterview, userTier }) => {

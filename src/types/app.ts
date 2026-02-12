@@ -3,6 +3,8 @@ import type { SavedJob } from './job';
 import type { TargetJob } from './target';
 import type { CustomSkill } from './skills';
 
+export type UserTier = 'free' | 'plus' | 'pro' | 'admin' | 'tester';
+
 export interface AppState {
     resumes: ResumeProfile[];
     jobs: SavedJob[];

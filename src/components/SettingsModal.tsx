@@ -5,7 +5,7 @@ import type { User } from '@supabase/supabase-js';
 import { removeSecureItem } from '../utils/secureStorage';
 import { APP_VERSION, STORAGE_KEYS } from '../constants';
 
-type UserTier = 'free' | 'pro' | 'admin';
+import type { UserTier } from '../types/app';
 
 interface SettingsModalProps {
     isOpen: boolean;

@@ -1,6 +1,7 @@
 import React from 'react';
 import type { SavedJob, ResumeProfile, JobAnalysis, TargetJob } from '../../types';
 import { Storage } from '../../services/storageService';
+import type { UserTier } from '../../types/app';
 import { generateCoverLetter, generateCoverLetterWithQuality, critiqueCoverLetter } from '../../services/geminiService';
 import { ANALYSIS_PROMPTS } from '../../prompts/analysis';
 import {
@@ -14,7 +15,7 @@ interface CoverLetterEditorProps {
     job: SavedJob;
     analysis: JobAnalysis;
     bestResume: ResumeProfile;
-    userTier: 'free' | 'pro' | 'admin' | 'tester';
+    userTier: UserTier;
     targetJobs: TargetJob[];
     onJobUpdate: (job: SavedJob) => void;
 }
@@ -84,8 +85,8 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                 }
             }
 
-            // TODO: Check if Pro user (hardcoded to true for now)
-            const isPro = true;
+            // Check eligibility for Agent Loop
+            const isPro = ['pro', 'admin', 'tester'].includes(userTier);
 
             // Draft Comparison Logic: 10% chance to show two options side-by-side
             const isComparisonTriggered = !critiqueContext && Math.random() < 0.1;
@@ -107,6 +108,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                     textToUse,
                     bestResume,
                     instructions,
+                    userTier,
                     finalContext,
                     (msg) => setAnalysisProgress(msg),
                     trajectoryContext
@@ -254,6 +256,30 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                     </button>
                                 )}
                             </div>
+
+                            {/* Safety Warning (Phase 9) */}
+                            {analysis.distilledJob.isAiBanned && (
+                                <div className="px-6 py-4 bg-red-50 border-b border-red-100 flex items-start gap-4 animate-in fade-in slide-in-from-top-2">
+                                    <div className="p-2 bg-red-100 rounded-full shrink-0">
+                                        <AlertCircle className="w-5 h-5 text-red-700" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-red-900">AI Warning: Employer Prohibition Detected</h4>
+                                        <p className="text-xs text-red-700 mt-1 leading-relaxed">
+                                            This job posting explicitly discourages or bans the use of AI/LLMs.
+                                            {analysis.distilledJob.aiBanReason && (
+                                                <span className="block mt-1 font-medium italic opacity-90">
+                                                    Context: "{analysis.distilledJob.aiBanReason}"
+                                                </span>
+                                            )}
+                                        </p>
+                                        <p className="text-[10px] text-red-600 mt-2 font-bold uppercase tracking-wider flex items-center gap-1">
+                                            <span>RECOMMENDATION:</span>
+                                            <span className="font-normal opacity-80">Write this manually. Use our draft ONLY as a rough reference.</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Quality Badge (Pro Feature) */}

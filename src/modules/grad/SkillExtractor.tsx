@@ -27,7 +27,7 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ transcript, onAd
         setIsAnalyzing(true);
         try {
             const result = await extractSkillsFromCourses(transcript);
-            setExtractedSkills(result.map(r => ({ ...r, selected: true })));
+            setExtractedSkills(result.map((r: any) => ({ ...r, selected: true })));
         } catch (err: unknown) {
             showError(err instanceof Error ? err.message : 'Failed to extract skills');
         } finally {

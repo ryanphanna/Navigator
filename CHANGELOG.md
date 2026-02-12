@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+## [2.5.0] - 2026-02-12
+
+### Added
+- **AI Infrastructure**: Implemented a **Tiered AI Model Strategy** that dynamically resolves models based on user subscription tiers (`free`, `pro`, `admin`, `tester`).
+- **AI Infrastructure**: Added support for **Gemini 2.5 Pro** (Standard Pro) and **Gemini 3 Pro** (State of the Art Reasoning) for professional and admin tiers.
+- **UX**: Added interactive status filter tabs (Applied, Interview, Offer, Rejected) to the `History` page for faster navigation.
+
+### Changed
+- **Architecture**: Refactored `aiCore.ts`, `jobAiService.ts`, `resumeAiService.ts`, and `eduAiService.ts` to support multi-model orchestration and task-based model selection.
+- **Improved**: Enhanced developer visibility into AI API errors with explicit logging in `aiCore.ts`, surfacing specific error codes (like 404s) before generalization.
+- **UI**: Redesigned the `History` page using the `PageLayout` component to match the premium aesthetic of the Job Feed.
+- **UI**: Replaced the `History` grid with a detailed vertical list view, surfacing key metadata like Match Score and Application Status.
+- **UI**: Removed "Save from anywhere" bookmarklet from the homepage to reduce clutter. It now only appears on job pages.
+- **UX**: Job analysis now runs in the background, allowing users to read the job description or navigate the app while the AI processes the role. Replaces the blocking full-screen loader with non-intrusive skeleton states.
+
+### Fixed
+- **AI**: Resolved "404 Not Found" errors and application-wide "Connection issue" messages caused by the retirement of the `gemini-1.5-pro` model.
+- **Tests**: Updated `constants.test.ts` to align with the new task-based model constants (`EXTRACTION`, `ANALYSIS_PRO`).
+
+## [2.4.0] - 2026-02-12
+
+### Added
+- **Safety**: Automated detection of "No AI" policies in job descriptions. Warnings are displayed in the Cover Letter Editor to protect users from disqualification.
+- **Agentic Workflow**: "Auto-Iterate" agent for Pro users that critiques and refines cover letters in a feedback loop until quality thresholds are met.
+- **UX**: New "Job Post" tab in `JobDetail` that displays a clean, AI-distilled version of the job description, removing navigation and footer clutter.
+- **Architecture**: Shared "Gradient Header" and "Page Layout" components to unify the design across Job, Coach, and Grad modules.
+- **Stability**: Global Error Boundary to prevent application crashes from isolated component errors.
+
+### Changed
+- **Performance**: Increased job extraction limit to 15,000 characters to support full-page "Ctrl+A" pastes without data loss.
+- **Code Quality**: Enforced strict `import type` usage across all services for better tree-shaking and smaller bundle sizes.
+- **Refactor**: Centralized `extractJobInfo` logic to return structured `DistilledJob` data including new safety flags (`isAiBanned`).
+
+### Fixed
+- **UI**: Fixed card separator misalignment by enforcing consistent height for preview sections in `BentoCard`.
+- **UI**: Reduced the height of dashboard cards in `ActionGrid` and `BentoCard` to improve visual density and reduce scrolling.
+- **UI**: Fixed Dark Mode toggle by adding missing Tailwind v4 `@custom-variant` configuration.
+
 ## [2.3.4] - 2026-02-11
 
 ### Changed

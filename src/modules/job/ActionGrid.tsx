@@ -50,14 +50,14 @@ export const ActionGrid: React.FC<ActionGridProps> = ({ onNavigate, isAdmin = fa
         switch (id) {
             case 'jobfit':
                 return (
-                    <div className="relative w-full h-24 flex items-center justify-center scale-90 group-hover:scale-100 transition-transform duration-500">
+                    <div className="relative w-full h-16 flex items-center justify-center scale-90 group-hover:scale-100 transition-transform duration-500">
                         {/* Scaled down version of the hero graphics */}
-                        <div className="relative w-24 h-24 flex items-center justify-center z-10">
+                        <div className="relative w-16 h-16 flex items-center justify-center z-10">
                             <svg className="w-full h-full transform -rotate-90">
-                                <circle cx="48" cy="48" r="40" fill="transparent" stroke="currentColor" strokeWidth="6" className="text-neutral-100 dark:text-neutral-800" />
-                                <circle cx="48" cy="48" r="40" fill="transparent" stroke="currentColor" strokeWidth="6" strokeDasharray="251.32" strokeDashoffset="50.26" className={`${color.text} animate-[dash_1.5s_ease-in-out_forwards]`} />
+                                <circle cx="32" cy="32" r="28" fill="transparent" stroke="currentColor" strokeWidth="4" className="text-neutral-100 dark:text-neutral-800" />
+                                <circle cx="32" cy="32" r="28" fill="transparent" stroke="currentColor" strokeWidth="4" strokeDasharray="175.93" strokeDashoffset="35.19" className={`${color.text} animate-[dash_1.5s_ease-in-out_forwards]`} />
                             </svg>
-                            <span className={`absolute text-xl font-black ${color.text}`}>92%</span>
+                            <span className={`absolute text-sm font-black ${color.text}`}>92%</span>
                         </div>
 
                         {/* Mini floating cards for flavor */}
@@ -99,12 +99,12 @@ export const ActionGrid: React.FC<ActionGridProps> = ({ onNavigate, isAdmin = fa
                 );
             case 'resumes':
                 return (
-                    <div className="relative flex items-center justify-center w-full h-24">
-                        <div className="relative w-14 h-20 bg-white dark:bg-neutral-900 rounded-xl shadow-md border border-neutral-200 dark:border-white/10 transform -rotate-12 translate-x-4 opacity-40 scale-90" />
-                        <div className="relative w-14 h-20 bg-white dark:bg-neutral-900 rounded-xl shadow-xl border border-neutral-200 dark:border-white/10 group-hover:-translate-y-2 transition-transform duration-500 z-10 flex flex-col p-2 gap-1.5">
-                            <div className={`w-3/4 h-1.5 ${color.iconBg}/40 rounded-full`} />
-                            <div className={`w-full h-1 ${color.iconBg}/20 rounded-full`} />
-                            <div className={`w-5/6 h-1 ${color.iconBg}/10 rounded-full`} />
+                    <div className="relative flex items-center justify-center w-full h-16">
+                        <div className="relative w-10 h-14 bg-white dark:bg-neutral-900 rounded-lg shadow-md border border-neutral-200 dark:border-white/10 transform -rotate-12 translate-x-4 opacity-40 scale-90" />
+                        <div className="relative w-10 h-14 bg-white dark:bg-neutral-900 rounded-lg shadow-xl border border-neutral-200 dark:border-white/10 group-hover:-translate-y-2 transition-transform duration-500 z-10 flex flex-col p-1.5 gap-1">
+                            <div className={`w-3/4 h-1 ${color.iconBg}/40 rounded-full`} />
+                            <div className={`w-full h-0.5 ${color.iconBg}/20 rounded-full`} />
+                            <div className={`w-5/6 h-0.5 ${color.iconBg}/10 rounded-full`} />
                         </div>
                     </div>
                 );

@@ -1,7 +1,8 @@
 import { CONTENT_VALIDATION } from '../constants';
 
 export const ANALYSIS_PROMPTS = {
-  JOB_FIT_ANALYSIS: (jobDescription: string, resumeContext: string) => `
+  JOB_FIT_ANALYSIS: {
+    DEFAULT: (jobDescription: string, resumeContext: string) => `
     You are a ruthless technical recruiter. Your job is to screen candidates for this role.
     
     INPUT DATA:
@@ -27,6 +28,34 @@ export const ANALYSIS_PROMPTS = {
     
     Return ONLY JSON.
   `,
+    TECHNICAL: (jobDescription: string, resumeContext: string) => `
+    You are a Hiring Manager for a highly skilled role (Engineering, Trades, Medical, or Specialized Tech). 
+    Your job is to screen candidates for this hard-skill requirement job.
+
+    INPUT DATA:
+    "${jobDescription.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}"
+    
+    CANDIDATE PROFILE:
+    ${resumeContext}
+
+    CRITICAL ANALYSIS RULES (SKILLED MODE):
+    1. PROOF OVER PASSION: Ignore "fast learner". Look for specific certifications, tools, or years of practice.
+    2. HARD SKILL MATCH: If the job needs "Welding" or "Python" or "Phlebotomy", and they don't have it, it's a GAP.
+    3. EXPERIENCE LEVEL: Do they have real-world experience?
+    
+    TASK:
+    1. DISTILL requirements.
+    2. ANALYZE fit using the rules above.
+    3. MATCH BREAKDOWN:
+       - Strengths: Must be backed by specific tools/licenses/metrics.
+       - Weaknesses: Call out missing specific hard skills (e.g. "Missing Forklift Certification").
+    4. SCORE: Rate compatibility (0-100). 
+    5. TAILORING:
+       - Be extremely specific. e.g. "Change 'Helped on site' to 'Operated Excavator for 3 years'."
+    
+    Return ONLY JSON.
+    `
+  },
 
   TAILOR_EXPERIENCE_BLOCK: (jobDescription: string, blockTitle: string, blockOrg: string, blockBullets: string[], instructions: string[]) => `
     You are an expert resume writer. 

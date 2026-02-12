@@ -8,6 +8,9 @@ export interface DistilledJob {
     coreResponsibilities: string[];
     salaryRange?: string | null;
     source?: string | null;
+    category?: 'technical' | 'general' | 'managerial'; // AI-determined category
+    isAiBanned?: boolean; // New: Safety flag
+    aiBanReason?: string; // New: Context for the ban
 }
 
 export interface CoverLetterCritique {
