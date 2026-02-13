@@ -1,6 +1,11 @@
 # Changelog
  
 All notable changes to this project will be documented in this file.
+
+## [2.8.1] - 2026-02-13
+### Fixed
+- **Deployment**: Resolved a Vercel build failure caused by an unused `React` import in `LandingContent.tsx` which triggered a TypeScript error.
+
  
 ## [2.8.0] - 2026-02-13
 ### Added

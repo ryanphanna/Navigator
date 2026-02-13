@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowRight, Zap, Target, FileSearch } from 'lucide-react';
 
 interface LandingContentProps {
