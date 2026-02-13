@@ -99,7 +99,7 @@ class EncryptionService {
 
             const decoder = new TextDecoder();
             return decoder.decode(decryptedContent);
-        } catch (e) {
+        } catch {
             console.error("Decryption failed. Data may be corrupted or key is incorrect.");
             throw new Error("Vault access denied");
         }

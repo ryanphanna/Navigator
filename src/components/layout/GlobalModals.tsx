@@ -1,9 +1,11 @@
-import React, { Suspense } from 'react';
-import { AuthModal } from '../AuthModal';
+import React, { Suspense, lazy } from 'react';
+import type { UserTier, CustomSkill } from '../../types';
+
+// Lazy load heavy modals to improve lighter initial bundle
+const AuthModal = lazy(() => import('../AuthModal').then(m => ({ default: m.AuthModal })));
 import { SettingsModal } from '../SettingsModal';
-import { UpgradeModal } from '../UpgradeModal';
-import { SkillInterviewModal } from '../skills/SkillInterviewModal';
-import type { UserTier } from '../../types/app';
+const UpgradeModal = lazy(() => import('../UpgradeModal').then(m => ({ default: m.UpgradeModal })));
+const SkillInterviewModal = lazy(() => import('../skills/SkillInterviewModal').then(m => ({ default: m.SkillInterviewModal })));
 
 interface GlobalModalsProps {
     showAuth: boolean;
@@ -20,7 +22,7 @@ interface GlobalModalsProps {
     isAdmin: boolean;
     simulatedTier: UserTier | null;
     setSimulatedTier: (tier: UserTier | null) => void;
-    handleInterviewComplete: () => void;
+    handleInterviewComplete: (proficiency: CustomSkill['proficiency'], evidence: string) => void;
 }
 
 export const GlobalModals: React.FC<GlobalModalsProps> = ({
@@ -41,28 +43,30 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
     handleInterviewComplete
 }) => {
     return (
-        <>
-            <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
+        <Suspense fallback={null}>
+            {showAuth && (
+                <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
+            )}
 
-            <SettingsModal
-                isOpen={showSettings}
-                onClose={() => setShowSettings(false)}
-                user={user}
-                userTier={userTier}
-                isTester={isTester}
-                isAdmin={isAdmin}
-                simulatedTier={simulatedTier}
-                onSimulateTier={setSimulatedTier}
-            />
+            {showSettings && (
+                <SettingsModal
+                    isOpen={showSettings}
+                    onClose={() => setShowSettings(false)}
+                    user={user}
+                    userTier={userTier}
+                    isTester={isTester}
+                    isAdmin={isAdmin}
+                    simulatedTier={simulatedTier}
+                    onSimulateTier={setSimulatedTier}
+                />
+            )}
 
             {interviewSkill && (
-                <Suspense fallback={null}>
-                    <SkillInterviewModal
-                        onClose={() => setInterviewSkill(null)}
-                        skillName={interviewSkill}
-                        onComplete={handleInterviewComplete}
-                    />
-                </Suspense>
+                <SkillInterviewModal
+                    onClose={() => setInterviewSkill(null)}
+                    skillName={interviewSkill}
+                    onComplete={handleInterviewComplete}
+                />
             )}
 
             {showUpgradeModal && (
@@ -71,6 +75,6 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
                     onClose={() => setShowUpgradeModal(null)}
                 />
             )}
-        </>
+        </Suspense>
     );
 };

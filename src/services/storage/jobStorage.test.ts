@@ -12,7 +12,7 @@ vi.mock('./storageCore', () => ({
     getUserId: vi.fn()
 }));
 
-vi.mock('../../lib/supabase', () => ({
+vi.mock('../supabase', () => ({
     supabase: {
         from: vi.fn(() => ({
             insert: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn(() => Promise.resolve({ data: null, error: null })) })) })),
@@ -25,6 +25,8 @@ vi.mock('../../lib/supabase', () => ({
         }
     }
 }));
+
+const VALID_UUID = '123e4567-e89b-12d3-a456-426614174000';
 
 const createMockJob = (id: string, status: SavedJob['status'] = 'saved'): SavedJob => ({
     id,
@@ -42,7 +44,7 @@ describe('JobStorage', () => {
     });
 
     it('should add a job to local storage', async () => {
-        const mockJob = createMockJob('1');
+        const mockJob = createMockJob(VALID_UUID);
         vi.mocked(Vault.getSecure).mockResolvedValue([]);
         vi.mocked(getUserId).mockResolvedValue('test-user');
 
@@ -52,7 +54,7 @@ describe('JobStorage', () => {
     });
 
     it('should update a job in local storage', async () => {
-        const oldJob = createMockJob('1');
+        const oldJob = createMockJob(VALID_UUID);
         const updatedJob: SavedJob = { ...oldJob, status: 'applied' };
         vi.mocked(Vault.getSecure).mockResolvedValue([oldJob]);
         vi.mocked(getUserId).mockResolvedValue('test-user');
@@ -63,11 +65,11 @@ describe('JobStorage', () => {
     });
 
     it('should delete a job from local storage', async () => {
-        const mockJob = createMockJob('1');
+        const mockJob = createMockJob(VALID_UUID);
         vi.mocked(Vault.getSecure).mockResolvedValue([mockJob]);
         vi.mocked(getUserId).mockResolvedValue('test-user');
 
-        await JobStorage.deleteJob('1');
+        await JobStorage.deleteJob(VALID_UUID);
 
         expect(Vault.setSecure).toHaveBeenCalledWith(STORAGE_KEYS.JOBS_HISTORY, []);
     });

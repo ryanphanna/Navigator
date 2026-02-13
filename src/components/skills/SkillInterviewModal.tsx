@@ -75,7 +75,7 @@ export const SkillInterviewModal: React.FC<SkillInterviewModalProps> = ({ skillN
             evidenceParts.push(optionalContext.trim());
         }
 
-        let evidence = evidenceParts.length > 0
+        const evidence = evidenceParts.length > 0
             ? evidenceParts.join('. ')
             : `${selectedLevel.charAt(0).toUpperCase() + selectedLevel.slice(1)} level proficiency in ${skillName}`;
 

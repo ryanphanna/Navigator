@@ -26,8 +26,12 @@ export const useAcademicLogic = () => {
     const handleCourseUpdate = useCallback((updated: Course) => {
         if (!transcript || !editingCourse) return;
 
-        const newSemesters = [...transcript.semesters];
-        newSemesters[editingCourse.semIndex].courses[editingCourse.courseIndex] = updated;
+        const newSemesters = transcript.semesters.map((sem, idx) => {
+            if (idx !== editingCourse.semIndex) return sem;
+            const newCourses = [...sem.courses];
+            newCourses[editingCourse.courseIndex] = updated;
+            return { ...sem, courses: newCourses };
+        });
 
         setTranscript({ ...transcript, semesters: newSemesters });
         setEditingCourse(null);
@@ -36,8 +40,12 @@ export const useAcademicLogic = () => {
     const handleCourseDelete = useCallback(() => {
         if (!transcript || !editingCourse) return;
 
-        const newSemesters = [...transcript.semesters];
-        newSemesters[editingCourse.semIndex].courses.splice(editingCourse.courseIndex, 1);
+        const newSemesters = transcript.semesters.map((sem, idx) => {
+            if (idx !== editingCourse.semIndex) return sem;
+            const newCourses = [...sem.courses];
+            newCourses.splice(editingCourse.courseIndex, 1);
+            return { ...sem, courses: newCourses };
+        });
 
         setTranscript({ ...transcript, semesters: newSemesters });
         setEditingCourse(null);

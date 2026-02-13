@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Moon, LogOut, AlertTriangle, Eye } from 'lucide-react';
+import { EventService } from '../services/eventService';
 
 import type { User } from '@supabase/supabase-js';
 import { removeSecureItem } from '../utils/secureStorage';
@@ -147,10 +148,58 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                         </div>
                     </div>
 
-                    {/* Admin-only: View As Different User Type */}
+                    {/* Admin-only: Feature Stats */}
                     {isAdmin && (
                         <>
                             <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
+                            <div>
+                                <h4 className="font-bold text-xs text-neutral-400 uppercase tracking-wider mb-4 flex items-center justify-between">
+                                    Feature Usage
+                                    <span className="text-[8px] font-mono text-neutral-300">Local Only</span>
+                                </h4>
+                                <div className="space-y-3">
+                                    {(() => {
+                                        const stats = EventService.getFeatureStats();
+                                        const allStats = Object.values(stats);
+                                        const totalInterest = allStats.reduce((a, b) => a + (b.interest || 0), 0);
+                                        const totalUsage = allStats.reduce((a, b) => a + (b.usage || 0), 0);
+
+                                        if (totalInterest === 0 && totalUsage === 0) {
+                                            return <p className="text-[10px] text-neutral-400 italic">No usage recorded yet.</p>;
+                                        }
+
+                                        return Object.entries(stats).sort((a, b) => b[1].interest - a[1].interest).map(([id, s]) => {
+                                            const conversionRate = s.interest > 0 ? Math.round((s.usage / s.interest) * 100) : 0;
+
+                                            return (
+                                                <div key={id} className="space-y-2 p-3 bg-neutral-50 dark:bg-neutral-800/40 rounded-xl border border-neutral-100 dark:border-neutral-700/30">
+                                                    <div className="flex justify-between items-center text-[10px] font-bold">
+                                                        <span className="text-neutral-600 dark:text-neutral-400 uppercase tracking-tight">{id}</span>
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-neutral-400">CLK: <span className="text-neutral-900 dark:text-white">{s.interest}</span></span>
+                                                            <span className="text-neutral-400">ACT: <span className="text-indigo-600 dark:text-indigo-400">{s.usage}</span></span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex-1 h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                                                            <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${conversionRate}%` }} />
+                                                        </div>
+                                                        <span className="text-[9px] font-black text-neutral-400 w-8 text-right">{conversionRate}%</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
+                                    })()}
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
+
+                    {/* Admin-only: View As Different User Type */}
+                    {isAdmin && (
+                        <>
                             <div>
                                 <h4 className="font-bold text-xs text-neutral-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                                     <Eye className="w-3 h-3" />
@@ -191,6 +240,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                     </p>
                                 )}
                             </div>
+                            <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
                         </>
                     )}
 

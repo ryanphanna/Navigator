@@ -33,6 +33,7 @@ export interface ModelParams {
         temperature?: number;
         maxOutputTokens?: number;
         responseMimeType?: string;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         responseSchema?: any;
     };
     model?: string; // Accepted for legacy/local key compatibility
@@ -52,7 +53,7 @@ export const getModel = async (params: ModelParams) => {
     }
 
     return {
-        generateContent: async (payload: any) => {
+        generateContent: async (payload: { contents: { role: string; parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] }[] }) => {
             console.log(`Using Gemini Proxy (Edge Function) for ${params.task}...`);
             const { data, error } = await supabase.functions.invoke('gemini-proxy', {
                 body: {
@@ -107,7 +108,7 @@ export const logToSupabase = async (params: {
             metadata: params.metadata || {}
         });
 
-        const tokenUsage = (params.metadata?.token_usage as any)?.totalTokens || 0;
+        const tokenUsage = (params.metadata?.token_usage as { totalTokens?: number })?.totalTokens || 0;
         supabase.rpc('track_usage', { p_tokens: tokenUsage }).then(({ error }) => {
             if (error) {
                 // Silent fail in production
@@ -120,7 +121,7 @@ export const logToSupabase = async (params: {
 };
 
 export const callWithRetry = async <T>(
-    fn: (executionMetadata: Record<string, any>) => Promise<T>,
+    fn: (executionMetadata: Record<string, unknown>) => Promise<T>,
     context: { event_type: string; prompt: string; model: string; metadata?: Record<string, unknown> },
     retries: number = API_CONFIG.MAX_RETRIES,
     initialDelay = API_CONFIG.INITIAL_RETRY_DELAY_MS,
@@ -130,7 +131,7 @@ export const callWithRetry = async <T>(
     const startTime = Date.now();
 
     for (let i = 0; i < retries; i++) {
-        const executionMetadata: Record<string, any> = {};
+        const executionMetadata: Record<string, unknown> = {};
         try {
             const result = await fn(executionMetadata);
             const latency = Date.now() - startTime;

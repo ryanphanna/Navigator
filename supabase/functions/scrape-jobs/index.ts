@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
         }
 
         // 4. Parse based on source
-        let jobs: any[] = []
+        let jobs: { title: string; url: string; company: string; location: string | null; postedDate: string | null }[] = []
 
         // Special handling for TTC Early Talent page (simple HTML parsing)
         if (source === 'ttc' && url.includes('Early-Talent')) {
@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
             const dateRegex = /Last Day to Apply:\s*<\/b><\/span><span[^>]*>([^<]+)<\/span>/gi
 
             let match
-            const jobData: any[] = []
+            const jobData: { url: string; title: string }[] = []
             const dates: string[] = []
 
             // Extract all job links
@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
         } else {
             // For other pages, use Gemini AI parsing
             // Clean HTML (Naive regex cleanup to save tokens)
-            let cleanHtml = html
+            const cleanHtml = html
                 .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "")
                 .replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gim, "")
                 .replace(/<!--([\s\S]*?)-->/gim, "")
@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
             const result = await aiResponse.json();
             let text = "";
             if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts) {
-                text = result.candidates[0].content.parts.map((p: any) => p.text).join('');
+                text = result.candidates[0].content.parts.map((p: { text: string }) => p.text).join('');
             }
 
             // Clean JSON (remove markdown fences if AI adds them)
@@ -172,7 +172,7 @@ Deno.serve(async (req) => {
             status: 200,
         })
 
-    } catch (error) {
+    } catch (error: any) {
         return new Response(JSON.stringify({ error: error.message }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400,

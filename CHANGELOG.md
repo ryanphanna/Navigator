@@ -1,8 +1,44 @@
 # Changelog
-
+ 
 All notable changes to this project will be documented in this file.
+ 
+## [2.8.0] - 2026-02-13
+### Added
+- **Genuine Usage Tracking**: Implemented a two-tier tracking system distinguishing between user "Interest" (clicks) and actual "Usage" (feature actions) across all modules (JobFit, Coach, Keywords, Resumes, Cover Letters).
+- **Admin Conversion Dashboard**: Added a comprehensive "Feature Usage" breakdown in Settings for Admins, showing curiosity (CLK) vs action (ACT) with real-time conversion rates.
 
-## [Unreleased]
+### Changed
+- **Centralized UI**: Unified `FeatureGrid.tsx` for a consistent 5-column layout across both logged-in and logged-out views.
+- **UI Refinement**: Removed inaccurate "1,200+ analysis" badge from the landing page.
+
+### Fixed
+- **Stability**: Resolved "Failed to fetch" errors with `SettingsModal` dynamic imports.
+- **Code Quality**: Fixed over 30 linting errors and resolved unused import warnings across the codebase.
+
+## [2.7.0] - 2026-02-12
+### Added
+- **Education Module**: Reimagined `MAEligibility` as a **Targeted Program Fit** analyzer. Features include specific Match % scores, side-by-side GPA benchmarking, and traffic-light course mapping.
+- **Career Module**: Implemented **Trajectory Comparison** overlay for side-by-side visualization of user journey vs. role model history (Point A to Point B).
+- **Career Module**: Added **Evidence Quick-Copy** feature to Gap Analysis, providing AI-tailored resume bullets ready for one-click use.
+- **AI Infrastructure**: Upgraded `analyzeMAEligibility` prompt to act as a "Program Architect," reverse-engineering school-specific admission requirements.
+
+### Fixed
+- **History**: Resolved a bug where jobs in "Analyzing" or "Failed" states were hidden from the "Saved" filter view.
+- **History**: Added distinct status labels and visual styles (including pulse animations) for "Analyzing" and "Failed" job states.
+- **Storage**: Implemented a "Sync Fallback" to ensure jobs with "Analyzing" or "Failed" statuses are compatible with the backend database constraints.
+- **History**: Resolved a filtering bug where jobs without a status (implicitly "Saved") were hidden from the "Saved" view.
+- **History**: Fixed a React linting error by moving the `StatusTab` component out of the render cycle.
+- **Tests**: Resolved failing tests in `jobStorage.test.ts` by correcting the Supabase mock path and updating test data to use valid UUIDs.
+- **Tests**: Updated `History.test.tsx` to align with the current empty-state UI text.
+- **Code Quality**: Fixed a critical "access before declaration" error in `ToastContext.tsx` and resolved over 30 linting errors across `App.tsx`, `AuthModal.tsx`, `JobDetail.tsx`, and AI service files.
+
+### Changed
+- **Coach Dashboard**: Refactored `CoachDashboard.tsx` by extracting logic into atomic components (`CoachHero`, `RoleModelSection`, `GapAnalysisSection`) to improve maintainability.
+- **Edu Module**: Refactored `AcademicHQ.tsx` by extracting logic into atomic components (`AcademicHero`, `AcademicProfileSummary`, etc.).
+- **Testing & Stability**: Implemented a comprehensive test suite (23 new tests) for Career and Edu modules.
+- **Code Quality**: Refined type definitions in `storageCore.ts` and improved error handling in Edge Functions.
+- **State Management**: Resolved a nested state mutation bug in `useAcademicLogic` that affected credit calculations.
+- **Test Infrastructure**: Fixed global state leakage in `localStorage` by ensuring mock stores are cleared.
 
 ## [2.6.0] - 2026-02-12
 

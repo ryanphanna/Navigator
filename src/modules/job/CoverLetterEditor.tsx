@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useToast } from '../../contexts/ToastContext';
+import { EventService } from '../../services/eventService';
 
 interface CoverLetterEditorProps {
     job: SavedJob;
@@ -125,6 +126,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                 Storage.updateJob(updated);
                 setLocalJob(updated);
                 onJobUpdate(updated);
+                EventService.trackUsage('cover_letters');
 
                 console.log(`[Pro] Cover letter generated with quality score: ${result.score}/100 (${result.attempts} attempts)`);
             } else {
@@ -148,6 +150,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                 Storage.updateJob(updated);
                 setLocalJob(updated);
                 onJobUpdate(updated);
+                EventService.trackUsage('cover_letters');
             }
         } catch (e) {
             console.error(e);

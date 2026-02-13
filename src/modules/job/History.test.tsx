@@ -193,4 +193,29 @@ describe('History', () => {
     expect(screen.getByText('85% Match')).toBeInTheDocument();
     expect(screen.getByText('70% Match')).toBeInTheDocument();
   });
+
+  it('should show analyzing and error states in saved filter', () => {
+    const statusJobs: SavedJob[] = [
+      { id: '3', status: 'analyzing', position: 'Analyzing Role', company: 'Startup', dateAdded: Date.now(), description: '...', resumeId: 'r1' },
+      { id: '4', status: 'error', position: 'Failed Role', company: 'Startup', dateAdded: Date.now(), description: '...', resumeId: 'r1' },
+    ];
+
+    render(
+      <History
+        jobs={statusJobs}
+        onSelectJob={mockOnSelectJob}
+        onDeleteJob={mockOnDeleteJob}
+      />
+    );
+
+    // Should be in 'Saved' filter by default (or when selected)
+    // Count for 'Saved' and 'All' should be 2
+    expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('Analyzing Role')).toBeInTheDocument();
+    expect(screen.getByText('Failed Role')).toBeInTheDocument();
+
+    // Check for status labels
+    expect(screen.getByText('Analyzing...')).toBeInTheDocument();
+    expect(screen.getByText('Failed')).toBeInTheDocument();
+  });
 });

@@ -11,6 +11,32 @@ interface HistoryProps {
 
 type StatusFilter = 'all' | 'saved' | 'applied' | 'interview' | 'offer' | 'rejected';
 
+interface StatusTabProps {
+    id: StatusFilter;
+    label: string;
+    count: number;
+    activeFilter: StatusFilter;
+    onSelect: (filter: StatusFilter) => void;
+}
+
+const StatusTab = ({ id, label, count, activeFilter, onSelect }: StatusTabProps) => (
+    <button
+        onClick={() => onSelect(id)}
+        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 border ${activeFilter === id
+            ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white'
+            : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 dark:bg-neutral-900 dark:text-neutral-400 dark:border-neutral-800 dark:hover:border-neutral-700'
+            }`}
+    >
+        {label}
+        <span className={`px-1.5 py-0.5 rounded-md text-xs ${activeFilter === id
+            ? 'bg-white/20 text-white dark:bg-neutral-900/10 dark:text-neutral-900'
+            : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-500'
+            }`}>
+            {count}
+        </span>
+    </button>
+);
+
 export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -25,7 +51,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                 if (statusFilter === 'interview' && job.status !== 'interview') return false;
                 if (statusFilter === 'rejected' && (job.status !== 'rejected' && job.status !== 'ghosted')) return false;
                 if (statusFilter === 'applied' && job.status !== 'applied') return false;
-                if (statusFilter === 'saved' && (job.status !== 'saved' && !job.status)) return false;
+                if (statusFilter === 'saved' && (job.status !== 'saved' && job.status !== 'analyzing' && job.status !== 'error' && job.status)) return false;
             }
 
             // Search Filter
@@ -44,27 +70,11 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
             case 'rejected': return { label: 'Rejected', color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' };
             case 'ghosted': return { label: 'Ghosted', color: 'bg-neutral-100 text-neutral-500 border-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:border-neutral-700' };
             case 'applied': return { label: 'Applied', color: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800' };
+            case 'analyzing': return { label: 'Analyzing...', color: 'bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800 animate-pulse' };
+            case 'error': return { label: 'Failed', color: 'bg-red-50 text-red-600 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' };
             default: return { label: 'Saved', color: 'bg-neutral-100 text-neutral-600 border-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:border-neutral-700' };
         }
     };
-
-    const StatusTab = ({ id, label, count }: { id: StatusFilter, label: string, count: number }) => (
-        <button
-            onClick={() => setStatusFilter(id)}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 border ${statusFilter === id
-                    ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white'
-                    : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 dark:bg-neutral-900 dark:text-neutral-400 dark:border-neutral-800 dark:hover:border-neutral-700'
-                }`}
-        >
-            {label}
-            <span className={`px-1.5 py-0.5 rounded-md text-xs ${statusFilter === id
-                    ? 'bg-white/20 text-white dark:bg-neutral-900/10 dark:text-neutral-900'
-                    : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-500'
-                }`}>
-                {count}
-            </span>
-        </button>
-    );
 
     const getCount = (filter: StatusFilter) => {
         if (filter === 'all') return jobs.length;
@@ -73,7 +83,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
             if (filter === 'interview') return job.status === 'interview';
             if (filter === 'rejected') return job.status === 'rejected' || job.status === 'ghosted';
             if (filter === 'applied') return job.status === 'applied';
-            if (filter === 'saved') return job.status === 'saved' || !job.status;
+            if (filter === 'saved') return job.status === 'saved' || job.status === 'analyzing' || job.status === 'error' || !job.status;
             return false;
         }).length;
     };
@@ -109,13 +119,13 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
 
                 {/* Status Tabs - Mobile Scrollable */}
                 <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
-                    <StatusTab id="all" label="All" count={getCount('all')} />
+                    <StatusTab id="all" label="All" count={getCount('all')} activeFilter={statusFilter} onSelect={setStatusFilter} />
                     <div className="w-px h-6 bg-neutral-200 dark:bg-neutral-800 mx-2 shrink-0" />
-                    <StatusTab id="saved" label="Saved" count={getCount('saved')} />
-                    <StatusTab id="applied" label="Applied" count={getCount('applied')} />
-                    <StatusTab id="interview" label="Interview" count={getCount('interview')} />
-                    <StatusTab id="offer" label="Offer" count={getCount('offer')} />
-                    <StatusTab id="rejected" label="Rejected" count={getCount('rejected')} />
+                    <StatusTab id="saved" label="Saved" count={getCount('saved')} activeFilter={statusFilter} onSelect={setStatusFilter} />
+                    <StatusTab id="applied" label="Applied" count={getCount('applied')} activeFilter={statusFilter} onSelect={setStatusFilter} />
+                    <StatusTab id="interview" label="Interview" count={getCount('interview')} activeFilter={statusFilter} onSelect={setStatusFilter} />
+                    <StatusTab id="offer" label="Offer" count={getCount('offer')} activeFilter={statusFilter} onSelect={setStatusFilter} />
+                    <StatusTab id="rejected" label="Rejected" count={getCount('rejected')} activeFilter={statusFilter} onSelect={setStatusFilter} />
                 </div>
             </div>
 
@@ -196,8 +206,8 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                                             {score ? (
                                                 <div className="flex items-center gap-2">
                                                     <div className={`px-2.5 py-1 rounded-lg text-sm font-bold border flex items-center gap-1.5 ${score >= 80 ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' :
-                                                            score >= 60 ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800' :
-                                                                'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'
+                                                        score >= 60 ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800' :
+                                                            'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'
                                                         }`}>
                                                         <Sparkles className="w-3.5 h-3.5" />
                                                         {score}% Match

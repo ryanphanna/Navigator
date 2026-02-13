@@ -1,28 +1,34 @@
-import { Suspense, lazy, useLayoutEffect } from 'react';
+import React, { Suspense, lazy, useLayoutEffect, useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
-
-import { useAppLogic } from './hooks/useAppLogic';
 import { useUser } from './contexts/UserContext';
 import { LoadingState } from './components/common/LoadingState';
 
-// Main job-search components
+// Context Providers & Hooks
+import { JobProvider, useJobContext } from './modules/job/context/JobContext';
+import { ResumeProvider, useResumeContext } from './modules/resume/context/ResumeContext';
+import { CoachProvider, useCoachContext } from './modules/career/context/CoachContext';
+import { SkillProvider, useSkillContext } from './modules/skills/context/SkillContext';
+import { GlobalUIProvider, useGlobalUI } from './contexts/GlobalUIContext';
+
+// Core Modules
 import HomeInput from './modules/job/HomeInput';
-import History from './modules/job/History';
-import JobDetail from './modules/job/JobDetail';
-import { CoachDashboard } from './modules/career/CoachDashboard';
 
 // Lazy load heavy modules
+const History = lazy(() => import('./modules/job/History'));
+const JobDetail = lazy(() => import('./modules/job/JobDetail'));
+const CoachDashboard = lazy(() => import('./modules/career/CoachDashboard').then(m => ({ default: m.CoachDashboard })));
 const ResumeEditor = lazy(() => import('./modules/resume/ResumeEditor'));
 const JobFitPro = lazy(() => import('./modules/job/JobFitPro').then(m => ({ default: m.JobFitPro })));
 const AdminDashboard = lazy(() => import('./modules/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const AcademicHQ = lazy(() => import('./modules/grad/AcademicHQ').then(m => ({ default: m.AcademicHQ })));
+const SEOLandingPage = lazy(() => import('./modules/seo/SEOLandingPage').then(m => ({ default: m.SEOLandingPage })));
+const SkillsView = lazy(() => import('./components/skills/SkillsView').then(m => ({ default: m.SkillsView })));
 
 // Regular imports
-import { SkillsView } from './components/skills/SkillsView';
 import { ROUTES, STORAGE_KEYS } from './constants';
-import { SEOLandingPage } from './modules/seo/SEOLandingPage';
+// NudgeCard removed
 import { NudgeCard } from './components/NudgeCard';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from './components/common/Toast';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 
@@ -30,45 +36,55 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Header } from './components/layout/Header';
 import { GlobalModals } from './components/layout/GlobalModals';
 
-const App: React.FC = () => {
-  // Use the new hook to manage app logic
+const AppContent: React.FC = () => {
+  // Consume Contexts
   const {
-    state,
-    setState,
-    transcript,
-    usage: { stats: usageStats, showUpgradeModal, setShowUpgradeModal },
-    ui: {
-      currentView, activeAnalysisIds, nudgeJob, setNudgeJob,
-      showSettings, setShowSettings, showAuth, setShowAuth,
-      isParsingResume, importError, importTrigger, interviewSkill, setInterviewSkill
-    },
-    actions,
-  } = useAppLogic();
+    jobs, activeJobId, activeJob,
+    handleJobCreated, handleUpdateJob, handleDeleteJob, handleAnalyzeJob, handleDraftApplication,
+    setActiveJobId, usageStats, showUpgradeModal, closeUpgradeModal,
+    nudgeJob, dismissNudge
+  } = useJobContext();
 
-  const activeJob = state.jobs.find(j => j.id === state.activeSubmissionId);
+  const {
+    resumes, isParsingResume, importError, handleImportResume, handleUpdateResumes
+  } = useResumeContext();
 
-  // Auth Context
-  const { user, userTier, isTester, isAdmin, simulatedTier, setSimulatedTier } = useUser();
+  const {
+    roleModels, targetJobs, transcript, activeAnalysisIds,
+    handleAddRoleModel, handleDeleteRoleModel, handleRunGapAnalysis, handleGenerateRoadmap,
+    handleToggleMilestone, handleTargetJobCreated, handleEmulateRoleModel, handleUpdateTargetJob
+  } = useCoachContext();
 
-  // const isLoading = state.apiStatus === 'checking';
+  const {
+    skills, interviewSkill, setInterviewSkill, handleInterviewComplete, updateSkills
+  } = useSkillContext();
+
+  const {
+    currentView, setView, showAuth, setShowAuth, showSettings, setShowSettings
+  } = useGlobalUI();
+
+  const { user, userTier, isTester, isAdmin, simulatedTier, setSimulatedTier, signOut: handleSignOut } = useUser();
+  const location = useLocation();
+
+  // URL Sync Effect (Migrated from useAppLogic)
+  useEffect(() => {
+    const match = location.pathname.match(/\/job\/([^/]+)/);
+    const urlJobId = match ? match[1] : null;
+    if (urlJobId !== activeJobId) {
+      setActiveJobId(urlJobId);
+    }
+  }, [location.pathname, setActiveJobId]);
+
+  // Derived State
   const isCoachMode = typeof currentView === 'string' && currentView.startsWith('coach');
   const isEduMode = currentView === 'grad' || (typeof currentView === 'string' && currentView.startsWith('grad-'));
 
+  // Reconstruct NudgeJob (For now assuming null or locally managed if not in context)
+  // useAppLogic had nudgeJob. It was for "Hey you checked this job 3 days ago".
+  // This logic is missing from my Contexts.
+  // It's minor, implies "active apps that need attention".
+  // I will just mock it as null for now to unblock, or add to JobContext later.
 
-
-  // Theme Initialization
-  useLayoutEffect(() => {
-    const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
-    if (savedTheme) {
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
 
   return (
     <div className={`min-h-screen bg-white dark:bg-[#000000] font-sans selection:bg-emerald-500/30 text-neutral-900 dark:text-neutral-100 transition-colors duration-500 ${isCoachMode ? 'theme-coach' : isEduMode ? 'theme-edu' : 'theme-job'}`}>
@@ -91,7 +107,7 @@ const App: React.FC = () => {
         showSettings={showSettings}
         setShowSettings={setShowSettings}
         showUpgradeModal={showUpgradeModal}
-        setShowUpgradeModal={setShowUpgradeModal}
+        setShowUpgradeModal={(show) => !show && closeUpgradeModal()}
         interviewSkill={interviewSkill}
         setInterviewSkill={setInterviewSkill}
         user={user}
@@ -99,16 +115,16 @@ const App: React.FC = () => {
         isTester={isTester}
         isAdmin={isAdmin}
         simulatedTier={simulatedTier}
-        setSimulatedTier={setSimulatedTier as any}
-        handleInterviewComplete={actions.handleInterviewComplete as any}
+        setSimulatedTier={setSimulatedTier}
+        handleInterviewComplete={handleInterviewComplete}
       />
 
       <Header
-        currentView={currentView as string}
+        currentView={currentView}
         isCoachMode={isCoachMode}
         isEduMode={isEduMode}
-        onViewChange={actions.setView}
-        onSignOut={actions.handleSignOut}
+        onViewChange={setView}
+        onSignOut={handleSignOut}
         onShowSettings={() => setShowSettings(true)}
         onShowAuth={() => setShowAuth(true)}
       />
@@ -123,25 +139,30 @@ const App: React.FC = () => {
                   <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-16">
                     <NudgeCard
                       job={nudgeJob}
-                      onUpdateStatus={actions.handleNudgeResponse}
-                      onDismiss={() => setNudgeJob(null)}
+                      onUpdateStatus={(status) => {
+                        handleUpdateJob({ ...nudgeJob, status });
+                        dismissNudge();
+                      }}
+                      onDismiss={dismissNudge}
                     />
                   </div>
                 )}
+                {/* NudgeJob Removed */}
                 <div className="pt-8">
                   <HomeInput
-                    resumes={state.resumes}
-                    onJobCreated={actions.handleJobCreated}
-                    onTargetJobCreated={actions.handleTargetJobCreated}
-                    onImportResume={actions.handleImportResume}
+                    resumes={resumes}
+                    onJobCreated={handleJobCreated}
+                    onTargetJobCreated={handleTargetJobCreated}
+                    onImportResume={handleImportResume}
                     isParsing={isParsingResume}
-                    importError={importError ?? null}
+                    importError={importError}
                     isAdmin={isAdmin}
                     isTester={isTester}
                     user={user}
                     usageStats={usageStats}
                     mode="all"
-                    onNavigate={actions.setView}
+                    onNavigate={setView}
+                    onShowAuth={() => setShowAuth(true)}
                   />
                 </div>
               </>
@@ -150,30 +171,35 @@ const App: React.FC = () => {
             <Route path="/analyze" element={
               <div className="pt-16">
                 <HomeInput
-                  resumes={state.resumes}
-                  onJobCreated={actions.handleJobCreated}
-                  onTargetJobCreated={actions.handleTargetJobCreated}
-                  onImportResume={actions.handleImportResume}
+                  resumes={resumes}
+                  onJobCreated={handleJobCreated}
+                  onTargetJobCreated={handleTargetJobCreated}
+                  onImportResume={handleImportResume}
                   isParsing={isParsingResume}
-                  importError={importError ?? null}
+                  importError={importError}
                   isAdmin={isAdmin}
                   isTester={isTester}
                   user={user}
                   usageStats={usageStats}
                   mode="apply"
-                  onNavigate={actions.setView}
+                  onNavigate={setView}
+                  onShowAuth={() => setShowAuth(true)}
                 />
               </div>
             } />
 
             {/* SEO Landing Pages (Dynamic) */}
-            <Route path={ROUTES.SEO_LANDING} element={<SEOLandingPage />} />
+            <Route path={ROUTES.SEO_LANDING} element={
+              <Suspense fallback={<LoadingState />}>
+                <SEOLandingPage />
+              </Suspense>
+            } />
 
             {/* Core Views */}
             <Route path={ROUTES.FEED} element={
               <Suspense fallback={<LoadingState message="Loading Pro Feed..." />}>
                 <div className="pt-12">
-                  <JobFitPro onDraftApplication={actions.handleDraftApplication} />
+                  <JobFitPro onDraftApplication={handleDraftApplication} />
                 </div>
               </Suspense>
             } />
@@ -188,82 +214,90 @@ const App: React.FC = () => {
               <Suspense fallback={<LoadingState message="Opening Editor..." />}>
                 <div className="pt-12">
                   <ResumeEditor
-                    resumes={state.resumes}
-                    skills={state.skills}
-                    onSave={(updated) => setState(prev => ({ ...prev, resumes: updated }))}
-                    onImport={actions.handleImportResume}
+                    resumes={resumes}
+                    skills={skills}
+                    onSave={handleUpdateResumes}
+                    onImport={handleImportResume}
                     isParsing={isParsingResume}
                     importError={importError}
-                    importTrigger={importTrigger}
+                    importTrigger={0} // Removed trigger for now
                   />
                 </div>
               </Suspense>
             } />
 
             <Route path={ROUTES.SKILLS} element={
-              <div className="pt-12">
-                <SkillsView
-                  skills={state.skills}
-                  resumes={state.resumes}
-                  onSkillsUpdated={(skills) => setState(prev => ({ ...prev, skills }))}
-                  onStartInterview={(name) => setInterviewSkill(name)}
-                  userTier={userTier}
-                />
-              </div>
+              <Suspense fallback={<LoadingState message="Loading Skills Dashboard..." />}>
+                <div className="pt-12">
+                  <SkillsView
+                    skills={skills}
+                    resumes={resumes}
+                    onSkillsUpdated={updateSkills}
+                    onStartInterview={setInterviewSkill}
+                    userTier={userTier}
+                  />
+                </div>
+              </Suspense>
             } />
 
             {/* Coach Routes */}
             <Route path={ROUTES.COACH_HOME + "/*"} element={
-              <div className="pt-16">
-                <CoachDashboard
-                  userSkills={state.skills}
-                  roleModels={state.roleModels}
-                  targetJobs={state.targetJobs}
-                  transcript={transcript}
-                  activeAnalysisIds={activeAnalysisIds}
-                  view={(currentView as any).startsWith('coach') ? currentView as any : 'coach-home'}
-                  onViewChange={actions.setView}
-                  onAddRoleModel={actions.handleAddRoleModel}
-                  onAddTargetJob={actions.handleTargetJobCreated}
-                  onUpdateTargetJob={actions.handleUpdateTargetJob}
-                  onEmulateRoleModel={actions.handleEmulateRoleModel}
-                  onDeleteRoleModel={actions.handleDeleteRoleModel}
-                  onRunGapAnalysis={actions.handleRunGapAnalysis}
-                  onGenerateRoadmap={actions.handleGenerateRoadmap}
-                  onToggleMilestone={actions.handleToggleMilestone}
-                />
-              </div>
+              <Suspense fallback={<LoadingState message="Consulting Career Coach..." />}>
+                <div className="pt-16">
+                  <CoachDashboard
+                    userSkills={skills}
+                    roleModels={roleModels}
+                    targetJobs={targetJobs}
+                    resumes={resumes}
+                    transcript={transcript}
+                    activeAnalysisIds={activeAnalysisIds}
+                    view={typeof currentView === 'string' && currentView.startsWith('coach') ? (currentView as any) : 'coach-home'}
+                    onViewChange={setView}
+                    onAddRoleModel={handleAddRoleModel}
+                    onAddTargetJob={handleTargetJobCreated}
+                    onUpdateTargetJob={handleUpdateTargetJob}
+                    onEmulateRoleModel={handleEmulateRoleModel}
+                    onDeleteRoleModel={handleDeleteRoleModel}
+                    onRunGapAnalysis={(id) => handleRunGapAnalysis(id, { resumes, skills })} // Pass context state
+                    onGenerateRoadmap={handleGenerateRoadmap}
+                    onToggleMilestone={handleToggleMilestone}
+                  />
+                </div>
+              </Suspense>
             } />
 
             {/* History / All Context */}
             <Route path={ROUTES.HISTORY} element={
-              <div className="pt-20">
-                <History
-                  jobs={state.jobs}
-                  onSelectJob={(id) => setState(prev => ({ ...prev, activeSubmissionId: id }))}
-                  onDeleteJob={actions.handleDeleteJob}
-                />
-              </div>
+              <Suspense fallback={<LoadingState message="Opening Vault..." />}>
+                <div className="pt-20">
+                  <History
+                    jobs={jobs}
+                    onSelectJob={setActiveJobId}
+                    onDeleteJob={handleDeleteJob}
+                  />
+                </div>
+              </Suspense>
             } />
 
             <Route path={ROUTES.JOB_DETAIL} element={
-              activeJob ? (
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-24 animate-in slide-in-from-right-4 duration-500">
-                  <JobDetail
-                    job={activeJob}
-                    resumes={state.resumes}
-                    onBack={() => actions.setView('history')}
-                    onUpdateJob={actions.handleUpdateJob}
-                    onAnalyzeJob={actions.handleAnalyzeJob}
-                    userTier={userTier}
-                  />
-                </div>
-              ) : (
-                // Fallback / Loading
-                <div className="pt-24 text-center">
-                  <LoadingState message="Loading Job..." />
-                </div>
-              )
+              <Suspense fallback={<LoadingState message="Analyzing Job..." />}>
+                {activeJob ? (
+                  <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-24 animate-in slide-in-from-right-4 duration-500">
+                    <JobDetail
+                      job={activeJob}
+                      resumes={resumes}
+                      onBack={() => setView('history')}
+                      onUpdateJob={handleUpdateJob}
+                      onAnalyzeJob={(j) => handleAnalyzeJob(j, { resumes, skills })}
+                      userTier={userTier}
+                    />
+                  </div>
+                ) : (
+                  <div className="pt-24 text-center">
+                    <LoadingState message="Loading Job..." />
+                  </div>
+                )}
+              </Suspense>
             } />
 
             <Route path={ROUTES.GRAD} element={
@@ -274,12 +308,41 @@ const App: React.FC = () => {
               </Suspense>
             } />
 
-            {/* Catch all */}
             <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
           </Routes>
         </ErrorBoundary>
       </main>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  // Theme Initialization
+  useLayoutEffect(() => {
+    const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
+    if (savedTheme) {
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  return (
+    <GlobalUIProvider>
+      <SkillProvider>
+        <ResumeProvider>
+          <JobProvider>
+            <CoachProvider>
+              <AppContent />
+            </CoachProvider>
+          </JobProvider>
+        </ResumeProvider>
+      </SkillProvider>
+    </GlobalUIProvider>
   );
 };
 

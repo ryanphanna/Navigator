@@ -279,7 +279,8 @@ export const ANALYSIS_PROMPTS = {
               "type": "project" | "metric" | "certification" | "tool",
               "task": "string",
               "metric": "string (The proof of success)",
-              "tools": ["string"]
+              "tools": ["string"],
+              "resumeBullet": "Specifically written XYZ bullet for a resume (e.g. 'Engineered X using Y to deliver Z')"
             }
           ]
         }
@@ -311,7 +312,20 @@ export const ANALYSIS_PROMPTS = {
         { "title": "The specific move", "description": "Why it mattered", "timing": "Role Model Year X", "prevalence": "High Impact" }
       ],
       "topSkillGaps": [
-        { "skill": "Skill Name", "importance": 5, "gapDescription": "Why you need it", "actionableEvidence": [{ "type": "project", "task": "Build X", "metric": "Prove Y", "tools": ["Tool A"] }] }
+        { 
+          "skill": "Skill Name", 
+          "importance": 5, 
+          "gapDescription": "Why you need it", 
+          "actionableEvidence": [
+            { 
+              "type": "project", 
+              "task": "Build X", 
+              "metric": "Prove Y", 
+              "tools": ["Tool A"],
+              "resumeBullet": "Specifically written XYZ bullet for a resume (e.g. 'Engineered X using Y to deliver Z')" 
+            }
+          ] 
+        }
       ],
       "estimatedTimeToBridge": "e.g. 18-24 months",
       "dateGenerated": ${Date.now()}
@@ -368,26 +382,40 @@ export const ANALYSIS_PROMPTS = {
 
 
   GRAD_SCHOOL_ELIGIBILITY: (transcriptText: string, targetProgram: string) => `
-    You are a Graduate Admissions Consultant. Analyze this transcript for eligibility into a specific Master's program.
+    You are a Graduate Admissions Consultant. Analyze this transcript for eligibility into a specific university program.
+    You must be extremely specific to the named institution (e.g. if they ask for Waterloo, look for Waterloo-specific requirements).
 
     TRANSCRIPT SUMMARY:
     ${transcriptText}
 
-    TARGET PROGRAM:
+    TARGET PROGRAM & UNIVERSITY:
     ${targetProgram}
 
     TASK:
-    1. Assess cGPA strength for this specific field (e.g. 3.0 is okay for Arts, bad for Med School).
-    2. Identify KEY missing prerequisites or weak areas (e.g. "Low grades in calculus").
-    3. Estimate "Admission Probability" (High, Medium, Low).
-    4. Recommend 2-3 strategic moves for the remaining time (e.g. "Retake Stats", "Focus on research").
+    1. RESEARCH prerequisites (mandatory courses, volunteer hours, tests like GRE/GMAT) for THIS specific program.
+    2. MAPPING: Match the user's transcript courses against these prerequisites.
+    3. GPA BENCHMARK: Compare the user's average against the typical competitive intake for this specific program.
+    4. ADMISSION PROBABILITY: Estimate (High, Medium, Low).
 
     Return JSON:
     {
       "probability": "High" | "Medium" | "Low",
-      "analysis": "string (2-3 sentences)",
+      "analysis": "string (Summary of fit)",
       "gpaVerdict": "string (e.g. 'Strong')",
-      "gpaContext": "string (e.g. 'Your 3.8 is well above the 3.3 cutoff')",
+      "gpaContext": "string (e.g. 'Your 85% is in the top decile for Waterloo Planning')",
+      "gpaBenchmark": {
+        "userGPA": "string (e.g. '85%')",
+        "typicalIntake": "string (e.g. '80-82%')",
+        "standing": "Safe" | "Competitive" | "Reach"
+      },
+      "prerequisites": [
+        {
+          "requirement": "string (e.g. 'Intro to Stats')",
+          "status": "met" | "missing" | "in-progress",
+          "mapping": "string (e.g. 'MATH 101 - A+')",
+          "description": "string (Briefly explain the requirement)"
+        }
+      ],
       "weaknesses": ["string"],
       "recommendations": ["string"]
     }

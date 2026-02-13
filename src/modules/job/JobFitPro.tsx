@@ -79,18 +79,12 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
             .order('created_at', { ascending: false })
             .limit(1);
 
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('subscription_tier')
-            .single();
-
         if (!resumes || resumes.length === 0) {
             console.log('No resume found, skipping analysis');
             return;
         }
 
         const resume = resumes[0];
-        const tier = profile?.subscription_tier || 'free';
 
         // Check which jobs already have analysis in Supabase
         const jobUrls = jobs.map(j => j.url);
@@ -112,14 +106,14 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
                 ));
             } else {
                 // Analyze new job
-                await analyzeAndCacheJob(job, resume, tier);
+                await analyzeAndCacheJob(job, resume);
             }
         }
 
         console.log('Background analysis complete!');
     };
 
-    const analyzeAndCacheJob = async (job: JobFeedItem, resume: any, tier: string = 'free') => {
+    const analyzeAndCacheJob = async (job: JobFeedItem, resume: any) => {
         try {
             // 1. Scrape Job Text
             const jobText = await ScraperService.scrapeJobText(job.url);
@@ -129,7 +123,7 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
             }
 
             // 2. Analyze with Gemini
-            const analysis = await analyzeJobFit(jobText, [resume], undefined, undefined, tier);
+            const analysis = await analyzeJobFit(jobText, [resume], undefined, undefined);
 
             // 3. Update UI with real score
             const matchScore = analysis.compatibilityScore;

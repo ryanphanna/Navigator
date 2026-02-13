@@ -5,7 +5,8 @@ import type {
     GapAnalysisResult,
     RoadmapMilestone,
     ResumeProfile,
-    CustomSkill
+    CustomSkill,
+    AdmissionEligibility
 } from "../../types";
 import { AI_MODELS, AI_TEMPERATURE } from "../../constants";
 import { ANALYSIS_PROMPTS, PARSING_PROMPTS } from "../../prompts/index";
@@ -13,7 +14,7 @@ import { ANALYSIS_PROMPTS, PARSING_PROMPTS } from "../../prompts/index";
 export const analyzeMAEligibility = async (
     transcript: Transcript,
     targetProgram: string
-): Promise<any> => {
+): Promise<AdmissionEligibility> => {
     const transcriptText = JSON.stringify(transcript);
     const prompt = ANALYSIS_PROMPTS.GRAD_SCHOOL_ELIGIBILITY(transcriptText, targetProgram);
 
@@ -52,7 +53,6 @@ export const analyzeGap = async (
     userResumes: ResumeProfile[],
     userSkills: CustomSkill[],
     transcript: Transcript | null = null,
-    _strictMode: boolean = true
 ): Promise<GapAnalysisResult> => {
     const roleModelContext = JSON.stringify(roleModels);
     const resumeContext = JSON.stringify(userResumes);
@@ -75,7 +75,7 @@ export const generateRoadmap = async (
         const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         const parsed = JSON.parse(cleanJsonOutput(response.response.text()));
-        return parsed.milestones.map((m: any) => ({ ...m, status: 'pending' }));
+        return (parsed.milestones as RoadmapMilestone[]).map((m) => ({ ...m, status: 'pending' }));
     }, { event_type: 'roadmap_generation', prompt, model: 'dynamic' });
 };
 
@@ -123,7 +123,7 @@ export const parseTranscript = async (
 
 export const extractSkillsFromCourses = async (
     transcript: Transcript
-): Promise<any[]> => {
+): Promise<CustomSkill[]> => {
     const allCourses = transcript.semesters.flatMap(s => s.courses);
     const coursesList = JSON.stringify(allCourses);
     const prompt = ANALYSIS_PROMPTS.COURSE_SKILL_EXTRACTION(coursesList);

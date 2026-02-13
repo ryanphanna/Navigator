@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
         // Extract text from standard Gemini response structure
         let text = "";
         if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
-            text = data.candidates[0].content.parts.map((p: any) => p.text).join('');
+            text = data.candidates[0].content.parts.map((p: { text: string }) => p.text).join('');
         }
 
         return new Response(JSON.stringify({ text }), {
@@ -115,9 +115,10 @@ Deno.serve(async (req) => {
             status: 200,
         })
 
-    } catch (error: any) {
-        console.error("Gemini Proxy Error:", error.message);
-        return new Response(JSON.stringify({ error: `Edge Function Error: ${error.message}` }), {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("Gemini Proxy Error:", message);
+        return new Response(JSON.stringify({ error: `Edge Function Error: ${message}` }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200, // Return 200 so client gets the error message JSON
         })

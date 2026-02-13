@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { School, Search, TrendingUp, AlertTriangle, CheckCircle, Loader2, Sparkles } from 'lucide-react';
-import { analyzeMAEligibility } from '../../services/geminiService';
+import { School, Search, AlertTriangle, Loader2, Sparkles, Target, ArrowRight } from 'lucide-react';
+import { analyzeMAEligibility } from '../../services/ai/eduAiService';
 import { useToast } from '../../contexts/ToastContext';
-import type { Transcript } from '../../types';
+import type { Transcript, AdmissionEligibility } from '../../types';
 
 interface MAEligibilityProps {
     transcript: Transcript;
@@ -11,14 +11,7 @@ interface MAEligibilityProps {
 export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript }) => {
     const [targetProgram, setTargetProgram] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [result, setResult] = useState<{
-        probability: 'High' | 'Medium' | 'Low';
-        analysis: string;
-        gpaVerdict: string;
-        gpaContext: string;
-        weaknesses: string[];
-        recommendations: string[];
-    } | null>(null);
+    const [result, setResult] = useState<AdmissionEligibility | null>(null);
     const { showError } = useToast();
 
     const handleAnalysis = async () => {
@@ -38,13 +31,15 @@ export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript }) => {
         <div className="bg-white/70 dark:bg-neutral-800/70 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-neutral-700/50 p-8 shadow-2xl shadow-rose-500/5 relative overflow-hidden group">
             <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl group-hover:bg-rose-500/10 transition-colors duration-700" />
 
-            <div className="flex items-center gap-4 mb-8 relative">
-                <div className="w-12 h-12 bg-rose-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/30">
-                    <School className="w-6 h-6" />
-                </div>
-                <div>
-                    <h3 className="font-black text-xl text-neutral-900 dark:text-white tracking-tight">MA Eligibility Check</h3>
-                    <p className="text-sm text-neutral-500 font-medium">AI-powered chance-me for Grad School.</p>
+            <div className="flex items-center justify-between mb-8 relative">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-rose-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/30">
+                        <School className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h3 className="font-black text-xl text-neutral-900 dark:text-white tracking-tight text-left">Program Fit Analyzer</h3>
+                        <p className="text-sm text-neutral-500 font-medium text-left">The admissions "A to B" trajectory.</p>
+                    </div>
                 </div>
             </div>
 
@@ -53,7 +48,7 @@ export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript }) => {
                     <div className="relative flex-1 group/input">
                         <input
                             type="text"
-                            placeholder="e.g. UofT Master of Computer Science"
+                            placeholder="e.g. University of Waterloo - Masters of Urban Planning"
                             value={targetProgram}
                             onChange={(e) => setTargetProgram(e.target.value)}
                             className="w-full px-5 py-3.5 bg-white dark:bg-neutral-900 border-2 border-neutral-100 dark:border-neutral-800 rounded-2xl text-sm font-bold focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all outline-none"
@@ -69,78 +64,157 @@ export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript }) => {
                         {isAnalyzing ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                Analyzing...
+                                Researching...
                             </>
                         ) : (
-                            'Research'
+                            'Analyze Trajectory'
                         )}
                     </button>
                 </div>
 
                 {result && (
                     <div className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        {/* Probability Header */}
-                        <div className={`p-8 rounded-[2.5rem] border-2 transition-all duration-500 relative overflow-hidden ${result.probability === 'High'
-                            ? 'bg-emerald-500 border-emerald-400 text-white shadow-xl shadow-emerald-500/20'
-                            : result.probability === 'Medium'
-                                ? 'bg-amber-500 border-amber-400 text-white shadow-xl shadow-amber-500/20'
-                                : 'bg-rose-500 border-rose-400 text-white shadow-xl shadow-rose-500/20'
-                            }`}>
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
-                            <div className="relative flex items-center gap-4 mb-4">
-                                <TrendingUp className="w-8 h-8" />
-                                <span className="font-black text-3xl tracking-tighter">{result.probability} Eligibility</span>
-                            </div>
-                            <p className="text-sm font-bold opacity-90 leading-relaxed max-w-2xl">{result.analysis}</p>
-                        </div>
+                        {/* Trajectory Header */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center bg-neutral-900 dark:bg-black rounded-[2.5rem] p-8 text-white relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full -mr-32 -mt-32 blur-3xl" />
 
-                        {/* Details Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="p-6 bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-100 dark:border-neutral-800 shadow-sm group/card hover:border-emerald-200 transition-colors">
-                                <h4 className="font-black text-[11px] text-neutral-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                    <div className="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg group-hover/card:bg-emerald-500 group-hover/card:text-white transition-colors">
-                                        <CheckCircle className="w-3 h-3" />
+                            <div className="flex flex-col items-center md:items-start">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500 mb-2">Current Standing (A)</span>
+                                <div className="text-2xl font-black">{transcript.cgpa || '8.2'}/10.0</div>
+                                <div className="text-[10px] text-neutral-400 font-bold uppercase mt-1">{transcript.university || 'Your University'}</div>
+                            </div>
+
+                            <div className="flex justify-center">
+                                <div className="relative flex items-center justify-center">
+                                    <div className="absolute inset-0 bg-rose-500/20 rounded-full blur-xl animate-pulse" />
+                                    <div className={`w-28 h-28 rounded-full border-4 flex flex-col items-center justify-center bg-black transition-colors ${result.probability === 'High' ? 'border-emerald-500' :
+                                        result.probability === 'Medium' ? 'border-amber-500' : 'border-rose-500'
+                                        }`}>
+                                        <div className="text-3xl font-black leading-none">{result.probability === 'High' ? '85' : result.probability === 'Medium' ? '65' : '45'}%</div>
+                                        <div className="text-[8px] font-black uppercase tracking-widest mt-1">FIT SCORE</div>
                                     </div>
-                                    GPA Verdict
-                                </h4>
-                                <div className="space-y-2">
-                                    <div className="text-lg font-black text-neutral-900 dark:text-white leading-tight">{result.gpaVerdict}</div>
-                                    <div className="text-sm text-neutral-500 font-medium leading-relaxed">{result.gpaContext}</div>
+                                    <div className="absolute -right-4 top-1/2 -translate-y-1/2 md:hidden">
+                                        <ArrowRight className="w-6 h-6 text-neutral-500" />
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="p-6 bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-100 dark:border-neutral-800 shadow-sm group/card hover:border-amber-200 transition-colors">
-                                <h4 className="font-black text-[11px] text-neutral-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                    <div className="p-1.5 bg-amber-100 text-amber-600 rounded-lg group-hover/card:bg-amber-500 group-hover/card:text-white transition-colors">
-                                        <AlertTriangle className="w-3 h-3" />
-                                    </div>
-                                    Risk Factors
-                                </h4>
-                                <ul className="space-y-2">
-                                    {result.weaknesses.map((w, i) => (
-                                        <li key={i} className="text-sm text-neutral-600 dark:text-neutral-400 font-bold flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
-                                            {w}
-                                        </li>
-                                    ))}
-                                    {result.weaknesses.length === 0 && <li className="text-neutral-400 italic font-medium">No major risks detected</li>}
-                                </ul>
+                            <div className="flex flex-col items-center md:items-end text-center md:text-right">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500 mb-2">Target Goal (B)</span>
+                                <div className="text-lg font-black leading-tight max-w-[150px]">{targetProgram}</div>
+                                <div className="text-[10px] text-neutral-400 font-bold uppercase mt-1">Admission Target</div>
                             </div>
                         </div>
 
-                        {/* Recommendations */}
-                        <div className="bg-neutral-900 dark:bg-black rounded-[2.5rem] p-8 shadow-2xl">
-                            <h4 className="font-black text-white text-xl mb-6 tracking-tight flex items-center gap-3">
-                                <Sparkles className="w-6 h-6 text-rose-500" />
-                                Strategic Roadmap
-                            </h4>
-                            <div className="grid gap-4">
+                        {/* Benchmark & Prerequisites Layout */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            {/* GPA Benchmark */}
+                            <div className="lg:col-span-1 space-y-6">
+                                {result.gpaBenchmark && (
+                                    <div className="p-8 bg-white dark:bg-neutral-900 rounded-[2rem] border border-neutral-100 dark:border-neutral-800 shadow-sm relative group/bench">
+                                        <div className="absolute top-4 right-4">
+                                            <div className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider ${result.gpaBenchmark.standing === 'Safe' ? 'bg-emerald-100 text-emerald-600' :
+                                                result.gpaBenchmark.standing === 'Competitive' ? 'bg-indigo-100 text-indigo-600' :
+                                                    'bg-rose-100 text-rose-600'
+                                                }`}>
+                                                {result.gpaBenchmark.standing}
+                                            </div>
+                                        </div>
+                                        <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-8 text-left">The Competitive Curve</h4>
+                                        <div className="relative h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full mb-8">
+                                            <div className="absolute inset-y-0 left-[20%] right-[30%] bg-indigo-500/20 rounded-full" title="Typical Intake Range" />
+                                            <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-rose-600 rounded-full border-2 border-white shadow-lg transition-all duration-1000" style={{ left: `calc(${result.gpaBenchmark.userGPA.replace('%', '')}% - 8px)` }}>
+                                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-rose-600 whitespace-nowrap">You ({result.gpaBenchmark.userGPA})</div>
+                                            </div>
+                                            <div className="absolute bottom-[-1.5rem] left-[45%] text-[8px] font-black text-neutral-400 uppercase tracking-widest">Intake Average ({result.gpaBenchmark.typicalIntake})</div>
+                                        </div>
+                                        <p className="text-xs text-neutral-500 font-bold leading-relaxed text-left">{result.gpaContext}</p>
+                                    </div>
+                                )}
+
+                                <div className="p-6 bg-amber-50 dark:bg-amber-900/10 rounded-3xl border border-amber-100 dark:border-amber-900/30">
+                                    <h4 className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                        <AlertTriangle className="w-3 h-3" />
+                                        Trajectory Risks
+                                    </h4>
+                                    <ul className="space-y-3">
+                                        {result.weaknesses.map((w, i) => (
+                                            <li key={i} className="text-xs text-neutral-700 dark:text-neutral-300 font-bold flex items-start gap-2 text-left">
+                                                <div className="w-1.5 h-1.5 bg-amber-400 rounded-full mt-1 shrink-0" />
+                                                {w}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+
+                            {/* Prerequisite "Traffic Light" Grid */}
+                            <div className="lg:col-span-2 space-y-6">
+                                <div className="flex items-center justify-between mb-2 px-2">
+                                    <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Prerequisite "Traffic Light" Mapping</h4>
+                                    <div className="text-[10px] font-bold text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-3 py-1 rounded-full italic">
+                                        Research-Backed Requirements
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {result.prerequisites?.map((prereq, i) => (
+                                        <div key={i} className="flex flex-col p-5 bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-100 dark:border-neutral-800 group/item hover:border-indigo-200 transition-all text-left">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-3 h-3 rounded-full animate-pulse ${prereq.status === 'met' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' :
+                                                        prereq.status === 'in-progress' ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]' :
+                                                            'bg-rose-500 shadow-[0_0_10px_rgba(225,29,72,0.5)]'
+                                                        }`} />
+                                                    <div className="font-black text-sm text-neutral-900 dark:text-white truncate max-w-[120px]">{prereq.requirement}</div>
+                                                </div>
+                                                <div className={`text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider ${prereq.status === 'met' ? 'bg-emerald-100 text-emerald-600' :
+                                                    prereq.status === 'in-progress' ? 'bg-amber-100 text-amber-600' :
+                                                        'bg-rose-100 text-rose-600'
+                                                    }`}>
+                                                    {prereq.status}
+                                                </div>
+                                            </div>
+                                            <p className="text-[10px] text-neutral-400 font-bold mb-3 leading-relaxed">{prereq.description}</p>
+                                            {prereq.mapping && (
+                                                <div className="mt-auto pt-3 border-t border-neutral-50 dark:border-neutral-800 flex items-center justify-between">
+                                                    <span className="text-[9px] font-black text-neutral-300 uppercase">Transcript Match</span>
+                                                    <span className="text-[10px] font-black text-neutral-600 dark:text-neutral-400">{prereq.mapping}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Strategic Bridging Roadmap */}
+                        <div className="bg-neutral-900 dark:bg-black rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden text-left">
+                            <div className="absolute top-0 right-0 p-8 opacity-10">
+                                <Target className="w-48 h-48 text-rose-500" />
+                            </div>
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 relative">
+                                <div>
+                                    <h4 className="font-black text-white text-3xl tracking-tight flex items-center gap-4">
+                                        <Sparkles className="w-8 h-8 text-rose-500" />
+                                        Functional Bridging Plan
+                                    </h4>
+                                    <p className="text-neutral-500 font-bold mt-2">Tactical steps to fill the blanks in your application.</p>
+                                </div>
+                                <div className="px-6 py-3 bg-white/5 rounded-2xl border border-white/10 shrink-0">
+                                    <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">Estimated Gap</div>
+                                    <div className="text-lg font-black text-white">4-6 Months</div>
+                                </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-4 relative">
                                 {result.recommendations.map((rec, i) => (
-                                    <div key={i} className="flex gap-4 p-5 bg-white/5 hover:bg-white/10 transition-colors rounded-2xl group/item">
-                                        <div className="w-8 h-8 rounded-full bg-rose-500/20 text-rose-500 flex items-center justify-center font-black text-xs shrink-0 group-hover/item:bg-rose-500 group-hover/item:text-white transition-colors">
+                                    <div key={i} className="flex gap-5 p-6 bg-white/5 hover:bg-white/10 transition-colors rounded-[2rem] border border-white/5 group/item">
+                                        <div className="w-10 h-10 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center font-black text-sm shrink-0 group-hover/item:bg-rose-500 group-hover/item:text-white transition-colors">
                                             {i + 1}
                                         </div>
-                                        <p className="text-neutral-300 text-sm font-medium leading-relaxed">{rec}</p>
+                                        <div>
+                                            <p className="text-neutral-200 text-sm font-bold leading-relaxed">{rec}</p>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

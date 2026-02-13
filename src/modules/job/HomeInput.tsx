@@ -11,11 +11,10 @@ import {
     Sparkles,
 
 } from 'lucide-react';
-import { LandingContent } from './LandingContent';
-import { MarketingGrid } from './MarketingGrid';
 import { SharedHeader } from '../../components/common/SharedHeader';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
-import { ActionGrid } from './ActionGrid';
+import { FeatureGrid } from './FeatureGrid';
+import { EventService } from '../../services/eventService';
 import { UsageIndicator } from './UsageIndicator';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -37,6 +36,7 @@ interface HomeInputProps {
     usageStats?: UsageStats;
     mode?: 'all' | 'apply' | 'goal';
     onNavigate?: (view: string) => void;
+    onShowAuth?: () => void;
 }
 
 const HEADLINES = {
@@ -73,6 +73,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
     usageStats,
     mode = 'all',
     onNavigate,
+    onShowAuth,
 }) => {
     const { showSuccess } = useToast();
     const [url, setUrl] = useState('');
@@ -175,6 +176,8 @@ const HomeInput: React.FC<HomeInputProps> = ({
             };
 
             setIsAnalyzing(true);
+            // Track real usage
+            EventService.trackUsage('jobfit');
             onJobCreated(newJob);
 
             setTimeout(() => {
@@ -284,99 +287,137 @@ const HomeInput: React.FC<HomeInputProps> = ({
                 <>
                     {/* Mode Switcher moved above the input for cleaner card layout */}
                     {user && mode === 'all' && (
-                        <ActionGrid onNavigate={onNavigate} isAdmin={isAdmin} isTester={isTester} />
+                        <FeatureGrid
+                            user={user}
+                            onNavigate={onNavigate}
+                            onShowAuth={onShowAuth}
+                            isAdmin={isAdmin}
+                            isTester={isTester}
+                        />
                     )}
                     {(mode !== 'all' || !user) && (
                         <div className="w-full max-w-3xl mx-auto animate-in zoom-in-95 fade-in duration-500">
-                            <form onSubmit={error ? (e) => { e.preventDefault(); handleJobSubmission({ type: 'text', content: url }); } : handleUrlSubmit} className="relative group perspective-1000">
-                                <div className={`absolute -inset-1 rounded-[2.5rem] blur-xl transition-all duration-1000 ${error
-                                    ? 'bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 opacity-75'
-                                    : isScrapingUrl || isAnalyzing
-                                        ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 opacity-100 animate-pulse'
-                                        : 'bg-gradient-to-r from-pink-500 via-indigo-500 to-violet-500 opacity-20 group-hover:opacity-100 animate-gradient-x'
-                                    }`}></div>
-
-                                <div className={`relative bg-white dark:bg-neutral-950/80 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800/30 rounded-[2.5rem] p-4 shadow-2xl flex flex-col md:flex-row items-center gap-6 transition-all duration-500 ease-in-out min-h-[100px] overflow-hidden ${isAnalyzing ? 'border-indigo-500/50 shadow-indigo-500/20' :
-                                    'group-hover:border-indigo-500/30 dark:group-hover:border-indigo-400/30'
-                                    }`}>
-                                    {/* Scanner Radar Effect */}
-                                    <div className="absolute inset-0 pointer-events-none z-0">
-                                        <div className="absolute inset-x-0 h-1/2 bg-gradient-to-b from-transparent via-indigo-500/5 to-transparent animate-scan-line" />
-                                    </div>
-                                    <div className={`w-16 h-16 rounded-3xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500 ${isTargetMode ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600' : 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600'
-                                        }`}>
-                                        {isScrapingUrl ? (
-                                            <Loader2 className="h-8 w-8 animate-spin" />
-                                        ) : (
-                                            error ? <FileText className="h-8 w-8 text-orange-500" /> : <LinkIcon className="h-8 w-8 transition-colors" />
-                                        )}
-                                    </div>
-
-                                    <div className="flex-1 w-full text-center md:text-left flex flex-col justify-center min-h-[60px]">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <div className="text-sm font-bold text-neutral-400 uppercase tracking-widest">
-
+                            {!user ? (
+                                <div className="relative group perspective-1000">
+                                    <div className="absolute -inset-1 rounded-[2.5rem] blur-xl bg-gradient-to-r from-pink-500 via-indigo-500 to-violet-500 opacity-20 group-hover:opacity-100 animate-gradient-x transition-all duration-1000"></div>
+                                    <div className="relative bg-white dark:bg-neutral-950/80 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800/30 rounded-[2.5rem] p-10 shadow-2xl text-center space-y-8">
+                                        <div className="space-y-4">
+                                            <h3 className="text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
+                                                Ready to land your next role?
+                                            </h3>
+                                            <p className="text-neutral-500 dark:text-neutral-400 font-medium max-w-lg mx-auto leading-relaxed">
+                                                Join thousands of candidates who are landing more interviews with JobFit's AI-powered tailoring.
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                            <button
+                                                onClick={() => onShowAuth?.()}
+                                                className="w-full sm:w-auto px-10 py-5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-[2rem] font-black text-xl hover:scale-105 active:scale-95 transition-all shadow-xl hover:shadow-2xl shadow-neutral-900/10 flex items-center justify-center gap-3"
+                                            >
+                                                Get Started Free
+                                                <ArrowRight className="w-6 h-6" />
+                                            </button>
+                                        </div>
+                                        <div className="flex items-center justify-center gap-6 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+                                            <div className="flex -space-x-2">
+                                                {[1, 2, 3, 4].map(i => (
+                                                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-neutral-900 bg-neutral-100 dark:bg-neutral-800" />
+                                                ))}
                                             </div>
-                                            {error && (
-                                                <span className="text-xs font-bold text-orange-500 flex items-center gap-1 animate-in fade-in slide-in-from-right-2">
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <form onSubmit={error ? (e) => { e.preventDefault(); handleJobSubmission({ type: 'text', content: url }); } : handleUrlSubmit} className="relative group perspective-1000">
+                                    <div className={`absolute -inset-1 rounded-[2.5rem] blur-xl transition-all duration-1000 ${error
+                                        ? 'bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 opacity-75'
+                                        : isScrapingUrl || isAnalyzing
+                                            ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 opacity-100 animate-pulse'
+                                            : 'bg-gradient-to-r from-pink-500 via-indigo-500 to-violet-500 opacity-20 group-hover:opacity-100 animate-gradient-x'
+                                        }`}></div>
 
-                                                </span>
+                                    <div className={`relative bg-white dark:bg-neutral-950/80 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800/30 rounded-[2.5rem] p-4 shadow-2xl flex flex-col md:flex-row items-center gap-6 transition-all duration-500 ease-in-out min-h-[100px] overflow-hidden ${isAnalyzing ? 'border-indigo-500/50 shadow-indigo-500/20' :
+                                        'group-hover:border-indigo-500/30 dark:group-hover:border-indigo-400/30'
+                                        }`}>
+                                        {/* Scanner Radar Effect */}
+                                        <div className="absolute inset-0 pointer-events-none z-0">
+                                            <div className="absolute inset-x-0 h-1/2 bg-gradient-to-b from-transparent via-indigo-500/5 to-transparent animate-scan-line" />
+                                        </div>
+                                        <div className={`w-16 h-16 rounded-3xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500 ${isTargetMode ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600' : 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600'
+                                            }`}>
+                                            {isScrapingUrl ? (
+                                                <Loader2 className="h-8 w-8 animate-spin" />
+                                            ) : (
+                                                error ? <FileText className="h-8 w-8 text-orange-500" /> : <LinkIcon className="h-8 w-8 transition-colors" />
                                             )}
                                         </div>
 
-                                        {error ? (
-                                            <textarea
-                                                value={url}
-                                                onChange={(e) => setUrl(e.target.value)}
-                                                placeholder="Paste full job description..."
-                                                className="w-full bg-transparent border-none rounded-xl text-lg text-neutral-900 dark:text-white placeholder:text-neutral-500 focus:ring-0 focus:outline-none resize-none animate-in fade-in duration-300 py-3 leading-relaxed h-[60px]"
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                                        e.preventDefault();
-                                                        if (url.trim()) {
-                                                            handleJobSubmission({ type: 'text', content: url });
-                                                        }
-                                                    }
-                                                }}
-                                                autoFocus
-                                            />
-                                        ) : (
-                                            <input
-                                                type="url"
-                                                value={url}
-                                                onChange={(e) => { setUrl(e.target.value); setError(null); }}
-                                                placeholder={isScrapingUrl
-                                                    ? "Accessing job post..."
-                                                    : isAnalyzing
-                                                        ? "Analyzing job fit..."
-                                                        : isTargetMode
-                                                            ? "Enter your target role or destination..."
-                                                            : "Paste job URL to tailor your resume..."
-                                                }
-                                                className="w-full bg-transparent border-none rounded-xl text-lg font-medium text-neutral-600 dark:text-neutral-300 placeholder:text-neutral-400 focus:ring-0 focus:outline-none transition-all duration-300"
-                                                autoFocus
-                                                disabled={isScrapingUrl}
-                                            />
-                                        )}
-                                    </div>
+                                        <div className="flex-1 w-full text-center md:text-left flex flex-col justify-center min-h-[60px]">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <div className="text-sm font-bold text-neutral-400 uppercase tracking-widest">
 
-                                    <button
-                                        type="submit"
-                                        disabled={!url.trim() || isScrapingUrl || isAnalyzing}
-                                        className={`w-full md:w-auto px-8 py-5 rounded-2xl font-black text-white shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 ${isTargetMode || error
-                                            ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20'
-                                            : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20'
-                                            }`}
-                                    >
-                                        {isScrapingUrl || isAnalyzing ? (
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                        ) : (
-                                            isTargetMode ? <TrendingUp className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />
-                                        )}
-                                        <span>{isScrapingUrl ? 'Accessing...' : isAnalyzing ? 'Analyzing...' : error ? 'Analyze' : isTargetMode ? 'Set goal' : 'Analyze'}</span>
-                                    </button>
-                                </div>
-                            </form>
+                                                </div>
+                                                {error && (
+                                                    <span className="text-xs font-bold text-orange-500 flex items-center gap-1 animate-in fade-in slide-in-from-right-2">
+
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {error ? (
+                                                <textarea
+                                                    value={url}
+                                                    onChange={(e) => setUrl(e.target.value)}
+                                                    placeholder="Paste full job description..."
+                                                    className="w-full bg-transparent border-none rounded-xl text-lg text-neutral-900 dark:text-white placeholder:text-neutral-500 focus:ring-0 focus:outline-none resize-none animate-in fade-in duration-300 py-3 leading-relaxed h-[60px]"
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                                            e.preventDefault();
+                                                            if (url.trim()) {
+                                                                handleJobSubmission({ type: 'text', content: url });
+                                                            }
+                                                        }
+                                                    }}
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                <input
+                                                    type="url"
+                                                    value={url}
+                                                    onChange={(e) => { setUrl(e.target.value); setError(null); }}
+                                                    placeholder={isScrapingUrl
+                                                        ? "Accessing job post..."
+                                                        : isAnalyzing
+                                                            ? "Analyzing job fit..."
+                                                            : isTargetMode
+                                                                ? "Enter your target role or destination..."
+                                                                : "Paste job URL to tailor your resume..."
+                                                    }
+                                                    className="w-full bg-transparent border-none rounded-xl text-lg font-medium text-neutral-600 dark:text-neutral-300 placeholder:text-neutral-400 focus:ring-0 focus:outline-none transition-all duration-300"
+                                                    autoFocus
+                                                    disabled={isScrapingUrl}
+                                                />
+                                            )}
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            disabled={!url.trim() || isScrapingUrl || isAnalyzing}
+                                            className={`w-full md:w-auto px-8 py-5 rounded-2xl font-black text-white shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 ${isTargetMode || error
+                                                ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20'
+                                                : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20'
+                                                }`}
+                                        >
+                                            {isScrapingUrl || isAnalyzing ? (
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                            ) : (
+                                                isTargetMode ? <TrendingUp className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />
+                                            )}
+                                            <span>{isScrapingUrl ? 'Accessing...' : isAnalyzing ? 'Analyzing...' : error ? 'Analyze' : isTargetMode ? 'Set goal' : 'Analyze'}</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
 
                             {/* Usage Indicator for Free Tier (not shown to admins) */}
                             {user && !isAdmin && (
@@ -543,11 +584,16 @@ const HomeInput: React.FC<HomeInputProps> = ({
                 )
             }
 
-            {/* Bento Grid Features - Only for Non-Logged In Users (Extracted to MarketingGrid) */}
-            {!user && <MarketingGrid />}
-
-            {/* Additional Landing Content for Logged Out Users */}
-            {!user && <LandingContent />}
+            {/* Feature Grid - Only for Logged Out Users at bottom */}
+            {!user && (
+                <FeatureGrid
+                    user={user}
+                    onNavigate={onNavigate}
+                    onShowAuth={onShowAuth}
+                    isAdmin={isAdmin}
+                    isTester={isTester}
+                />
+            )}
         </SharedPageLayout >
     );
 };

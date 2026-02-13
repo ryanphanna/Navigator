@@ -38,7 +38,6 @@ const JobDetail: React.FC<JobDetailProps> = ({
     userTier = 'free',
     userSkills = [],
     targetJobs = [],
-    onAddSkill: _onAddSkill,
     onAnalyzeJob
 }) => {
     const { showError, showSuccess } = useToast();
@@ -419,7 +418,7 @@ const JobDetail: React.FC<JobDetailProps> = ({
                                         <ShieldCheck className="w-4 h-4 text-indigo-600" /> Skill Gaps
                                     </h4>
                                     <div className="space-y-3">
-                                        {analysis.distilledJob.requiredSkills.map((req: any, i: number) => {
+                                        {analysis.distilledJob.requiredSkills.map((req: { name: string; level: 'learning' | 'comfortable' | 'expert' }, i: number) => {
                                             const mySkill = userSkills.find(s => s.name.toLowerCase().includes(req.name.toLowerCase()));
                                             const levels: Record<string, number> = { learning: 1, comfortable: 2, expert: 3 };
                                             const isMatch = mySkill && levels[mySkill.proficiency] >= levels[req.level];

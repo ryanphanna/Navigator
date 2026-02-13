@@ -1,14 +1,19 @@
 import { getModel, callWithRetry, cleanJsonOutput } from "./aiCore";
 import type {
     ExperienceBlock,
-    CustomSkill
+    CustomSkill,
+    ResumeProfile
 } from "../../types";
 import { PARSING_PROMPTS, ANALYSIS_PROMPTS } from "../../prompts/index";
 import { AI_MODELS } from "../../constants";
 
+const stringifyProfile = (profile: ResumeProfile): string => {
+    return JSON.stringify(profile, null, 2);
+};
+
 const extractPdfText = async (base64: string): Promise<string> => {
     try {
-        const pdfjsLib = (window as any).pdfjsLib;
+        const pdfjsLib = (window as unknown as { pdfjsLib: { getDocument: (opts: { data: string }) => { promise: Promise<{ numPages: number; getPage: (i: number) => Promise<{ getTextContent: () => Promise<{ items: { str: string }[] }> }> }> } } }).pdfjsLib;
         if (!pdfjsLib) return "";
         const loadingTask = pdfjsLib.getDocument({ data: atob(base64) });
         const pdf = await loadingTask.promise;
@@ -16,10 +21,10 @@ const extractPdfText = async (base64: string): Promise<string> => {
         for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            fullText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
+            fullText += textContent.items.map((item: { str: string }) => item.str).join(' ') + '\n';
         }
         return fullText;
-    } catch (e) {
+    } catch {
         return "";
     }
 }
@@ -28,7 +33,7 @@ export const parseResumeFile = async (
     fileBase64: string,
     mimeType: string
 ): Promise<ExperienceBlock[]> => {
-    let promptParts: any[] = [];
+    let promptParts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] = [];
     if (mimeType === 'application/pdf') {
         const extractedText = await extractPdfText(fileBase64);
         promptParts = [{ text: `RESUME CONTENT:\n${extractedText}` }];
@@ -42,7 +47,7 @@ export const parseResumeFile = async (
         const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: promptParts }] });
         const parsed = JSON.parse(cleanJsonOutput(response.response.text()));
-        return parsed.map((p: any) => ({ ...p, id: crypto.randomUUID(), isVisible: true }));
+        return (parsed as ExperienceBlock[]).map((p) => ({ ...p, id: crypto.randomUUID(), isVisible: true }));
     }, { event_type: 'parsing', prompt, model: AI_MODELS.EXTRACTION });
 };
 
@@ -60,8 +65,7 @@ export const tailorExperienceBlock = async (
 };
 
 export const inferProficiencyFromResponse = async (
-    skillName: string,
-    _userResponse: string
+    skillName: string
 ): Promise<{ proficiency: CustomSkill['proficiency']; evidence: string }> => {
     const prompt = `Analyze proficiency for ${skillName} based on the user's response. Categorize as 'learning', 'comfortable', or 'expert'. Return JSON: { "proficiency": "...", "evidence": "..." }`;
     return callWithRetry(async () => {
@@ -85,9 +89,9 @@ export const generateSkillQuestions = async (
 };
 
 export const suggestSkillsFromResumes = async (
-    resumes: any[]
-): Promise<any[]> => {
-    const resumeContext = JSON.stringify(resumes);
+    resumes: ResumeProfile[]
+): Promise<{ name: string; description: string }[]> => {
+    const resumeContext = resumes.map(stringifyProfile).join('\n---\n');
     const prompt = ANALYSIS_PROMPTS.SUGGEST_SKILLS(resumeContext);
     return callWithRetry(async () => {
         const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });

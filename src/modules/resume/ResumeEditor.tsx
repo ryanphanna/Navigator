@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { ResumeProfile, ExperienceBlock, CustomSkill } from '../../types';
 import { Upload, Loader2, Plus, Trash2, Briefcase, GraduationCap, Code, Layers, Calendar, Building2, UserCircle } from 'lucide-react';
 import { PageLayout } from '../../components/common/PageLayout';
+import { EventService } from '../../services/eventService';
 
 interface ResumeEditorProps {
     resumes: ResumeProfile[];
@@ -47,6 +48,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         const handler = setTimeout(() => {
             const updatedProfile = { ...initialResume, blocks };
             onSave([updatedProfile]);
+            // Track usage of resume builder
+            EventService.trackUsage('resumes');
         }, 500);
         return () => clearTimeout(handler);
         // eslint-disable-next-line react-hooks/exhaustive-deps

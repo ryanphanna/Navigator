@@ -23,3 +23,25 @@ export interface Transcript {
     rawText?: string;
     dateUploaded: number;
 }
+
+export interface AdmissionPrerequisite {
+    requirement: string;
+    status: 'met' | 'missing' | 'in-progress';
+    mapping?: string;
+    description: string;
+}
+
+export interface AdmissionEligibility {
+    probability: 'High' | 'Medium' | 'Low';
+    analysis: string;
+    gpaVerdict: string;
+    gpaContext: string;
+    gpaBenchmark?: {
+        userGPA: string;
+        typicalIntake: string;
+        standing: 'Safe' | 'Competitive' | 'Reach';
+    };
+    prerequisites?: AdmissionPrerequisite[];
+    weaknesses: string[];
+    recommendations: string[];
+}

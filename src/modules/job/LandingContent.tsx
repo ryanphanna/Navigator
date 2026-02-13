@@ -1,7 +1,11 @@
 import React from 'react';
 import { ArrowRight, Zap, Target, FileSearch } from 'lucide-react';
 
-export const LandingContent: React.FC = () => {
+interface LandingContentProps {
+    onShowAuth?: () => void;
+}
+
+export const LandingContent = ({ onShowAuth }: LandingContentProps) => {
     return (
         <div className="w-full max-w-7xl mx-auto px-4 pb-32 space-y-32 mt-32">
 
@@ -39,7 +43,7 @@ export const LandingContent: React.FC = () => {
                         Join other smart candidates who stopped guessing and started getting callbacks.
                     </p>
                     <button
-                        onClick={() => document.querySelector('input')?.focus()}
+                        onClick={() => onShowAuth?.()}
                         className="inline-flex items-center gap-3 px-8 py-4 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white rounded-2xl font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-xl hover:shadow-2xl"
                     >
                         Analyze Your First Job

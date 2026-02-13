@@ -3,6 +3,7 @@ export interface GapAction {
     task: string;
     metric: string;
     tools: string[];
+    resumeBullet?: string;
 }
 
 export interface SkillGap {

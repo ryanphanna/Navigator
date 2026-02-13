@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { TrendingUp, PenTool, Sparkles, FileText, GraduationCap, Bookmark, Zap } from 'lucide-react';
 import { BentoCard, type BentoColorConfig } from '../../components/common/BentoCard';
 import { BENTO_CARDS } from '../../constants';
+import { EventService } from '../../services/eventService';
+import type { User } from '@supabase/supabase-js';
 
 // Icon Map
 const ICON_MAP = {
@@ -14,44 +16,52 @@ const ICON_MAP = {
     PenTool
 } as const;
 
-interface ActionGridProps {
+interface FeatureGridProps {
+    user: User | null;
     onNavigate?: (view: string) => void;
+    onShowAuth?: () => void;
     isAdmin?: boolean;
     isTester?: boolean;
 }
 
-export const ActionGrid: React.FC<ActionGridProps> = ({ onNavigate, isAdmin = false, isTester = false }) => {
-    const [shuffledActionCards] = useState<string[]>(() => {
-        // Job product cards in priority order
-        const jobCardsByPriority = [
-            'RESUMES',
+export const FeatureGrid: React.FC<FeatureGridProps> = ({
+    user,
+    onNavigate,
+    onShowAuth,
+    isAdmin = false,
+    isTester = false
+}) => {
+    const [cardKeys] = useState<string[]>(() => {
+        // Shared cards in priority order
+        const baseCards = [
             'JOBFIT',
-            'COVER_LETTERS',
             'KEYWORDS',
+            'RESUMES',
+            'COVER_LETTERS',
             'HISTORY',
         ];
 
-        const actionCards: string[] = [];
-        const showCoach = isTester || isAdmin;
-        const showEdu = isAdmin;
-        const productCount = (showCoach ? 1 : 0) + (showEdu ? 1 : 0);
-        const jobCardCount = 5 - productCount;
+        const finalCards: string[] = [...baseCards];
 
-        actionCards.push(...jobCardsByPriority.slice(0, jobCardCount));
-        if (showCoach) actionCards.push('COACH');
-        if (showEdu) actionCards.push('EDU');
+        // Show Career Coach and Edu HQ for appropriate users (or marketing for logged-out)
+        // For simplicity and sleekness, we use a 5-column base, but can expand
+        if (isAdmin || isTester) {
+            finalCards.push('COACH');
+            if (isAdmin) finalCards.push('EDU');
+        } else if (!user) {
+            // Logged out: Show coach as a marketing card
+            finalCards.push('COACH');
+        }
 
-        return actionCards;
+        return finalCards.slice(0, 5); // Stick to 5 for the sleekest top row
     });
 
-    if (shuffledActionCards.length === 0) return null;
-
     const renderPreview = (id: string, color: BentoColorConfig) => {
+        // Combined preview logic from both grids
         switch (id) {
             case 'jobfit':
                 return (
                     <div className="relative w-full h-16 flex items-center justify-center scale-90 group-hover:scale-100 transition-transform duration-500">
-                        {/* Scaled down version of the hero graphics */}
                         <div className="relative w-16 h-16 flex items-center justify-center z-10">
                             <svg className="w-full h-full transform -rotate-90">
                                 <circle cx="32" cy="32" r="28" fill="transparent" stroke="currentColor" strokeWidth="4" className="text-neutral-100 dark:text-neutral-800" />
@@ -59,8 +69,6 @@ export const ActionGrid: React.FC<ActionGridProps> = ({ onNavigate, isAdmin = fa
                             </svg>
                             <span className={`absolute text-sm font-black ${color.text}`}>92%</span>
                         </div>
-
-                        {/* Mini floating cards for flavor */}
                         <div className="absolute -top-4 -left-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg p-1.5 font-mono text-[6px] w-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                             <div className="flex justify-between items-center mb-1">
                                 <span className="text-neutral-400"># Match</span>
@@ -70,20 +78,6 @@ export const ActionGrid: React.FC<ActionGridProps> = ({ onNavigate, isAdmin = fa
                                 <div className="h-0.5 w-full bg-neutral-100 dark:bg-neutral-700 rounded-full" />
                                 <div className="h-0.5 w-2/3 bg-indigo-500 rounded-full" />
                             </div>
-                        </div>
-
-
-                    </div>
-                );
-            case 'coach':
-                return (
-                    <div className="w-full px-8 space-y-4">
-                        <div className="h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                            <div className={`h-full ${color.iconBg} w-2/3 animate-[shimmer_2s_infinite]`} style={{ backgroundSize: '200% 100%', backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }} />
-                        </div>
-                        <div className="flex justify-between items-center gap-2">
-                            <div className={`h-6 w-6 rounded-lg ${color.iconBg}/20 flex items-center justify-center`}><Zap className={`w-3.5 h-3.5 ${color.text}`} /></div>
-                            <div className="h-1.5 flex-1 bg-neutral-100 dark:bg-neutral-800 rounded-full" />
                         </div>
                     </div>
                 );
@@ -108,16 +102,6 @@ export const ActionGrid: React.FC<ActionGridProps> = ({ onNavigate, isAdmin = fa
                         </div>
                     </div>
                 );
-            case 'edu':
-                return (
-                    <div className="flex items-center gap-2 px-8">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className={`w-10 h-14 ${color.iconBg}/10 rounded-xl flex items-center justify-center border ${color.accent} group-hover:scale-110 transition-transform`} style={{ transitionDelay: `${i * 100}ms` }}>
-                                <div className={`w-5 h-1 ${color.iconBg}/40 rounded-full`} />
-                            </div>
-                        ))}
-                    </div>
-                );
             case 'history':
                 return (
                     <div className="flex flex-col gap-3 w-full px-8">
@@ -140,27 +124,58 @@ export const ActionGrid: React.FC<ActionGridProps> = ({ onNavigate, isAdmin = fa
                         <div className="w-2/3 h-2 bg-neutral-100 dark:bg-neutral-800 rounded-full" />
                     </div>
                 );
+            case 'coach':
+                return (
+                    <div className="w-full px-8 space-y-4">
+                        <div className="h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                            <div className={`h-full ${color.iconBg} w-2/3 animate-[shimmer_2s_infinite]`} style={{ backgroundSize: '200% 100%', backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }} />
+                        </div>
+                        <div className="flex justify-between items-center gap-2">
+                            <div className={`h-6 w-6 rounded-lg ${color.iconBg}/20 flex items-center justify-center`}><Zap className={`w-3.5 h-3.5 ${color.text}`} /></div>
+                            <div className="h-1.5 flex-1 bg-neutral-100 dark:bg-neutral-800 rounded-full" />
+                        </div>
+                    </div>
+                );
             default:
                 return null;
+        }
+    };
+
+    const handleAction = (config: any) => {
+        // Track curiosity (Interest)
+        EventService.trackInterest(config.id);
+
+        if (user) {
+            onNavigate?.(config.targetView);
+        } else {
+            // Logged out behavior
+            if (onShowAuth) {
+                onShowAuth();
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => document.querySelector('input')?.focus(), 500);
+            }
         }
     };
 
     return (
         <div className="mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 w-full">
             <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 max-w-7xl mx-auto px-4`}>
-                {shuffledActionCards.map((key) => {
+                {cardKeys.map((key) => {
                     const config = BENTO_CARDS[key as keyof typeof BENTO_CARDS];
+                    if (!config) return null;
+
                     return (
                         <BentoCard
                             key={config.id}
                             id={config.id}
                             icon={ICON_MAP[config.iconName as keyof typeof ICON_MAP]}
-                            title={config.title.action}
-                            description={config.description.action}
+                            title={user ? config.title.action : config.title.marketing}
+                            description={user ? config.description.action : config.description.marketing}
                             color={config.colors}
-                            actionLabel={config.action.action}
+                            actionLabel={user ? config.action.action : config.action.marketing}
                             previewContent={renderPreview(config.id, config.colors)}
-                            onAction={() => onNavigate?.(config.targetView as any)}
+                            onAction={() => handleAction(config)}
                         />
                     );
                 })}
