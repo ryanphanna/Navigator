@@ -148,28 +148,6 @@ const AppContent: React.FC = () => {
                   </div>
                 )}
                 {/* NudgeJob Removed */}
-                <div className="pt-8">
-                  <HomeInput
-                    resumes={resumes}
-                    onJobCreated={handleJobCreated}
-                    onTargetJobCreated={handleTargetJobCreated}
-                    onImportResume={handleImportResume}
-                    isParsing={isParsingResume}
-                    importError={importError}
-                    isAdmin={isAdmin}
-                    isTester={isTester}
-                    user={user}
-                    usageStats={usageStats}
-                    mode="all"
-                    onNavigate={setView}
-                    onShowAuth={() => setShowAuth(true)}
-                  />
-                </div>
-              </>
-            } />
-
-            <Route path="/analyze" element={
-              <div className="pt-16">
                 <HomeInput
                   resumes={resumes}
                   onJobCreated={handleJobCreated}
@@ -181,11 +159,29 @@ const AppContent: React.FC = () => {
                   isTester={isTester}
                   user={user}
                   usageStats={usageStats}
-                  mode="apply"
+                  mode="all"
                   onNavigate={setView}
                   onShowAuth={() => setShowAuth(true)}
                 />
-              </div>
+              </>
+            } />
+
+            <Route path="/analyze" element={
+              <HomeInput
+                resumes={resumes}
+                onJobCreated={handleJobCreated}
+                onTargetJobCreated={handleTargetJobCreated}
+                onImportResume={handleImportResume}
+                isParsing={isParsingResume}
+                importError={importError}
+                isAdmin={isAdmin}
+                isTester={isTester}
+                user={user}
+                usageStats={usageStats}
+                mode="apply"
+                onNavigate={setView}
+                onShowAuth={() => setShowAuth(true)}
+              />
             } />
 
             {/* SEO Landing Pages (Dynamic) */}

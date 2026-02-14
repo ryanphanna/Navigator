@@ -266,7 +266,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
         <SharedPageLayout
             maxWidth={mode === 'all' ? 'full' : '4xl'}
             className="relative"
-            paddingTop="pt-16"
+            paddingTop="pt-12"
         >
 
 
@@ -296,7 +296,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                         />
                     )}
                     {(mode !== 'all' || !user) && (
-                        <div className="w-full max-w-3xl mx-auto animate-in zoom-in-95 fade-in duration-500">
+                        <div className="w-full max-w-3xl mx-auto mb-16 animate-in zoom-in-95 fade-in duration-500">
                             {!user ? (
                                 <div className="relative group perspective-1000">
                                     <div className="absolute -inset-1 rounded-[2.5rem] blur-xl bg-gradient-to-r from-pink-500 via-indigo-500 to-violet-500 opacity-20 group-hover:opacity-100 animate-gradient-x transition-all duration-1000"></div>

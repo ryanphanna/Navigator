@@ -2,6 +2,11 @@
  
 All notable changes to this project will be documented in this file.
 
+## [2.8.2] - 2026-02-13
+### Changed
+- **UI Refinement**: Reduced top padding and improved hero card spacing in `HomeInput` for a more balanced layout.
+- **Layout**: Simplified route wrappers in `App.tsx` by delegating spacing to the `SharedPageLayout` component.
+
 ## [2.8.1] - 2026-02-13
 ### Fixed
 - **Deployment**: Resolved a Vercel build failure caused by an unused `React` import in `LandingContent.tsx` which triggered a TypeScript error.
