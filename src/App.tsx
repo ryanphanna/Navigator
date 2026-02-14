@@ -28,7 +28,7 @@ const SkillsView = lazy(() => import('./components/skills/SkillsView').then(m =>
 import { ROUTES, STORAGE_KEYS } from './constants';
 // NudgeCard removed
 import { NudgeCard } from './components/NudgeCard';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ToastContainer } from './components/common/Toast';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 
@@ -65,8 +65,73 @@ const AppContent: React.FC = () => {
 
   const { user, userTier, isTester, isAdmin, simulatedTier, setSimulatedTier, signOut: handleSignOut } = useUser();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // URL Sync Effect (Migrated from useAppLogic)
+  // URL Sync Effect: Update currentView based on URL
+  useEffect(() => {
+    const path = location.pathname;
+
+    // Reverse mapping from Path to View ID
+    const pathToView: Record<string, string> = {
+      [ROUTES.HOME]: 'home',
+      [ROUTES.FEED]: 'job-fit',
+      [ROUTES.PRO_FEED]: 'job-fit',
+      [ROUTES.HISTORY]: 'history',
+      [ROUTES.SKILLS]: 'skills',
+      [ROUTES.RESUMES]: 'resumes',
+      [ROUTES.COACH_HOME]: 'coach-home',
+      [ROUTES.GRAD]: 'grad',
+      [ROUTES.ADMIN]: 'admin',
+      [ROUTES.COVER_LETTERS]: 'cover-letters',
+    };
+
+    // Handle dynamic job detail route
+    if (path.startsWith('/job/')) {
+      if (currentView !== 'history') setView('history');
+      return;
+    }
+
+    // Handle dynamic SEO routes
+    if (path.startsWith('/resume-for/')) {
+      if (currentView !== 'home') setView('home');
+      return;
+    }
+
+    // Handle coach sub-routes
+    if (path.startsWith(ROUTES.COACH_HOME)) {
+      if (currentView !== 'coach-home') setView('coach-home');
+      return;
+    }
+
+    const viewId = pathToView[path];
+    if (viewId && viewId !== currentView) {
+      setView(viewId);
+    }
+  }, [location.pathname, setView, currentView]);
+
+  // Handler for navigation from UI components
+  const handleViewChange = (viewId: string) => {
+    const viewToPath: Record<string, string> = {
+      'home': ROUTES.HOME,
+      'job-fit': ROUTES.FEED,
+      'history': ROUTES.HISTORY,
+      'skills': ROUTES.SKILLS,
+      'resumes': ROUTES.RESUMES,
+      'coach-home': ROUTES.COACH_HOME,
+      'grad': ROUTES.GRAD,
+      'admin': ROUTES.ADMIN,
+      'cover-letters': ROUTES.COVER_LETTERS,
+    };
+
+    const path = viewToPath[viewId];
+    if (path) {
+      navigate(path);
+    } else {
+      setView(viewId); // Fallback for views without explicit routes
+    }
+  };
+
+  // URL Job Sync Effect (Existing)
   useEffect(() => {
     const match = location.pathname.match(/\/job\/([^/]+)/);
     const urlJobId = match ? match[1] : null;
@@ -123,7 +188,7 @@ const AppContent: React.FC = () => {
         currentView={currentView}
         isCoachMode={isCoachMode}
         isEduMode={isEduMode}
-        onViewChange={setView}
+        onViewChange={handleViewChange}
         onSignOut={handleSignOut}
         onShowSettings={() => setShowSettings(true)}
         onShowAuth={() => setShowAuth(true)}
@@ -160,7 +225,7 @@ const AppContent: React.FC = () => {
                   user={user}
                   usageStats={usageStats}
                   mode="all"
-                  onNavigate={setView}
+                  onNavigate={handleViewChange}
                   onShowAuth={() => setShowAuth(true)}
                 />
               </>
@@ -179,7 +244,7 @@ const AppContent: React.FC = () => {
                 user={user}
                 usageStats={usageStats}
                 mode="apply"
-                onNavigate={setView}
+                onNavigate={handleViewChange}
                 onShowAuth={() => setShowAuth(true)}
               />
             } />
@@ -248,7 +313,7 @@ const AppContent: React.FC = () => {
                     transcript={transcript}
                     activeAnalysisIds={activeAnalysisIds}
                     view={typeof currentView === 'string' && currentView.startsWith('coach') ? (currentView as any) : 'coach-home'}
-                    onViewChange={setView}
+                    onViewChange={handleViewChange}
                     onAddRoleModel={handleAddRoleModel}
                     onAddTargetJob={handleTargetJobCreated}
                     onUpdateTargetJob={handleUpdateTargetJob}

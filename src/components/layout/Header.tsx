@@ -65,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
                 {/* Right Actions */}
                 <div className="flex items-center gap-1.5">
                     {!isLoading && !user ? (
-                        <button onClick={onShowAuth} className="px-3 py-1 text-xs font-semibold rounded-full border">Sign In</button>
+                        <button onClick={onShowAuth} className="px-3 py-1 text-xs font-semibold rounded-full">Sign In</button>
                     ) : (
                         <button onClick={onSignOut} className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full group">
                             <LogOut className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />

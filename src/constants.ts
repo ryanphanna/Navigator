@@ -158,7 +158,7 @@ export const BENTO_CARDS = {
     action: { marketing: 'Get started', action: 'Analyze' },
     colors: {
       bg: 'bg-indigo-50/50 dark:bg-indigo-500/5',
-      text: 'text-indigo-600 dark:text-indigo-400',
+      text: 'text-indigo-500 dark:text-indigo-400',
       accent: 'border-indigo-500/10 dark:border-indigo-500/20',
       iconBg: 'bg-indigo-500',
       preview: 'from-indigo-500/5',
@@ -176,12 +176,12 @@ export const BENTO_CARDS = {
     },
     action: { marketing: 'Optimize now', action: 'Audit gaps' },
     colors: {
-      bg: 'bg-violet-50/50 dark:bg-violet-500/5',
-      text: 'text-violet-600 dark:text-violet-400',
-      accent: 'border-violet-500/10 dark:border-violet-500/20',
-      iconBg: 'bg-violet-500',
-      preview: 'from-violet-500/5',
-      glow: 'bg-violet-500/10 group-hover:bg-violet-500/20'
+      bg: 'bg-sky-50/50 dark:bg-sky-500/5',
+      text: 'text-sky-500 dark:text-sky-400',
+      accent: 'border-sky-500/10 dark:border-sky-500/20',
+      iconBg: 'bg-sky-500',
+      preview: 'from-sky-500/5',
+      glow: 'bg-sky-500/10 group-hover:bg-sky-500/20'
     }
   },
   RESUMES: {
@@ -196,7 +196,7 @@ export const BENTO_CARDS = {
     action: { marketing: 'Try it', action: 'Manage' },
     colors: {
       bg: 'bg-rose-50/50 dark:bg-rose-500/5',
-      text: 'text-rose-600 dark:text-rose-400',
+      text: 'text-rose-500 dark:text-rose-400',
       accent: 'border-rose-500/10 dark:border-rose-500/20',
       iconBg: 'bg-rose-500',
       preview: 'from-rose-500/5',
@@ -214,12 +214,12 @@ export const BENTO_CARDS = {
     },
     action: { marketing: 'Learn more', action: 'Scale up' },
     colors: {
-      bg: 'bg-emerald-50/50 dark:bg-emerald-500/5',
-      text: 'text-emerald-600 dark:text-emerald-400',
-      accent: 'border-emerald-500/10 dark:border-emerald-500/20',
-      iconBg: 'bg-emerald-500',
-      preview: 'from-emerald-500/5',
-      glow: 'bg-emerald-500/10 group-hover:bg-emerald-500/20'
+      bg: 'bg-teal-50/50 dark:bg-teal-500/5',
+      text: 'text-teal-500 dark:text-teal-400',
+      accent: 'border-teal-500/10 dark:border-teal-500/20',
+      iconBg: 'bg-teal-500',
+      preview: 'from-teal-500/5',
+      glow: 'bg-teal-500/10 group-hover:bg-teal-500/20'
     }
   },
   HISTORY: {
@@ -234,7 +234,7 @@ export const BENTO_CARDS = {
     action: { marketing: 'Install', action: 'View all' },
     colors: {
       bg: 'bg-blue-50/50 dark:bg-blue-500/5',
-      text: 'text-blue-600 dark:text-blue-400',
+      text: 'text-blue-500 dark:text-blue-400',
       accent: 'border-blue-500/10 dark:border-blue-500/20',
       iconBg: 'bg-blue-500',
       preview: 'from-blue-500/5',
@@ -252,12 +252,12 @@ export const BENTO_CARDS = {
     },
     action: { marketing: 'Start writing', action: 'Create new' },
     colors: {
-      bg: 'bg-purple-50/50 dark:bg-purple-500/5',
-      text: 'text-purple-600 dark:text-purple-400',
-      accent: 'border-purple-500/10 dark:border-purple-500/20',
-      iconBg: 'bg-purple-500',
-      preview: 'from-purple-500/5',
-      glow: 'bg-purple-500/10 group-hover:bg-purple-500/20'
+      bg: 'bg-violet-50/50 dark:bg-violet-500/5',
+      text: 'text-violet-500 dark:text-violet-400',
+      accent: 'border-violet-500/10 dark:border-violet-500/20',
+      iconBg: 'bg-violet-500',
+      preview: 'from-violet-500/5',
+      glow: 'bg-violet-500/10 group-hover:bg-violet-500/20'
     }
   },
 
@@ -273,7 +273,7 @@ export const BENTO_CARDS = {
     action: { marketing: 'Scout Programs', action: 'Scout Programs' },
     colors: {
       bg: 'bg-amber-50/50 dark:bg-amber-500/5',
-      text: 'text-amber-600 dark:text-amber-400',
+      text: 'text-amber-500 dark:text-amber-400',
       accent: 'border-amber-500/10 dark:border-amber-500/20',
       iconBg: 'bg-amber-500',
       preview: 'from-amber-500/5',

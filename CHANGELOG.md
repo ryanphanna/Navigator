@@ -2,6 +2,15 @@
  
 All notable changes to this project will be documented in this file.
 
+## [2.8.3] - 2026-02-14
+### Changed
+- **Premium Design**: Redesigned the Bento feature grid with a unique, muted color palette (Sky, Violet, Rose, Indigo, Teal) for a more sophisticated and professional aesthetic.
+- **Visual Consistency**: Ensured color uniqueness across all 10+ feature variants in both logged-in and logged-out states.
+
+### Fixed
+- **Navigation**: Resolved a critical issue where the header menu buttons updated the UI state but failed to trigger actual URL changes, causing the app to feel "broken" when navigating between modules.
+- **Routing**: Implemented a bidirectional sync between the Global UI state and React Router URLs to ensure consistency across the application.
+
 ## [2.8.2] - 2026-02-13
 ### Changed
 - **UI Refinement**: Reduced top padding and improved hero card spacing in `HomeInput` for a more balanced layout.
