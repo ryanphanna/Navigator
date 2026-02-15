@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+## [2.9.0] - 2026-02-15
+### Changed
+- **Architecture**: Completed a major 3-phase refactor to improve modularity and maintainability.
+  - **App Shell**: Extracted routing into `AppRoutes.tsx` and layout into `AppLayout.tsx`, reducing `App.tsx` from 400+ lines to 35.
+  - **Context Logic**: Extracted heavy business logic from `JobContext` and `CoachContext` into dedicated "Manager" hooks (`useJobManager`, `useCoachManager`).
+  - **Global Modal System**: Implemented a centralized `ModalContext` to eliminate prop-drilling for all global modals (Auth, Settings, etc.).
+- **Visuals**: Cleaned up the application shell and improved background transitions.
+
 ### Added
 - **Job Alert Email Feed**: Implemented an AI-powered system that captures job alerts from inbound emails (Postmark) and triages them automatically in a new "Job Feed" view.
 - **Inbound Email Tokens**: Unique Navigator email addresses generated per user for private job alert redirection.
