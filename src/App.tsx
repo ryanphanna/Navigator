@@ -41,6 +41,7 @@ const AppContent: React.FC = () => {
   const {
     jobs, activeJobId, activeJob,
     handleJobCreated, handleUpdateJob, handleDeleteJob, handleAnalyzeJob, handleDraftApplication,
+    handlePromoteFromFeed,
     setActiveJobId, usageStats, upgradeModalData, closeUpgradeModal,
     nudgeJob, dismissNudge
   } = useJobContext();
@@ -182,6 +183,7 @@ const AppContent: React.FC = () => {
         simulatedTier={simulatedTier}
         setSimulatedTier={setSimulatedTier}
         handleInterviewComplete={handleInterviewComplete}
+        usageStats={usageStats}
       />
 
       <Header
@@ -260,7 +262,7 @@ const AppContent: React.FC = () => {
             <Route path={ROUTES.FEED} element={
               <Suspense fallback={<LoadingState message="Loading Pro Feed..." />}>
                 <div className="pt-12">
-                  <JobFitPro onDraftApplication={handleDraftApplication} />
+                  <JobFitPro onDraftApplication={handleDraftApplication} onPromoteFromFeed={handlePromoteFromFeed} />
                 </div>
               </Suspense>
             } />

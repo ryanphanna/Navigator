@@ -25,6 +25,7 @@ interface GlobalModalsProps {
     simulatedTier: UserTier | null;
     setSimulatedTier: (tier: UserTier | null) => void;
     handleInterviewComplete: (proficiency: CustomSkill['proficiency'], evidence: string) => void;
+    usageStats?: any;
 }
 
 export const GlobalModals: React.FC<GlobalModalsProps> = ({
@@ -42,7 +43,8 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
     isAdmin,
     simulatedTier,
     setSimulatedTier,
-    handleInterviewComplete
+    handleInterviewComplete,
+    usageStats
 }) => {
     return (
         <Suspense fallback={null}>
@@ -60,6 +62,7 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
                     isAdmin={isAdmin}
                     simulatedTier={simulatedTier}
                     onSimulateTier={setSimulatedTier}
+                    usageStats={usageStats}
                 />
             )}
 

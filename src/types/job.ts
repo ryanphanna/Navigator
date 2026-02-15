@@ -69,7 +69,7 @@ export interface SavedJob {
     editScore?: number;          // Levenshtein distance (lower = better)
 
     // Outcome Tracking
-    status?: 'saved' | 'applied' | 'interview' | 'offer' | 'rejected' | 'ghosted' | 'analyzing' | 'error';
+    status?: 'saved' | 'applied' | 'interview' | 'offer' | 'rejected' | 'ghosted' | 'analyzing' | 'error' | 'feed';
 }
 
 export interface JobFeedItem {
@@ -80,6 +80,8 @@ export interface JobFeedItem {
     url: string;
     postedDate: string; // ISO string
     matchScore?: number;
-    source: 'ttc' | 'toronto' | 'other';
+    source: 'ttc' | 'toronto' | 'other' | 'email';
+    sourceType?: 'scraper' | 'email';
+    triageReasoning?: string;
     isNew?: boolean;
 }

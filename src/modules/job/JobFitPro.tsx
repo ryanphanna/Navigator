@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Sparkles, Zap,
+    Sparkles, Zap, Bookmark,
     Loader2, ExternalLink, RefreshCw
 } from 'lucide-react';
 import { ScraperService } from '../../services/scraperService';
@@ -11,11 +11,12 @@ import { PageLayout } from '../../components/common/PageLayout';
 import { STORAGE_KEYS } from '../../constants';
 
 interface JobFitProProps {
-    onBack?: () => void; // Optional now since we removed the button? Keeping for safety
-    onDraftApplication: (url: string) => Promise<void>;
+    onDraftApplication: (url: string) => void;
+    onPromoteFromFeed?: (jobId: string) => void;
+    onSaveFromFeed?: (jobId: string) => void;
 }
 
-export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
+export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication, onPromoteFromFeed, onSaveFromFeed }) => {
     const [feed, setFeed] = useState<JobFeedItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [analyzingId, setAnalyzingId] = useState<string | null>(null);
@@ -53,15 +54,39 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
     const loadFeed = async () => {
         setLoading(true);
         try {
-            const data = await ScraperService.getFeed();
-            setFeed(data);
+            // 1. Fetch scraped feed
+            const scraperData = await ScraperService.getFeed();
+
+            // 2. Fetch email-captured feed from DB
+            const { data: dbFeed } = await supabase
+                .from('jobs')
+                .select('*')
+                .eq('status', 'feed')
+                .order('date_added', { ascending: false });
+
+            const emailJobs: JobFeedItem[] = (dbFeed || []).map(job => ({
+                id: job.id,
+                title: job.job_title,
+                company: job.company,
+                location: job.location || 'Unknown',
+                url: job.url || '#',
+                postedDate: new Date(job.date_added).toISOString(),
+                matchScore: job.analysis?.compatibilityScore,
+                triageReasoning: job.analysis?.reasoning,
+                source: 'email',
+                sourceType: 'email',
+                isNew: (Date.now() - new Date(job.date_added).getTime()) < (24 * 60 * 60 * 1000)
+            }));
+
+            const combinedFeed = [...emailJobs, ...scraperData];
+            setFeed(combinedFeed);
 
             // Cache the raw feed data
-            localStorage.setItem(STORAGE_KEYS.FEED_CACHE, JSON.stringify(data));
+            localStorage.setItem(STORAGE_KEYS.FEED_CACHE, JSON.stringify(combinedFeed));
             localStorage.setItem(STORAGE_KEYS.FEED_CACHE_TIMESTAMP, Date.now().toString());
 
-            // Trigger background analysis
-            setTimeout(() => analyzeJobsInBackground(data), 100);
+            // Trigger background analysis only for scraped jobs that don't have it
+            setTimeout(() => analyzeJobsInBackground(scraperData), 100);
         } catch (e) {
             console.error(e);
         } finally {
@@ -147,9 +172,13 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
         }
     };
 
-    const handleAnalyze = async (jobId: string, url: string) => {
-        setAnalyzingId(jobId);
-        await onDraftApplication(url);
+    const handleAnalyze = async (job: JobFeedItem) => {
+        setAnalyzingId(job.id);
+        if (job.source === 'email' && onPromoteFromFeed) {
+            await onPromoteFromFeed(job.id);
+        } else {
+            await onDraftApplication(job.url);
+        }
     };
 
     const getProcessedFeed = () => {
@@ -272,9 +301,11 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
                             <div className="flex gap-4">
                                 {/* Logo Placeholder */}
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 font-bold text-xl
-                                    ${job.source === 'ttc' ? 'bg-red-50 text-red-600 dark:bg-red-900/20' : 'bg-blue-50 text-blue-600 dark:bg-blue-900/20'}
+                                    ${job.source === 'ttc' ? 'bg-red-50 text-red-600 dark:bg-red-900/20' :
+                                        job.source === 'email' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20' :
+                                            'bg-blue-50 text-blue-600 dark:bg-blue-900/20'}
                                 `}>
-                                    {job.source === 'ttc' ? 'T' : 'C'}
+                                    {job.source === 'ttc' ? 'T' : job.source === 'email' ? 'E' : 'C'}
                                 </div>
 
                                 <div className="flex-1 min-w-0">
@@ -301,7 +332,7 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
 
                                     <div className="mt-6 flex items-center gap-3">
                                         <button
-                                            onClick={() => handleAnalyze(job.id, job.url)}
+                                            onClick={() => handleAnalyze(job)}
                                             disabled={analyzingId === job.id}
                                             className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait"
                                         >
@@ -317,6 +348,17 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication }) => {
                                                 </>
                                             )}
                                         </button>
+
+                                        {job.source === 'email' && onSaveFromFeed && (
+                                            <button
+                                                onClick={() => onSaveFromFeed(job.id)}
+                                                className="p-2.5 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-400 hover:text-indigo-600 rounded-xl transition-colors"
+                                                title="Save to History"
+                                            >
+                                                <Bookmark className="w-5 h-5" />
+                                            </button>
+                                        )}
+
                                         <a
                                             href={job.url}
                                             target="_blank"

@@ -7,7 +7,9 @@ const MOCK_TTC_JOBS: JobFeedItem[] = [];
 
 export const ScraperService = {
     async getFeed(): Promise<JobFeedItem[]> {
-        console.log('Fetching live feed...');
+        if (import.meta.env.DEV) {
+            console.log('Fetching live feed...');
+        }
         const jobs: JobFeedItem[] = [];
 
         // Targets
@@ -16,10 +18,13 @@ export const ScraperService = {
             { name: 'TTC (Regular)', url: 'https://career17.sapsf.com/career?company=TTCPRODUCTION', source: 'ttc-sap' }
         ];
 
-        for (const target of targets) {
+        // Run all scrapers concurrently
+        const scrapers = targets.map(async (target) => {
             try {
                 let rawJobs: Array<{ title: string; url: string; company: string; location: string; postedDate: string | null }> = [];
-                console.log(`[${target.name}] Fetching from ${target.url.substring(0, 50)}...`);
+                if (import.meta.env.DEV) {
+                    console.log(`[${target.name}] Fetching from ${target.url.substring(0, 50)}...`);
+                }
 
                 // Direct fetch (TTC allows CORS)
                 const response = await fetch(target.url);
@@ -27,7 +32,9 @@ export const ScraperService = {
 
                 // Special handling for TTC Early Talent (uses Sitecore API)
                 if (target.source === 'ttc' && target.url.includes('Early-Talent')) {
-                    console.log(`[${target.name}] Fetching from TTC Sitecore API...`);
+                    if (import.meta.env.DEV) {
+                        console.log(`[${target.name}] Fetching from TTC Sitecore API...`);
+                    }
 
                     // Use the real API endpoint that the page calls via JavaScript
                     const apiUrl = 'https://www.ttc.ca/sxa/search/results/?' + new URLSearchParams({
@@ -41,7 +48,9 @@ export const ScraperService = {
                     if (!apiResponse.ok) throw new Error(`API returned ${apiResponse.status}`);
 
                     const apiData = await apiResponse.json();
-                    console.log(`[${target.name}] API returned ${apiData.Results?.length || 0} jobs`);
+                    if (import.meta.env.DEV) {
+                        console.log(`[${target.name}] API returned ${apiData.Results?.length || 0} jobs`);
+                    }
 
                     // Parse each job from the HTML in the Results
                     rawJobs = (apiData.Results || []).map((result: { Html: string }) => {
@@ -61,10 +70,14 @@ export const ScraperService = {
                         };
                     }).filter((job: { url: string }) => job.url); // Only include jobs with valid URLs
 
-                    console.log(`[${target.name}] Created ${rawJobs.length} job objects`);
+                    if (import.meta.env.DEV) {
+                        console.log(`[${target.name}] Created ${rawJobs.length} job objects`);
+                    }
                 } else {
                     // For other pages, skip for now (SAP SuccessFactors needs JavaScript)
-                    console.log(`[${target.name}] Skipping - requires JavaScript rendering`);
+                    if (import.meta.env.DEV) {
+                        console.log(`[${target.name}] Skipping - requires JavaScript rendering`);
+                    }
                     rawJobs = [];
                 }
 
@@ -88,12 +101,15 @@ export const ScraperService = {
                     };
                 });
 
-                jobs.push(...normalized);
-
+                return normalized;
             } catch (err) {
                 console.error(`Failed to scrape ${target.name}:`, err);
+                return [];
             }
-        }
+        });
+
+        const results = await Promise.all(scrapers);
+        jobs.push(...results.flat());
 
         if (jobs.length === 0) {
             console.warn('All scrapers failed, returning mock data.');

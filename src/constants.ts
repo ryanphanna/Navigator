@@ -148,6 +148,7 @@ export const FEATURES = {
 export const BENTO_CARDS = {
   JOBFIT: {
     id: 'jobfit',
+    rank: 1,
     iconName: 'Sparkles',
     targetView: 'job-fit',
     title: { marketing: 'JobFit Score', action: 'Analyze' },
@@ -167,6 +168,7 @@ export const BENTO_CARDS = {
   },
   KEYWORDS: {
     id: 'keywords',
+    rank: 2,
     iconName: 'Zap',
     targetView: 'skills',
     title: { marketing: 'Keyword Targeting', action: 'Skills' },
@@ -186,6 +188,7 @@ export const BENTO_CARDS = {
   },
   RESUMES: {
     id: 'resumes',
+    rank: 3,
     iconName: 'FileText',
     targetView: 'resumes',
     title: { marketing: 'Tailored Summaries', action: 'Resumes' },
@@ -205,6 +208,7 @@ export const BENTO_CARDS = {
   },
   COACH: {
     id: 'coach',
+    rank: 1, // High rank for career mode
     iconName: 'TrendingUp',
     targetView: 'coach-home',
     title: { marketing: 'Career Coach', action: 'Roadmap' },
@@ -224,6 +228,7 @@ export const BENTO_CARDS = {
   },
   HISTORY: {
     id: 'history',
+    rank: 4,
     iconName: 'Bookmark',
     targetView: 'history',
     title: { marketing: 'Save from Anywhere', action: 'History' },
@@ -243,6 +248,7 @@ export const BENTO_CARDS = {
   },
   COVER_LETTERS: {
     id: 'cover_letters',
+    rank: 5,
     iconName: 'PenTool',
     targetView: 'cover-letters',
     title: { marketing: 'Smart Cover Letters', action: 'Cover Letters' },
@@ -263,6 +269,7 @@ export const BENTO_CARDS = {
 
   EDU: {
     id: 'edu',
+    rank: 1, // High rank for edu mode
     iconName: 'GraduationCap',
     targetView: 'grad',
     title: { marketing: 'Edu HQ', action: 'Edu' },
@@ -280,4 +287,27 @@ export const BENTO_CARDS = {
       glow: 'bg-amber-500/10 group-hover:bg-amber-500/20'
     }
   }
+} as const;
+
+// Marketing Headlines
+export const HEADLINES = {
+  all: [
+    { text: "Optimize your", highlight: "Career" },
+    { text: "Elevate your", highlight: "Potential" },
+    { text: "Design your", highlight: "Path" },
+    { text: "Scale your", highlight: "Ambition" }
+  ],
+  apply: [
+    { text: "Land your", highlight: "Opening" },
+    { text: "Ace the", highlight: "Application" },
+    { text: "Own your", highlight: "Narrative" },
+    { text: "Perfect your", highlight: "Fit" }
+  ],
+  goal: [
+    { text: "Chart your", highlight: "Course" },
+    { text: "Map your", highlight: "Growth" },
+    { text: "Build your", highlight: "Roadmap" },
+    { text: "Design your", highlight: "Future" },
+    { text: "Scale your", highlight: "Impact" }
+  ]
 } as const;

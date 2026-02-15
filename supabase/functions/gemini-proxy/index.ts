@@ -1,11 +1,18 @@
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-const corsHeaders = {
+export const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const TIER_MODELS: Record<string, { extraction: string; analysis: string }> = {
+const MAX_LOG_LENGTH = 200;
+const sanitizeLog = (val: unknown) => {
+    const str = String(val).replace(/[\n\r]/g, ' ');
+    return str.length > MAX_LOG_LENGTH ? str.substring(0, MAX_LOG_LENGTH) + '...' : str;
+};
+
+export const TIER_MODELS: Record<string, { extraction: string; analysis: string }> = {
     free: {
         extraction: 'gemini-2.0-flash',
         analysis: 'gemini-2.0-flash',
@@ -28,7 +35,7 @@ const TIER_MODELS: Record<string, { extraction: string; analysis: string }> = {
     }
 };
 
-Deno.serve(async (req) => {
+export const handler = async (req: Request) => {
     // Handle CORS preflight request
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
@@ -60,7 +67,7 @@ Deno.serve(async (req) => {
             .single()
 
         if (profileError || !profile) {
-            console.error("Profile lookup error:", profileError);
+            console.error("Profile lookup error:", sanitizeLog(profileError));
             throw new Error('Failed to retrieve user profile')
         }
 
@@ -70,10 +77,14 @@ Deno.serve(async (req) => {
         // We no longer trust the client to provide modelName
         const { payload, task = "analysis", generationConfig } = await req.json()
 
-        const tierConfig = TIER_MODELS[userTier] || TIER_MODELS.free;
-        const modelName = task === 'extraction' ? tierConfig.extraction : tierConfig.analysis;
+        // Validate task
+        const validTasks = ['extraction', 'analysis'];
+        const safeTask = validTasks.includes(task) ? task : 'analysis';
 
-        console.log(`User ${user.id} (${userTier}) performing ${task} using ${modelName}`);
+        const tierConfig = TIER_MODELS[userTier] || TIER_MODELS.free;
+        const modelName = safeTask === 'extraction' ? tierConfig.extraction : tierConfig.analysis;
+
+        console.log(`User ${user.id} (${sanitizeLog(userTier)}) performing ${sanitizeLog(safeTask)} using ${modelName}`);
 
         // 3. RETRIEVE API KEY
         const apiKey = Deno.env.get('GEMINI_API_KEY')
@@ -98,7 +109,7 @@ Deno.serve(async (req) => {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error("Gemini API Error:", response.status, errorText);
+            console.error("Gemini API Error:", response.status, sanitizeLog(errorText));
             throw new Error(`Gemini API Error (${response.status}): ${errorText}`);
         }
 
@@ -117,10 +128,12 @@ Deno.serve(async (req) => {
 
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error("Gemini Proxy Error:", message);
+        console.error("Gemini Proxy Error:", sanitizeLog(message));
         return new Response(JSON.stringify({ error: `Edge Function Error: ${message}` }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200, // Return 200 so client gets the error message JSON
         })
     }
-})
+}
+
+Deno.serve(handler)

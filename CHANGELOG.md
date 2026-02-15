@@ -2,6 +2,15 @@
  
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+### Added
+- **Job Alert Email Feed**: Implemented an AI-powered system that captures job alerts from inbound emails (Postmark) and triages them automatically in a new "Job Feed" view.
+- **Inbound Email Tokens**: Unique Navigator email addresses generated per user for private job alert redirection.
+- **Gemini Ingestion Engine**: Supabase Edge Function using Gemini to extract job data, calculate match scores, and provide triage reasoning from raw email bodies.
+- **Auto-Cleanup**: Automated 7-day TTL (Time-To-Live) for feed items to keep the stream fresh and self-cleaning.
+- **Monetization**: Restrictive access to Job Automation features for Pro-tier users with integrated upgrade nudges.
+- **Save to History**: One-click bookmarking to move jobs from the transient Feed to permanent application History.
+
 ## [2.8.3] - 2026-02-14
 ### Changed
 - **Premium Design**: Redesigned the Bento feature grid with a unique, muted color palette (Sky, Violet, Rose, Indigo, Teal) for a more sophisticated and professional aesthetic.

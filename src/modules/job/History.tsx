@@ -43,7 +43,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
 
     const filteredJobs = useMemo(() => {
         return jobs.filter(job => {
-            if (!job) return false;
+            if (!job || job.status === 'feed') return false;
 
             // Status Filter
             if (statusFilter !== 'all') {
