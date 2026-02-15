@@ -16,7 +16,8 @@ export const ScraperService = {
             { name: 'TTC (Regular)', url: 'https://career17.sapsf.com/career?company=TTCPRODUCTION', source: 'ttc-sap' }
         ];
 
-        for (const target of targets) {
+        // Run all scrapers concurrently
+        const scrapers = targets.map(async (target) => {
             try {
                 let rawJobs: Array<{ title: string; url: string; company: string; location: string; postedDate: string | null }> = [];
                 console.log(`[${target.name}] Fetching from ${target.url.substring(0, 50)}...`);
@@ -88,12 +89,15 @@ export const ScraperService = {
                     };
                 });
 
-                jobs.push(...normalized);
-
+                return normalized;
             } catch (err) {
                 console.error(`Failed to scrape ${target.name}:`, err);
+                return [];
             }
-        }
+        });
+
+        const results = await Promise.all(scrapers);
+        jobs.push(...results.flat());
 
         if (jobs.length === 0) {
             console.warn('All scrapers failed, returning mock data.');
