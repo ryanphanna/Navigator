@@ -21,7 +21,7 @@ import { useToast } from '../../contexts/ToastContext';
 import type { ResumeProfile, SavedJob } from '../../types';
 import type { User } from '@supabase/supabase-js';
 import type { UsageStats } from '../../services/usageLimits';
-import { STORAGE_KEYS } from '../../constants';
+import { STORAGE_KEYS, HEADLINES } from '../../constants';
 
 interface HomeInputProps {
     resumes: ResumeProfile[];
@@ -38,27 +38,6 @@ interface HomeInputProps {
     onNavigate?: (view: string) => void;
     onShowAuth?: () => void;
 }
-
-const HEADLINES = {
-    all: [
-        { text: "Optimize your", highlight: "Career" },
-        { text: "Elevate your", highlight: "Potential" },
-        { text: "Design your", highlight: "Path" },
-        { text: "Scale your", highlight: "Ambition" }
-    ],
-    apply: [
-        { text: "Land your", highlight: "Opening" },
-        { text: "Ace the", highlight: "Application" },
-        { text: "Own your", highlight: "Narrative" },
-        { text: "Perfect your", highlight: "Fit" }
-    ],
-    goal: [
-        { text: "Chart your", highlight: "Course" },
-        { text: "Map your", highlight: "Growth" },
-        { text: "Build your", highlight: "Roadmap" },
-        { text: "Design your", highlight: "Future" }
-    ]
-};
 
 const HomeInput: React.FC<HomeInputProps> = ({
     resumes,
@@ -88,7 +67,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     // ActionGrid handles its own card logic now
-    const [activeHeadline, setActiveHeadline] = useState(mode === 'goal' ? HEADLINES.goal[0] : HEADLINES.all[0]);
+    const [activeHeadline, setActiveHeadline] = useState<{ text: string, highlight: string }>(mode === 'goal' ? HEADLINES.goal[0] : HEADLINES.all[0]);
 
     // Ref to store the LAST URL attempted, so it persists even if we clear state for manual entry
     const lastUrlRef = React.useRef<string>('');
