@@ -2,7 +2,7 @@ import React from 'react';
 import { SharedHeader } from '../../components/common/SharedHeader';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { CourseEditModal } from '../../components/edu/CourseEditModal';
-import { useAcademicLogic } from '../../hooks/useAcademicLogic';
+import { useAcademicLogic } from './hooks/useAcademicLogic';
 
 // Refactored Components
 import { AcademicHero } from './components/AcademicHero';

@@ -8,7 +8,7 @@ import { CoachHero } from './components/CoachHero';
 import { RoleModelSection } from './components/RoleModelSection';
 import { GapAnalysisSection } from './components/GapAnalysisSection';
 import { RoleModelComparison } from './components/RoleModelComparison';
-import type { ResumeProfile } from '../../types/resume';
+import type { ResumeProfile } from '../resume/types';
 
 interface CoachDashboardProps {
     userSkills: CustomSkill[];

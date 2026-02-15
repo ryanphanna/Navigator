@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useLocalStorage } from './useLocalStorage';
+import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import type { Transcript, Course } from '../types';
 
 export const useAcademicLogic = () => {

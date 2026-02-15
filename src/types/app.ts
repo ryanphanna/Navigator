@@ -1,7 +1,7 @@
-import type { ResumeProfile, RoleModelProfile } from './resume';
-import type { SavedJob } from './job';
+import type { ResumeProfile, RoleModelProfile } from '../modules/resume/types';
+import type { SavedJob } from '../modules/job/types';
 import type { TargetJob } from './target';
-import type { CustomSkill } from './skills';
+import type { CustomSkill } from '../modules/skills/types';
 
 export type UserTier = 'free' | 'plus' | 'pro' | 'admin' | 'tester';
 
