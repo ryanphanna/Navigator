@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { fetchSafe } from "./validator.ts"
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -29,8 +30,8 @@ Deno.serve(async (req) => {
         const { url, source, mode } = await req.json()
         if (!url) throw new Error('Missing URL')
 
-        // 3. Fetch HTML
-        const response = await fetch(url, {
+        // 3. Fetch HTML (with SSRF protection including redirect validation)
+        const response = await fetchSafe(url, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             }
