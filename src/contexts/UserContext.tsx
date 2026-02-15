@@ -33,7 +33,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(currentUser);
         if (currentUser) {
             try {
-                console.log('[Auth Debug] Attempting to fetch profile for ID:', currentUser.id);
                 const { data, error } = await supabase
                     .from('profiles')
                     .select('subscription_tier, is_admin, is_tester')
@@ -41,17 +40,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     .single();
 
                 if (data && !error) {
-                    console.log('[Auth Debug] SUCCESS - Profile Data:', data);
                     const tier = data.subscription_tier as UserTier;
                     setActualTier(data.is_admin ? 'admin' : tier);
                     setIsAdmin(data.is_admin || false);
                     setIsTester(data.is_tester || false);
                 } else if (error) {
-                    console.error('[Auth Debug] ERROR - Profile Fetch Failed:', error);
-                    const { error: tableError } = await supabase.from('profiles').select('id').limit(1);
-                    console.warn('[Auth Debug] Table Access Test:', tableError ? 'FAILED' : 'SUCCESS');
-                } else {
-                    console.warn('[Auth Debug] NOTICE - No profile record found for this user.');
+                    console.error('Error fetching user profile:', error);
                 }
             } catch (err) {
                 console.error('Error fetching user profile:', err);
