@@ -1,13 +1,18 @@
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-const corsHeaders = {
+export const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const sanitizeLog = (val: unknown) => String(val).replace(/[\n\r]/g, ' ');
+const MAX_LOG_LENGTH = 200;
+const sanitizeLog = (val: unknown) => {
+    const str = String(val).replace(/[\n\r]/g, ' ');
+    return str.length > MAX_LOG_LENGTH ? str.substring(0, MAX_LOG_LENGTH) + '...' : str;
+};
 
-const TIER_MODELS: Record<string, { extraction: string; analysis: string }> = {
+export const TIER_MODELS: Record<string, { extraction: string; analysis: string }> = {
     free: {
         extraction: 'gemini-2.0-flash',
         analysis: 'gemini-2.0-flash',
@@ -30,7 +35,7 @@ const TIER_MODELS: Record<string, { extraction: string; analysis: string }> = {
     }
 };
 
-Deno.serve(async (req) => {
+export const handler = async (req: Request) => {
     // Handle CORS preflight request
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
@@ -72,10 +77,14 @@ Deno.serve(async (req) => {
         // We no longer trust the client to provide modelName
         const { payload, task = "analysis", generationConfig } = await req.json()
 
-        const tierConfig = TIER_MODELS[userTier] || TIER_MODELS.free;
-        const modelName = task === 'extraction' ? tierConfig.extraction : tierConfig.analysis;
+        // Validate task
+        const validTasks = ['extraction', 'analysis'];
+        const safeTask = validTasks.includes(task) ? task : 'analysis';
 
-        console.log(`User ${user.id} (${sanitizeLog(userTier)}) performing ${sanitizeLog(task)} using ${modelName}`);
+        const tierConfig = TIER_MODELS[userTier] || TIER_MODELS.free;
+        const modelName = safeTask === 'extraction' ? tierConfig.extraction : tierConfig.analysis;
+
+        console.log(`User ${user.id} (${sanitizeLog(userTier)}) performing ${sanitizeLog(safeTask)} using ${modelName}`);
 
         // 3. RETRIEVE API KEY
         const apiKey = Deno.env.get('GEMINI_API_KEY')
@@ -125,4 +134,6 @@ Deno.serve(async (req) => {
             status: 200, // Return 200 so client gets the error message JSON
         })
     }
-})
+}
+
+Deno.serve(handler)
