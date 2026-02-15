@@ -17,6 +17,7 @@ create table profiles (
   job_analyses_count int default 0,
   total_ai_calls int default 0,
   last_analysis_date timestamp with time zone,
+  inbound_email_token text unique,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -37,8 +38,9 @@ create table jobs (
   company text,
   original_text text,
   url text,
+  source_type text default 'manual',
   analysis jsonb, -- Stores the Analysis result
-  status text default 'new' check (status in ('new', 'saved', 'applied', 'interview', 'offer', 'rejected', 'ghosted')),
+  status text default 'new' check (status in ('new', 'saved', 'applied', 'interview', 'offer', 'rejected', 'ghosted', 'feed', 'error')),
   date_added timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -166,8 +168,8 @@ create policy "Admins can view all usage" on daily_usage for select using (
 create or replace function public.handle_new_user() 
 returns trigger as $$
 begin
-  insert into public.profiles (id, email, is_admin, is_tester)
-  values (new.id, new.email, false, false);
+  insert into public.profiles (id, email, is_admin, is_tester, inbound_email_token)
+  values (new.id, new.email, false, false, substring(md5(random()::text) from 1 for 12));
   return new;
 end;
 $$ language plpgsql security definer set search_path = public;

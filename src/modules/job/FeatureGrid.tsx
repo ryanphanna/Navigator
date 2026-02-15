@@ -32,28 +32,29 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
     isTester = false
 }) => {
     const [cardKeys] = useState<string[]>(() => {
-        // Shared cards in priority order
-        const baseCards = [
-            'JOBFIT',
-            'KEYWORDS',
-            'RESUMES',
-            'COVER_LETTERS',
-            'HISTORY',
-        ];
+        const eligibleCards: string[] = [];
 
-        const finalCards: string[] = [...baseCards];
+        // Base cards always eligible but filtered later
+        const baseKeys = ['JOBFIT', 'KEYWORDS', 'RESUMES', 'COVER_LETTERS', 'HISTORY'];
+        eligibleCards.push(...baseKeys);
 
-        // Show Career Coach and Edu HQ for appropriate users (or marketing for logged-out)
-        // For simplicity and sleekness, we use a 5-column base, but can expand
+        // Career Coach for all
+        eligibleCards.push('COACH');
+
+        // Edu HQ for admins or testers
         if (isAdmin || isTester) {
-            finalCards.push('COACH');
-            if (isAdmin) finalCards.push('EDU');
-        } else if (!user) {
-            // Logged out: Show coach as a marketing card
-            finalCards.push('COACH');
+            eligibleCards.push('EDU');
         }
 
-        return finalCards.slice(0, 5); // Stick to 5 for the sleekest top row
+        // Sort by rank and take top 5
+        return eligibleCards
+            .filter(key => BENTO_CARDS[key as keyof typeof BENTO_CARDS])
+            .sort((a, b) => {
+                const rankA = (BENTO_CARDS[a as keyof typeof BENTO_CARDS] as any).rank || 99;
+                const rankB = (BENTO_CARDS[b as keyof typeof BENTO_CARDS] as any).rank || 99;
+                return rankA - rankB;
+            })
+            .slice(0, 5);
     });
 
     const renderPreview = (id: string, color: BentoColorConfig) => {

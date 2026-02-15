@@ -13,6 +13,7 @@ export interface UsageStats {
     todayAnalyses: number;
     totalAICalls: number; // Cumulative AI events
     limit: number;
+    inboundEmailToken?: string;
 }
 
 /**
@@ -60,7 +61,7 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
     try {
         const { data: profile } = await supabase
             .from('profiles')
-            .select('subscription_tier, job_analyses_count, total_ai_calls')
+            .select('subscription_tier, job_analyses_count, total_ai_calls, inbound_email_token')
             .eq('id', userId)
             .single();
 
@@ -79,7 +80,8 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
             totalAnalyses,
             todayAnalyses: todayCount || 0,
             totalAICalls,
-            limit: tier === 'free' ? 3 : Infinity
+            limit: tier === 'free' ? 3 : Infinity,
+            inboundEmailToken: profile?.inbound_email_token
         };
     } catch (err) {
         console.error('Error fetching usage stats:', err);

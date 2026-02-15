@@ -17,9 +17,10 @@ interface SettingsModalProps {
     isAdmin: boolean;
     simulatedTier: UserTier | null;
     onSimulateTier: (tier: UserTier | null) => void;
+    usageStats?: any;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, userTier, isTester, isAdmin, simulatedTier, onSimulateTier }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, userTier, isTester, isAdmin, simulatedTier, onSimulateTier, usageStats }) => {
     const [confirmReset, setConfirmReset] = useState(false);
     const [isDark, setIsDark] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -147,6 +148,59 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                             )}
                         </div>
                     </div>
+
+                    {/* Email Capture Section */}
+                    {user && (
+                        <>
+                            <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
+                            <div>
+                                <h4 className="font-bold text-xs text-neutral-400 uppercase tracking-wider mb-4">Job Automation</h4>
+
+                                {userTier === 'pro' || isAdmin || isTester ? (
+                                    <div className="p-4 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30 rounded-2xl">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                                            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-tight">Auto-Ingestion Active</span>
+                                        </div>
+                                        <p className="text-[10px] text-neutral-600 dark:text-neutral-400 mb-4 leading-relaxed">
+                                            Forward job alert emails here. Navigator will automatically parse and triage them in your feed.
+                                        </p>
+
+                                        <div className="group relative">
+                                            <div className="w-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-2.5 text-[10px] font-mono text-neutral-500 dark:text-neutral-400 flex items-center justify-between overflow-hidden">
+                                                <span className="truncate mr-2">
+                                                    {usageStats?.inboundEmailToken ? `navigator-${usageStats.inboundEmailToken}@inbound.navigator.work` : 'Token initializing...'}
+                                                </span>
+                                                {usageStats?.inboundEmailToken && (
+                                                    <button
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(`navigator-${usageStats.inboundEmailToken}@inbound.navigator.work`);
+                                                        }}
+                                                        className="px-2 py-1 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md text-[9px] font-bold text-neutral-600 dark:text-neutral-300 transition-colors shrink-0"
+                                                    >
+                                                        Copy
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="p-4 bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800 rounded-2xl">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="px-1.5 py-0.5 bg-indigo-500 text-white text-[8px] font-black rounded uppercase tracking-tighter">Pro Feature</div>
+                                            <span className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-tight">Auto-Ingestion</span>
+                                        </div>
+                                        <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mb-3 leading-relaxed">
+                                            Forward job alerts from LinkedIn, Indeed, and more. Let Gemini filter, triage, and score them for you automatically.
+                                        </p>
+                                        <button className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm hover:shadow-md">
+                                            Upgrade to Pro
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
 
                     {/* Admin-only: Feature Stats */}
                     {isAdmin && (

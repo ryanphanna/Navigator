@@ -28,6 +28,8 @@ interface JobContextType {
     handleDraftApplication: (url: string) => Promise<void>;
     handleDeleteJob: (id: string) => void;
     handleAnalyzeJob: (job: SavedJob, contextState: { resumes: AppState['resumes'], skills: AppState['skills'] }) => Promise<SavedJob>;
+    handlePromoteFromFeed: (jobId: string) => Promise<void>;
+    handleSaveFromFeed: (jobId: string) => Promise<void>;
     closeUpgradeModal: () => void;
 }
 
@@ -163,6 +165,41 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     }, [user, isAdmin, navigate, showError]);
 
+    const handleSaveFromFeed = useCallback(async (jobId: string) => {
+        const job = jobs.find(j => j.id === jobId);
+        if (!job) return;
+
+        const updatedJob: SavedJob = {
+            ...job,
+            status: 'saved' as const,
+        };
+
+        await Storage.updateJob(updatedJob);
+        setJobs(prev => prev.map(j => j.id === jobId ? updatedJob : j));
+        showInfo("Saved to your history!");
+    }, [jobs, showInfo]);
+
+    const handlePromoteFromFeed = useCallback(async (jobId: string) => {
+        const job = jobs.find(j => j.id === jobId);
+        if (!job) {
+            // If not in local state, it might be in DB only. 
+            // We should ideally have it in state if it's visible in the Feed.
+            showError("Job not found in local state.");
+            return;
+        }
+
+        const updatedJob: SavedJob = {
+            ...job,
+            status: 'analyzing' as const,
+        };
+
+        await Storage.updateJob(updatedJob);
+        setJobs(prev => prev.map(j => j.id === jobId ? updatedJob : j));
+        setActiveJobId(jobId);
+        navigate(`/job/${jobId}`);
+        showInfo("Promoting job alert to application...");
+    }, [jobs, navigate, showInfo, showError]);
+
     const handleDraftApplication = useCallback(async (url: string) => {
         const jobId = crypto.randomUUID();
         // Need access to resumes... for now defaulting to master or need to pass it.
@@ -237,6 +274,8 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             handleDraftApplication,
             handleDeleteJob,
             handleAnalyzeJob,
+            handlePromoteFromFeed,
+            handleSaveFromFeed,
             closeUpgradeModal: () => setUpgradeModalData(null),
             dismissNudge
         }}>
