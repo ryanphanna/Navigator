@@ -2,7 +2,19 @@
  
 All notable changes to this project will be documented in this file.
 
+## [2.10.0] - 2026-02-15
+### Added
+- **Architecture**: Established a "Single Source of Truth" for spacing using semantic categories (`hero`, `compact`, `none`) in `SharedPageLayout` and `PageLayout`. This ensures pixel-perfect vertical alignment across the entire app.
+
+### Changed
+- **Branding**: Simplified header branding from "Job Navigator" to just **Navigator** for a unified identity.
+- **UI Refinement**: Standardized all pages with hero headers (Home, Job Detail, Coach, Grad) to a consistent `pt-24` top offset.
+- **Honest Design**: Removed misleading grey circle placeholders and redundant copy from the Hero section.
+- **Header**: Reverted the "Sign In" button to a clean text-only style for a more minimal aesthetic.
+- **Cleanup**: Stripped all ad-hoc layout wrappers and paddings from `AppRoutes.tsx`.
+
 ## [Unreleased]
+
 
 ## [2.9.0] - 2026-02-15
 ### Changed
