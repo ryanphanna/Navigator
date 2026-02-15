@@ -240,3 +240,45 @@ export async function fetchSafe(inputUrl: string, options: RequestInit = {}): Pr
 
     throw new Error(`Too many redirects (max ${maxRedirects})`);
 }
+
+/**
+ * Reads the response text body safely, enforcing a size limit to prevent DoS.
+ * @param response The Fetch Response object
+ * @param maxLength Maximum allowed bytes (default 5MB)
+ * @returns The response text
+ */
+export async function readTextSafe(response: Response, maxLength: number = 5 * 1024 * 1024): Promise<string> {
+    if (!response.body) return "";
+
+    const reader = response.body.getReader();
+    let receivedLength = 0;
+    const chunks: Uint8Array[] = [];
+
+    try {
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            receivedLength += value.length;
+            if (receivedLength > maxLength) {
+                // Cancel the rest of the stream
+                await reader.cancel();
+                throw new Error(`Response too large (max ${maxLength} bytes)`);
+            }
+            chunks.push(value);
+        }
+    } catch (e) {
+        // Propagate error
+        throw e;
+    }
+
+    // Concatenate chunks
+    const result = new Uint8Array(receivedLength);
+    let position = 0;
+    for (const chunk of chunks) {
+        result.set(chunk, position);
+        position += chunk.length;
+    }
+
+    return new TextDecoder().decode(result);
+}

@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import { fetchSafe } from "./validator.ts"
+import { fetchSafe, readTextSafe } from "./validator.ts"
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -38,7 +38,9 @@ Deno.serve(async (req) => {
         })
 
         if (!response.ok) throw new Error(`Failed to fetch site: ${response.status}`)
-        const html = await response.text()
+
+        // Use safe reader to prevent DoS (max 5MB)
+        const html = await readTextSafe(response, 5 * 1024 * 1024)
 
         // 3.5 Return Text Mode (for Job Analysis)
         if (mode === 'text') {
