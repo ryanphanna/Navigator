@@ -4,15 +4,15 @@
  */
 
 const STORAGE_PREFIX = 'jobfit_secure_';
+const MASTER_KEY_STORAGE_NAME = 'jobfit_master_key_v1';
 const ENCRYPTION_ALGORITHM = 'AES-GCM';
 
 /**
- * Generates a device-specific encryption key
+ * Generates a device-specific encryption key (LEGACY)
  * This key is derived from browser fingerprint + user session
- * Note: This provides obfuscation, not military-grade security
- * For true security, API keys should be stored server-side only
+ * Kept for migration purposes
  */
-async function getEncryptionKey(): Promise<CryptoKey> {
+export async function getLegacyEncryptionKey(): Promise<CryptoKey> {
   // Create a stable fingerprint from browser/device characteristics
   const fingerprint = [
     navigator.userAgent,
@@ -37,11 +37,48 @@ async function getEncryptionKey(): Promise<CryptoKey> {
 }
 
 /**
+ * Gets or creates the master encryption key
+ * This key is randomly generated and stored in localStorage
+ */
+export async function getMasterKey(): Promise<CryptoKey> {
+  const storedKey = localStorage.getItem(MASTER_KEY_STORAGE_NAME);
+
+  if (storedKey) {
+    try {
+      const binaryKey = Uint8Array.from(atob(storedKey), c => c.charCodeAt(0));
+      return await crypto.subtle.importKey(
+        'raw',
+        binaryKey,
+        { name: ENCRYPTION_ALGORITHM },
+        false,
+        ['encrypt', 'decrypt']
+      );
+    } catch (e) {
+      console.error('Failed to import master key, regenerating:', e);
+    }
+  }
+
+  // Generate new random key
+  const newKey = crypto.getRandomValues(new Uint8Array(32));
+  const base64Key = btoa(String.fromCharCode(...newKey));
+
+  localStorage.setItem(MASTER_KEY_STORAGE_NAME, base64Key);
+
+  return crypto.subtle.importKey(
+    'raw',
+    newKey,
+    { name: ENCRYPTION_ALGORITHM },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+/**
  * Encrypts a string value using AES-GCM
  */
 async function encrypt(plaintext: string): Promise<string> {
   try {
-    const key = await getEncryptionKey();
+    const key = await getMasterKey();
     const encoder = new TextEncoder();
     const data = encoder.encode(plaintext);
 
@@ -73,9 +110,9 @@ async function encrypt(plaintext: string): Promise<string> {
 /**
  * Decrypts an encrypted string value
  */
-async function decrypt(encryptedData: string): Promise<string> {
+async function decrypt(encryptedData: string, key?: CryptoKey): Promise<string> {
   try {
-    const key = await getEncryptionKey();
+    const decryptionKey = key || await getMasterKey();
 
     // Decode base64
     const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
@@ -89,14 +126,14 @@ async function decrypt(encryptedData: string): Promise<string> {
         name: ENCRYPTION_ALGORITHM,
         iv: iv
       },
-      key,
+      decryptionKey,
       data
     );
 
     const decoder = new TextDecoder();
     return decoder.decode(decryptedBuffer);
   } catch (error) {
-    console.error('Decryption failed:', error);
+    // We intentionally do not log here to allow silent failover in migration logic
     throw new Error('Failed to decrypt data');
   }
 }
@@ -117,12 +154,26 @@ export async function getSecureItem(key: string): Promise<string | null> {
   if (!encrypted) return null;
 
   try {
+    // Try decrypting with master key first
     return await decrypt(encrypted);
   } catch (error) {
-    // If decryption fails, remove corrupted data
-    console.error('Failed to decrypt stored data:', error);
-    localStorage.removeItem(STORAGE_PREFIX + key);
-    return null;
+    // If decryption fails, try legacy key migration strategy
+    try {
+      const legacyKey = await getLegacyEncryptionKey();
+      const value = await decrypt(encrypted, legacyKey);
+
+      // If we are here, legacy decryption worked. Migrate!
+      // This re-encrypts the data with the new master key
+      await setSecureItem(key, value);
+      console.info(`Migrated secure item '${key}' to new encryption standard.`);
+
+      return value;
+    } catch (legacyError) {
+      // Both failed. Data is likely corrupted or key is lost.
+      console.error('Failed to decrypt stored data (master and legacy keys failed):', error);
+      localStorage.removeItem(STORAGE_PREFIX + key);
+      return null;
+    }
   }
 }
 

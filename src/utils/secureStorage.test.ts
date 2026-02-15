@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import './test-setup-bun';
 import { setSecureItem, getSecureItem, removeSecureItem } from './secureStorage';
 
 describe('secureStorage', () => {
@@ -123,6 +123,35 @@ describe('secureStorage', () => {
       await setSecureItem(key, 'new_value');
 
       expect(await getSecureItem(key)).toBe('new_value');
+    });
+  });
+
+  describe('key stability', () => {
+    it('should maintain access even if browser fingerprint changes', async () => {
+      const key = 'stable_key';
+      const value = 'stable_value';
+
+      await setSecureItem(key, value);
+
+      // Simulate browser change
+      const originalUA = navigator.userAgent;
+
+      // Use Object.defineProperty to ensure we can overwrite read-only property if needed
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'New Browser v2.0',
+        configurable: true
+      });
+
+      try {
+        const retrieved = await getSecureItem(key);
+        expect(retrieved).toBe(value);
+      } finally {
+        // Restore
+        Object.defineProperty(navigator, 'userAgent', {
+          value: originalUA,
+          configurable: true
+        });
+      }
     });
   });
 });
