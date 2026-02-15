@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { EventService } from '../../services/eventService';
 import type { CustomSkill, RoleModelProfile, TargetJob, Transcript } from '../../types';
+import { HEADLINES } from '../../constants';
 
 // Refactored Components
 import { CoachHero } from './components/CoachHero';
@@ -29,13 +30,7 @@ interface CoachDashboardProps {
     activeAnalysisIds?: Set<string>;
 }
 
-const COACH_HEADLINES = [
-    { text: "Chart your", highlight: "Course" },
-    { text: "Map your", highlight: "Growth" },
-    { text: "Build your", highlight: "Roadmap" },
-    { text: "Design your", highlight: "Future" },
-    { text: "Scale your", highlight: "Impact" }
-];
+const COACH_HEADLINES = HEADLINES.goal;
 
 
 export const CoachDashboard: React.FC<CoachDashboardProps> = ({

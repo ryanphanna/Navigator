@@ -6,6 +6,7 @@ import {
   STORAGE_KEYS,
   AI_MODELS,
   AI_TEMPERATURE,
+  HEADLINES,
 } from './constants';
 
 describe('constants', () => {
@@ -87,6 +88,26 @@ describe('constants', () => {
     it('should have increasing creativity levels', () => {
       expect(AI_TEMPERATURE.STRICT).toBeLessThan(AI_TEMPERATURE.BALANCED);
       expect(AI_TEMPERATURE.BALANCED).toBeLessThan(AI_TEMPERATURE.CREATIVE);
+    });
+  });
+
+  describe('HEADLINES', () => {
+    it('should have all categories', () => {
+      expect(HEADLINES.all).toBeDefined();
+      expect(HEADLINES.apply).toBeDefined();
+      expect(HEADLINES.goal).toBeDefined();
+    });
+
+    it('should have correct structure for headline items', () => {
+      [...HEADLINES.all, ...HEADLINES.apply, ...HEADLINES.goal].forEach(headline => {
+        expect(headline).toHaveProperty('text');
+        expect(headline).toHaveProperty('highlight');
+      });
+    });
+
+    it('should contain expected headlines', () => {
+      const allTexts = HEADLINES.goal.map(h => `${h.text} ${h.highlight}`);
+      expect(allTexts).toContain("Scale your Impact");
     });
   });
 });

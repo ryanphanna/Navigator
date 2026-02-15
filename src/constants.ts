@@ -288,3 +288,26 @@ export const BENTO_CARDS = {
     }
   }
 } as const;
+
+// Marketing Headlines
+export const HEADLINES = {
+  all: [
+    { text: "Optimize your", highlight: "Career" },
+    { text: "Elevate your", highlight: "Potential" },
+    { text: "Design your", highlight: "Path" },
+    { text: "Scale your", highlight: "Ambition" }
+  ],
+  apply: [
+    { text: "Land your", highlight: "Opening" },
+    { text: "Ace the", highlight: "Application" },
+    { text: "Own your", highlight: "Narrative" },
+    { text: "Perfect your", highlight: "Fit" }
+  ],
+  goal: [
+    { text: "Chart your", highlight: "Course" },
+    { text: "Map your", highlight: "Growth" },
+    { text: "Build your", highlight: "Roadmap" },
+    { text: "Design your", highlight: "Future" },
+    { text: "Scale your", highlight: "Impact" }
+  ]
+} as const;
