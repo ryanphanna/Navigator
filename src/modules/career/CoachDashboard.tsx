@@ -10,13 +10,15 @@ import { GapAnalysisSection } from './components/GapAnalysisSection';
 import { RoleModelComparison } from './components/RoleModelComparison';
 import type { ResumeProfile } from '../../types/resume';
 
+export type CoachViewType = 'coach-home' | 'coach-role-models' | 'coach-gap-analysis' | 'coach-comparison';
+
 interface CoachDashboardProps {
     userSkills: CustomSkill[];
     roleModels: RoleModelProfile[];
     targetJobs: TargetJob[];
     resumes: ResumeProfile[];
     transcript: Transcript | null;
-    view: 'coach-home' | 'coach-role-models' | 'coach-gap-analysis' | 'coach-comparison';
+    view: CoachViewType;
     onAddRoleModel: (file: File) => Promise<void>;
     onAddTargetJob: (url: string) => Promise<void>;
     onUpdateTargetJob: (job: TargetJob) => Promise<void>;
@@ -25,7 +27,7 @@ interface CoachDashboardProps {
     onRunGapAnalysis: (targetJobId: string) => Promise<void>;
     onGenerateRoadmap: (targetJobId: string) => Promise<void>;
     onToggleMilestone: (targetJobId: string, milestoneId: string) => Promise<void>;
-    onViewChange: (view: any) => void;
+    onViewChange: (view: CoachViewType) => void;
     activeAnalysisIds?: Set<string>;
 }
 
