@@ -1,4 +1,6 @@
 import React, { Suspense, lazy } from 'react';
+import type { User } from '@supabase/supabase-js';
+import type { UsageLimitResult } from '../../services/usageLimits';
 import type { UserTier, CustomSkill } from '../../types';
 
 // Lazy load heavy modals to improve lighter initial bundle
@@ -12,11 +14,11 @@ interface GlobalModalsProps {
     setShowAuth: (show: boolean) => void;
     showSettings: boolean;
     setShowSettings: (show: boolean) => void;
-    showUpgradeModal: any;
-    setShowUpgradeModal: (show: any) => void;
+    upgradeModalData: UsageLimitResult | null;
+    onCloseUpgradeModal: () => void;
     interviewSkill: string | null;
     setInterviewSkill: (skill: string | null) => void;
-    user: any;
+    user: User | null;
     userTier: UserTier;
     isTester: boolean;
     isAdmin: boolean;
@@ -31,8 +33,8 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
     setShowAuth,
     showSettings,
     setShowSettings,
-    showUpgradeModal,
-    setShowUpgradeModal,
+    upgradeModalData,
+    onCloseUpgradeModal,
     interviewSkill,
     setInterviewSkill,
     user,
@@ -72,10 +74,10 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
                 />
             )}
 
-            {showUpgradeModal && (
+            {upgradeModalData && (
                 <UpgradeModal
-                    limitInfo={showUpgradeModal}
-                    onClose={() => setShowUpgradeModal(null)}
+                    limitInfo={upgradeModalData}
+                    onClose={onCloseUpgradeModal}
                 />
             )}
         </Suspense>

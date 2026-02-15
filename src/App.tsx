@@ -42,7 +42,7 @@ const AppContent: React.FC = () => {
     jobs, activeJobId, activeJob,
     handleJobCreated, handleUpdateJob, handleDeleteJob, handleAnalyzeJob, handleDraftApplication,
     handlePromoteFromFeed,
-    setActiveJobId, usageStats, showUpgradeModal, closeUpgradeModal,
+    setActiveJobId, usageStats, upgradeModalData, closeUpgradeModal,
     nudgeJob, dismissNudge
   } = useJobContext();
 
@@ -172,8 +172,8 @@ const AppContent: React.FC = () => {
         setShowAuth={setShowAuth}
         showSettings={showSettings}
         setShowSettings={setShowSettings}
-        showUpgradeModal={showUpgradeModal}
-        setShowUpgradeModal={(show) => !show && closeUpgradeModal()}
+        upgradeModalData={upgradeModalData}
+        onCloseUpgradeModal={closeUpgradeModal}
         interviewSkill={interviewSkill}
         setInterviewSkill={setInterviewSkill}
         user={user}
