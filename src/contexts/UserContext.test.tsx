@@ -68,9 +68,30 @@ describe('UserContext Security Check', () => {
 
         // Check if sensitive data was logged
         // The vulnerable code does: console.log('[Auth Debug] SUCCESS - Profile Data:', data);
-        const sensitiveLogCall = consoleLogSpy.mock.calls.find(call =>
-            call[0] && call[0].includes('[Auth Debug] SUCCESS - Profile Data:')
-        );
+        const sensitiveLogCall = consoleLogSpy.mock.calls.find(call => {
+            // Check for specific debug message
+            if (call[0] && typeof call[0] === 'string' && call[0].includes('[Auth Debug] SUCCESS - Profile Data:')) {
+                return true;
+            }
+            // Check if the sensitive object itself was logged as any argument
+            return call.some(arg => {
+                // Direct object match
+                if (typeof arg === 'object' && arg !== null) {
+                    try {
+                        if (JSON.stringify(arg) === JSON.stringify(mockProfileData)) return true;
+                        // Check if sensitive info is contained in the stringified object
+                        if (JSON.stringify(arg).includes(mockProfileData.sensitive_info)) return true;
+                    } catch (e) {
+                        // circular reference or other error
+                    }
+                }
+                // String match
+                if (typeof arg === 'string' && arg.includes(mockProfileData.sensitive_info)) {
+                    return true;
+                }
+                return false;
+            });
+        });
 
         // We expect the sensitive data NOT to be logged
         expect(sensitiveLogCall).toBeUndefined();

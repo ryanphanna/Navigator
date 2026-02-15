@@ -45,10 +45,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setIsAdmin(data.is_admin || false);
                     setIsTester(data.is_tester || false);
                 } else if (error) {
-                    console.error('Error fetching user profile:', error);
+                    if (import.meta.env.DEV) {
+                        console.error('Error fetching user profile:', error);
+                    }
                 }
             } catch (err) {
-                console.error('Error fetching user profile:', err);
+                if (import.meta.env.DEV) {
+                    console.error('Error fetching user profile:', err);
+                }
             }
         } else {
             setActualTier('free');
