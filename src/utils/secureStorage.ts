@@ -8,35 +8,6 @@ const MASTER_KEY_STORAGE_NAME = 'jobfit_master_key_v1';
 const ENCRYPTION_ALGORITHM = 'AES-GCM';
 
 /**
- * Generates a device-specific encryption key (LEGACY)
- * This key is derived from browser fingerprint + user session
- * Kept for migration purposes
- */
-export async function getLegacyEncryptionKey(): Promise<CryptoKey> {
-  // Create a stable fingerprint from browser/device characteristics
-  const fingerprint = [
-    navigator.userAgent,
-    navigator.language,
-    new Date().getTimezoneOffset().toString(),
-    screen.colorDepth.toString(),
-    screen.width.toString() + 'x' + screen.height.toString()
-  ].join('|');
-
-  // Convert fingerprint to crypto key
-  const encoder = new TextEncoder();
-  const data = encoder.encode(fingerprint);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-
-  return crypto.subtle.importKey(
-    'raw',
-    hashBuffer,
-    { name: ENCRYPTION_ALGORITHM },
-    false,
-    ['encrypt', 'decrypt']
-  );
-}
-
-/**
  * Gets or creates the master encryption key
  * This key is randomly generated and stored in localStorage
  */
@@ -157,23 +128,10 @@ export async function getSecureItem(key: string): Promise<string | null> {
     // Try decrypting with master key first
     return await decrypt(encrypted);
   } catch (error) {
-    // If decryption fails, try legacy key migration strategy
-    try {
-      const legacyKey = await getLegacyEncryptionKey();
-      const value = await decrypt(encrypted, legacyKey);
-
-      // If we are here, legacy decryption worked. Migrate!
-      // This re-encrypts the data with the new master key
-      await setSecureItem(key, value);
-      console.info(`Migrated secure item '${key}' to new encryption standard.`);
-
-      return value;
-    } catch (legacyError) {
-      // Both failed. Data is likely corrupted or key is lost.
-      console.error('Failed to decrypt stored data (master and legacy keys failed):', error);
-      localStorage.removeItem(STORAGE_PREFIX + key);
-      return null;
-    }
+    // Decryption failed. Data is likely corrupted or key is lost.
+    console.error('Failed to decrypt stored data:', error);
+    localStorage.removeItem(STORAGE_PREFIX + key);
+    return null;
   }
 }
 
