@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 /**
  * Custom hook to persist state in localStorage
@@ -17,14 +17,14 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
   });
 
   // Update localStorage when state changes
-  const setValue = (value: T) => {
+  const setValue = useCallback((value: T) => {
     try {
       setStoredValue(value);
       window.localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
       console.error(`Error saving ${key} to localStorage:`, error);
     }
-  };
+  }, [key]);
 
   return [storedValue, setValue];
 }
