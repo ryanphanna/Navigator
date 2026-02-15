@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Sparkles, Zap,
+    Sparkles, Zap, Bookmark,
     Loader2, ExternalLink, RefreshCw
 } from 'lucide-react';
 import { ScraperService } from '../../services/scraperService';

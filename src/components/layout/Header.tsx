@@ -21,7 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
     onShowSettings,
     onShowAuth
 }) => {
-    const { user, isAdmin, isTester, isLoading } = useUser();
+    const { user, isLoading } = useUser();
 
     // Navigation Groups
     const navGroups = [
@@ -59,7 +59,6 @@ export const Header: React.FC<HeaderProps> = ({
         }
     ];
 
-    const activeGroup = navGroups.find(g => g.isActive) || navGroups[0];
 
     return (
         <header className={`fixed top-0 left-0 right-0 backdrop-blur-md border-b z-50 h-14 transition-all duration-500 ease-in-out ${isCoachMode ? 'bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/30'

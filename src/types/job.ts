@@ -69,7 +69,7 @@ export interface SavedJob {
     editScore?: number;          // Levenshtein distance (lower = better)
 
     // Outcome Tracking
-    status?: 'saved' | 'applied' | 'interview' | 'offer' | 'rejected' | 'ghosted' | 'analyzing' | 'error';
+    status?: 'saved' | 'applied' | 'interview' | 'offer' | 'rejected' | 'ghosted' | 'analyzing' | 'error' | 'feed';
 }
 
 export interface JobFeedItem {
