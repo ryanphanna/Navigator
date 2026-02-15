@@ -16,6 +16,8 @@ const ICON_MAP = {
     PenTool
 } as const;
 
+type BentoCardConfig = typeof BENTO_CARDS[keyof typeof BENTO_CARDS];
+
 interface FeatureGridProps {
     user: User | null;
     onNavigate?: (view: string) => void;
@@ -50,8 +52,8 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
         return eligibleCards
             .filter(key => BENTO_CARDS[key as keyof typeof BENTO_CARDS])
             .sort((a, b) => {
-                const rankA = (BENTO_CARDS[a as keyof typeof BENTO_CARDS] as any).rank || 99;
-                const rankB = (BENTO_CARDS[b as keyof typeof BENTO_CARDS] as any).rank || 99;
+                const rankA = BENTO_CARDS[a as keyof typeof BENTO_CARDS].rank || 99;
+                const rankB = BENTO_CARDS[b as keyof typeof BENTO_CARDS].rank || 99;
                 return rankA - rankB;
             })
             .slice(0, 5);
@@ -142,7 +144,7 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
         }
     };
 
-    const handleAction = (config: any) => {
+    const handleAction = (config: BentoCardConfig) => {
         // Track curiosity (Interest)
         EventService.trackInterest(config.id);
 
