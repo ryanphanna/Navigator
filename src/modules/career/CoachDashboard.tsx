@@ -9,7 +9,7 @@ import { CoachHero } from './components/CoachHero';
 import { RoleModelSection } from './components/RoleModelSection';
 import { GapAnalysisSection } from './components/GapAnalysisSection';
 import { RoleModelComparison } from './components/RoleModelComparison';
-import type { ResumeProfile } from '../../types/resume';
+import type { ResumeProfile } from '../resume/types';
 
 export type CoachViewType = 'coach-home' | 'coach-role-models' | 'coach-gap-analysis' | 'coach-comparison';
 

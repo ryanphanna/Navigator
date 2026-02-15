@@ -11,7 +11,7 @@ import {
 
 import { useToast } from '../../contexts/ToastContext';
 import { DetailHeader } from '../../components/common/DetailHeader';
-import { useJobDetailLogic } from '../../hooks/useJobDetailLogic';
+import { useJobDetailLogic } from './hooks/useJobDetailLogic';
 import { DetailTabs } from '../../components/common/DetailTabs';
 import type { TabItem } from '../../components/common/DetailTabs';
 import { DetailLayout } from '../../components/common/DetailLayout';

@@ -1,7 +1,9 @@
 import { useState, useCallback, useMemo } from 'react';
-import { analyzeJobFit, tailorExperienceBlock } from '../services/geminiService';
-import { Storage } from '../services/storageService';
-import type { SavedJob, ExperienceBlock, ResumeProfile, CustomSkill } from '../types';
+import { analyzeJobFit, tailorExperienceBlock } from '../../../services/geminiService';
+import { Storage } from '../../../services/storageService';
+import type { SavedJob } from '../types';
+import type { ExperienceBlock, ResumeProfile } from '../../resume/types';
+import type { CustomSkill } from '../../skills/types';
 
 export const useJobDetailLogic = ({
     job,
