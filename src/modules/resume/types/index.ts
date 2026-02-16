@@ -25,3 +25,11 @@ export interface RoleModelProfile {
     rawTextSummary: string;
     dateAdded: number;
 }
+
+export interface ResumeRow {
+    id: string;
+    user_id: string;
+    content: ResumeProfile[];
+    name?: string;
+    created_at?: string;
+}

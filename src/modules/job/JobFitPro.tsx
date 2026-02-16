@@ -6,7 +6,7 @@ import {
 import { ScraperService } from '../../services/scraperService';
 import { supabase } from '../../services/supabase';
 import { analyzeJobFit } from '../../services/geminiService';
-import type { JobFeedItem } from '../../types';
+import type { JobFeedItem, ResumeRow } from '../../types';
 import { PageLayout } from '../../components/common/PageLayout';
 import { STORAGE_KEYS } from '../../constants';
 
@@ -98,11 +98,13 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication, onProm
         console.log('Starting background analysis...');
 
         // Get user's resume and tier
-        const { data: resumes } = await supabase
+        const { data } = await supabase
             .from('resumes')
             .select('*')
             .order('created_at', { ascending: false })
             .limit(1);
+
+        const resumes = data as unknown as ResumeRow[];
 
         if (!resumes || resumes.length === 0) {
             console.log('No resume found, skipping analysis');
@@ -138,7 +140,7 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication, onProm
         console.log('Background analysis complete!');
     };
 
-    const analyzeAndCacheJob = async (job: JobFeedItem, resume: any) => {
+    const analyzeAndCacheJob = async (job: JobFeedItem, resume: ResumeRow) => {
         try {
             // 1. Scrape Job Text
             const jobText = await ScraperService.scrapeJobText(job.url);
@@ -147,8 +149,14 @@ export const JobFitPro: React.FC<JobFitProProps> = ({ onDraftApplication, onProm
                 return;
             }
 
+            const profiles = resume.content || [];
+            if (profiles.length === 0) {
+                console.warn('No resume content found');
+                return;
+            }
+
             // 2. Analyze with Gemini
-            const analysis = await analyzeJobFit(jobText, [resume], undefined, undefined);
+            const analysis = await analyzeJobFit(jobText, profiles, undefined, undefined);
 
             // 3. Update UI with real score
             const matchScore = analysis.compatibilityScore;
