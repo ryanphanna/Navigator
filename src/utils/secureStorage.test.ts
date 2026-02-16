@@ -1,5 +1,5 @@
 import './test-setup-bun';
-import { setSecureItem, getSecureItem, removeSecureItem } from './secureStorage';
+import { setSecureItem, getSecureItem, removeSecureItem, getMasterKey } from './secureStorage';
 
 describe('secureStorage', () => {
   beforeEach(() => {
@@ -152,6 +152,26 @@ describe('secureStorage', () => {
           configurable: true
         });
       }
+    });
+
+    it('should generate a new random key if storage is cleared (proving non-deterministic generation)', async () => {
+      // 1. Generate first key
+      await getMasterKey();
+      const storedKey1 = localStorage.getItem('jobfit_master_key_v1');
+      expect(storedKey1).toBeTruthy();
+
+      // 2. Clear storage (simulating a fresh start or lost key)
+      localStorage.clear();
+
+      // 3. Generate second key
+      await getMasterKey();
+      const storedKey2 = localStorage.getItem('jobfit_master_key_v1');
+      expect(storedKey2).toBeTruthy();
+
+      // 4. Compare stored keys directly
+      // If generation was deterministic (e.g. based on user agent), these would be identical.
+      // Since it is random, they should be different.
+      expect(storedKey1).not.toBe(storedKey2);
     });
   });
 });
