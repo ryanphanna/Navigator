@@ -37,14 +37,19 @@ export class ErrorBoundary extends Component<Props, State> {
                 return this.props.fallback;
             }
 
+            const isChunkError = this.state.error?.message.includes('Failed to fetch dynamically imported module') ||
+                this.state.error?.message.includes('Loading chunk');
+
             return (
                 <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center animate-in fade-in zoom-in duration-300">
                     <div className="p-4 bg-red-50 rounded-full mb-6">
                         <AlertCircle className="w-12 h-12 text-red-500" />
                     </div>
-                    <h2 className="text-2xl font-bold text-neutral-900 mb-2">Something went wrong</h2>
-                    <p className="text-neutral-500 max-w-md mb-8 leading-relaxed">
-                        We encountered an unexpected error. This has been logged and we're looking into it.
+                    <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">Something went wrong</h2>
+                    <p className="text-neutral-500 dark:text-neutral-400 max-w-md mb-8 leading-relaxed">
+                        {isChunkError
+                            ? "A new version of Navigator is available. Please reload to continue."
+                            : "We encountered an unexpected error. This has been logged and we're looking into it."}
                     </p>
 
                     {this.state.error && (
@@ -57,10 +62,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
                     <button
                         onClick={this.handleRetry}
-                        className="px-6 py-3 bg-neutral-900 text-white rounded-xl font-medium hover:bg-neutral-800 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
+                        className="px-6 py-3 bg-neutral-900 text-white dark:bg-white dark:text-black rounded-xl font-medium hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
                     >
                         <RefreshCw className="w-4 h-4" />
-                        Reload Application
+                        {isChunkError ? "Update Now" : "Reload Application"}
                     </button>
                 </div>
             );

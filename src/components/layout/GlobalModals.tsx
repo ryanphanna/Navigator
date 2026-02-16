@@ -1,14 +1,15 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense } from 'react';
 import { useUser } from '../../contexts/UserContext';
 import { useJobContext } from '../../modules/job/context/JobContext';
 import { useSkillContext } from '../../modules/skills/context/SkillContext';
 import { useModal } from '../../contexts/ModalContext';
+import { lazyWithRetry } from '../../utils/lazyWithRetry';
 
 // Lazy load heavy modals to improve lighter initial bundle
-const AuthModal = lazy(() => import('../AuthModal').then(m => ({ default: m.AuthModal })));
+const AuthModal = lazyWithRetry(() => import('../AuthModal').then(m => ({ default: m.AuthModal })));
 import { SettingsModal } from '../SettingsModal';
-const UpgradeModal = lazy(() => import('../UpgradeModal').then(m => ({ default: m.UpgradeModal })));
-const SkillInterviewModal = lazy(() => import('../skills/SkillInterviewModal').then(m => ({ default: m.SkillInterviewModal })));
+const UpgradeModal = lazyWithRetry(() => import('../UpgradeModal').then(m => ({ default: m.UpgradeModal })));
+const SkillInterviewModal = lazyWithRetry(() => import('../skills/SkillInterviewModal').then(m => ({ default: m.SkillInterviewModal })));
 
 export const GlobalModals: React.FC = () => {
     const { user, userTier, isTester, isAdmin, simulatedTier, setSimulatedTier } = useUser();

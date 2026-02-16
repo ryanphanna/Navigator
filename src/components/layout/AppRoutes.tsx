@@ -1,8 +1,9 @@
-import React, { Suspense, lazy, useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { LoadingState } from '../common/LoadingState';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 import { ROUTES } from '../../constants';
+import { lazyWithRetry } from '../../utils/lazyWithRetry';
 
 // Context Hooks
 import { useJobContext } from '../../modules/job/context/JobContext';
@@ -17,16 +18,16 @@ import HomeInput from '../../modules/job/HomeInput';
 import { NudgeCard } from '../NudgeCard';
 
 // Lazy load heavy modules
-const History = lazy(() => import('../../modules/job/History'));
-const JobDetail = lazy(() => import('../../modules/job/JobDetail'));
-const CoachDashboard = lazy(() => import('../../modules/career/CoachDashboard').then(m => ({ default: m.CoachDashboard })));
-const ResumeEditor = lazy(() => import('../../modules/resume/ResumeEditor'));
-const NavigatorPro = lazy(() => import('../../modules/job/NavigatorPro').then(m => ({ default: m.NavigatorPro })));
-const AdminDashboard = lazy(() => import('../../modules/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
-const EducationDashboard = lazy(() => import('../../modules/grad/EducationDashboard').then(m => ({ default: m.EducationDashboard })));
-const AcademicHQ = lazy(() => import('../../modules/grad/AcademicHQ').then(m => ({ default: m.AcademicHQ })));
-const SEOLandingPage = lazy(() => import('../../modules/seo/SEOLandingPage').then(m => ({ default: m.SEOLandingPage })));
-const SkillsView = lazy(() => import('../skills/SkillsView').then(m => ({ default: m.SkillsView })));
+const History = lazyWithRetry(() => import('../../modules/job/History'));
+const JobDetail = lazyWithRetry(() => import('../../modules/job/JobDetail'));
+const CoachDashboard = lazyWithRetry(() => import('../../modules/career/CoachDashboard').then(m => ({ default: m.CoachDashboard })));
+const ResumeEditor = lazyWithRetry(() => import('../../modules/resume/ResumeEditor'));
+const NavigatorPro = lazyWithRetry(() => import('../../modules/job/NavigatorPro').then(m => ({ default: m.NavigatorPro })));
+const AdminDashboard = lazyWithRetry(() => import('../../modules/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const EducationDashboard = lazyWithRetry(() => import('../../modules/grad/EducationDashboard').then(m => ({ default: m.EducationDashboard })));
+const AcademicHQ = lazyWithRetry(() => import('../../modules/grad/AcademicHQ').then(m => ({ default: m.AcademicHQ })));
+const SEOLandingPage = lazyWithRetry(() => import('../../modules/seo/SEOLandingPage').then(m => ({ default: m.SEOLandingPage })));
+const SkillsView = lazyWithRetry(() => import('../skills/SkillsView').then(m => ({ default: m.SkillsView })));
 
 export const AppRoutes: React.FC = () => {
     const {

@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Fixed
+- **Stability**: Resolved "Failed to fetch dynamically imported module" errors (Chunk Load Errors) by implementing a robust `lazyWithRetry` utility and enhancing the `ErrorBoundary` to handle asset mismatches after new deployments.
+
 ### Staged (Not pushed to GitHub)
 
 ## [2.12.0] - 2026-02-16
