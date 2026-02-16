@@ -87,4 +87,46 @@ describe('areBlocksEqual', () => {
             expect(areBlocksEqual(a, b)).toBe(false);
         });
     });
+
+    describe('Robustness and Edge Cases', () => {
+        it('should treat whitespace-only title as empty string', () => {
+            const a = { type: 'work', title: '   ', organization: 'Tech Corp' };
+            const b = { type: 'work', title: '', organization: 'Tech Corp' };
+            expect(areBlocksEqual(a, b)).toBe(true);
+        });
+
+        it('should treat whitespace-only organization as empty string', () => {
+            const a = { type: 'work', title: 'Dev', organization: '   ' };
+            const b = { type: 'work', title: 'Dev', organization: '' };
+            expect(areBlocksEqual(a, b)).toBe(true);
+        });
+
+        it('should handle explicitly null fields gracefully', () => {
+            // @ts-expect-error - testing runtime behavior
+            const a = { type: 'work', title: null, organization: 'Tech Corp' };
+            const b = { type: 'work', title: '', organization: 'Tech Corp' };
+            expect(areBlocksEqual(a, b)).toBe(true);
+        });
+
+        it('should handle non-string title by converting to string', () => {
+            // @ts-expect-error - testing runtime behavior
+            const a = { type: 'work', title: 123, organization: 'Tech Corp' };
+            const b = { type: 'work', title: '123', organization: 'Tech Corp' };
+            expect(areBlocksEqual(a, b)).toBe(true);
+        });
+
+        it('should handle non-string organization by converting to string', () => {
+            // @ts-expect-error - testing runtime behavior
+            const a = { type: 'work', title: 'Dev', organization: { name: 'Corp' } };
+            // Object.toString() is [object Object]
+            const b = { type: 'work', title: 'Dev', organization: '[object Object]' };
+            expect(areBlocksEqual(a, b)).toBe(true);
+        });
+
+        it('should handle undefined fields gracefully', () => {
+            const a = { type: 'work', title: undefined, organization: 'Tech Corp' };
+            const b = { type: 'work', title: '', organization: 'Tech Corp' };
+            expect(areBlocksEqual(a, b)).toBe(true);
+        });
+    });
 });
