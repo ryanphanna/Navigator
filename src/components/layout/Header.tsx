@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, Briefcase, LogOut, Settings, Bookmark, Zap, Sparkles, FileText, Users, Target, GraduationCap, ShieldCheck } from 'lucide-react';
+import { TrendingUp, Briefcase, LogOut, Settings, Bookmark, Zap, Sparkles, FileText, Users, Target, GraduationCap, ShieldCheck, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../../contexts/UserContext';
 import { useModal } from '../../contexts/ModalContext';
@@ -47,11 +47,12 @@ export const Header: React.FC<HeaderProps> = ({
         },
         {
             id: 'edu',
-            label: 'Edu',
+            label: 'Education',
             icon: GraduationCap,
             isActive: isEduMode,
             items: [
-                { id: 'edu', label: 'Edu HQ', icon: GraduationCap }
+                { id: 'edu-home', label: 'Overview', icon: BookOpen },
+                { id: 'edu-record', label: 'Academic Record', icon: GraduationCap }
             ]
         }
     ];
@@ -85,7 +86,8 @@ export const Header: React.FC<HeaderProps> = ({
                 {user && !isLoading && (
                     <motion.nav
                         layout
-                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center bg-white/40 dark:bg-neutral-900/40 p-1.5 rounded-[2.5rem] border border-white/20 dark:border-neutral-800/40 backdrop-blur-3xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500 ease-out"
+                        transition={{ layout: { duration: 0.3, type: "spring", bounce: 0 } }}
+                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center bg-white/40 dark:bg-neutral-900/40 p-1.5 rounded-[2.5rem] border border-white/20 dark:border-neutral-800/40 backdrop-blur-3xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
                     >
                         {navGroups.map((group) => (
                             <div
@@ -97,7 +99,8 @@ export const Header: React.FC<HeaderProps> = ({
                                         <motion.div
                                             layoutId="active-pill"
                                             className="absolute inset-0 bg-white/90 dark:bg-neutral-800/90 shadow-sm border border-white/50 dark:border-neutral-700/50 rounded-[2rem] z-0"
-                                            transition={{ type: "spring", bounce: 0.15, duration: 0.6 }}
+                                            style={{ borderRadius: 32 }}
+                                            transition={{ type: "spring", bounce: 0, duration: 0.5 }}
                                         />
                                     )}
                                 </AnimatePresence>
@@ -128,20 +131,10 @@ export const Header: React.FC<HeaderProps> = ({
                                                         key={item.id}
                                                         onClick={() => onViewChange(item.id)}
                                                         className={`relative px-2 py-1.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap tracking-wide overflow-hidden ${currentView === item.id
-                                                            ? 'text-white'
+                                                            ? (group.id === 'career' ? 'text-emerald-600' : group.id === 'edu' ? 'text-amber-600' : 'text-indigo-600')
                                                             : 'text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
                                                             }`}
                                                     >
-                                                        {currentView === item.id && (
-                                                            <motion.div
-                                                                layoutId={`active-subindicator-${group.id}`}
-                                                                className={`absolute inset-0 z-0 rounded-xl ${group.id === 'career' ? 'bg-emerald-500 shadow-lg shadow-emerald-500/20' :
-                                                                    group.id === 'edu' ? 'bg-amber-500 shadow-lg shadow-amber-500/20' :
-                                                                        'bg-indigo-600 shadow-lg shadow-indigo-500/20'
-                                                                    }`}
-                                                                transition={{ type: "spring", bounce: 0.25, duration: 0.4 }}
-                                                            />
-                                                        )}
                                                         <span className="relative z-10">{item.label}</span>
                                                     </button>
                                                 ))}

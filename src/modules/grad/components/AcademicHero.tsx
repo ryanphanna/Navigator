@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calculator, BookOpen, Award } from 'lucide-react';
+
 import { TranscriptUpload } from '../TranscriptUpload';
 import { CourseVerificationModal } from '../../../components/edu/CourseVerificationModal';
 import type { Transcript } from '../../../types';
@@ -20,9 +20,19 @@ export const AcademicHero: React.FC<AcademicHeroProps> = ({
     handleVerificationSave
 }) => {
     return (
-        <div className="max-w-4xl mx-auto space-y-16">
-            <div className="bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm p-2 rounded-[2.5rem] border border-white/50 dark:border-neutral-800 shadow-2xl">
-                <TranscriptUpload onUploadComplete={handleUploadComplete} />
+        <div className="max-w-2xl mx-auto mt-12">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-8 md:p-10 text-center">
+                <div className="mb-8 max-w-lg mx-auto">
+                    <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-3">Upload your Transcript</h2>
+                    <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                        Upload your PDF transcript to automatically import your academic history.
+                        We'll extract your courses, grades, and credits to help you track your progress.
+                    </p>
+                </div>
+
+                <div className="max-w-md mx-auto">
+                    <TranscriptUpload onUploadComplete={handleUploadComplete} />
+                </div>
             </div>
 
             {tempTranscript && (
@@ -33,30 +43,6 @@ export const AcademicHero: React.FC<AcademicHeroProps> = ({
                     onSave={handleVerificationSave}
                 />
             )}
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="p-8 bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md rounded-3xl border border-white dark:border-neutral-700 shadow-sm group hover:scale-[1.02] transition-all">
-                    <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                        <Calculator className="w-6 h-6" />
-                    </div>
-                    <h3 className="font-black text-neutral-900 dark:text-white mb-2">GPA Calculator</h3>
-                    <p className="text-sm text-neutral-500 font-medium leading-relaxed">Precision-engineered cGPA, sGPA, and L2 calculations.</p>
-                </div>
-                <div className="p-8 bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md rounded-3xl border border-white dark:border-neutral-700 shadow-sm group hover:scale-[1.02] transition-all">
-                    <div className="w-12 h-12 bg-rose-50 dark:bg-rose-900/20 text-rose-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-rose-600 group-hover:text-white transition-colors">
-                        <BookOpen className="w-6 h-6" />
-                    </div>
-                    <h3 className="font-black text-neutral-900 dark:text-white mb-2">Course Mapping</h3>
-                    <p className="text-sm text-neutral-500 font-medium leading-relaxed">Map your academic history to prerequisite requirements.</p>
-                </div>
-                <div className="p-8 bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md rounded-3xl border border-white dark:border-neutral-700 shadow-sm group hover:scale-[1.02] transition-all">
-                    <div className="w-12 h-12 bg-violet-50 dark:bg-violet-900/20 text-violet-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-violet-600 group-hover:text-white transition-colors">
-                        <Award className="w-6 h-6" />
-                    </div>
-                    <h3 className="font-black text-neutral-900 dark:text-white mb-2">Skill Extraction</h3>
-                    <p className="text-sm text-neutral-500 font-medium leading-relaxed">Mutate academic theory into professional market assets.</p>
-                </div>
-            </div>
         </div>
     );
 };

@@ -23,6 +23,7 @@ const CoachDashboard = lazy(() => import('../../modules/career/CoachDashboard').
 const ResumeEditor = lazy(() => import('../../modules/resume/ResumeEditor'));
 const NavigatorPro = lazy(() => import('../../modules/job/NavigatorPro').then(m => ({ default: m.NavigatorPro })));
 const AdminDashboard = lazy(() => import('../../modules/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const EducationDashboard = lazy(() => import('../../modules/grad/EducationDashboard').then(m => ({ default: m.EducationDashboard })));
 const AcademicHQ = lazy(() => import('../../modules/grad/AcademicHQ').then(m => ({ default: m.AcademicHQ })));
 const SEOLandingPage = lazy(() => import('../../modules/seo/SEOLandingPage').then(m => ({ default: m.SEOLandingPage })));
 const SkillsView = lazy(() => import('../skills/SkillsView').then(m => ({ default: m.SkillsView })));
@@ -72,7 +73,10 @@ export const AppRoutes: React.FC = () => {
             [ROUTES.SKILLS]: 'skills',
             [ROUTES.RESUMES]: 'resumes',
             [ROUTES.COACH_HOME]: 'coach-home',
-            [ROUTES.GRAD]: 'edu',
+            [ROUTES.COACH_ROLE_MODELS]: 'coach-role-models',
+            [ROUTES.COACH_GAP]: 'coach-gap-analysis',
+            [ROUTES.EDUCATION_HOME]: 'edu-home',
+            [ROUTES.GRAD]: 'edu-record',
             [ROUTES.ADMIN]: 'admin',
             [ROUTES.COVER_LETTERS]: 'cover-letters',
         };
@@ -86,12 +90,6 @@ export const AppRoutes: React.FC = () => {
         // Handle dynamic SEO routes
         if (path.startsWith('/resume-for/')) {
             if (currentView !== 'home') setView('home');
-            return;
-        }
-
-        // Handle coach sub-routes
-        if (path.startsWith(ROUTES.COACH_HOME)) {
-            if (currentView !== 'coach-home') setView('coach-home');
             return;
         }
 
@@ -120,7 +118,10 @@ export const AppRoutes: React.FC = () => {
             'skills': ROUTES.SKILLS,
             'resumes': ROUTES.RESUMES,
             'coach-home': ROUTES.COACH_HOME,
-            'edu': ROUTES.GRAD,
+            'coach-role-models': ROUTES.COACH_ROLE_MODELS,
+            'coach-gap-analysis': ROUTES.COACH_GAP,
+            'edu-home': ROUTES.EDUCATION_HOME,
+            'edu-record': ROUTES.GRAD,
             'admin': ROUTES.ADMIN,
             'cover-letters': ROUTES.COVER_LETTERS,
         };
@@ -169,7 +170,7 @@ export const AppRoutes: React.FC = () => {
                     </>
                 } />
 
-                <Route path="/analyze" element={
+                <Route path={ROUTES.ANALYZE} element={
                     <HomeInput
                         resumes={resumes}
                         onJobCreated={handleJobCreated}
@@ -201,7 +202,7 @@ export const AppRoutes: React.FC = () => {
                     </Suspense>
                 } />
 
-                <Route path={ROUTES.ADMIN} element={
+                <Route path="/admin" element={
                     <Suspense fallback={<LoadingState message="Loading Admin Console..." />}>
                         <AdminDashboard />
                     </Suspense>
@@ -286,6 +287,12 @@ export const AppRoutes: React.FC = () => {
                                 <LoadingState message="Loading Job..." />
                             </div>
                         )}
+                    </Suspense>
+                } />
+
+                <Route path={ROUTES.EDUCATION_HOME} element={
+                    <Suspense fallback={<LoadingState message="Loading Education Dashboard..." />}>
+                        <EducationDashboard />
                     </Suspense>
                 } />
 

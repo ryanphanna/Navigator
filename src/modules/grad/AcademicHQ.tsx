@@ -1,5 +1,4 @@
 import React from 'react';
-import { SharedHeader } from '../../components/common/SharedHeader';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { CourseEditModal } from '../../components/edu/CourseEditModal';
 import { useAcademicLogic } from './hooks/useAcademicLogic';
@@ -34,60 +33,60 @@ export const AcademicHQ: React.FC<AcademicHQProps> = ({ onAddSkills }) => {
     } = useAcademicLogic();
 
     return (
-        <SharedPageLayout maxWidth="full" className="relative" spacing="hero">
-            {/* Ambient Background Glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none -z-10">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl mix-blend-multiply animate-blob" />
-                <div className="absolute top-40 right-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl mix-blend-multiply animate-blob animation-delay-2000" />
-            </div>
-
-            <SharedHeader
-                title="Master your"
-                highlight="Craft"
-                subtitle="Your permanent academic record and career reconnaissance operations."
-                theme="edu"
-            />
-
-            {!transcript ? (
-                <AcademicHero
-                    handleUploadComplete={handleUploadComplete}
-                    tempTranscript={tempTranscript}
-                    showVerification={showVerification}
-                    setShowVerification={setShowVerification}
-                    handleVerificationSave={handleVerificationSave}
-                />
-            ) : (
-                <div className="space-y-12 max-w-6xl mx-auto">
-                    <AcademicProfileSummary
-                        transcript={transcript}
-                        targetCredits={targetCredits}
-                        setTargetCredits={setTargetCredits}
-                        totalCredits={totalCredits}
-                        progressPercentage={progressPercentage}
-                    />
-
-                    <AcademicPrograms
-                        transcript={transcript}
-                        onAddSkills={onAddSkills}
-                    />
-
-                    <CourseRegistry
-                        transcript={transcript}
-                        setTranscript={setTranscript}
-                        setEditingCourse={setEditingCourse}
-                    />
+        <SharedPageLayout maxWidth="full" className="relative">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Transcript</h1>
+                    <p className="text-neutral-500 dark:text-neutral-400 mt-2">Manage your coursework and track your degree progress.</p>
                 </div>
-            )}
 
-            {editingCourse && (
-                <CourseEditModal
-                    isOpen={!!editingCourse}
-                    onClose={() => setEditingCourse(null)}
-                    course={editingCourse.course}
-                    onSave={handleCourseUpdate}
-                    onDelete={handleCourseDelete}
-                />
-            )}
+                {!transcript ? (
+                    <AcademicHero
+                        handleUploadComplete={handleUploadComplete}
+                        tempTranscript={tempTranscript}
+                        showVerification={showVerification}
+                        setShowVerification={setShowVerification}
+                        handleVerificationSave={handleVerificationSave}
+                    />
+                ) : (
+                    <div className="space-y-12">
+                        <AcademicProfileSummary
+                            transcript={transcript}
+                            targetCredits={targetCredits}
+                            setTargetCredits={setTargetCredits}
+                            totalCredits={totalCredits}
+                            progressPercentage={progressPercentage}
+                        />
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 space-y-8">
+                                <AcademicPrograms
+                                    transcript={transcript}
+                                    onAddSkills={onAddSkills}
+                                />
+                                <CourseRegistry
+                                    transcript={transcript}
+                                    setTranscript={setTranscript}
+                                    setEditingCourse={setEditingCourse}
+                                />
+                            </div>
+                            <div className="space-y-8">
+                                {/* Placeholder for sidebar analytics or other widgets if needed */}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {editingCourse && (
+                    <CourseEditModal
+                        isOpen={!!editingCourse}
+                        onClose={() => setEditingCourse(null)}
+                        course={editingCourse.course}
+                        onSave={handleCourseUpdate}
+                        onDelete={handleCourseDelete}
+                    />
+                )}
+            </div>
         </SharedPageLayout>
     );
 };

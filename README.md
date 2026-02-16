@@ -1,8 +1,8 @@
-# JobFit
+# Navigator
 
 A minimalist, AI-powered tool to analyze job compatibility, suggest resume tailoring, and generate cover letters using Google Gemini.
 
-JobFit helps you manage your professional experience as discrete "blocks" and intelligently suggests how to tailor them for any specific job description.
+Navigator helps you manage your professional experience as discrete "blocks" and intelligently suggests how to tailor them for any specific job description.
 
 ## 🚀 Key Features
 

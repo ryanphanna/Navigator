@@ -49,8 +49,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
     onGenerateRoadmap,
     onToggleMilestone,
     onEmulateRoleModel,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onViewChange: _onViewChange,
+    onViewChange,
     activeAnalysisIds = new Set()
 }) => {
     // State
@@ -153,6 +152,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
                     roleModels={roleModels}
                     targetJobs={targetJobs}
                     userSkills={userSkills}
+                    onViewChange={onViewChange}
                 />
             )}
 

@@ -102,7 +102,8 @@ export const ROUTES = {
   COACH_HOME: '/coach',
   COACH_GAP: '/coach/gap-analysis',
   COACH_ROLE_MODELS: '/coach/role-models',
-  GRAD: '/edu',
+  EDUCATION_HOME: '/edu',
+  GRAD: '/edu/record',
   JOB_DETAIL: '/job/:id',
   SEO_LANDING: '/resume-for/:role',
   ADMIN: '/admin',
@@ -273,7 +274,7 @@ export const BENTO_CARDS = {
     rank: 1, // High rank for edu mode
     iconName: 'GraduationCap',
     targetView: 'edu',
-    title: { marketing: 'Edu HQ', action: 'Edu' },
+    title: { marketing: 'Transcript', action: 'Edu' },
     description: {
       marketing: 'High-fidelity academic pathfinding.',
       action: 'Explore degree programs and certifications. We match your career goals with the precise educational paths needed to achieve them.'

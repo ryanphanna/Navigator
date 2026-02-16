@@ -28,6 +28,7 @@ interface CoachHeroProps {
     roleModels: RoleModelProfile[];
     targetJobs: TargetJob[];
     userSkills: CustomSkill[];
+    onViewChange: (view: 'coach-role-models' | 'coach-gap-analysis') => void;
 }
 
 export const CoachHero: React.FC<CoachHeroProps> = ({
@@ -45,7 +46,8 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
     setError,
     roleModels,
     targetJobs,
-    userSkills
+    userSkills,
+    onViewChange
 }) => {
     return (
         <>
@@ -154,31 +156,37 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
 
                 {/* Stats Summary */}
                 <div className="mt-12 flex flex-wrap items-center justify-center gap-8 animate-in fade-in duration-1000 delay-500">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm">
+                    <div
+                        onClick={() => onViewChange('coach-role-models')}
+                        className="flex items-center gap-3 cursor-pointer group transition-all hover:scale-105"
+                    >
+                        <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm group-hover:border-emerald-500/50 group-hover:text-emerald-500 transition-colors">
                             <Users className="w-5 h-5" />
                         </div>
                         <div>
                             <div className="text-lg font-black text-neutral-900 dark:text-white leading-none">{roleModels.length}</div>
-                            <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-400">Profiles</div>
+                            <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 group-hover:text-emerald-600 transition-colors">Profiles</div>
                         </div>
                     </div>
 
                     <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-800" />
 
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm">
+                    <div
+                        onClick={() => onViewChange('coach-gap-analysis')}
+                        className="flex items-center gap-3 cursor-pointer group transition-all hover:scale-105"
+                    >
+                        <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm group-hover:border-emerald-500/50 group-hover:text-emerald-500 transition-colors">
                             <Target className="w-5 h-5" />
                         </div>
                         <div>
                             <div className="text-lg font-black text-neutral-900 dark:text-white leading-none">{targetJobs.length}</div>
-                            <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-400">Goals</div>
+                            <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 group-hover:text-emerald-600 transition-colors">Goals</div>
                         </div>
                     </div>
 
                     <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-800" />
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 select-none">
                         <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm">
                             <CheckCircle2 className="w-5 h-5" />
                         </div>
