@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.11.1] - 2026-02-15
+### Fixed
+- **Navigation**: Resolved a layout issue where the navigation pill appeared below the header elements. Aligned it vertically to the center.
+- **Stability**: Resolved a merge conflict in `Header.tsx` to ensure type safety.
+
+### Added
+- **Quality Assurance**: Added automated tests for `Header` layout integrity to prevent regressions.
+- **Workflow**: Introduced a UI Quality Checklist for future interface updates.
+
 ## [2.11.0] - 2026-02-15
 ### Added
 - **Navigation**: Integrated `framer-motion` for a premium, smooth transition experience. Includes a "sliding puck" active indicator and fluid layout resizing for the central navigation island.
