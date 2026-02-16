@@ -439,7 +439,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
 
             {/* Logged In User: Bookmarklet Tip */}
             {
-                user && showBookmarkletTip && mode !== 'all' && (
+                user && showBookmarkletTip && mode === 'apply' && (
                     <div className="w-full max-w-xl mx-auto px-4 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="bg-sky-50 dark:bg-sky-900/10 border border-sky-100 dark:border-sky-800 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm relative overflow-hidden group">
                             <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 to-transparent pointer-events-none" />

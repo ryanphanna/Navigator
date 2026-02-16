@@ -105,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 <div className="relative z-10 flex items-center gap-1">
                                     <button
                                         onClick={() => onViewChange(group.items[0].id)}
-                                        className={`px-3.5 py-2 rounded-2xl text-[11px] font-bold transition-all duration-300 flex items-center gap-2 ${group.isActive
+                                        className={`px-2.5 py-2 rounded-2xl text-[11px] font-bold transition-all duration-300 flex items-center gap-2 ${group.isActive
                                             ? (group.id === 'career' ? 'text-emerald-600' : group.id === 'edu' ? 'text-amber-600' : 'text-indigo-600')
                                             : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200'
                                             }`}
@@ -121,13 +121,13 @@ export const Header: React.FC<HeaderProps> = ({
                                                 initial={{ opacity: 0, x: -10 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 exit={{ opacity: 0, x: -10 }}
-                                                className="flex items-center gap-1.5 pr-2.5 ml-0.5 border-l border-neutral-100 dark:border-neutral-700/50 pl-2"
+                                                className="flex items-center gap-0.5 pr-1.5 ml-0.5 border-l border-neutral-100 dark:border-neutral-700/50 pl-2"
                                             >
                                                 {group.items.map((item) => (
                                                     <button
                                                         key={item.id}
                                                         onClick={() => onViewChange(item.id)}
-                                                        className={`relative px-3 py-1.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap tracking-wide overflow-hidden ${currentView === item.id
+                                                        className={`relative px-2 py-1.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap tracking-wide overflow-hidden ${currentView === item.id
                                                             ? 'text-white'
                                                             : 'text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
                                                             }`}
