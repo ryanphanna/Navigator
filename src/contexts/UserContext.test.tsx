@@ -27,7 +27,7 @@ describe('UserContext Security Check', () => {
         consoleLogSpy.mockRestore();
     });
 
-    it('should NOT log sensitive profile data to the console', async () => {
+    it('should NOT log sensitive profile data to the console (Security Regression Test)', async () => {
         const mockUser = { id: 'test-user-id', email: 'test@example.com' };
         const mockProfileData = {
             subscription_tier: 'pro',
