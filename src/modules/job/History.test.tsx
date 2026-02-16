@@ -211,8 +211,8 @@ describe('History', () => {
     // Should be in 'Saved' filter by default (or when selected)
     // Count for 'Saved' and 'All' should be 2
     expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText('Analyzing Role')).toBeInTheDocument();
-    expect(screen.getByText('Failed Role')).toBeInTheDocument();
+    expect(screen.getByText('Processing Job...')).toBeInTheDocument();
+    expect(screen.getByText('Incomplete Analysis')).toBeInTheDocument();
 
     // Check for status labels
     expect(screen.getByText('Analyzing...')).toBeInTheDocument();

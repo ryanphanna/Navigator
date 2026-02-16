@@ -22,18 +22,20 @@ interface StatusTabProps {
 const StatusTab = ({ id, label, count, activeFilter, onSelect }: StatusTabProps) => (
     <button
         onClick={() => onSelect(id)}
-        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 border ${activeFilter === id
-            ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white'
-            : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 dark:bg-neutral-900 dark:text-neutral-400 dark:border-neutral-800 dark:hover:border-neutral-700'
+        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap flex items-center gap-2 border active:scale-95 ${activeFilter === id
+            ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white shadow-lg shadow-neutral-900/10 dark:shadow-white/5'
+            : 'bg-white/50 backdrop-blur-md text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:bg-white dark:bg-neutral-900/50 dark:text-neutral-400 dark:border-neutral-800 dark:hover:border-neutral-700 dark:hover:bg-neutral-900'
             }`}
     >
         {label}
-        <span className={`px-1.5 py-0.5 rounded-md text-xs ${activeFilter === id
-            ? 'bg-white/20 text-white dark:bg-neutral-900/10 dark:text-neutral-900'
-            : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-500'
-            }`}>
-            {count}
-        </span>
+        {count > 0 && (
+            <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black tracking-tighter ${activeFilter === id
+                ? 'bg-white/20 text-white dark:bg-neutral-900/10 dark:text-neutral-900'
+                : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-500'
+                }`}>
+                {count}
+            </span>
+        )}
     </button>
 );
 
@@ -98,19 +100,19 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
             {/* Filters Row */}
             <div className="flex flex-col gap-6 mb-8">
                 {/* Search */}
-                <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                <div className="relative group/search">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 group-focus-within/search:text-indigo-500 transition-colors" />
                     <input
                         type="text"
                         placeholder="Search roles, companies, or keywords..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl text-base focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder:text-neutral-400 shadow-sm hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-900/50"
+                        className="w-full pl-12 pr-4 py-4 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 rounded-2xl text-base focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder:text-neutral-400 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07)] hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-900/50"
                     />
                     {searchQuery && (
                         <button
                             onClick={() => setSearchQuery('')}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-neutral-300 hover:text-neutral-500 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-neutral-300 hover:text-neutral-500 rounded-full hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
                         >
                             <X className="w-4 h-4" />
                         </button>
@@ -120,12 +122,23 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                 {/* Status Tabs - Mobile Scrollable */}
                 <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
                     <StatusTab id="all" label="All" count={getCount('all')} activeFilter={statusFilter} onSelect={setStatusFilter} />
-                    <div className="w-px h-6 bg-neutral-200 dark:bg-neutral-800 mx-2 shrink-0" />
-                    <StatusTab id="saved" label="Saved" count={getCount('saved')} activeFilter={statusFilter} onSelect={setStatusFilter} />
-                    <StatusTab id="applied" label="Applied" count={getCount('applied')} activeFilter={statusFilter} onSelect={setStatusFilter} />
-                    <StatusTab id="interview" label="Interview" count={getCount('interview')} activeFilter={statusFilter} onSelect={setStatusFilter} />
-                    <StatusTab id="offer" label="Offer" count={getCount('offer')} activeFilter={statusFilter} onSelect={setStatusFilter} />
-                    <StatusTab id="rejected" label="Rejected" count={getCount('rejected')} activeFilter={statusFilter} onSelect={setStatusFilter} />
+
+                    {['saved', 'applied', 'interview', 'offer', 'rejected'].map((filterId) => {
+                        const count = getCount(filterId as StatusFilter);
+                        if (count === 0 && statusFilter !== filterId) return null;
+
+                        const label = filterId.charAt(0).toUpperCase() + filterId.slice(1);
+                        return (
+                            <StatusTab
+                                key={filterId}
+                                id={filterId as StatusFilter}
+                                label={label}
+                                count={count}
+                                activeFilter={statusFilter}
+                                onSelect={setStatusFilter}
+                            />
+                        );
+                    })}
                 </div>
             </div>
 
@@ -155,7 +168,9 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                     </div>
                 ) : (
                     filteredJobs.map((job) => {
-                        const status = getStatusParams(job.status);
+                        const isAnalyzing = job.status === 'analyzing';
+                        const isError = job.status === 'error';
+                        const params = getStatusParams(job.status);
                         const roleTitle = job.analysis?.distilledJob.roleTitle || job.position || 'Unknown Role';
                         const companyName = job.analysis?.distilledJob.companyName || job.company || 'Unknown Company';
                         const location = job.analysis?.distilledJob.location || 'Remote/Unknown';
@@ -165,71 +180,114 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                             <div
                                 key={job.id}
                                 onClick={() => onSelectJob(job.id)}
-                                className="group relative bg-white dark:bg-neutral-900 rounded-[2rem] p-6 sm:p-8 shadow-sm border border-neutral-200 dark:border-neutral-800 hover:shadow-xl hover:shadow-indigo-500/5 hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-all duration-300 cursor-pointer overflow-hidden"
+                                className={`group relative bg-white dark:bg-neutral-900 rounded-[2.5rem] p-6 sm:p-8 border border-neutral-200 dark:border-neutral-800/50 hover:shadow-[0_20px_50px_-20px_rgba(79,70,229,0.15)] dark:hover:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)] hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:-translate-y-1.5 transition-all duration-500 cursor-pointer overflow-hidden shadow-sm ${isError ? 'bg-rose-50/10 dark:bg-rose-950/5' : ''}`}
                             >
-                                <div className="flex flex-col sm:flex-row gap-6">
+                                {/* Ambient Background Glow */}
+                                {!isError && <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-full blur-[80px] -mr-32 -mt-32 transition-all duration-1000 opacity-0 group-hover:opacity-100 group-hover:scale-125" />}
+
+                                <div className="flex flex-col sm:flex-row gap-6 relative z-10">
                                     {/* Logo / Date Col */}
                                     <div className="flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-4 shrink-0">
-                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold shrink-0 bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400`}>
-                                            {companyName.charAt(0).toUpperCase()}
+                                        <div className="relative">
+                                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-800 dark:to-neutral-900 border border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 ${isAnalyzing ? 'animate-pulse' : ''}`}>
+                                                {isError ? '!' : companyName.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-neutral-100 dark:border-neutral-800 flex items-center justify-center">
+                                                <div className={`w-2.5 h-2.5 rounded-full flex items-center justify-center ${isError ? 'bg-rose-500/20' : 'bg-indigo-500/20'}`}>
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${isError ? 'bg-rose-500' : 'bg-indigo-500'}`} />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="text-xs font-medium text-neutral-400 flex items-center gap-1">
+                                        <div className="text-[10px] font-bold tracking-widest uppercase text-neutral-400 dark:text-neutral-500 flex items-center gap-1.5">
                                             <Calendar className="w-3 h-3" />
-                                            {new Date(job.dateAdded).toLocaleDateString()}
+                                            {new Date(job.dateAdded).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                         </div>
                                     </div>
 
                                     {/* Main Content */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
-                                            <div>
-                                                <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-1 group-hover:text-indigo-600 transition-colors truncate pr-4">
-                                                    {roleTitle}
+                                            <div className="space-y-1">
+                                                <h3 className={`text-2xl font-black transition-colors truncate pr-4 tracking-tight leading-tight ${isError ? 'text-rose-900 dark:text-rose-400' : 'text-neutral-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+                                                    {isAnalyzing ? 'Processing Job...' : isError ? 'Incomplete Analysis' : roleTitle}
                                                 </h3>
-                                                <div className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
-                                                    <Building className="w-3.5 h-3.5" />
-                                                    <span className="font-medium">{companyName}</span>
-                                                    <span>•</span>
-                                                    <span>{location}</span>
+                                                <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-neutral-500 dark:text-neutral-400">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Building className="w-4 h-4 text-neutral-400" />
+                                                        <span className={isError ? 'text-rose-600/60' : 'text-neutral-700 dark:text-neutral-300'}>
+                                                            {isAnalyzing ? 'Extracting details...' : isError ? 'Needs manual review' : companyName}
+                                                        </span>
+                                                    </div>
+                                                    {!isAnalyzing && !isError && (
+                                                        <>
+                                                            <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-700" />
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Building className="w-4 h-4 text-neutral-400" />
+                                                                <span>{location}</span>
+                                                            </div>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
 
                                             {/* Status Badge */}
-                                            <div className={`self-start px-3 py-1 rounded-lg text-xs font-bold border flex items-center gap-1.5 uppercase tracking-wider ${status.color}`}>
-                                                <div className="w-1.5 h-1.5 rounded-full bg-current opacity-50" />
-                                                {status.label}
+                                            <div className={`self-start px-4 py-1.5 rounded-full text-[10px] font-black border flex items-center gap-2 uppercase tracking-widest transition-all ${params.color}`}>
+                                                <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                                                {params.label}
                                             </div>
                                         </div>
 
                                         {/* Footer: Stats & Actions */}
-                                        <div className="flex items-center justify-between pt-4 border-t border-neutral-100 dark:border-neutral-800">
-                                            {score ? (
-                                                <div className="flex items-center gap-2">
-                                                    <div className={`px-2.5 py-1 rounded-lg text-sm font-bold border flex items-center gap-1.5 ${score >= 80 ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' :
-                                                        score >= 60 ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800' :
-                                                            'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'
+                                        <div className="flex items-center justify-between pt-6 border-t border-neutral-100 dark:border-neutral-800/50 mt-4">
+                                            <div className="flex items-center gap-4">
+                                                {isAnalyzing ? (
+                                                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
+                                                        <div className="flex gap-1">
+                                                            <div className="w-1 h-1 rounded-full bg-current animate-bounce" />
+                                                            <div className="w-1 h-1 rounded-full bg-current animate-bounce [animation-delay:0.2s]" />
+                                                            <div className="w-1 h-1 rounded-full bg-current animate-bounce [animation-delay:0.4s]" />
+                                                        </div>
+                                                        AI is pathfinding
+                                                    </div>
+                                                ) : isError ? (
+                                                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-rose-500 dark:text-rose-400">
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        Extraction failed
+                                                    </div>
+                                                ) : score ? (
+                                                    <div className={`px-4 py-2 rounded-2xl text-xs font-black border shadow-sm transition-all flex items-center gap-2 ${score >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' :
+                                                        score >= 60 ? 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' :
+                                                            'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20'
                                                         }`}>
                                                         <Sparkles className="w-3.5 h-3.5" />
                                                         {score}% Match
                                                     </div>
-                                                </div>
-                                            ) : (
-                                                <div className="text-xs text-neutral-400 italic">No analysis score</div>
-                                            )}
+                                                ) : null}
 
-                                            <div className="flex items-center gap-2">
+                                                {!isAnalyzing && (
+                                                    <div className="hidden sm:flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                                                        <Clock className="w-3 h-3" />
+                                                        {isError ? 'Analysis attempted' : 'Last updated'} {new Date(job.dateAdded).toLocaleDateString()}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-3">
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onDeleteJob(job.id); }}
-                                                    className="p-2 text-neutral-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                                    className={`p-3 text-neutral-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-2xl transition-all group-hover:opacity-100`}
                                                     title="Delete"
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <Trash2 className="w-4.5 h-4.5" />
                                                 </button>
                                                 <button
-                                                    className="pl-3 pr-2 py-1.5 bg-neutral-100 dark:bg-neutral-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg text-sm font-bold transition-all flex items-center gap-1 group-hover:translate-x-1"
+                                                    className={`group/btn pl-5 pr-4 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center gap-2 shadow-lg active:scale-95 ${isError
+                                                        ? 'bg-rose-600 text-white hover:bg-rose-700 shadow-rose-900/10'
+                                                        : 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-indigo-600 dark:hover:bg-indigo-50 shadow-neutral-900/10'
+                                                        }`}
                                                 >
-                                                    View
-                                                    <ArrowRight className="w-4 h-4" />
+                                                    {isError ? 'Fix Issues' : isAnalyzing ? 'Opening...' : 'View Details'}
+                                                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                                                 </button>
                                             </div>
                                         </div>

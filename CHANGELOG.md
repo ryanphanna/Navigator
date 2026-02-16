@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 - **Stability**: Resolved "Failed to fetch dynamically imported module" errors (Chunk Load Errors) by implementing a robust `lazyWithRetry` utility and enhancing the `ErrorBoundary` to handle asset mismatches after new deployments.
 
 ### Staged (Not pushed to GitHub)
+- **History**: Redesigned the Application History screen with premium glassmorphism, interactive job cards with lift effects, and ambient background glows.
+- **History**: Implemented dynamic visibility for status filters (only show categories with entries).
+- **History**: Overhauled "Analyzing" and "Failed" states with explicit UI handling to prevent placeholder text leaks and improve clarity ("Incomplete Analysis", "Analysis attempted").
+- **History**: Resolved logical inconsistencies where failed analyses still displayed "Analyzing..." placeholders.
 
 ## [2.12.0] - 2026-02-16
 ### Added
