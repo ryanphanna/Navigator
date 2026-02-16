@@ -34,7 +34,7 @@ export const AcademicHQ: React.FC<AcademicHQProps> = ({ onAddSkills }) => {
     } = useAcademicLogic();
 
     return (
-        <SharedPageLayout maxWidth="full" className="relative">
+        <SharedPageLayout maxWidth="full" className="relative" spacing="hero">
             {/* Ambient Background Glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none -z-10">
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl mix-blend-multiply animate-blob" />

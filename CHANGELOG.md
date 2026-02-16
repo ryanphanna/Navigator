@@ -2,6 +2,15 @@
  
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+## [2.11.0] - 2026-02-15
+### Added
+- **Navigation**: Integrated `framer-motion` for a premium, smooth transition experience. Includes a "sliding puck" active indicator and fluid layout resizing for the central navigation island.
+
+### Fixed
+- **Stability**: Resolved several build-breaking TypeScript errors caused by unused imports and variables in `SettingsModal.tsx`, `CoachContext.tsx`, and `storageCore.ts`.
+
 ## [2.10.0] - 2026-02-15
 ### Added
 - **Architecture**: Established a "Single Source of Truth" for spacing using semantic categories (`hero`, `compact`, `none`) in `SharedPageLayout` and `PageLayout`. This ensures pixel-perfect vertical alignment across the entire app.
@@ -12,9 +21,6 @@ All notable changes to this project will be documented in this file.
 - **Honest Design**: Removed misleading grey circle placeholders and redundant copy from the Hero section.
 - **Header**: Reverted the "Sign In" button to a clean text-only style for a more minimal aesthetic.
 - **Cleanup**: Stripped all ad-hoc layout wrappers and paddings from `AppRoutes.tsx`.
-
-## [Unreleased]
-
 
 ## [2.9.0] - 2026-02-15
 ### Changed

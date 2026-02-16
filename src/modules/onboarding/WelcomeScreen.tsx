@@ -120,8 +120,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         await setSecureItem('api_key', apiKey);
 
         // Clear limits
-        localStorage.removeItem('jobfit_quota_status');
-        localStorage.removeItem('jobfit_daily_usage');
+        localStorage.removeItem('navigator_quota_status');
+        localStorage.removeItem('navigator_daily_usage');
         window.dispatchEvent(new CustomEvent('quotaStatusCleared'));
         window.dispatchEvent(new CustomEvent('apiKeySaved'));
 
@@ -145,7 +145,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
     const handleContinue = () => {
         if (step === 1) {
-            localStorage.setItem('jobfit_privacy_accepted', 'true');
+            localStorage.setItem('navigator_privacy_accepted', 'true');
             setStep(2);
         } else if (step === 2) {
             // Should participate in selection flow
@@ -156,7 +156,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         } else if (step === 5) {
             setStep(6);
         } else if (step === 6) {
-            let intent: 'jobfit' | 'coach' | 'grad' = 'jobfit';
+            let intent: 'navigator' | 'coach' | 'grad' = 'navigator';
             if (selectedJourneys.includes('student')) intent = 'grad';
             else if (selectedJourneys.includes('employed')) intent = 'coach';
 
@@ -262,7 +262,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                                             Choose Your Engine
                                         </h1>
                                         <p className="text-neutral-600 dark:text-neutral-400">
-                                            Select how you want to power JobFit's AI analysis.
+                                            Select how you want to power Navigator's AI analysis.
                                         </p>
                                     </div>
 
@@ -322,7 +322,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                                             Setup Your Key
                                         </h1>
                                         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                            JobFit uses your Gemini API key locally.
+                                            Navigator uses your Gemini API key locally.
                                         </p>
                                     </div>
 
@@ -395,7 +395,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                         <div className="animate-in fade-in slide-in-from-right-4 duration-500 flex-1 flex flex-col">
                             <div className="text-center mb-6">
                                 <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
-                                    Welcome to JobFit
+                                    Welcome to Navigator
                                 </h1>
                                 <p className="text-neutral-600 dark:text-neutral-400">
                                     Where are you currently in your journey?

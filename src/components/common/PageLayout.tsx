@@ -7,6 +7,7 @@ interface PageLayoutProps {
     actions?: React.ReactNode;
     themeColor?: 'indigo' | 'emerald' | 'amber' | 'rose' | 'slate';
     children: React.ReactNode;
+    spacing?: 'hero' | 'compact' | 'none';
     fullWidth?: boolean;
 }
 
@@ -17,6 +18,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
     actions,
     themeColor = 'indigo',
     children,
+    spacing = 'compact',
     fullWidth = false
 }) => {
     const themeStyles = {
@@ -27,8 +29,14 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
         slate: 'bg-neutral-100 dark:bg-neutral-900/30 text-neutral-600 dark:text-neutral-400 border-neutral-500/20',
     };
 
+    const spacingClass = {
+        'hero': 'pt-24',
+        'compact': 'pt-20',
+        'none': 'pt-0'
+    }[spacing];
+
     return (
-        <div className="bg-neutral-50 dark:bg-neutral-900 min-h-screen animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+        <div className={`bg-neutral-50 dark:bg-neutral-900 min-h-screen animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 ${spacingClass}`}>
             <div className={`${fullWidth ? 'w-full px-4 sm:px-6' : 'max-w-5xl mx-auto px-6'} py-8 sm:py-12`}>
                 {/* Premium Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">

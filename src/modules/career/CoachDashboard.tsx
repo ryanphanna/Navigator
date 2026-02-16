@@ -120,7 +120,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
     };
 
     return (
-        <SharedPageLayout maxWidth="full" animate={false} className="relative">
+        <SharedPageLayout maxWidth="full" animate={false} className="relative" spacing="hero">
             <input
                 type="file"
                 ref={fileInputRef}

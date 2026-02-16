@@ -1,7 +1,8 @@
 import React, { Suspense, lazy } from 'react';
-import type { User } from '@supabase/supabase-js';
-import type { UsageLimitResult } from '../../services/usageLimits';
-import type { UserTier, CustomSkill } from '../../types';
+import { useUser } from '../../contexts/UserContext';
+import { useJobContext } from '../../modules/job/context/JobContext';
+import { useSkillContext } from '../../modules/skills/context/SkillContext';
+import { useModal } from '../../contexts/ModalContext';
 
 // Lazy load heavy modals to improve lighter initial bundle
 const AuthModal = lazy(() => import('../AuthModal').then(m => ({ default: m.AuthModal })));
@@ -9,53 +10,22 @@ import { SettingsModal } from '../SettingsModal';
 const UpgradeModal = lazy(() => import('../UpgradeModal').then(m => ({ default: m.UpgradeModal })));
 const SkillInterviewModal = lazy(() => import('../skills/SkillInterviewModal').then(m => ({ default: m.SkillInterviewModal })));
 
-interface GlobalModalsProps {
-    showAuth: boolean;
-    setShowAuth: (show: boolean) => void;
-    showSettings: boolean;
-    setShowSettings: (show: boolean) => void;
-    upgradeModalData: UsageLimitResult | null;
-    onCloseUpgradeModal: () => void;
-    interviewSkill: string | null;
-    setInterviewSkill: (skill: string | null) => void;
-    user: User | null;
-    userTier: UserTier;
-    isTester: boolean;
-    isAdmin: boolean;
-    simulatedTier: UserTier | null;
-    setSimulatedTier: (tier: UserTier | null) => void;
-    handleInterviewComplete: (proficiency: CustomSkill['proficiency'], evidence: string) => void;
-    usageStats?: any;
-}
+export const GlobalModals: React.FC = () => {
+    const { user, userTier, isTester, isAdmin, simulatedTier, setSimulatedTier } = useUser();
+    const { upgradeModalData, closeUpgradeModal, usageStats } = useJobContext();
+    const { interviewSkill, setInterviewSkill, handleInterviewComplete } = useSkillContext();
+    const { activeModal, modalData, closeModal } = useModal();
 
-export const GlobalModals: React.FC<GlobalModalsProps> = ({
-    showAuth,
-    setShowAuth,
-    showSettings,
-    setShowSettings,
-    upgradeModalData,
-    onCloseUpgradeModal,
-    interviewSkill,
-    setInterviewSkill,
-    user,
-    userTier,
-    isTester,
-    isAdmin,
-    simulatedTier,
-    setSimulatedTier,
-    handleInterviewComplete,
-    usageStats
-}) => {
     return (
         <Suspense fallback={null}>
-            {showAuth && (
-                <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
+            {activeModal === 'AUTH' && (
+                <AuthModal isOpen={true} onClose={closeModal} />
             )}
 
-            {showSettings && (
+            {user && activeModal === 'SETTINGS' && (
                 <SettingsModal
-                    isOpen={showSettings}
-                    onClose={() => setShowSettings(false)}
+                    isOpen={true}
+                    onClose={closeModal}
                     user={user}
                     userTier={userTier}
                     isTester={isTester}
@@ -66,7 +36,7 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
                 />
             )}
 
-            {interviewSkill && (
+            {interviewSkill && (activeModal === 'INTERVIEW' || !activeModal) && (
                 <SkillInterviewModal
                     onClose={() => setInterviewSkill(null)}
                     skillName={interviewSkill}
@@ -74,10 +44,15 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
                 />
             )}
 
-            {upgradeModalData && (
+            {(activeModal === 'UPGRADE' || upgradeModalData) && (
                 <UpgradeModal
                     limitInfo={upgradeModalData}
-                    onClose={onCloseUpgradeModal}
+                    onClose={() => {
+                        closeModal();
+                        closeUpgradeModal();
+                    }}
+                    initialView={modalData?.initialView}
+                    userTier={userTier}
                 />
             )}
         </Suspense>

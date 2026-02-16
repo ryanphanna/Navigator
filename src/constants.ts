@@ -69,31 +69,31 @@ export const AI_TEMPERATURE = {
 
 // Local Storage Keys
 export const STORAGE_KEYS = {
-  RESUMES: 'jobfit_resumes_v2',
-  JOBS_HISTORY: 'jobfit_jobs_history',
-  SKILLS: 'jobfit_user_skills',
-  ROLE_MODELS: 'jobcoach_role_models',
-  TARGET_JOBS: 'jobfit_target_jobs',
-  VAULT_SEED: 'jobfit_vault_seed',
+  RESUMES: 'navigator_resumes_v2',
+  JOBS_HISTORY: 'navigator_jobs_history',
+  SKILLS: 'navigator_user_skills',
+  ROLE_MODELS: 'navigator_role_models',
+  TARGET_JOBS: 'navigator_target_jobs',
+  HISTORY_SEED: 'navigator_history_seed',
   API_KEY: 'api_key', // Encrypted via secureStorage
-  THEME: 'jobfit_theme',
-  PRIVACY_ACCEPTED: 'jobfit_privacy_accepted',
-  WELCOME_SEEN: 'jobfit_welcome_seen',
-  DAILY_USAGE: 'jobfit_daily_usage',
-  QUOTA_STATUS: 'jobfit_quota_status',
-  CURRENT_VIEW: 'jobfit_current_view',
-  ACTIVE_TAB: 'jobfit_active_tab',
-  BOOKMARKLET_TIP_DISMISSED: 'jobfit_bookmarklet_tip_dismissed',
-  SKILL_SUGGESTIONS: 'jobfit_skill_suggestions',
+  THEME: 'navigator_theme',
+  PRIVACY_ACCEPTED: 'navigator_privacy_accepted',
+  WELCOME_SEEN: 'navigator_welcome_seen',
+  DAILY_USAGE: 'navigator_daily_usage',
+  QUOTA_STATUS: 'navigator_quota_status',
+  CURRENT_VIEW: 'navigator_current_view',
+  ACTIVE_TAB: 'navigator_active_tab',
+  BOOKMARKLET_TIP_DISMISSED: 'navigator_bookmarklet_tip_dismissed',
+  SKILL_SUGGESTIONS: 'navigator_skill_suggestions',
   TRANSCRIPT_CACHE: 'NAVIGATOR_TRANSCRIPT_CACHE',
-  FEED_CACHE: 'jobfit_feed_cache',
-  FEED_CACHE_TIMESTAMP: 'jobfit_feed_timestamp',
+  FEED_CACHE: 'navigator_feed_cache',
+  FEED_CACHE_TIMESTAMP: 'navigator_feed_timestamp',
 } as const;
 
 // Application Routes
 export const ROUTES = {
   HOME: '/',
-  ANALYZE: '/analyze',
+  ANALYZE: '/job',
   HISTORY: '/history',
   RESUMES: '/resumes',
   SKILLS: '/skills',
@@ -102,7 +102,7 @@ export const ROUTES = {
   COACH_HOME: '/coach',
   COACH_GAP: '/coach/gap-analysis',
   COACH_ROLE_MODELS: '/coach/role-models',
-  GRAD: '/grad',
+  GRAD: '/edu',
   JOB_DETAIL: '/job/:id',
   SEO_LANDING: '/resume-for/:role',
   ADMIN: '/admin',
@@ -112,6 +112,7 @@ export const ROUTES = {
 // User Tiers
 export const USER_TIERS = {
   FREE: 'free',
+  PLUS: 'plus',
   PRO: 'pro',
   ADMIN: 'admin',
 } as const;
@@ -151,7 +152,7 @@ export const BENTO_CARDS = {
     rank: 1,
     iconName: 'Sparkles',
     targetView: 'job-fit',
-    title: { marketing: 'JobFit Score', action: 'Analyze' },
+    title: { marketing: 'Navigator Score', action: 'Analyze' },
     description: {
       marketing: 'Instant 0-100 compatibility rating.',
       action: 'Get an instant match score and detailed fit analysis. We break down exactly how well you align with any job description in seconds.'
@@ -271,7 +272,7 @@ export const BENTO_CARDS = {
     id: 'edu',
     rank: 1, // High rank for edu mode
     iconName: 'GraduationCap',
-    targetView: 'grad',
+    targetView: 'edu',
     title: { marketing: 'Edu HQ', action: 'Edu' },
     description: {
       marketing: 'High-fidelity academic pathfinding.',

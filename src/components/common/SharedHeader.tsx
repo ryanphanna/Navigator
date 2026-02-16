@@ -22,7 +22,7 @@ export const SharedHeader: React.FC<SharedHeaderProps> = ({
     };
 
     return (
-        <div className={`text-center mb-12 ${className}`}>
+        <div className={`text-center mb-20 ${className}`}>
             <h1 className="text-5xl md:text-6xl font-black text-neutral-900 dark:text-white tracking-tight mb-6 leading-tight">
                 {title} {highlight && (
                     <span className={`text-transparent bg-clip-text animate-gradient-x bg-gradient-to-r ${gradients[theme]}`} style={{ backgroundSize: '200% auto' }}>

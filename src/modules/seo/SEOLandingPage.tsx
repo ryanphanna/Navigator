@@ -18,7 +18,7 @@ export const SEOLandingPage: React.FC = () => {
 
     useEffect(() => {
         // Update document title for SEO
-        document.title = `Best ${displayTitle} Resume Keywords & Skills (2025 Guide) - JobFit`;
+        document.title = `Best ${displayTitle} Resume Keywords & Skills (2025 Guide) - Navigator`;
 
         // Dynamic Meta Description
         const metaDesc = document.querySelector('meta[name="description"]');

@@ -297,6 +297,27 @@ AS $$
   WHERE id = p_user_id;
 $$;
 
+-- Function to prevent users from updating their own tier/admin status
+CREATE OR REPLACE FUNCTION protect_sensitive_profile_fields()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- If the requester is not a superuser/service_role
+  -- we prevent changes to these specific columns
+  IF (current_setting('role') <> 'service_role') THEN
+    NEW.subscription_tier = OLD.subscription_tier;
+    NEW.is_admin = OLD.is_admin;
+    NEW.is_tester = OLD.is_tester;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Apply the protection trigger
+CREATE TRIGGER ensure_tier_integrity
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW
+  EXECUTE PROCEDURE protect_sensitive_profile_fields();
+
 -- Function to track daily token usage and total AI calls
 create or replace function track_usage(p_tokens int)
 returns void

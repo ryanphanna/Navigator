@@ -1,6 +1,5 @@
 import { supabase } from '../supabase';
 import { encryptionService } from '../encryptionService';
-import { STORAGE_KEYS } from '../../constants';
 
 // Helper: Get User ID if logged in
 export const getUserId = async () => {
@@ -11,10 +10,10 @@ export const getUserId = async () => {
 // --- Private Vault (Encryption) Logic ---
 
 const getVaultSeed = () => {
-    let seed = localStorage.getItem(STORAGE_KEYS.VAULT_SEED);
+    let seed = localStorage.getItem('jobfit_vault_seed');
     if (!seed) {
         seed = crypto.randomUUID();
-        localStorage.setItem(STORAGE_KEYS.VAULT_SEED, seed);
+        localStorage.setItem('jobfit_vault_seed', seed);
     }
     return seed;
 };

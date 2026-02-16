@@ -10,7 +10,7 @@ export const ERROR_MESSAGES = {
   API_KEY_WRONG_FORMAT: "API key format is incorrect. It should start with 'AI...'",
 
   // Quota errors
-  DAILY_QUOTA_EXCEEDED: "You've reached your daily API limit. Try again tomorrow, or upgrade to JobFit Pro for unlimited access.",
+  DAILY_QUOTA_EXCEEDED: "You've reached your daily API limit. Try again tomorrow, or upgrade to Navigator Pro for unlimited access.",
   RATE_LIMIT_EXCEEDED: "Too many requests. The AI is busy right now - please wait a moment and try again.",
 
   // Network errors

@@ -3,7 +3,7 @@ import React from 'react';
 interface SharedPageLayoutProps {
     children: React.ReactNode;
     maxWidth?: '3xl' | '4xl' | '5xl' | '6xl' | 'full';
-    paddingTop?: 'pt-8' | 'pt-12' | 'pt-16' | 'pt-20' | 'pt-24';
+    spacing?: 'hero' | 'compact' | 'none';
     animate?: boolean;
     className?: string;
 }
@@ -11,7 +11,7 @@ interface SharedPageLayoutProps {
 export const SharedPageLayout: React.FC<SharedPageLayoutProps> = ({
     children,
     maxWidth = '4xl',
-    paddingTop = 'pt-16',
+    spacing = 'compact',
     animate = true,
     className = ""
 }) => {
@@ -23,8 +23,14 @@ export const SharedPageLayout: React.FC<SharedPageLayoutProps> = ({
         'full': 'max-w-full'
     }[maxWidth];
 
+    const paddingTopClass = {
+        'hero': 'pt-32 md:pt-48',
+        'compact': 'pt-12',
+        'none': 'pt-0'
+    }[spacing];
+
     return (
-        <div className={`mx-auto px-4 sm:px-6 w-full ${maxWidthClass} ${paddingTop} ${animate ? 'animate-in fade-in slide-in-from-bottom-2 duration-700' : ''} ${className}`}>
+        <div className={`mx-auto px-4 sm:px-6 w-full ${maxWidthClass} ${paddingTopClass} ${animate ? 'animate-in fade-in slide-in-from-bottom-2 duration-700' : ''} ${className}`}>
             {children}
         </div>
     );

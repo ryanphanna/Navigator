@@ -45,10 +45,11 @@ Deno.serve(async (req) => {
             return new Response(JSON.stringify({ error: "User not found" }), { status: 404 });
         }
 
-        // Tier Check: Only Pro users can use this feature
-        if (profile.subscription_tier !== "pro") {
-            console.warn("Blocked ingestion for non-pro user:", profile.id);
-            return new Response(JSON.stringify({ error: "Pro subscription required" }), { status: 403 });
+        // Tier Check: Allow Plus, Pro, and higher
+        const allowedTiers = ["plus", "pro", "admin", "tester"];
+        if (!allowedTiers.includes(profile.subscription_tier)) {
+            console.warn("Blocked ingestion for unauthorized tier:", profile.id, profile.subscription_tier);
+            return new Response(JSON.stringify({ error: "Paid subscription required" }), { status: 403 });
         }
 
         const userId = profile.id;
