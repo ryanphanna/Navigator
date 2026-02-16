@@ -289,6 +289,8 @@ export const BENTO_CARDS = {
   }
 } as const;
 
+export type BentoCardConfig = typeof BENTO_CARDS[keyof typeof BENTO_CARDS];
+
 // Marketing Headlines
 export const HEADLINES = {
   all: [

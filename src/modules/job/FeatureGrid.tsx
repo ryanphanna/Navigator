@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, PenTool, Sparkles, FileText, GraduationCap, Bookmark, Zap } from 'lucide-react';
 import { BentoCard, type BentoColorConfig } from '../../components/common/BentoCard';
-import { BENTO_CARDS } from '../../constants';
+import { BENTO_CARDS, type BentoCardConfig } from '../../constants';
 import { EventService } from '../../services/eventService';
 import type { User } from '@supabase/supabase-js';
 
@@ -15,8 +15,6 @@ const ICON_MAP = {
     Bookmark,
     PenTool
 } as const;
-
-type BentoCardConfig = typeof BENTO_CARDS[keyof typeof BENTO_CARDS];
 
 interface FeatureGridProps {
     user: User | null;
