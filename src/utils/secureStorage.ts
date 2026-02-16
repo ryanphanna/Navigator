@@ -9,7 +9,11 @@ const ENCRYPTION_ALGORITHM = 'AES-GCM';
 
 /**
  * Gets or creates the master encryption key
- * This key is randomly generated and stored in localStorage
+ * This key is randomly generated and stored in localStorage.
+ *
+ * SECURITY NOTE: The key is generated using crypto.getRandomValues (CSPRNG).
+ * It is NOT derived from browser fingerprinting (userAgent, screen, etc.),
+ * which ensures high entropy and stability across browser updates.
  */
 export async function getMasterKey(): Promise<CryptoKey> {
   const storedKey = localStorage.getItem(MASTER_KEY_STORAGE_NAME);
