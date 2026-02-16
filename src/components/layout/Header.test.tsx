@@ -19,6 +19,13 @@ vi.mock('../../contexts/ModalContext', () => ({
     }),
 }));
 
+vi.mock('../../contexts/GlobalUIContext', () => ({
+    useGlobalUI: () => ({
+        isDark: false,
+        toggleDarkMode: vi.fn(),
+    }),
+}));
+
 describe('Header Layout', () => {
     const defaultProps = {
         currentView: 'analyze',
@@ -47,5 +54,11 @@ describe('Header Layout', () => {
     it('should render the Sign Out button when user is logged in', () => {
         render(<Header {...defaultProps} />);
         expect(screen.getByText('Sign Out')).toBeInTheDocument();
+    });
+
+    it('should render the dark mode toggle button', () => {
+        render(<Header {...defaultProps} />);
+        // The title for light mode is "Switch to Dark Mode" because isDark is false in mock
+        expect(screen.getByTitle('Switch to Dark Mode')).toBeInTheDocument();
     });
 });

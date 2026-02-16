@@ -27,7 +27,7 @@ export const ERROR_MESSAGES = {
   AUTH_USER_NOT_FOUND: "No account found with that email.",
   AUTH_EMAIL_IN_USE: "An account with this email already exists.",
   AUTH_WEAK_PASSWORD: "Password should be at least 6 characters.",
-  AUTH_INVALID_INVITE: "Invalid or expired invite code. Need one? Join the waitlist!",
+  AUTH_INVALID_INVITE: "Invalid or expired invite code. If you're having trouble, please contact support.",
 
   // Generic errors
   UNKNOWN_ERROR: "Something went wrong. Please try again.",

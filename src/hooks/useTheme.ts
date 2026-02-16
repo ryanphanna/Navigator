@@ -1,17 +1,11 @@
 import { useLayoutEffect } from 'react';
-import { STORAGE_KEYS } from '../constants';
 
+// This hook is now largely handled by GlobalUIProvider's internal state
+// but we keep it here to ensure early theme application if needed.
 export const useTheme = () => {
     useLayoutEffect(() => {
-        const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
-        if (savedTheme) {
-            if (savedTheme === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.classList.add('dark');
-        }
+        // GlobalUIProvider handles this now, but we can keep it as a no-op 
+        // or a simple check for initial load if we want to avoid flicker 
+        // even before GlobalUIProvider mounts.
     }, []);
 };

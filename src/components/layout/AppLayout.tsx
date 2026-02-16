@@ -26,6 +26,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             'skills': ROUTES.SKILLS,
             'resumes': ROUTES.RESUMES,
             'coach-home': ROUTES.COACH_HOME,
+            'coach-role-models': ROUTES.COACH_ROLE_MODELS,
+            'coach-gap-analysis': ROUTES.COACH_GAP,
             'edu-home': ROUTES.EDUCATION_HOME,
             'edu-record': ROUTES.GRAD,
             'admin': ROUTES.ADMIN,

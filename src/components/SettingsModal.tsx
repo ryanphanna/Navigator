@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
 import type { User } from '@supabase/supabase-js';
-import { APP_VERSION, STORAGE_KEYS } from '../constants';
+import { APP_VERSION } from '../constants';
 import { useModal } from '../contexts/ModalContext';
 
 import type { UserTier } from '../types/app';
@@ -22,42 +22,8 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, userTier, isTester, isAdmin, simulatedTier, onSimulateTier, usageStats }) => {
     const { openModal } = useModal();
     const [_, setConfirmReset] = useState(false);
-    const [isDark, setIsDark] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return document.documentElement.classList.contains('dark') || localStorage.getItem(STORAGE_KEYS.THEME) === 'dark';
-        }
-        return false;
-    });
 
-    // Sync dark mode state with document class
-    React.useEffect(() => {
-        const checkDark = () => {
-            const isDarkMode = document.documentElement.classList.contains('dark');
-            setIsDark(isDarkMode);
-        };
 
-        checkDark();
-
-        // Optional: Listen for class changes if needed, but for now just sync on mount and toggle
-    }, []);
-
-    const toggleDarkMode = () => {
-        const newIsDark = !isDark;
-        setIsDark(newIsDark);
-        if (newIsDark) {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem(STORAGE_KEYS.THEME, 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem(STORAGE_KEYS.THEME, 'light');
-        }
-    };
-
-    const handleSignOut = async () => {
-        const { Storage } = await import('../services/storageService');
-        await Storage.signOut();
-        window.location.reload();
-    };
 
 
     React.useEffect(() => {
@@ -121,7 +87,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                         )}
                                         {isTester && (
                                             <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400">
-                                                Beta
+                                                Early Access
                                             </span>
                                         )}
                                     </div>
@@ -129,16 +95,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                             </div>
                         </div>
 
-                        <div className="pt-8 mt-auto border-t border-neutral-100 dark:border-neutral-800/50">
-                            {user ? (
-                                <button
-                                    onClick={handleSignOut}
-                                    className="text-[11px] font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-300 transition-colors"
-                                >
-                                    Sign Out
-                                </button>
-                            ) : null}
-                        </div>
                     </div>
 
                     {/* Column 2: Plan & Usage */}
@@ -151,7 +107,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                     <div className="flex flex-col">
                                         <span className="text-[10px] font-medium text-neutral-400 uppercase tracking-wider mb-1">Current Plan</span>
                                         <span className="text-sm font-bold text-neutral-900 dark:text-white capitalize">
-                                            {userTier}
+                                            {isAdmin && !simulatedTier ? 'Unlimited Access' : userTier}
                                         </span>
                                     </div>
                                 </div>
@@ -160,7 +116,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                     <div className="flex justify-between items-end">
                                         <span className="text-xs font-semibold text-neutral-500">Analyses used</span>
                                         <span className="text-sm font-bold text-neutral-900 dark:text-white">
-                                            {usageStats?.todayAnalyses || 0} <span className="text-neutral-300 dark:text-neutral-600 font-normal">/ {usageStats?.limit === Infinity ? '∞' : usageStats?.limit || 0}</span>
+                                            {usageStats?.todayAnalyses || 0} <span className="text-neutral-300 dark:text-neutral-600 font-normal">/ {usageStats?.limit === Infinity || (isAdmin && !simulatedTier) ? '∞' : usageStats?.limit || 0}</span>
                                         </span>
                                     </div>
 
@@ -195,18 +151,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                         <h4 className="font-bold text-[11px] text-neutral-400 uppercase tracking-widest mb-6">Settings</h4>
 
                         <div className="space-y-8">
-                            {/* Appearance */}
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Dark Mode</span>
-                                <button
-                                    onClick={toggleDarkMode}
-                                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-all duration-300 ${isDark ? 'bg-neutral-900 dark:bg-white' : 'bg-neutral-200 dark:bg-neutral-700'}`}
-                                >
-                                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white dark:bg-black shadow-sm transition-transform duration-300 ${isDark ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
-                                </button>
-                            </div>
-
-                            <div className="h-px bg-neutral-100 dark:bg-neutral-800/50 w-full" />
 
                             {/* Job Ingestion */}
                             <div className="space-y-3">

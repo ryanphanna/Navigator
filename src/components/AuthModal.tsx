@@ -50,7 +50,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
         try {
             // Check if user exists via RPC
-            // This allows us to seamlessly route to Login vs Join Beta
+            // This allows us to seamlessly route to Login vs Create Account
             const { data: exists, error: checkError } = await supabase.rpc('check_user_exists', {
                 email_input: email.toLowerCase().trim()
             });
@@ -110,7 +110,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             <div className="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20 ring-1 ring-neutral-900/5 dark:ring-white/10">
                 <div className="px-8 py-6 border-b border-neutral-200/50 dark:border-neutral-800/50 flex justify-between items-center bg-gradient-to-r from-indigo-50/50 to-violet-50/50 dark:from-indigo-900/20 dark:to-violet-900/20">
                     <h3 className="font-bold text-xl text-neutral-900 dark:text-white tracking-tight">
-                        {successMessage ? 'Success' : step === 0 ? 'Sign In or Join' : isSignUp ? 'Join the Beta' : 'Welcome Back'}
+                        {successMessage ? 'Success' : step === 0 ? 'Sign In' : isSignUp ? 'Create Account' : 'Welcome Back'}
                     </h3>
                     <button
                         onClick={onClose}
@@ -151,7 +151,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
                                         className="w-full pl-14 pr-4 py-3.5 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 focus:bg-white dark:focus:bg-neutral-800 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-neutral-900 dark:text-white"
-                                        placeholder="you@company.com"
+                                        placeholder="you@email.com"
                                     />
                                 </div>
                             </div>
@@ -165,9 +165,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                                 <ArrowRight className="w-5 h-5" />
                             </button>
 
-                            <p className="text-center text-xs text-neutral-400">
-                                Use your work email for direct access.
-                            </p>
+                            <span className="opacity-0">.</span>
                         </form>
                     ) : (
                         <form onSubmit={handleAuthSubmit} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">

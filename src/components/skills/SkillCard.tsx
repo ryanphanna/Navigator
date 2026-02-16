@@ -63,7 +63,7 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onDelete, onVerify,
                         <button
                             onClick={() => onVerify(skill.name)}
                             className="p-2.5 bg-neutral-50 dark:bg-neutral-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl transition-all"
-                            title={skill.evidence ? 'Re-verify proficiency' : 'Verify with AI (Beta)'}
+                            title={skill.evidence ? 'Re-verify proficiency' : 'Verify with AI'}
                         >
                             <Sparkles className="w-4 h-4" />
                         </button>

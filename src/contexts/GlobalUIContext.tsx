@@ -1,14 +1,17 @@
-import React, { createContext, useContext, useState, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { STORAGE_KEYS } from '../constants';
 
 interface GlobalUIContextType {
     currentView: string;
     showAuth: boolean;
     showSettings: boolean;
+    isDark: boolean;
 
     // Actions
     setView: (view: string) => void;
     setShowAuth: (show: boolean) => void;
     setShowSettings: (show: boolean) => void;
+    toggleDarkMode: () => void;
 }
 
 const GlobalUIContext = createContext<GlobalUIContextType | undefined>(undefined);
@@ -25,15 +28,38 @@ export const GlobalUIProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [currentView, setView] = useState('home');
     const [showAuth, setShowAuth] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
+    const [isDark, setIsDark] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem(STORAGE_KEYS.THEME);
+            if (saved) return saved === 'dark';
+            return window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        return false;
+    });
+
+    // Apply theme to document
+    useEffect(() => {
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem(STORAGE_KEYS.THEME, 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem(STORAGE_KEYS.THEME, 'light');
+        }
+    }, [isDark]);
+
+    const toggleDarkMode = () => setIsDark(prev => !prev);
 
     return (
         <GlobalUIContext.Provider value={{
             currentView,
             showAuth,
             showSettings,
+            isDark,
             setView,
             setShowAuth,
-            setShowSettings
+            setShowSettings,
+            toggleDarkMode
         }}>
             {children}
         </GlobalUIContext.Provider>

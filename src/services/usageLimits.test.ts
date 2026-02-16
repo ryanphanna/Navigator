@@ -38,7 +38,7 @@ describe('checkAnalysisLimit', () => {
         const error = { message: 'Database error' };
         vi.mocked(supabase.rpc).mockResolvedValueOnce({ data: null, error } as any);
 
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
         const result = await checkAnalysisLimit(userId);
 
@@ -52,7 +52,7 @@ describe('checkAnalysisLimit', () => {
         const error = new Error('Network failure');
         vi.mocked(supabase.rpc).mockRejectedValueOnce(error);
 
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
         const result = await checkAnalysisLimit(userId);
 
@@ -82,7 +82,7 @@ describe('incrementAnalysisCount', () => {
         const error = { message: 'Database error' };
         vi.mocked(supabase.rpc).mockResolvedValueOnce({ error } as any);
 
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
         await incrementAnalysisCount(userId);
 
@@ -95,7 +95,7 @@ describe('incrementAnalysisCount', () => {
         const error = new Error('Network failure');
         vi.mocked(supabase.rpc).mockRejectedValueOnce(error);
 
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
         await incrementAnalysisCount(userId);
 
@@ -112,11 +112,13 @@ describe('getUsageStats', () => {
         vi.clearAllMocks();
     });
 
-    it('should return usage stats correctly', async () => {
+    it('should return usage stats correctly for pro tier', async () => {
         // Mock chain for profiles query
         const mockSingle = vi.fn().mockResolvedValue({
             data: {
                 subscription_tier: 'pro',
+                is_admin: false,
+                is_tester: false,
                 job_analyses_count: 50,
                 total_ai_calls: 100,
                 inbound_email_token: 'token-123'
@@ -147,12 +149,68 @@ describe('getUsageStats', () => {
         });
     });
 
+    it('should return admin tier and unlimited limit for admin users', async () => {
+        const mockSingle = vi.fn().mockResolvedValue({
+            data: {
+                subscription_tier: 'free',
+                is_admin: true,
+                is_tester: false,
+                job_analyses_count: 5,
+                total_ai_calls: 10,
+                inbound_email_token: 'admin-token'
+            }
+        });
+        const mockSelectProfile = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: mockSingle }) });
+        const mockGte = vi.fn().mockResolvedValue({ count: 0 });
+        const mockEqJobs = vi.fn().mockReturnValue({ gte: mockGte });
+        const mockSelectJobs = vi.fn().mockReturnValue({ eq: mockEqJobs });
+
+        vi.mocked(supabase.from).mockImplementation((table: string) => {
+            if (table === 'profiles') return { select: mockSelectProfile } as any;
+            if (table === 'jobs') return { select: mockSelectJobs } as any;
+            return {} as any;
+        });
+
+        const result = await getUsageStats(userId);
+
+        expect(result.tier).toBe('admin');
+        expect(result.limit).toBe(Infinity);
+    });
+
+    it('should return tester tier and unlimited limit for tester users', async () => {
+        const mockSingle = vi.fn().mockResolvedValue({
+            data: {
+                subscription_tier: 'free',
+                is_admin: false,
+                is_tester: true,
+                job_analyses_count: 5,
+                total_ai_calls: 10,
+                inbound_email_token: 'tester-token'
+            }
+        });
+        const mockSelectProfile = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: mockSingle }) });
+        const mockGte = vi.fn().mockResolvedValue({ count: 0 });
+        const mockEqJobs = vi.fn().mockReturnValue({ gte: mockGte });
+        const mockSelectJobs = vi.fn().mockReturnValue({ eq: mockEqJobs });
+
+        vi.mocked(supabase.from).mockImplementation((table: string) => {
+            if (table === 'profiles') return { select: mockSelectProfile } as any;
+            if (table === 'jobs') return { select: mockSelectJobs } as any;
+            return {} as any;
+        });
+
+        const result = await getUsageStats(userId);
+
+        expect(result.tier).toBe('tester');
+        expect(result.limit).toBe(Infinity);
+    });
+
     it('should return default stats on error', async () => {
         vi.mocked(supabase.from).mockImplementation(() => {
             throw new Error('DB Error');
         });
 
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
         const result = await getUsageStats(userId);
 

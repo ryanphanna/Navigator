@@ -234,7 +234,6 @@ CREATE INDEX IF NOT EXISTS idx_user_skills_proficiency ON user_skills(proficienc
 CREATE OR REPLACE FUNCTION check_analysis_limit(p_user_id UUID)
 RETURNS JSONB
 LANGUAGE plpgsql
-LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
@@ -242,25 +241,17 @@ DECLARE
   v_tier TEXT;
   v_count INT;
   v_today_count INT;
+  v_is_admin BOOLEAN;
+  v_is_tester BOOLEAN;
 BEGIN
-  -- Get user tier and total count
-  SELECT subscription_tier, job_analyses_count
-  INTO v_tier, v_count
+  -- Get user details
+  SELECT subscription_tier, job_analyses_count, is_admin, is_tester
+  INTO v_tier, v_count, v_is_admin, v_is_tester
   FROM profiles
   WHERE id = p_user_id;
 
-  -- Free tier: 3 total analyses
-  IF v_tier = 'free' AND v_count >= 3 THEN
-    RETURN jsonb_build_object(
-      'allowed', false,
-      'reason', 'free_limit_reached',
-      'used', v_count,
-      'limit', 3
-    );
-  END IF;
-
-  -- Pro tier: Check daily limit (100/day)
-  IF v_tier IN ('pro', 'admin') THEN
+  -- Admin/Tester/Pro: High limit (100/day)
+  IF v_is_admin OR v_is_tester OR v_tier = 'pro' THEN
     SELECT COUNT(*)
     INTO v_today_count
     FROM jobs
@@ -275,6 +266,22 @@ BEGIN
         'limit', 100
       );
     END IF;
+    RETURN jsonb_build_object('allowed', true);
+  END IF;
+
+  -- Plus: Unlimited (effectively same as pro in this simple check)
+  IF v_tier = 'plus' THEN
+     RETURN jsonb_build_object('allowed', true);
+  END IF;
+
+  -- Free tier: 3 total analyses
+  IF v_count >= 3 THEN
+    RETURN jsonb_build_object(
+      'allowed', false,
+      'reason', 'free_limit_reached',
+      'used', v_count,
+      'limit', 3
+    );
   END IF;
 
   -- All checks passed

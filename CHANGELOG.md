@@ -3,59 +3,43 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Staged (Not pushed to GitHub)
+
+## [2.12.0] - 2026-02-16
+### Added
+- **Global UI**: Architecture: Migrated theme state to `GlobalUIContext` for unified state management across the application.
+- **Navigation**: Added interactive navigation to the "Profiles" and "Goals" stats cards on the Coach Dashboard.
+
+### Changed
+- **Branding**: Officially moved past "Beta" terminology in the UI. Renamed "Join the Beta" to "Create Account" and "Beta" tester tags to "Early Access".
+- **Branding**: Simplified header branding to **Navigator**.
+- **UX**: Removed the "work email" requirement/nudge from the sign-in modal to be more inclusive.
+- **Auth**: Simplified authentication flow titles and removed waitlist references.
+- **Navigation**: Updated active state style for main navigation with category-specific colors (Indigo, Emerald, Amber).
+- **Settings**: Complete UI overhaul with a 3-column layout (Account, Plan & Usage, Settings).
+- **Performance**: Removed ambient background animations to reduce resource usage.
+
+### Fixed
+- **Navigation**: Resolved a redirection bug where Career sub-pages (Models, Gap) incorrectly kicked users back to the main Coach view.
+- **Routing**: Consolidated view-ID-to-path mappings for improved consistency across `AppRoutes` and `AppLayout`.
+- **Navigation**: Fixed the "active pill" shape distortion during tab transitions.
+- **Routing**: Fixed a mismatch between the `ROUTES.ANALYZE` constant and the route definition in `AppRoutes.tsx`.
+- **Coach**: Resolved issue where Coach sub-pages were redirecting to the Coach Home page.
+- **Usage Limits**: Fixed a bug where Admin and Tester users were subject to Free tier analysis limits.
+- **Usage Limits**: Fixed a UI bug where admin users initially saw a "0 / 3" limit.
+- **Security**: Hardened database functions by setting `search_path = public`.
+- **Admin**: Restored full Admin Dashboard functionality and fixed database schema drift.
 
 ## [2.11.9] - 2026-02-16
 ### Added
-- **Education module**: Restored the `EducationDashboard` (Overview) as the main entry point for the module, providing a high-fidelity academic command center.
+- **Education module**: Restored the `EducationDashboard` (Overview) as the main entry point for the module.
 
 ### Changed
-- **Navigation**: Separated "Education" (Overview) and "Academic Record" (Transcript) into distinct routes and menu items.
-- **Routing**: Updated `constants.ts`, `AppRoutes.tsx`, and `AppLayout.tsx` to support the new `/edu` (Overview) and `/edu/record` (Academic Record) structure.
+- **Navigation**: Separated "Education" (Overview) and "Academic Record" (Transcript) into distinct routes.
+- **Routing**: Updated structure to support `/edu` and `/edu/record`.
 
 ### Fixed
 - **Stability**: Resolved build-breaking TypeScript errors in `SettingsModal.tsx` and `EducationDashboard.tsx`.
-
-## [2.11.8] - 2026-02-16
-### Fixed
-- **Routing**: Fixed a mismatch between the `ROUTES.ANALYZE` constant and the route definition in `AppRoutes.tsx`, which caused the "Job" link to incorrectly redirect to the Home page.
-
-## [2.11.7] - 2026-02-16
-### Fixed
-- **Navigation**: Fixed the "active pill" shape distortion during tab transitions by enforcing border radius.
-
-
-### Changed
-- **Terminology**: Renamed "Edu" to "Education" and "Academic Record" to "Transcript" across the entire application to better reflect the module's purpose as a system of record.
-- **Navigation**: Updated the top navigation bar and Bento Grid on the home page to reflect the new "Transcript" terminology.
-
-## [2.11.6] - 2026-02-16
-### Fixed
-- **Routing**: Resolved a critical issue where Coach sub-pages (`/coach/role-models`, `/coach/gap-analysis`) were redirecting to the Coach Home page.
-- **Navigation**: Added interactive navigation to the "Profiles" and "Goals" stats cards on the Coach Dashboard.
-### Changed
-- **Settings Modal**: Complete UI overhaul with a 3-column layout (Account, Plan & Usage, Settings) for better organization.
-- **Settings Modal**: Removed redundant user avatar and unified styling for "Admin" and "Beta" tags.
-- **Settings Modal**: Renamed "Job Ingestion" to "Job Alerts" with clearer copy and "copy-to-clipboard" functionality.
-- **Settings Modal**: Improved typography and removed visual clutter like the "Calls" metric.
-
-## [2.11.4] - 2026-02-15
-### Changed
-- **Navigation**: Updated the active state style for the main navigation. Replaced the background "sliding pill" with a text color change (Indigo for Job, Emerald for Career, Amber for Edu) for a cleaner, more refined look.
-- **Routing**: Fixed a mapping issue where the "Analyze" tab would not highlight when active.
-
-## [2.11.3] - 2026-02-15
-### Fixed
-- **Admin Dashboard**: Restored the full Admin Dashboard functionality, including cohort analysis and usage outliers, which was previously replaced by a placeholder.
-- **Database**: Resolved schema drift by restoring missing tables (`role_models`, `target_jobs`) and fixing the `usage_outliers` view.
-
-### Security
-- **Hardening**: Secured `check_user_exists` and `is_admin` database functions by explicitly setting `search_path = public` to prevent potential hijack attacks.
-
-
-## [2.11.2] - 2026-02-15
-### Fixed
-- **Navigation**: Eliminated bounciness in the main navigation menu by suppressing conflicting CSS transitions and tuning Framer Motion spring physics.
-
 
 ## [2.11.1] - 2026-02-15
 ### Fixed

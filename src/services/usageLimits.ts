@@ -61,7 +61,7 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
     try {
         const { data: profile } = await supabase
             .from('profiles')
-            .select('subscription_tier, job_analyses_count, total_ai_calls, inbound_email_token')
+            .select('subscription_tier, is_admin, is_tester, job_analyses_count, total_ai_calls, inbound_email_token')
             .eq('id', userId)
             .single();
 
@@ -71,7 +71,10 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
             .eq('user_id', userId)
             .gte('date_added', new Date().toISOString().split('T')[0]);
 
-        const tier = profile?.subscription_tier || 'free';
+        let tier = profile?.subscription_tier || 'free';
+        if (profile?.is_admin) tier = 'admin';
+        else if (profile?.is_tester) tier = 'tester';
+
         const totalAnalyses = profile?.job_analyses_count || 0;
         const totalAICalls = profile?.total_ai_calls || 0;
 

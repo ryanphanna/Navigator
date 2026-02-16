@@ -1,8 +1,9 @@
 import React from 'react';
-import { TrendingUp, Briefcase, LogOut, Settings, Bookmark, Zap, Sparkles, FileText, Users, Target, GraduationCap, ShieldCheck, BookOpen } from 'lucide-react';
+import { TrendingUp, Briefcase, LogOut, Settings, Bookmark, Zap, Sparkles, FileText, Users, Target, GraduationCap, ShieldCheck, BookOpen, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../../contexts/UserContext';
 import { useModal } from '../../contexts/ModalContext';
+import { useGlobalUI } from '../../contexts/GlobalUIContext';
 
 interface HeaderProps {
     currentView: string;
@@ -19,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
     const { user, isLoading, isAdmin, signOut } = useUser();
     const { openModal } = useModal();
+    const { isDark, toggleDarkMode } = useGlobalUI();
 
     // Navigation Groups
     const navGroups = [
@@ -176,6 +178,13 @@ export const Header: React.FC<HeaderProps> = ({
                                     <ShieldCheck className="w-4.5 h-4.5" />
                                 </button>
                             )}
+                            <button
+                                onClick={toggleDarkMode}
+                                className="p-2.5 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100 transition-all active:scale-90"
+                                title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                            >
+                                {isDark ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
+                            </button>
                             <button
                                 onClick={() => openModal('SETTINGS')}
                                 className="p-2.5 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100 transition-all active:scale-90"
