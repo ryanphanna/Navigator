@@ -35,6 +35,7 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 // New layout components
 import { Header } from './components/layout/Header';
 import { GlobalModals } from './components/layout/GlobalModals';
+import { isCoachView } from './modules/career/types';
 
 const AppContent: React.FC = () => {
   // Consume Contexts
@@ -314,7 +315,7 @@ const AppContent: React.FC = () => {
                     resumes={resumes}
                     transcript={transcript}
                     activeAnalysisIds={activeAnalysisIds}
-                    view={typeof currentView === 'string' && currentView.startsWith('coach') ? (currentView as any) : 'coach-home'}
+                    view={isCoachView(currentView) ? currentView : 'coach-home'}
                     onViewChange={handleViewChange}
                     onAddRoleModel={handleAddRoleModel}
                     onAddTargetJob={handleTargetJobCreated}

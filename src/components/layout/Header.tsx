@@ -6,7 +6,7 @@ interface HeaderProps {
     currentView: string;
     isCoachMode: boolean;
     isEduMode: boolean;
-    onViewChange: (view: any) => void;
+    onViewChange: (view: string) => void;
     onSignOut: () => void;
     onShowSettings: () => void;
     onShowAuth: () => void;
