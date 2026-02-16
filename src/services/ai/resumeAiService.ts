@@ -17,13 +17,14 @@ const extractPdfText = async (base64: string): Promise<string> => {
         if (!pdfjsLib) return "";
         const loadingTask = pdfjsLib.getDocument({ data: atob(base64) });
         const pdf = await loadingTask.promise;
-        let fullText = '';
-        for (let i = 1; i <= pdf.numPages; i++) {
+        const pagePromises = Array.from({ length: pdf.numPages }, (_, i) => i + 1).map(async (i) => {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            fullText += textContent.items.map((item: { str: string }) => item.str).join(' ') + '\n';
-        }
-        return fullText;
+            return textContent.items.map((item: { str: string }) => item.str).join(' ');
+        });
+
+        const pagesContent = await Promise.all(pagePromises);
+        return pagesContent.join('\n') + '\n';
     } catch {
         return "";
     }
