@@ -20,6 +20,7 @@ interface GapAnalysisSectionProps {
     roleModels: RoleModelProfile[];
     transcript: Transcript | null;
     onUpdateTargetJob: (job: TargetJob) => Promise<void>;
+    onAddTargetJob: (url: string) => Promise<void>;
     onRunGapAnalysis: (targetJobId: string) => Promise<void>;
     onGenerateRoadmap: (targetJobId: string) => Promise<void>;
     onToggleMilestone: (targetJobId: string, milestoneId: string) => Promise<void>;
@@ -32,6 +33,7 @@ export const GapAnalysisSection: React.FC<GapAnalysisSectionProps> = ({
     roleModels,
     transcript,
     onUpdateTargetJob,
+    onAddTargetJob,
     onRunGapAnalysis,
     onGenerateRoadmap,
     onToggleMilestone,
@@ -48,7 +50,7 @@ export const GapAnalysisSection: React.FC<GapAnalysisSectionProps> = ({
                         <Target className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-black text-neutral-900 dark:text-white">Gap Analysis</h2>
+                        <h2 className="text-xl font-black text-neutral-900 dark:text-white">Growth Analysis</h2>
                         <p className="text-neutral-500 dark:text-neutral-400">Comparing your <strong>persisted resume</strong> & <strong>skills</strong> against {roleModels.length} Role Models.</p>
                     </div>
                 </div>
@@ -62,27 +64,34 @@ export const GapAnalysisSection: React.FC<GapAnalysisSectionProps> = ({
                     )}
 
                     {/* Strict Mode Toggle */}
-                    <div className="flex items-center gap-3 bg-neutral-100 dark:bg-neutral-900/50 px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800">
-                        <span className={`text-[10px] uppercase tracking-widest font-black transition-colors ${targetJobs.every(t => t.strictMode !== false) ? 'text-neutral-400' : 'text-emerald-500'}`}>General</span>
-                        <button
-                            onClick={() => {
-                                // Toggle strict mode and clear analysis to force re-run
-                                targetJobs.forEach(tj => {
-                                    onUpdateTargetJob({
-                                        ...tj,
-                                        strictMode: !(tj.strictMode ?? true),
-                                        gapAnalysis: undefined // Clear analysis to force re-run
-                                    });
+                    <div
+                        className="relative flex items-center p-1 bg-neutral-100/80 dark:bg-neutral-900/50 rounded-xl border border-neutral-200 dark:border-neutral-800 backdrop-blur-sm cursor-pointer group hover:scale-[1.02] active:scale-[0.98] transition-all"
+                        onClick={() => {
+                            // Toggle strict mode and clear analysis to force re-run
+                            targetJobs.forEach(tj => {
+                                onUpdateTargetJob({
+                                    ...tj,
+                                    strictMode: !(tj.strictMode ?? true),
+                                    gapAnalysis: undefined // Clear analysis to force re-run
                                 });
-                            }}
-                            className="relative flex items-center cursor-pointer group"
-                            title="Toggle between Technical Skills only or Generic Skills"
-                        >
-                            <div className={`w-10 h-5 rounded-full transition-colors ${targetJobs.every(t => t.strictMode !== false) ? 'bg-emerald-500' : 'bg-neutral-300 dark:bg-neutral-700'}`}>
-                                <div className={`absolute top-1 w-3 h-3 rounded-full bg-white shadow-sm transition-all ${targetJobs.every(t => t.strictMode !== false) ? 'left-6' : 'left-1'}`} />
-                            </div>
-                        </button>
-                        <span className={`text-[10px] uppercase tracking-widest font-black transition-colors ${targetJobs.every(t => t.strictMode !== false) ? 'text-emerald-500' : 'text-neutral-400'}`}>Technical</span>
+                            });
+                        }}
+                        title="Toggle between Technical Skills only or Generic Skills"
+                    >
+                        {/* Sliding Background Pill */}
+                        <div
+                            className={`absolute inset-y-1 w-[calc(50%-4px)] bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg shadow-lg shadow-emerald-500/20 transition-all duration-300 ease-out ${targetJobs.every(t => t.strictMode !== false) ? 'left-[calc(50%+2px)]' : 'left-1'
+                                }`}
+                        />
+
+                        <div className={`relative z-10 px-4 py-1.5 text-[10px] uppercase tracking-widest font-black transition-colors duration-300 flex items-center justify-center min-w-[80px] ${targetJobs.every(t => t.strictMode !== false) ? 'text-neutral-400 dark:text-neutral-500' : 'text-white'
+                            }`}>
+                            General
+                        </div>
+                        <div className={`relative z-10 px-4 py-1.5 text-[10px] uppercase tracking-widest font-black transition-colors duration-300 flex items-center justify-center min-w-[80px] ${targetJobs.every(t => t.strictMode !== false) ? 'text-white' : 'text-neutral-400 dark:text-neutral-500'
+                            }`}>
+                            Technical
+                        </div>
                     </div>
                 </div>
             </div>
@@ -112,7 +121,7 @@ export const GapAnalysisSection: React.FC<GapAnalysisSectionProps> = ({
                                         ) : (
                                             <TrendingUp className="w-4 h-4" />
                                         )}
-                                        {activeAnalysisIds?.has(tj.id) ? 'Analyzing Path...' : 'Start Gap Analysis'}
+                                        {activeAnalysisIds?.has(tj.id) ? 'Analyzing Path...' : 'Start Growth Analysis'}
                                     </button>
                                 ) : (
                                     <div className="flex items-center gap-2">
@@ -174,7 +183,7 @@ export const GapAnalysisSection: React.FC<GapAnalysisSectionProps> = ({
                                         <div className="flex items-center justify-between mb-6">
                                             <h4 className="text-lg font-bold flex items-center gap-2">
                                                 <Plus className="w-5 h-5 text-emerald-500" />
-                                                Priority Skill Gaps
+                                                Priority Growth Areas
                                             </h4>
                                             <div className={`text-[10px] px-3 py-1 rounded-full font-bold border ${tj.strictMode !== false ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 border-emerald-100 dark:border-emerald-800' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 border-neutral-200 dark:border-neutral-700'}`}>
                                                 {tj.strictMode !== false ? 'Focus: Technical Skills' : 'View: Holistic (All Skills)'}
@@ -345,17 +354,58 @@ export const GapAnalysisSection: React.FC<GapAnalysisSectionProps> = ({
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-20 bg-white dark:bg-neutral-900 rounded-[3rem] border border-neutral-200 dark:border-neutral-800">
-                    <Target className="w-12 h-12 text-neutral-200 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-neutral-900 dark:text-white">No Career Goals Defined</h3>
-                    <p className="text-neutral-500 max-w-sm mx-auto mt-2">To run a Gap Analysis, you first need to define a target role or career goal on the home screen.</p>
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="text-center py-16 bg-white dark:bg-neutral-900 rounded-[3rem] border border-neutral-200 dark:border-neutral-800 shadow-sm px-6">
+                        <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/30 rounded-3xl flex items-center justify-center text-emerald-600 mx-auto mb-6">
+                            <Target className="w-8 h-8" />
+                        </div>
+                        <h3 className="text-2xl font-black text-neutral-900 dark:text-white mb-2">No Career Goals Defined</h3>
+                        <p className="text-neutral-500 dark:text-neutral-400 max-w-md mx-auto mb-10">Add a target role or career goal below to run your first Growth Analysis.</p>
+
+                        <div className="max-w-xl mx-auto">
+                            <form
+                                onSubmit={async (e) => {
+                                    e.preventDefault();
+                                    const form = e.currentTarget;
+                                    const input = form.elements.namedItem('goalUrl') as HTMLInputElement;
+                                    const value = input.value.trim();
+                                    if (!value) return;
+
+                                    const btn = form.querySelector('button');
+                                    if (btn) btn.disabled = true;
+                                    try {
+                                        await onAddTargetJob(value);
+                                        input.value = '';
+                                    } finally {
+                                        if (btn) btn.disabled = false;
+                                    }
+                                }}
+                                className="relative flex flex-col md:flex-row items-center gap-3 p-2 bg-neutral-50 dark:bg-neutral-800/50 rounded-[2rem] border border-neutral-200 dark:border-neutral-700"
+                            >
+                                <input
+                                    name="goalUrl"
+                                    type="text"
+                                    placeholder="Paste a LinkedIn Job URL or type a title..."
+                                    className="flex-1 w-full bg-transparent border-none focus:ring-0 text-neutral-900 dark:text-white px-4 py-3 placeholder:text-neutral-400"
+                                />
+                                <button
+                                    type="submit"
+                                    className="w-full md:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Set Goal
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
                     <div className="mt-8 p-6 bg-neutral-50 dark:bg-neutral-800/50 rounded-3xl border border-neutral-100 dark:border-neutral-700 max-w-lg mx-auto text-left flex gap-4">
                         <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center text-emerald-600 shrink-0">
                             <TrendingUp className="w-5 h-5" />
                         </div>
                         <div>
                             <div className="font-bold text-sm text-neutral-900 dark:text-white">Pro Tip</div>
-                            <p className="text-xs text-neutral-500 mt-1">Go to the Home screen, toggle to <strong>Goal</strong>, and paste a job description or write your target outcome.</p>
+                            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Found an interesting role? Paste the URL above and we'll analyze exactly what's missing from your profile.</p>
                         </div>
                     </div>
                 </div>

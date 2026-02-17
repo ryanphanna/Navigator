@@ -97,7 +97,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                 const variants = Object.keys(ANALYSIS_PROMPTS.COVER_LETTER.VARIANTS).slice(0, 2); // Pick first two
 
                 const results = await Promise.all(variants.map(v =>
-                    generateCoverLetter(textToUse, bestResume, instructions || [], finalContext, v, trajectoryContext)
+                    generateCoverLetter(textToUse, bestResume, instructions || [], finalContext, v, trajectoryContext, localJob.id)
                 ));
 
                 setComparisonVersions(results);
@@ -112,7 +112,8 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                     userTier,
                     finalContext,
                     (msg) => setAnalysisProgress(msg),
-                    trajectoryContext
+                    trajectoryContext,
+                    localJob.id
                 );
 
                 const updated = {
@@ -136,7 +137,8 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                     instructions,
                     finalContext,
                     undefined,
-                    trajectoryContext
+                    trajectoryContext,
+                    localJob.id
                 );
 
                 const updated = {
@@ -184,7 +186,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
         setGenerating(true);
         try {
             const textToUse = analysis.cleanedDescription || localJob.description || `Role: ${analysis.distilledJob.roleTitle} at ${analysis.distilledJob.companyName}`;
-            const critique = await critiqueCoverLetter(textToUse, localJob.coverLetter!);
+            const critique = await critiqueCoverLetter(textToUse, localJob.coverLetter!, localJob.id);
 
             const updated = { ...localJob, coverLetterCritique: critique };
             Storage.updateJob(updated);
@@ -359,7 +361,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                     </div>
                                     <div className="mt-8 pt-4 border-t border-neutral-100 flex justify-between items-center">
                                         <div className="text-[10px] text-neutral-400 font-mono">
-                                            Tailored by Job Fit AI
+                                            Tailored by Navigator AI
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span className="text-xs text-neutral-400 mr-2">Rate this output:</span>

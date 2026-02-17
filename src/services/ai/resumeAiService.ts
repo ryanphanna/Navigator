@@ -55,14 +55,15 @@ export const parseResumeFile = async (
 export const tailorExperienceBlock = async (
     block: ExperienceBlock,
     jobDescription: string,
-    instructions: string[]
+    instructions: string[],
+    jobId?: string
 ): Promise<string[]> => {
     const prompt = ANALYSIS_PROMPTS.TAILOR_EXPERIENCE_BLOCK(jobDescription, block.title, block.organization, block.bullets, instructions);
     return callWithRetry(async () => {
         const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         return JSON.parse(cleanJsonOutput(response.response.text()));
-    }, { event_type: 'tailoring_block', prompt, model: 'dynamic' });
+    }, { event_type: 'tailoring_block', prompt, model: 'dynamic', job_id: jobId });
 };
 
 export const inferProficiencyFromResponse = async (

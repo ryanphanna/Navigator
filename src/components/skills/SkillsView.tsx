@@ -113,7 +113,7 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
     return (
         <PageLayout
             title="Your Skills"
-            description="Track your skills, verify proficiency, and close the gap."
+            description="Track your skills, verify proficiency, and propel your growth."
             icon={<Target />}
             themeColor="indigo"
             actions={headerActions}

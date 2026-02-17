@@ -66,7 +66,8 @@ export const BentoCard: React.FC<BentoCardProps> = ({
                 transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
                 transition: tilt.x === 0 ? 'transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)' : 'none'
             }}
-            className={`group relative bg-white dark:bg-neutral-900/40 backdrop-blur-2xl rounded-3xl p-4 border ${color.accent} shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 text-left overflow-hidden h-full flex flex-col ${className}`}
+            className={`group relative bg-white dark:bg-neutral-900/40 backdrop-blur-2xl rounded-3xl p-4 border ${color.accent} shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 text-left overflow-hidden h-full flex flex-col cursor-pointer ${className}`}
+            onClick={onAction}
         >
             {/* Dynamic Mouse Shimmer */}
             <div
@@ -79,11 +80,11 @@ export const BentoCard: React.FC<BentoCardProps> = ({
             {/* Ambient Background Glow */}
             <div className={`absolute top-0 right-0 w-48 h-48 ${color.glow} rounded-full blur-[80px] -mr-24 -mt-24 transition-all duration-1000 opacity-30 group-hover:opacity-60 group-hover:scale-125`} />
 
-            <div className="flex items-center gap-3 relative z-10 mb-2">
-                <div className={`w-10 h-10 ${color.iconBg} text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/10 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out`}>
+            <div className="flex items-start gap-3 relative z-10 mb-2 min-h-[2.5rem]">
+                <div className={`w-10 h-10 shrink-0 ${color.iconBg} text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/10 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out`}>
                     <Icon className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-black text-neutral-900 dark:text-white tracking-tight leading-none">
+                <h3 className="text-lg font-black text-neutral-900 dark:text-white tracking-tight leading-tight pt-0.5">
                     {title}
                 </h3>
             </div>

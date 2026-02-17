@@ -14,6 +14,7 @@ interface UserContextType {
     signOut: () => Promise<void>;
     setSimulatedTier: (tier: UserTier | null) => void; // Admin-only: simulate viewing as different tier
     simulatedTier: UserTier | null;
+    updateProfile: (updates: Partial<{ first_name: string; last_name: string; device_id: string }>) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -86,6 +87,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSimulatedTier(null);
     };
 
+    const updateProfile = async (updates: Partial<{ first_name: string; last_name: string; device_id: string }>) => {
+        if (!user) return;
+        const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
+        if (error) console.error("Failed to update profile context", error);
+    };
+
     return (
         <UserContext.Provider value={{
             user,
@@ -96,7 +103,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isLoading,
             signOut,
             simulatedTier,
-            setSimulatedTier
+            setSimulatedTier,
+            updateProfile
         }}>
             {children}
         </UserContext.Provider>

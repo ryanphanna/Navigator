@@ -11,6 +11,8 @@ create extension if not exists "uuid-ossp";
 create table profiles (
   id uuid references auth.users not null primary key,
   email text,
+  first_name text, -- Added for personalization
+  last_name text, -- Added for personalization
   subscription_tier text default 'free',
   is_admin boolean default false,
   is_tester boolean default false,
@@ -18,6 +20,9 @@ create table profiles (
   total_ai_calls int default 0,
   last_analysis_date timestamp with time zone,
   inbound_email_token text unique,
+  device_id text, -- Browser fingerprint for abuse prevention
+  email_verified boolean default false, -- Email verification status
+  normalized_email text, -- Stored without +tags for abuse checks
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -78,6 +83,7 @@ create table daily_usage (
 create table logs (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references profiles(id),
+  job_id uuid references jobs(id), -- Optional link to specific job context
   event_type text not null,
   model_name text not null,
   prompt_text text,
@@ -167,9 +173,49 @@ create policy "Admins can view all usage" on daily_usage for select using (
 -- Automatically create a profile when a new user signs up
 create or replace function public.handle_new_user() 
 returns trigger as $$
+declare
+  raw_email text;
+  clean_email text;
+  meta_device_id text;
+  meta_first_name text;
+  meta_last_name text;
 begin
-  insert into public.profiles (id, email, is_admin, is_tester, inbound_email_token)
-  values (new.id, new.email, false, false, substring(md5(random()::text) from 1 for 12));
+  -- Extract Metadata
+  raw_email := new.email;
+  meta_device_id := new.raw_user_meta_data->>'device_id';
+  meta_first_name := new.raw_user_meta_data->>'first_name';
+  meta_last_name := new.raw_user_meta_data->>'last_name';
+
+  -- Normalize Email (Remove +tags)
+  -- Logic: Split by @, split local part by +, take first part, rejoin with domain
+  clean_email := split_part(raw_email, '@', 1);
+  if position('+' in clean_email) > 0 then
+    clean_email := split_part(clean_email, '+', 1);
+  end if;
+  clean_email := clean_email || '@' || split_part(raw_email, '@', 2);
+
+  insert into public.profiles (
+    id, 
+    email, 
+    first_name, 
+    last_name, 
+    device_id, 
+    normalized_email,
+    is_admin, 
+    is_tester, 
+    inbound_email_token
+  )
+  values (
+    new.id, 
+    new.email, 
+    meta_first_name, 
+    meta_last_name, 
+    meta_device_id, 
+    clean_email, 
+    false, 
+    false, 
+    substring(md5(random()::text) from 1 for 12)
+  );
   return new;
 end;
 $$ language plpgsql security definer set search_path = public;

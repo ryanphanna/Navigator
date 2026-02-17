@@ -42,8 +42,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     onImportResume,
     isParsing = false
 }) => {
-    // Step 1: Privacy -> Step 2: Model Setup -> Step 3: Journey -> Step 4: Upload -> Step 5: Features -> Step 6: Done
-    const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
+    // Step 1: Privacy -> Step 1.5: Name -> Step 2: Model Setup -> Step 3: Journey -> Step 4: Upload -> Step 5: Features -> Step 6: Done
+    const [step, setStep] = useState<1 | 1.5 | 2 | 3 | 4 | 5 | 6>(1);
     const [selectedJourneys, setSelectedJourneys] = useState<JourneyStage[]>([]);
     const [resumeUploaded, setResumeUploaded] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -146,6 +146,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     const handleContinue = () => {
         if (step === 1) {
             localStorage.setItem('navigator_privacy_accepted', 'true');
+            setStep(1.5);
+        } else if (step === 1.5) {
             setStep(2);
         } else if (step === 2) {
             // Should participate in selection flow
@@ -155,14 +157,27 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             setStep(6); // Skip upload
         } else if (step === 5) {
             setStep(6);
+            setStep(6);
         } else if (step === 6) {
             let intent: 'navigator' | 'coach' | 'grad' = 'navigator';
             if (selectedJourneys.includes('student')) intent = 'grad';
             else if (selectedJourneys.includes('employed')) intent = 'coach';
 
-            onContinue({ journeys: selectedJourneys, intent } as any);
+            // Collect metadata
+            import('../../utils/fingerprint').then(async ({ getDeviceFingerprint }) => {
+                const deviceId = await getDeviceFingerprint();
+                onContinue({
+                    journeys: selectedJourneys,
+                    intent,
+                    userData: { firstName, lastName, deviceId }
+                } as any);
+            });
         }
     };
+
+    // New State for Names
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
 
     if (!isOpen) return null;
 
@@ -248,6 +263,53 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                             >
                                 <Shield className="w-5 h-5" />
                                 <span>I Understand, Let's Go</span>
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Step 1.5: Profile Setup (Name) */}
+                    {step === 1.5 && (
+                        <div className="animate-in fade-in slide-in-from-right-4 duration-500 flex-1 flex flex-col">
+                            <div className="text-center mb-6">
+                                <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
+                                    Nice to meet you
+                                </h1>
+                                <p className="text-neutral-600 dark:text-neutral-400">
+                                    What should we call you?
+                                </p>
+                            </div>
+
+                            <div className="space-y-4 mb-8 flex-1 justify-center flex flex-col max-w-sm mx-auto w-full">
+                                <div>
+                                    <label className="block text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">First Name</label>
+                                    <input
+                                        type="text"
+                                        value={firstName}
+                                        onChange={(e) => setFirstName(e.target.value)}
+                                        className="w-full p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-lg font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                        placeholder="Jane"
+                                        autoFocus
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">Last Name</label>
+                                    <input
+                                        type="text"
+                                        value={lastName}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                        className="w-full p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-lg font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                        placeholder="Doe"
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => setStep(2)}
+                                disabled={!firstName.trim() || !lastName.trim()}
+                                className="w-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                <span>Continue</span>
+                                <ArrowRight className="w-5 h-5" />
                             </button>
                         </div>
                     )}

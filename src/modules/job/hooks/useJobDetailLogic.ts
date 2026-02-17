@@ -43,7 +43,7 @@ export const useJobDetailLogic = ({
             if (onAnalyzeJob) {
                 await onAnalyzeJob(job);
             } else {
-                const result = await analyzeJobFit(job.description || '', resumes, userSkills, (msg) => setAnalysisProgress(msg));
+                const result = await analyzeJobFit(job.description || '', resumes, userSkills, (msg) => setAnalysisProgress(msg), job.id);
                 const finalJob: SavedJob = { ...job, analysis: result, status: 'saved' as const };
                 await Storage.updateJob(finalJob);
                 onUpdateJob(finalJob);
@@ -62,7 +62,7 @@ export const useJobDetailLogic = ({
         try {
             const textToUse = analysis.cleanedDescription || job.description || `Role: ${analysis.distilledJob?.roleTitle}`;
             const instructions = analysis.resumeTailoringInstructions || analysis.tailoringInstructions || [];
-            const tailoredBullets = await tailorExperienceBlock(block, textToUse, instructions);
+            const tailoredBullets = await tailorExperienceBlock(block, textToUse, instructions, job.id);
 
             const updatedJob: SavedJob = {
                 ...job,

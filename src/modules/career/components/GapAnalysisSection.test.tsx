@@ -33,12 +33,13 @@ const mockRoadmap = [
 describe('GapAnalysisSection', () => {
     const mockHandlers = {
         onUpdateTargetJob: vi.fn(),
+        onAddTargetJob: vi.fn(),
         onRunGapAnalysis: vi.fn(),
         onGenerateRoadmap: vi.fn(),
         onToggleMilestone: vi.fn(),
     };
 
-    it('renders empty state when no jobs are present', () => {
+    it('renders empty state when no jobs are present and handles goal addition', async () => {
         render(
             <ToastProvider>
                 <GapAnalysisSection
@@ -50,6 +51,14 @@ describe('GapAnalysisSection', () => {
             </ToastProvider>
         );
         expect(screen.getByText('No Career Goals Defined')).toBeInTheDocument();
+
+        const input = screen.getByPlaceholderText('Paste a LinkedIn Job URL or type a title...');
+        const submitBtn = screen.getByText('Set Goal');
+
+        fireEvent.change(input, { target: { value: 'https://linkedin.com/jobs/123' } });
+        fireEvent.click(submitBtn);
+
+        expect(mockHandlers.onAddTargetJob).toHaveBeenCalledWith('https://linkedin.com/jobs/123');
     });
 
     it('renders target job cards', () => {

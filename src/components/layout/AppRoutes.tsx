@@ -10,6 +10,7 @@ import { useJobContext } from '../../modules/job/context/JobContext';
 import { useResumeContext } from '../../modules/resume/context/ResumeContext';
 import { useCoachContext } from '../../modules/career/context/CoachContext';
 import { useSkillContext } from '../../modules/skills/context/SkillContext';
+import { useModal } from '../../contexts/ModalContext';
 import { useGlobalUI } from '../../contexts/GlobalUIContext';
 import { useUser } from '../../contexts/UserContext';
 
@@ -28,6 +29,7 @@ const EducationDashboard = lazyWithRetry(() => import('../../modules/grad/Educat
 const AcademicHQ = lazyWithRetry(() => import('../../modules/grad/AcademicHQ').then(m => ({ default: m.AcademicHQ })));
 const SEOLandingPage = lazyWithRetry(() => import('../../modules/seo/SEOLandingPage').then(m => ({ default: m.SEOLandingPage })));
 const SkillsView = lazyWithRetry(() => import('../skills/SkillsView').then(m => ({ default: m.SkillsView })));
+const CoverLetters = lazyWithRetry(() => import('../../modules/job/CoverLetters').then(m => ({ default: m.CoverLetters })));
 
 export const AppRoutes: React.FC = () => {
     const {
@@ -53,8 +55,10 @@ export const AppRoutes: React.FC = () => {
     } = useSkillContext();
 
     const {
-        currentView, setView, setShowAuth
+        currentView, setView
     } = useGlobalUI();
+
+    const { openModal } = useModal();
 
     const { user, userTier, isAdmin, isTester } = useUser();
     const location = useLocation();
@@ -67,26 +71,30 @@ export const AppRoutes: React.FC = () => {
         // Reverse mapping from Path to View ID
         const pathToView: Record<string, string> = {
             [ROUTES.HOME]: 'home',
-            [ROUTES.ANALYZE]: 'job',
-            [ROUTES.FEED]: 'job-fit',
-            [ROUTES.PRO_FEED]: 'job-fit',
+
+            // Jobs
+            [ROUTES.JOB_HOME]: 'job-home',
+            [ROUTES.FEED]: 'feed',
+            [ROUTES.PRO_FEED]: 'feed',
             [ROUTES.HISTORY]: 'history',
-            [ROUTES.SKILLS]: 'skills',
             [ROUTES.RESUMES]: 'resumes',
-            [ROUTES.COACH_HOME]: 'coach-home',
-            [ROUTES.COACH_ROLE_MODELS]: 'coach-role-models',
-            [ROUTES.COACH_GAP]: 'coach-gap-analysis',
-            [ROUTES.EDUCATION_HOME]: 'edu-home',
-            [ROUTES.GRAD]: 'edu-record',
-            [ROUTES.ADMIN]: 'admin',
             [ROUTES.COVER_LETTERS]: 'cover-letters',
+
+            // Career
+            [ROUTES.CAREER_HOME]: 'career-home',
+            [ROUTES.SKILLS]: 'skills',
+            [ROUTES.CAREER_MODELS]: 'career-models',
+            [ROUTES.CAREER_GROWTH]: 'career-growth',
+
+            // Edu
+            [ROUTES.EDUCATION_HOME]: 'edu-home',
+            [ROUTES.TRANSCRIPT]: 'edu-transcript',
+
+            [ROUTES.ADMIN]: 'admin',
         };
 
         // Handle dynamic job detail route
-        if (path.startsWith('/job/')) {
-            if (currentView !== 'history') setView('history');
-            return;
-        }
+
 
         // Handle dynamic SEO routes
         if (path.startsWith('/resume-for/')) {
@@ -112,22 +120,29 @@ export const AppRoutes: React.FC = () => {
     const handleViewChange = (viewId: string) => {
         const viewToPath: Record<string, string> = {
             'home': ROUTES.HOME,
-            'job': ROUTES.ANALYZE,
-            'analyze': ROUTES.ANALYZE,
-            'job-fit': ROUTES.FEED,
+
+            // Jobs
+            'job-home': ROUTES.JOB_HOME,
+            'feed': ROUTES.FEED,
             'history': ROUTES.HISTORY,
-            'skills': ROUTES.SKILLS,
             'resumes': ROUTES.RESUMES,
-            'coach-home': ROUTES.COACH_HOME,
-            'coach-role-models': ROUTES.COACH_ROLE_MODELS,
-            'coach-gap-analysis': ROUTES.COACH_GAP,
-            'edu-home': ROUTES.EDUCATION_HOME,
-            'edu-record': ROUTES.GRAD,
-            'admin': ROUTES.ADMIN,
             'cover-letters': ROUTES.COVER_LETTERS,
+
+            // Career
+            'career-home': ROUTES.CAREER_HOME,
+            'skills': ROUTES.SKILLS,
+            'career-models': ROUTES.CAREER_MODELS,
+            'career-growth': ROUTES.CAREER_GROWTH,
+
+            // Edu
+            'edu-home': ROUTES.EDUCATION_HOME,
+            'edu-transcript': ROUTES.TRANSCRIPT,
+
+            'admin': ROUTES.ADMIN,
         };
 
         const path = viewToPath[viewId];
+        console.log('[AppRoutes] handleViewChange:', { viewId, path, viewToPathConfig: !!viewToPath[viewId] });
         if (path) {
             navigate(path);
         } else {
@@ -166,12 +181,12 @@ export const AppRoutes: React.FC = () => {
                             usageStats={usageStats}
                             mode="home"
                             onNavigate={handleViewChange}
-                            onShowAuth={() => setShowAuth(true)}
+                            onShowAuth={() => openModal('AUTH')}
                         />
                     </>
                 } />
 
-                <Route path={ROUTES.ANALYZE} element={
+                <Route path={ROUTES.JOB_HOME} element={
                     <HomeInput
                         resumes={resumes}
                         onJobCreated={handleJobCreated}
@@ -185,9 +200,10 @@ export const AppRoutes: React.FC = () => {
                         usageStats={usageStats}
                         mode="apply"
                         onNavigate={handleViewChange}
-                        onShowAuth={() => setShowAuth(true)}
+                        onShowAuth={() => openModal('AUTH')}
                     />
                 } />
+
 
                 {/* SEO Landing Pages (Dynamic) */}
                 <Route path={ROUTES.SEO_LANDING} element={
@@ -223,6 +239,32 @@ export const AppRoutes: React.FC = () => {
                     </Suspense>
                 } />
 
+
+                {/* Career Routes */}
+                <Route path={ROUTES.CAREER_HOME + "/*"} element={
+                    <Suspense fallback={<LoadingState message="Consulting Career Coach..." />}>
+                        <CoachDashboard
+                            userSkills={skills}
+                            roleModels={roleModels}
+                            targetJobs={targetJobs}
+                            resumes={resumes}
+                            transcript={transcript}
+                            activeAnalysisIds={activeAnalysisIds}
+                            view={typeof currentView === 'string' && currentView.startsWith('career') ? (currentView as any) : 'career-home'}
+                            onViewChange={handleViewChange}
+                            onAddRoleModel={handleAddRoleModel}
+                            onAddTargetJob={handleTargetJobCreated}
+                            onUpdateTargetJob={handleUpdateTargetJob}
+                            onEmulateRoleModel={handleEmulateRoleModel}
+                            onDeleteRoleModel={handleDeleteRoleModel}
+                            onRunGapAnalysis={(id: string) => handleRunGapAnalysis(id, { resumes, skills })}
+                            onGenerateRoadmap={handleGenerateRoadmap}
+                            onToggleMilestone={handleToggleMilestone}
+                        />
+                    </Suspense>
+                } />
+
+                {/* Skills is now distinct but under Career header */}
                 <Route path={ROUTES.SKILLS} element={
                     <Suspense fallback={<LoadingState message="Loading Skills Dashboard..." />}>
                         <SkillsView
@@ -235,31 +277,7 @@ export const AppRoutes: React.FC = () => {
                     </Suspense>
                 } />
 
-                {/* Coach Routes */}
-                <Route path={ROUTES.COACH_HOME + "/*"} element={
-                    <Suspense fallback={<LoadingState message="Consulting Career Coach..." />}>
-                        <CoachDashboard
-                            userSkills={skills}
-                            roleModels={roleModels}
-                            targetJobs={targetJobs}
-                            resumes={resumes}
-                            transcript={transcript}
-                            activeAnalysisIds={activeAnalysisIds}
-                            view={typeof currentView === 'string' && currentView.startsWith('coach') ? (currentView as any) : 'coach-home'}
-                            onViewChange={handleViewChange}
-                            onAddRoleModel={handleAddRoleModel}
-                            onAddTargetJob={handleTargetJobCreated}
-                            onUpdateTargetJob={handleUpdateTargetJob}
-                            onEmulateRoleModel={handleEmulateRoleModel}
-                            onDeleteRoleModel={handleDeleteRoleModel}
-                            onRunGapAnalysis={(id) => handleRunGapAnalysis(id, { resumes, skills })}
-                            onGenerateRoadmap={handleGenerateRoadmap}
-                            onToggleMilestone={handleToggleMilestone}
-                        />
-                    </Suspense>
-                } />
-
-                {/* History / All Context */}
+                {/* History */}
                 <Route path={ROUTES.HISTORY} element={
                     <Suspense fallback={<LoadingState message="Opening History..." />}>
                         <History
@@ -297,7 +315,17 @@ export const AppRoutes: React.FC = () => {
                     </Suspense>
                 } />
 
-                <Route path={ROUTES.GRAD} element={
+                <Route path={ROUTES.COVER_LETTERS} element={
+                    <Suspense fallback={<LoadingState message="Opening Letters..." />}>
+                        <CoverLetters
+                            jobs={jobs}
+                            onSelectJob={setActiveJobId}
+                            onDeleteJob={handleDeleteJob}
+                        />
+                    </Suspense>
+                } />
+
+                <Route path={ROUTES.TRANSCRIPT} element={
                     <Suspense fallback={<LoadingState message="Loading Academic HQ..." />}>
                         <AcademicHQ />
                     </Suspense>

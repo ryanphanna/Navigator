@@ -93,21 +93,33 @@ export const STORAGE_KEYS = {
 // Application Routes
 export const ROUTES = {
   HOME: '/',
-  ANALYZE: '/job',
-  HISTORY: '/history',
-  RESUMES: '/resumes',
-  SKILLS: '/skills',
-  PRO_FEED: '/pro',
-  FEED: '/feed',
-  COACH_HOME: '/coach',
-  COACH_GAP: '/coach/gap-analysis',
-  COACH_ROLE_MODELS: '/coach/role-models',
-  EDUCATION_HOME: '/edu',
-  GRAD: '/edu/record',
-  JOB_DETAIL: '/job/:id',
+
+  // Jobs Section
+  JOB_HOME: '/jobs',
+  RESUMES: '/jobs/resumes',
+  FEED: '/jobs/feed',
+  HISTORY: '/jobs/history',
+  COVER_LETTERS: '/jobs/cover-letters',
+  JOB_DETAIL: '/jobs/match/:id',
+  PRO_FEED: '/jobs/pro', // Alias if needed
+
+  // Career Section
+  CAREER_HOME: '/career',
+  SKILLS: '/career/skills',
+  CAREER_GROWTH: '/career/growth',
+  CAREER_MODELS: '/career/models',
+  COACH_ROLE_MODELS: '/career/models',
+  COACH_GAP: '/career/gap',
+
+  // Education Section
+  EDUCATION_HOME: '/education',
+  TRANSCRIPT: '/education/transcript', // Formerly GRAD
+  GRAD: '/education/transcript',
+  COACH_HOME: '/career',
+
+  // Other
   SEO_LANDING: '/resume-for/:role',
   ADMIN: '/admin',
-  COVER_LETTERS: '/cover-letters',
 } as const;
 
 // User Tiers
@@ -152,13 +164,13 @@ export const BENTO_CARDS = {
     id: 'jobfit',
     rank: 1,
     iconName: 'Sparkles',
-    targetView: 'job-fit',
-    title: { marketing: 'Navigator Score', action: 'Analyze' },
+    targetView: 'job-home',
+    title: { marketing: 'Job Match', action: 'Match' },
     description: {
       marketing: 'Instant 0-100 compatibility rating.',
       action: 'Get an instant match score and detailed fit analysis. We break down exactly how well you align with any job description in seconds.'
     },
-    action: { marketing: 'Get started', action: 'Analyze' },
+    action: { marketing: 'View Match', action: 'View Match' },
     colors: {
       bg: 'bg-indigo-50/50 dark:bg-indigo-500/5',
       text: 'text-indigo-500 dark:text-indigo-400',
@@ -173,12 +185,12 @@ export const BENTO_CARDS = {
     rank: 2,
     iconName: 'Zap',
     targetView: 'skills',
-    title: { marketing: 'Keyword Targeting', action: 'Skills' },
+    title: { marketing: 'Skill Gaps', action: 'Skills' },
     description: {
       marketing: 'Identify missing skills to beat the ATS.',
       action: 'Identify and bridge your skill gaps with AI. We scan descriptions for missing keywords so you can optimize your profile for every role.'
     },
-    action: { marketing: 'Optimize now', action: 'Audit gaps' },
+    action: { marketing: 'Audit', action: 'Audit gaps' },
     colors: {
       bg: 'bg-sky-50/50 dark:bg-sky-500/5',
       text: 'text-sky-500 dark:text-sky-400',
@@ -193,12 +205,12 @@ export const BENTO_CARDS = {
     rank: 3,
     iconName: 'FileText',
     targetView: 'resumes',
-    title: { marketing: 'Tailored Summaries', action: 'Resumes' },
+    title: { marketing: 'Resume Sync', action: 'Resumes' },
     description: {
       marketing: 'Tailored summaries for every application.',
       action: 'Store and edit your resume profiles. We help you maintain multiple versions of your experience to target different industries effectively.'
     },
-    action: { marketing: 'Try it', action: 'Manage' },
+    action: { marketing: 'Sync', action: 'Manage' },
     colors: {
       bg: 'bg-rose-50/50 dark:bg-rose-500/5',
       text: 'text-rose-500 dark:text-rose-400',
@@ -212,11 +224,11 @@ export const BENTO_CARDS = {
     id: 'coach',
     rank: 1, // High rank for career mode
     iconName: 'TrendingUp',
-    targetView: 'coach-home',
-    title: { marketing: 'Career Coach', action: 'Roadmap' },
+    targetView: 'career-home',
+    title: { marketing: 'Growth Analysis', action: 'Roadmap' },
     description: {
-      marketing: 'AI mentorship for your career transition.',
-      action: 'Build your roadmap to land major target roles. Get personalized advice on how to transition into higher-paying career paths.'
+      marketing: 'Analyze skill gaps for any role.',
+      action: 'Compare your skills against role models and target jobs to see exactly what you need to learn next.'
     },
     action: { marketing: 'Learn more', action: 'Scale up' },
     colors: {
@@ -233,7 +245,7 @@ export const BENTO_CARDS = {
     rank: 4,
     iconName: 'Bookmark',
     targetView: 'history',
-    title: { marketing: 'Save from Anywhere', action: 'History' },
+    title: { marketing: 'Save Jobs', action: 'History' },
     description: {
       marketing: 'Save jobs from any site with one click.',
       action: 'Review your analyzed jobs and insights. Keep track of every application and see how your compatibility scores evolve over time.'
@@ -253,12 +265,12 @@ export const BENTO_CARDS = {
     rank: 5,
     iconName: 'PenTool',
     targetView: 'cover-letters',
-    title: { marketing: 'Smart Cover Letters', action: 'Cover Letters' },
+    title: { marketing: 'Cover Letters', action: 'Cover Letters' },
     description: {
       marketing: 'Generate persuasive cover letters instantly.',
       action: 'Generate AI-tailored cover letters. Our engine synthesizes your experience and the job description to write unique, persuasive applications.'
     },
-    action: { marketing: 'Start writing', action: 'Create new' },
+    action: { marketing: 'Write', action: 'Create new' },
     colors: {
       bg: 'bg-violet-50/50 dark:bg-violet-500/5',
       text: 'text-violet-500 dark:text-violet-400',
@@ -273,7 +285,7 @@ export const BENTO_CARDS = {
     id: 'edu',
     rank: 1, // High rank for edu mode
     iconName: 'GraduationCap',
-    targetView: 'edu',
+    targetView: 'edu-home',
     title: { marketing: 'Transcript', action: 'Edu' },
     description: {
       marketing: 'High-fidelity academic pathfinding.',
@@ -305,7 +317,7 @@ export const HEADLINES = {
     { text: "Land your", highlight: "Opening" },
     { text: "Ace the", highlight: "Application" },
     { text: "Own your", highlight: "Narrative" },
-    { text: "Perfect your", highlight: "Fit" }
+    { text: "Perfect your", highlight: "Match" }
   ],
   goal: [
     { text: "Chart your", highlight: "Course" },
@@ -313,5 +325,11 @@ export const HEADLINES = {
     { text: "Build your", highlight: "Roadmap" },
     { text: "Design your", highlight: "Future" },
     { text: "Scale your", highlight: "Impact" }
+  ],
+  edu: [
+    { text: "Accelerate your", highlight: "Learning" },
+    { text: "Maximize your", highlight: "Potential" },
+    { text: "Scale your", highlight: "Education" },
+    { text: "Chart your", highlight: "Success" }
   ]
 } as const;

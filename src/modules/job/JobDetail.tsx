@@ -86,7 +86,7 @@ const JobDetail: React.FC<JobDetailProps> = ({
                         <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
                     </div>
                 </div>
-                <h3 className="text-2xl font-bold text-neutral-900 mb-3">Analyzing Job Fit</h3>
+                <h3 className="text-2xl font-bold text-neutral-900 mb-3">Analyzing Job Match</h3>
                 <div className="flex flex-col items-center gap-2 mb-8">
                     <p className="text-neutral-500 font-medium animate-pulse text-lg">
                         {analysisProgress || "Starting analysis..."}
@@ -187,7 +187,7 @@ const JobDetail: React.FC<JobDetailProps> = ({
                                     className="px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold disabled:opacity-50 flex items-center gap-2 hover:bg-indigo-700 shadow-lg"
                                 >
                                     {retrying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                                    {retrying ? 'Analyzing...' : 'Analyze Job Fit'}
+                                    {retrying ? 'Analyzing...' : 'Analyze Job Match'}
                                 </button>
                             </div>
                         </div>

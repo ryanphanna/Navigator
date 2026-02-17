@@ -71,7 +71,7 @@ export const RoleModelSection: React.FC<RoleModelSectionProps> = ({
                     </div>
                     <div>
                         <h2 className="text-xl font-black text-neutral-900 dark:text-white">Role Models</h2>
-                        <p className="text-neutral-500 dark:text-neutral-400">Manage the career paths you're analyzing.</p>
+                        <p className="text-neutral-500 dark:text-neutral-400">Manage the career paths you're studying.</p>
                     </div>
                 </div>
                 <button

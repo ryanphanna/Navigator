@@ -181,6 +181,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
                         roleModels={roleModels}
                         transcript={transcript}
                         onUpdateTargetJob={onUpdateTargetJob}
+                        onAddTargetJob={onAddTargetJob}
                         onRunGapAnalysis={onRunGapAnalysis}
                         onGenerateRoadmap={onGenerateRoadmap}
                         onToggleMilestone={onToggleMilestone}

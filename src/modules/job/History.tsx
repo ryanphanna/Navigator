@@ -72,7 +72,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
             case 'rejected': return { label: 'Rejected', color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' };
             case 'ghosted': return { label: 'Ghosted', color: 'bg-neutral-100 text-neutral-500 border-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:border-neutral-700' };
             case 'applied': return { label: 'Applied', color: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800' };
-            case 'analyzing': return { label: 'Analyzing...', color: 'bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800 animate-pulse' };
+            case 'analyzing': return { label: 'Processing...', color: 'bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800 animate-pulse' };
             case 'error': return { label: 'Failed', color: 'bg-red-50 text-red-600 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' };
             default: return { label: 'Saved', color: 'bg-neutral-100 text-neutral-600 border-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:border-neutral-700' };
         }
@@ -93,7 +93,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
     return (
         <PageLayout
             title="Application History"
-            description="Track your analyzed jobs and applications throughout your journey."
+            description="Track your saved jobs and applications throughout your journey."
             icon={<Clock />}
             themeColor="indigo"
         >
@@ -151,7 +151,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                         </div>
                         <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">No history yet</h3>
                         <p className="text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto">
-                            Apps you analyze and apply to will appear here. Start by analyzing a job!
+                            Jobs you save and assess will appear here. Start by finding a job fit!
                         </p>
                     </div>
                 ) : filteredJobs.length === 0 ? (
@@ -247,7 +247,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                                                             <div className="w-1 h-1 rounded-full bg-current animate-bounce [animation-delay:0.2s]" />
                                                             <div className="w-1 h-1 rounded-full bg-current animate-bounce [animation-delay:0.4s]" />
                                                         </div>
-                                                        AI is pathfinding
+                                                        Finding your fit...
                                                     </div>
                                                 ) : isError ? (
                                                     <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-rose-500 dark:text-rose-400">

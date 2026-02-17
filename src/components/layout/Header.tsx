@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, Briefcase, LogOut, Settings, Bookmark, Zap, Sparkles, FileText, Users, Target, GraduationCap, ShieldCheck, BookOpen, Sun, Moon } from 'lucide-react';
+import { TrendingUp, Briefcase, LogOut, Settings, Bookmark, Zap, Sparkles, FileText, Users, Target, GraduationCap, ShieldCheck, Sun, Moon, PenTool } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../../contexts/UserContext';
 import { useModal } from '../../contexts/ModalContext';
@@ -7,16 +7,16 @@ import { useGlobalUI } from '../../contexts/GlobalUIContext';
 
 interface HeaderProps {
     currentView: string;
-    isCoachMode: boolean;
-    isEduMode: boolean;
     onViewChange: (view: string) => void;
+    isCoachMode?: boolean;
+    isEduMode?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
     currentView,
-    isCoachMode,
-    isEduMode,
-    onViewChange
+    onViewChange,
+    isCoachMode = false,
+    isEduMode = false
 }) => {
     const { user, isLoading, isAdmin, signOut } = useUser();
     const { openModal } = useModal();
@@ -29,22 +29,24 @@ export const Header: React.FC<HeaderProps> = ({
             label: 'Job',
             icon: Briefcase,
             isActive: !isCoachMode && !isEduMode,
+            defaultView: 'job-home',
             items: [
-                { id: 'analyze', label: 'Analyze', icon: Sparkles },
+                { id: 'resumes', label: 'Resumes', icon: FileText },
+                { id: 'feed', label: 'Feed', icon: Sparkles },
                 { id: 'history', label: 'History', icon: Bookmark },
-                { id: 'skills', label: 'Skills', icon: Zap },
-                { id: 'resumes', label: 'Resumes', icon: FileText }
+                { id: 'cover-letters', label: 'Letters', icon: PenTool }
             ]
         },
         {
             id: 'career',
             label: 'Career',
-            icon: Sparkles,
+            icon: TrendingUp,
             isActive: isCoachMode,
+            defaultView: 'career-home',
             items: [
-                { id: 'coach-home', label: 'Coach', icon: Sparkles },
-                { id: 'coach-role-models', label: 'Models', icon: Users },
-                { id: 'coach-gap-analysis', label: 'Gap', icon: Target }
+                { id: 'skills', label: 'Skills', icon: Zap },
+                { id: 'career-growth', label: 'Growth', icon: Target },
+                { id: 'career-models', label: 'Models', icon: Users }
             ]
         },
         {
@@ -52,9 +54,9 @@ export const Header: React.FC<HeaderProps> = ({
             label: 'Education',
             icon: GraduationCap,
             isActive: isEduMode,
+            defaultView: 'edu-home',
             items: [
-                { id: 'edu-home', label: 'Overview', icon: BookOpen },
-                { id: 'edu-record', label: 'Academic Record', icon: GraduationCap }
+                { id: 'edu-transcript', label: 'Transcript', icon: GraduationCap }
             ]
         }
     ];
@@ -109,7 +111,11 @@ export const Header: React.FC<HeaderProps> = ({
 
                                 <div className="relative z-10 flex items-center gap-1">
                                     <button
-                                        onClick={() => onViewChange(group.items[0].id)}
+                                        onClick={() => {
+                                            const target = (group as any).defaultView || group.items[0].id;
+                                            console.log('[Header] handleGroupClick:', { groupId: group.id, target });
+                                            onViewChange(target);
+                                        }}
                                         className={`px-2.5 py-2 rounded-2xl text-[11px] font-bold transition-all duration-300 flex items-center gap-2 ${group.isActive
                                             ? (group.id === 'career' ? 'text-emerald-600' : group.id === 'edu' ? 'text-amber-600' : 'text-indigo-600')
                                             : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200'

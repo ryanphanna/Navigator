@@ -84,6 +84,7 @@ export const logToSupabase = async (params: {
     status: 'success' | 'error';
     error_message?: string;
     metadata?: Record<string, unknown>;
+    job_id?: string;
 }) => {
     const redactContent = (text?: string) => {
         if (!text) return text;
@@ -98,6 +99,7 @@ export const logToSupabase = async (params: {
 
         await supabase.from('logs').insert({
             user_id: userId,
+            job_id: params.job_id,
             event_type: params.event_type,
             model_name: params.model_name,
             prompt_text: redactContent(params.prompt_text),
@@ -122,7 +124,7 @@ export const logToSupabase = async (params: {
 
 export const callWithRetry = async <T>(
     fn: (executionMetadata: Record<string, unknown>) => Promise<T>,
-    context: { event_type: string; prompt: string; model: string; metadata?: Record<string, unknown> },
+    context: { event_type: string; prompt: string; model: string; metadata?: Record<string, unknown>; job_id?: string },
     retries: number = API_CONFIG.MAX_RETRIES,
     initialDelay = API_CONFIG.INITIAL_RETRY_DELAY_MS,
     onProgress?: RetryProgressCallback
@@ -142,7 +144,8 @@ export const callWithRetry = async <T>(
                 response_text: typeof result === 'string' ? result : JSON.stringify(result),
                 latency_ms: latency,
                 status: 'success',
-                metadata: { ...context.metadata, ...executionMetadata }
+                metadata: { ...context.metadata, ...executionMetadata },
+                job_id: context.job_id
             });
             return result;
         } catch (error: unknown) {
@@ -159,7 +162,8 @@ export const callWithRetry = async <T>(
                     prompt_text: context.prompt,
                     status: 'error',
                     error_message: errorMessage,
-                    latency_ms: Date.now() - startTime
+                    latency_ms: Date.now() - startTime,
+                    job_id: context.job_id
                 });
                 throw new Error(getUserFriendlyError("DAILY_QUOTA_EXCEEDED"));
             }
@@ -185,7 +189,8 @@ export const callWithRetry = async <T>(
                     status: 'error',
                     error_message: errorMessage,
                     latency_ms: Date.now() - startTime,
-                    metadata: { attempt: i + 1 }
+                    metadata: { attempt: i + 1 },
+                    job_id: context.job_id
                 });
                 if (isQuotaError) throw new Error(getUserFriendlyError("RATE_LIMIT_EXCEEDED"));
                 throw new Error(getUserFriendlyError(err));

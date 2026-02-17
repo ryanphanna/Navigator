@@ -3,13 +3,11 @@ import { STORAGE_KEYS } from '../constants';
 
 interface GlobalUIContextType {
     currentView: string;
-    showAuth: boolean;
     showSettings: boolean;
     isDark: boolean;
 
     // Actions
     setView: (view: string) => void;
-    setShowAuth: (show: boolean) => void;
     setShowSettings: (show: boolean) => void;
     toggleDarkMode: () => void;
 }
@@ -26,7 +24,6 @@ export const useGlobalUI = () => {
 
 export const GlobalUIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [currentView, setView] = useState('home');
-    const [showAuth, setShowAuth] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [isDark, setIsDark] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -53,11 +50,9 @@ export const GlobalUIProvider: React.FC<{ children: ReactNode }> = ({ children }
     return (
         <GlobalUIContext.Provider value={{
             currentView,
-            showAuth,
             showSettings,
             isDark,
             setView,
-            setShowAuth,
             setShowSettings,
             toggleDarkMode
         }}>

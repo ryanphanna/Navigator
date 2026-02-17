@@ -3,10 +3,21 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Added
+- **UX**: Feature cards are now fully clickable, ensuring a smoother transition to actions like "Analyze" or authentication.
+- **UI**: Implemented layout safeguards (`min-height`) in `BentoCard.tsx` to ensure consistent alignment of card elements regardless of title length.
+
+### Changed
+- **Branding**: Rebranded "Navigator Score" to **Match Score** and standardized feature card titles to single lines for ultimate visual consistency.
+
 ### Fixed
 - **Stability**: Resolved "Failed to fetch dynamically imported module" errors (Chunk Load Errors) by implementing a robust `lazyWithRetry` utility and enhancing the `ErrorBoundary` to handle asset mismatches after new deployments.
+- **Auth**: Resolved a discrepancy between modal systems that prevented the authentication modal from appearing when clicking feature cards in a logged-out state.
 
 ### Staged (Not pushed to GitHub)
+- **Career**: Implemented a "Quick Add" goal input in the Gap Analysis empty state, allowing users to add target roles directly without leaving the view.
+- **Career**: Redesigned the "GENERAL/TECHNICAL" toggle in `GapAnalysisSection.tsx` with a premium sliding pill design, vibrant gradients, and glassmorphism.
+
 - **Career**: Redesigned the "Emulate" / "Destination" mode selector in `CoachHero.tsx` with premium glassmorphism and smooth sliding animations.
 - **History**: Redesigned the Application History screen with premium glassmorphism, interactive job cards with lift effects, and ambient background glows.
 - **History**: Implemented dynamic visibility for status filters (only show categories with entries).
@@ -14,6 +25,13 @@ All notable changes to this project will be documented in this file.
 - **History**: Resolved logical inconsistencies where failed analyses still displayed "Analyzing..." placeholders.
 - **Career**: Added functional Drag & Drop support to the Role Models empty state for bulk profile ingestion.
 - **Career**: Refactored Coach architecture to support multi-file processing and provided a 3-step guide for LinkedIn profile exports to reduce user friction.
+- **Education**: Complete UI overhaul of the `EducationDashboard` to align with the premium design system, featuring `SharedHeader` integration and ambient background glows.
+- **Education**: Implemented randomized, aspirational headlines for the Education Command Center to match Job and Career modules.
+- **Education**: Refined tools grid with premium card styles (`rounded-[2rem]`), active scaling, and consistent iconography.
+- **Abuse Prevention**: Implemented browser fingerprinting to detect and limit multi-account abuse (`fingerprint.ts`).
+- **Onboarding**: Updated `WelcomeScreen` to collect user names and register device IDs during signup.
+- **Data Integrity**: Added `job_id` tracing to all AI operations (`aiCore.ts`) for precise debugging of generation failures.
+- **Architecture**: Unified profile management in `UserContext` and added missing route constants for Career/Education modules.
 
 ## [2.12.0] - 2026-02-16
 ### Added

@@ -354,7 +354,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                                             ? "Analyzing job fit..."
                                                             : isTargetMode
                                                                 ? "Enter your target role or destination..."
-                                                                : "Paste job URL to tailor your resume..."
+                                                                : "Ready to find your match? Paste job URL..."
                                                     }
                                                     className="w-full bg-transparent border-none rounded-xl text-lg font-medium text-neutral-600 dark:text-neutral-300 placeholder:text-neutral-400 focus:ring-0 focus:outline-none transition-all duration-300"
                                                     autoFocus
@@ -376,7 +376,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                             ) : (
                                                 isTargetMode ? <TrendingUp className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />
                                             )}
-                                            <span>{isScrapingUrl ? 'Accessing...' : isAnalyzing ? 'Analyzing...' : error ? 'Analyze' : isTargetMode ? 'Set goal' : 'Analyze'}</span>
+                                            <span>{isScrapingUrl ? 'Accessing...' : isAnalyzing ? 'Analyzing...' : error ? 'View Match' : isTargetMode ? 'Set goal' : 'View Match'}</span>
                                         </button>
                                     </div>
                                 </form>

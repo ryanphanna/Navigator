@@ -9,29 +9,38 @@ import { useGlobalUI } from '../../contexts/GlobalUIContext';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants';
 
+import { Footer } from './Footer';
+import { WelcomeScreen } from '../../modules/onboarding/WelcomeScreen';
+import { useUser } from '../../contexts/UserContext';
+
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { currentView, setView } = useGlobalUI();
     const navigate = useNavigate();
 
-    const isCoachMode = typeof currentView === 'string' && currentView.startsWith('coach');
-    const isEduMode = currentView === 'edu' || (typeof currentView === 'string' && currentView.startsWith('edu-'));
+
 
     const handleViewChange = (viewId: string) => {
         const viewToPath: Record<string, string> = {
             'home': ROUTES.HOME,
-            'analyze': ROUTES.ANALYZE,
-            'job': ROUTES.ANALYZE,
-            'job-fit': ROUTES.FEED,
+
+            // Jobs
+            'job-home': ROUTES.JOB_HOME,
+            'feed': ROUTES.FEED,
             'history': ROUTES.HISTORY,
-            'skills': ROUTES.SKILLS,
             'resumes': ROUTES.RESUMES,
-            'coach-home': ROUTES.COACH_HOME,
-            'coach-role-models': ROUTES.COACH_ROLE_MODELS,
-            'coach-gap-analysis': ROUTES.COACH_GAP,
-            'edu-home': ROUTES.EDUCATION_HOME,
-            'edu-record': ROUTES.GRAD,
-            'admin': ROUTES.ADMIN,
             'cover-letters': ROUTES.COVER_LETTERS,
+
+            // Career
+            'career-home': ROUTES.CAREER_HOME,
+            'skills': ROUTES.SKILLS,
+            'career-models': ROUTES.CAREER_MODELS,
+            'career-growth': ROUTES.CAREER_GROWTH,
+
+            // Edu
+            'edu-home': ROUTES.EDUCATION_HOME,
+            'edu-transcript': ROUTES.TRANSCRIPT,
+
+            'admin': ROUTES.ADMIN,
         };
 
         const path = viewToPath[viewId];
@@ -39,6 +48,41 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             navigate(path);
         } else {
             setView(viewId);
+        }
+    };
+
+    const [showWelcome, setShowWelcome] = React.useState(() => {
+        if (typeof window === 'undefined') return false;
+        return !localStorage.getItem('navigator_privacy_accepted');
+    });
+
+    const { updateProfile } = useUser();
+
+    const handleWelcomeComplete = async (data: any) => {
+        // Save privacy flag
+        localStorage.setItem('navigator_privacy_accepted', 'true');
+        setShowWelcome(false);
+
+        // If we have user data (name/device), try to update profile
+        if (data.userData) {
+            // We might not be logged in yet, so we store this in sessionStorage
+            // to be picked up by the auth flow later
+            sessionStorage.setItem('pending_user_meta', JSON.stringify(data.userData));
+
+            // If we ARE logged in, update immediately (future proofing)
+            try {
+                const { supabase } = await import('../../services/supabase');
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    await supabase.from('profiles').update({
+                        first_name: data.userData.firstName,
+                        last_name: data.userData.lastName,
+                        device_id: data.userData.deviceId
+                    }).eq('id', user.id);
+                }
+            } catch (e) {
+                console.error("Failed to update profile", e);
+            }
         }
     };
 
@@ -61,14 +105,20 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
             <Header
                 currentView={currentView}
-                isCoachMode={isCoachMode}
-                isEduMode={isEduMode}
                 onViewChange={handleViewChange}
             />
 
-            <main className="w-full pb-16 sm:pb-8">
+            <WelcomeScreen
+                isOpen={showWelcome}
+                onContinue={handleWelcomeComplete}
+                onImportResume={() => { }} // Handled internally or via context if needed
+            />
+
+            <main className="w-full pb-16 sm:pb-8 min-h-[60vh]">
                 {children}
             </main>
+
+            <Footer />
         </div>
     );
 };

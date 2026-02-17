@@ -73,7 +73,7 @@ export const useJobManager = () => {
 
             if (!textToAnalyze) throw new Error("No job description found.");
 
-            const analysis = await analyzeJobFit(textToAnalyze, resumes, skills, undefined);
+            const analysis = await analyzeJobFit(textToAnalyze, resumes, skills, undefined, job.id);
             const roleTitle = analysis.distilledJob?.roleTitle || job.position;
             const { bucket } = CanonicalService.getCanonicalRole(roleTitle);
 
