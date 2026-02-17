@@ -2,6 +2,20 @@
  
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+### Added
+- **Jobs**: Added `MAIL_IN` (Job Alerts) card for email-inbound discovery.
+
+### Changed
+- **UI/UX**: Refined homepage strategy to a persistent 5-card grid with tiered screening (Free users see Job cards + Navigator Pro upsell).
+- **UI/UX**: Improved card layout aesthetics with increased buffer spacing (`mt-6`) between graphics and action links.
+- **Career**: Moved "Skills" (Keywords) to the Career (COACH) category while maintaining high-priority homepage visibility.
+
+### Fixed
+- **Navigation**: Added `vercel.json` with SPA rewrite rules to fix 404 errors on direct route access in Vercel.
+- **Navigation**: Re-enabled the `Cover Letters` manage view route in `AppRoutes.tsx`.
+- **Branding**: Fixed inverted marketing/action content for the Navigator Pro (Feed) card in `constants.ts`.
+
 ## [2.13.0] - 2026-02-17
 ### Added
 - **UI/UX**: Redesigned all homepage bento cards with premium, interactive graphics, high-fidelity SVG animations, and ambient glows.
