@@ -59,21 +59,27 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
             />
 
             {/* Mode Selector */}
-            <div className="flex justify-center mb-8">
-                <div className="bg-neutral-100 dark:bg-neutral-900/50 p-1.5 rounded-2xl flex items-center gap-1 border border-neutral-200 dark:border-neutral-800 backdrop-blur-sm">
+            <div className="flex justify-center mb-10">
+                <div className="relative bg-neutral-100/50 dark:bg-neutral-900/40 p-1.5 rounded-2xl flex items-center border border-neutral-200/50 dark:border-neutral-800/50 backdrop-blur-xl shadow-inner-sm">
+                    {/* Sliding Background */}
+                    <div
+                        className={`absolute h-[calc(100%-12px)] w-[calc(50%-6px)] bg-white dark:bg-neutral-800 rounded-xl shadow-sm transition-all duration-300 ease-out z-0 ${isTargetMode ? 'translate-x-[calc(100%)]' : 'translate-x-0'}`}
+                    />
+
                     <button
                         onClick={() => setIsTargetMode(false)}
-                        className={`px-6 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${!isTargetMode ? 'bg-white dark:bg-neutral-800 text-emerald-600 shadow-md' : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'}`}
+                        className={`relative z-10 px-8 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2.5 ${!isTargetMode ? 'text-emerald-600' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}
                     >
-                        <Users className="w-4 h-4" />
-                        Emulate
+                        <Users className={`w-4 h-4 transition-transform duration-300 ${!isTargetMode ? 'scale-110' : 'scale-100'}`} />
+                        <span>Emulate</span>
                     </button>
+
                     <button
                         onClick={() => setIsTargetMode(true)}
-                        className={`px-6 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${isTargetMode ? 'bg-white dark:bg-neutral-800 text-emerald-600 shadow-md' : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'}`}
+                        className={`relative z-10 px-8 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2.5 ${isTargetMode ? 'text-emerald-600' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}
                     >
-                        <Target className="w-4 h-4" />
-                        Destination
+                        <Target className={`w-4 h-4 transition-transform duration-300 ${isTargetMode ? 'scale-110' : 'scale-100'}`} />
+                        <span>Destination</span>
                     </button>
                 </div>
             </div>
