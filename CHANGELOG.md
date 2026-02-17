@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file.
 - **History**: Implemented dynamic visibility for status filters (only show categories with entries).
 - **History**: Overhauled "Analyzing" and "Failed" states with explicit UI handling to prevent placeholder text leaks and improve clarity ("Incomplete Analysis", "Analysis attempted").
 - **History**: Resolved logical inconsistencies where failed analyses still displayed "Analyzing..." placeholders.
+- **Career**: Added functional Drag & Drop support to the Role Models empty state for bulk profile ingestion.
+- **Career**: Refactored Coach architecture to support multi-file processing and provided a 3-step guide for LinkedIn profile exports to reduce user friction.
 
 ## [2.12.0] - 2026-02-16
 ### Added

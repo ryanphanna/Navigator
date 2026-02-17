@@ -71,8 +71,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
     }, []);
 
     // Handlers
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
+    const handleFiles = async (files: File[]) => {
         if (files.length === 0) return;
 
         setIsUploading(true);
@@ -89,6 +88,11 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
             setUploadProgress({ current: 0, total: 0 });
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        handleFiles(files);
     };
 
     const triggerUpload = () => {
@@ -163,7 +167,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
                         selectedRoleModelId={selectedRoleModelId}
                         setSelectedRoleModelId={setSelectedRoleModelId}
                         isUploading={isUploading}
-                        triggerUpload={triggerUpload}
+                        handleFiles={handleFiles}
                         onDeleteRoleModel={onDeleteRoleModel}
                         handleEmulateRoleModel={handleEmulateRoleModel}
                     />
