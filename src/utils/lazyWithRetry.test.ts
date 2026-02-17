@@ -27,8 +27,8 @@ describe('lazyWithRetry', () => {
     });
 
     it('should reload the page on chunk load error if not already refreshed', async () => {
-        const error = new Error('Failed to fetch dynamically imported module');
-        const importer = vi.fn().mockRejectedValue(error);
+        // const error = new Error('Failed to fetch dynamically imported module');
+        // const importer = vi.fn().mockRejectedValue(error);
 
         vi.mocked(sessionStorage.getItem).mockReturnValue('false');
 

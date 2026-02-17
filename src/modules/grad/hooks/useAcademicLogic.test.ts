@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useAcademicLogic } from './useAcademicLogic';
 import type { Transcript } from '../types';

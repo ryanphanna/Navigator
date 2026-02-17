@@ -20,10 +20,10 @@ export const Footer: React.FC = () => {
         {
             title: 'Jobs',
             items: [
-                { label: 'Resumes', path: ROUTES.RESUMES, view: 'resumes', icon: FileText },
+                { label: 'Resume', path: ROUTES.RESUMES, view: 'resumes', icon: FileText },
                 { label: 'Feed', path: ROUTES.FEED, view: 'feed', icon: Sparkles },
                 { label: 'History', path: ROUTES.HISTORY, view: 'history', icon: Bookmark },
-                { label: 'Cover Letters', path: ROUTES.COVER_LETTERS, view: 'cover-letters', icon: FileText },
+
             ]
         },
         {
@@ -38,7 +38,7 @@ export const Footer: React.FC = () => {
         {
             title: 'Education',
             items: [
-                { label: 'Academic Record', path: ROUTES.TRANSCRIPT, view: 'edu-transcript', icon: GraduationCap },
+                { label: 'Transcript', path: ROUTES.TRANSCRIPT, view: 'edu-transcript', icon: GraduationCap },
             ]
         },
         {
@@ -98,11 +98,11 @@ export const Footer: React.FC = () => {
                 </div>
 
                 <div className="pt-8 border-t border-neutral-100 dark:border-neutral-900 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold text-neutral-400 dark:text-neutral-600">
-                    <p>© 2026 Navigator. All rights reserved.</p>
+                    <p>© 2026 Navigator. All Rights Reserved.</p>
                     <div className="flex items-center gap-6">
-                        <span className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors cursor-default">Building for your career</span>
+                        <span className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors cursor-default">Building For Your Career</span>
                         <div className="w-1 h-1 rounded-full bg-neutral-200 dark:bg-neutral-800" />
-                        <span className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors cursor-default">Privacy-first AI</span>
+                        <span className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors cursor-default">Privacy-First AI</span>
                     </div>
                 </div>
             </div>

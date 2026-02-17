@@ -55,9 +55,9 @@ describe('constants', () => {
     });
 
     it('should have jobfit prefix for user-facing keys', () => {
-      expect(STORAGE_KEYS.RESUMES).toContain('jobfit');
-      expect(STORAGE_KEYS.JOBS_HISTORY).toContain('jobfit');
-      expect(STORAGE_KEYS.THEME).toContain('jobfit');
+      expect(STORAGE_KEYS.RESUMES).toContain('navigator');
+      expect(STORAGE_KEYS.JOBS_HISTORY).toContain('navigator');
+      expect(STORAGE_KEYS.THEME).toContain('navigator');
     });
   });
 

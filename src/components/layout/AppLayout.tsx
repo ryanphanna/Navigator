@@ -11,11 +11,14 @@ import { ROUTES } from '../../constants';
 
 import { Footer } from './Footer';
 import { WelcomeScreen } from '../../modules/onboarding/WelcomeScreen';
-import { useUser } from '../../contexts/UserContext';
+// import { useUser } from '../../contexts/UserContext'; // Removed unused import
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { currentView, setView } = useGlobalUI();
     const navigate = useNavigate();
+
+    const isCoachMode = typeof currentView === 'string' && (currentView.startsWith('career') || currentView.startsWith('coach') || currentView === 'skills');
+    const isEduMode = typeof currentView === 'string' && currentView.startsWith('edu');
 
 
 
@@ -32,6 +35,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
             // Career
             'career-home': ROUTES.CAREER_HOME,
+            'coach-home': ROUTES.CAREER_HOME,
             'skills': ROUTES.SKILLS,
             'career-models': ROUTES.CAREER_MODELS,
             'career-growth': ROUTES.CAREER_GROWTH,
@@ -56,7 +60,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         return !localStorage.getItem('navigator_privacy_accepted');
     });
 
-    const { updateProfile } = useUser();
+    // const { updateProfile } = useUser(); // Removed unused variable
 
     const handleWelcomeComplete = async (data: any) => {
         // Save privacy flag
@@ -106,6 +110,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             <Header
                 currentView={currentView}
                 onViewChange={handleViewChange}
+                isCoachMode={isCoachMode}
+                isEduMode={isEduMode}
             />
 
             <WelcomeScreen

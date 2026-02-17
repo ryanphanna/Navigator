@@ -138,7 +138,7 @@ export const defaultDnsResolver: DnsResolver = async (hostname) => {
                 throw new Error('No DNS records found');
             }
         }
-    } catch (e) {
+    } catch {
         throw new Error('DNS resolution not available in this environment');
     }
 };
@@ -155,7 +155,7 @@ export async function validateUrl(url: string, resolver: DnsResolver = defaultDn
         throw new Error('Invalid protocol: must be http or https');
     }
 
-    let hostname = parsed.hostname;
+    const hostname = parsed.hostname;
 
     // Handle IPv6 literals in URL (wrapped in brackets)
     if (hostname.startsWith('[') && hostname.endsWith(']')) {
@@ -181,7 +181,7 @@ export async function validateUrl(url: string, resolver: DnsResolver = defaultDn
     let ips: string[] = [];
     try {
         ips = await resolver(hostname);
-    } catch (e) {
+    } catch {
         throw new Error(`Failed to resolve hostname: ${hostname}`);
     }
 
@@ -230,7 +230,7 @@ export async function fetchSafe(inputUrl: string, options: RequestInit = {}): Pr
             // Consume/Cancel the response body to free resources before next fetch
             try {
                 await response.body?.cancel();
-            } catch {}
+            } catch { }
 
             continue;
         }

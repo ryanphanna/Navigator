@@ -73,7 +73,7 @@ describe('GapAnalysisSection', () => {
             </ToastProvider>
         );
         expect(screen.getByText('Senior Software Engineer')).toBeInTheDocument();
-        expect(screen.getByText('Start Gap Analysis')).toBeInTheDocument();
+        expect(screen.getByText('Start Growth Analysis')).toBeInTheDocument();
     });
 
     it('triggers strict mode toggle for all jobs', () => {

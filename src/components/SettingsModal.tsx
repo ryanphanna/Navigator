@@ -114,19 +114,38 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
 
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-end">
-                                        <span className="text-xs font-semibold text-neutral-500">Analyses used</span>
+                                        <span className="text-xs font-semibold text-neutral-500">Analysis Used</span>
                                         <span className="text-sm font-bold text-neutral-900 dark:text-white">
                                             {usageStats?.todayAnalyses || 0} <span className="text-neutral-300 dark:text-neutral-600 font-normal">/ {usageStats?.limit === Infinity || (isAdmin && !simulatedTier) ? '∞' : usageStats?.limit || 0}</span>
                                         </span>
                                     </div>
 
-                                    {/* Visual Progress Bar */}
+                                    {/* Analysis Progress Bar */}
                                     <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                                         <div
                                             className={`h-full transition-all duration-1000 ${userTier === 'pro' ? 'bg-neutral-900 dark:bg-white' : 'bg-neutral-900 dark:bg-white'}`}
                                             style={{ width: `${Math.min(100, ((usageStats?.todayAnalyses || 0) / (usageStats?.limit || 1)) * 100)}%` }}
                                         />
                                     </div>
+
+                                    {/* Email Alerts Usage (Only if available) */}
+                                    {usageStats?.emailLimit && usageStats.emailLimit > 0 && (
+                                        <div className="pt-2 space-y-2">
+                                            <div className="flex justify-between items-end">
+                                                <span className="text-xs font-semibold text-neutral-500">Email Alerts Used</span>
+                                                <span className="text-sm font-bold text-neutral-900 dark:text-white">
+                                                    {usageStats?.todayEmails || 0} <span className="text-neutral-300 dark:text-neutral-600 font-normal">/ {usageStats?.emailLimit}</span>
+                                                </span>
+                                            </div>
+                                            <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-indigo-500 transition-all duration-1000"
+                                                    style={{ width: `${Math.min(100, ((usageStats?.todayEmails || 0) / (usageStats?.emailLimit || 1)) * 100)}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <p className="text-[10px] text-neutral-400 pt-1">
                                         <span className="text-neutral-900 dark:text-white font-bold">{usageStats?.totalAnalyses || 0}</span> analyses created total
                                     </p>
@@ -158,21 +177,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                     <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Job Alerts</span>
                                 </div>
                                 <p className="text-[10px] text-neutral-500 leading-relaxed">
-                                    Send job emails here to auto-save them.
+                                    Send up to <strong className="text-neutral-700 dark:text-neutral-300">{usageStats?.emailLimit || 0} jobs/day</strong> via email to auto-save them.
                                 </p>
 
-                                {userTier === 'pro' || userTier === 'plus' || isAdmin || isTester ? (
+                                {usageStats?.inboundEmailToken ? (
                                     <div className="flex flex-col gap-2">
                                         <div className="p-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg">
                                             <p className="font-mono text-[10px] text-neutral-500 truncate select-all">
-                                                {usageStats?.inboundEmailToken ? `navigator-${usageStats.inboundEmailToken}@...` : 'Initializing...'}
+                                                {`navigator-${usageStats.inboundEmailToken}@...`}
                                             </p>
                                         </div>
                                         <button
                                             onClick={() => {
-                                                if (usageStats?.inboundEmailToken) {
-                                                    navigator.clipboard.writeText(`navigator-${usageStats.inboundEmailToken}@inbound.navigator.work`);
-                                                }
+                                                navigator.clipboard.writeText(`navigator-${usageStats.inboundEmailToken}@inbound.navigator.work`);
                                             }}
                                             className="text-[10px] font-bold text-neutral-900 dark:text-white hover:text-neutral-600 dark:hover:text-neutral-300 w-full text-left"
                                         >
@@ -187,6 +204,52 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                         Upgrade to unlock
                                     </button>
                                 )}
+                            </div>
+
+                            <div className="h-px bg-neutral-100 dark:bg-neutral-800/50 w-full" />
+
+                            {/* Extension Auth */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Browser Extension</span>
+                                </div>
+                                <p className="text-[10px] text-neutral-500 leading-relaxed">
+                                    Copy this token to connect the Navigator extension.
+                                </p>
+
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        onClick={async () => {
+                                            // We need to access the session token. 
+                                            // Since we don't have direct access here, we can use a small hack or passed prop?
+                                            // Actually, best to get it via supabase client if available or props.
+                                            // For now, let's assume we can get it from localStorage for the default supabase key
+                                            // OR use the useUser hook if we import it.
+
+                                            // Let's try to get it from the `sb-` cookie or storage if possible, 
+                                            // but actually the cleanest way is `supabase.auth.getSession()`
+
+                                            // Since we don't have supabase imported here, let's dynamic import or use what we have.
+                                            // Ideally we should import { supabase } from '../services/supabase'.
+                                            const { supabase } = await import('../services/supabase');
+                                            const { data } = await supabase.auth.getSession();
+                                            if (data.session?.access_token) {
+                                                navigator.clipboard.writeText(data.session.access_token);
+                                                // Visual feedback?
+                                                const btn = document.getElementById('copy-token-btn');
+                                                if (btn) btn.innerText = "Copied!";
+                                                setTimeout(() => { if (btn) btn.innerText = "Copy Access Token"; }, 2000);
+                                            }
+                                        }}
+                                        id="copy-token-btn"
+                                        className="w-full py-2 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+                                    >
+                                        Copy Access Token
+                                    </button>
+                                    <p className="text-[9px] text-neutral-400">
+                                        Do not share this token with anyone.
+                                    </p>
+                                </div>
                             </div>
 
                             {/* Admin Simulator */}

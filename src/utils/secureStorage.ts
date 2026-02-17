@@ -107,7 +107,7 @@ async function decrypt(encryptedData: string, key?: CryptoKey): Promise<string> 
 
     const decoder = new TextDecoder();
     return decoder.decode(decryptedBuffer);
-  } catch (error) {
+  } catch {
     // We intentionally do not log here to allow silent failover in migration logic
     throw new Error('Failed to decrypt data');
   }

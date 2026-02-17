@@ -29,7 +29,7 @@ const EducationDashboard = lazyWithRetry(() => import('../../modules/grad/Educat
 const AcademicHQ = lazyWithRetry(() => import('../../modules/grad/AcademicHQ').then(m => ({ default: m.AcademicHQ })));
 const SEOLandingPage = lazyWithRetry(() => import('../../modules/seo/SEOLandingPage').then(m => ({ default: m.SEOLandingPage })));
 const SkillsView = lazyWithRetry(() => import('../skills/SkillsView').then(m => ({ default: m.SkillsView })));
-const CoverLetters = lazyWithRetry(() => import('../../modules/job/CoverLetters').then(m => ({ default: m.CoverLetters })));
+// const CoverLetters = lazyWithRetry(() => import('../../modules/job/CoverLetters').then(m => ({ default: m.CoverLetters }))); // Removed unused component
 
 export const AppRoutes: React.FC = () => {
     const {
@@ -81,7 +81,7 @@ export const AppRoutes: React.FC = () => {
             [ROUTES.COVER_LETTERS]: 'cover-letters',
 
             // Career
-            [ROUTES.CAREER_HOME]: 'career-home',
+            [ROUTES.CAREER_HOME]: 'coach-home',
             [ROUTES.SKILLS]: 'skills',
             [ROUTES.CAREER_MODELS]: 'career-models',
             [ROUTES.CAREER_GROWTH]: 'career-growth',
@@ -129,6 +129,7 @@ export const AppRoutes: React.FC = () => {
             'cover-letters': ROUTES.COVER_LETTERS,
 
             // Career
+            'coach-home': ROUTES.CAREER_HOME,
             'career-home': ROUTES.CAREER_HOME,
             'skills': ROUTES.SKILLS,
             'career-models': ROUTES.CAREER_MODELS,
@@ -142,7 +143,7 @@ export const AppRoutes: React.FC = () => {
         };
 
         const path = viewToPath[viewId];
-        console.log('[AppRoutes] handleViewChange:', { viewId, path, viewToPathConfig: !!viewToPath[viewId] });
+
         if (path) {
             navigate(path);
         } else {
@@ -250,7 +251,7 @@ export const AppRoutes: React.FC = () => {
                             resumes={resumes}
                             transcript={transcript}
                             activeAnalysisIds={activeAnalysisIds}
-                            view={typeof currentView === 'string' && currentView.startsWith('career') ? (currentView as any) : 'career-home'}
+                            view={typeof currentView === 'string' && currentView.startsWith('career') ? (currentView as any) : 'coach-home'}
                             onViewChange={handleViewChange}
                             onAddRoleModel={handleAddRoleModel}
                             onAddTargetJob={handleTargetJobCreated}
@@ -315,15 +316,7 @@ export const AppRoutes: React.FC = () => {
                     </Suspense>
                 } />
 
-                <Route path={ROUTES.COVER_LETTERS} element={
-                    <Suspense fallback={<LoadingState message="Opening Letters..." />}>
-                        <CoverLetters
-                            jobs={jobs}
-                            onSelectJob={setActiveJobId}
-                            onDeleteJob={handleDeleteJob}
-                        />
-                    </Suspense>
-                } />
+
 
                 <Route path={ROUTES.TRANSCRIPT} element={
                     <Suspense fallback={<LoadingState message="Loading Academic HQ..." />}>

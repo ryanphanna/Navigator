@@ -205,7 +205,7 @@ export const BENTO_CARDS = {
     rank: 3,
     iconName: 'FileText',
     targetView: 'resumes',
-    title: { marketing: 'Resume Sync', action: 'Resumes' },
+    title: { marketing: 'Resume Sync', action: 'Resume' },
     description: {
       marketing: 'Tailored summaries for every application.',
       action: 'Store and edit your resume profiles. We help you maintain multiple versions of your experience to target different industries effectively.'
@@ -270,7 +270,7 @@ export const BENTO_CARDS = {
       marketing: 'Generate persuasive cover letters instantly.',
       action: 'Generate AI-tailored cover letters. Our engine synthesizes your experience and the job description to write unique, persuasive applications.'
     },
-    action: { marketing: 'Write', action: 'Create new' },
+    action: { marketing: 'Write', action: 'Create' },
     colors: {
       bg: 'bg-violet-50/50 dark:bg-violet-500/5',
       text: 'text-violet-500 dark:text-violet-400',
@@ -280,7 +280,66 @@ export const BENTO_CARDS = {
       glow: 'bg-violet-500/10 group-hover:bg-violet-500/20'
     }
   },
-
+  EDU_TRANSCRIPT: {
+    id: 'edu-transcript',
+    rank: 1,
+    iconName: 'GraduationCap',
+    targetView: 'edu-transcript',
+    title: { marketing: 'Academic Record', action: 'Transcript' },
+    description: {
+      marketing: 'Manage coursework and monitor degree progress.',
+      action: 'Manage your coursework, track credits, and monitor degree progress. View a high-fidelity breakdown of your academic journey.'
+    },
+    action: { marketing: 'Open', action: 'View' },
+    colors: {
+      bg: 'bg-amber-50/50 dark:bg-amber-500/5',
+      text: 'text-amber-500 dark:text-amber-400',
+      accent: 'border-amber-500/10 dark:border-amber-500/20',
+      iconBg: 'bg-amber-500',
+      preview: 'from-amber-500/5',
+      glow: 'bg-amber-500/10 group-hover:bg-amber-500/20'
+    }
+  },
+  EDU_EXPLORER: {
+    id: 'edu-explorer',
+    rank: 2,
+    iconName: 'School',
+    targetView: 'edu-home',
+    title: { marketing: 'Program Explorer', action: 'Programs' },
+    description: {
+      marketing: 'Explore master\'s degrees and certificates.',
+      action: 'Explore master\'s degrees and certificate programs tailored to your goals. We match your career ambitions with precise educational paths.'
+    },
+    action: { marketing: 'Explore', action: 'Scout' },
+    colors: {
+      bg: 'bg-emerald-50/50 dark:bg-emerald-500/5',
+      text: 'text-emerald-500 dark:text-emerald-400',
+      accent: 'border-emerald-500/10 dark:border-emerald-500/20',
+      iconBg: 'bg-emerald-500',
+      preview: 'from-emerald-500/5',
+      glow: 'bg-emerald-500/10 group-hover:bg-emerald-500/20'
+    }
+  },
+  EDU_GPA: {
+    id: 'edu-gpa',
+    rank: 3,
+    iconName: 'Calculator',
+    targetView: 'edu-home',
+    title: { marketing: 'GPA Calculator', action: 'GPA' },
+    description: {
+      marketing: 'Calculate targets and track performance.',
+      action: 'Calculate your GPA and see what grades you need to hit your targets. Model different scenarios for your academic performance.'
+    },
+    action: { marketing: 'Calculate', action: 'Calculate' },
+    colors: {
+      bg: 'bg-blue-50/50 dark:bg-blue-500/5',
+      text: 'text-blue-500 dark:text-blue-400',
+      accent: 'border-blue-500/10 dark:border-blue-500/20',
+      iconBg: 'bg-blue-500',
+      preview: 'from-blue-500/5',
+      glow: 'bg-blue-500/10 group-hover:bg-blue-500/20'
+    }
+  },
   EDU: {
     id: 'edu',
     rank: 1, // High rank for edu mode
@@ -291,7 +350,7 @@ export const BENTO_CARDS = {
       marketing: 'High-fidelity academic pathfinding.',
       action: 'Explore degree programs and certifications. We match your career goals with the precise educational paths needed to achieve them.'
     },
-    action: { marketing: 'Scout Programs', action: 'Scout Programs' },
+    action: { marketing: 'Scout', action: 'Scout' },
     colors: {
       bg: 'bg-amber-50/50 dark:bg-amber-500/5',
       text: 'text-amber-500 dark:text-amber-400',

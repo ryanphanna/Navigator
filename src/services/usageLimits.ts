@@ -11,8 +11,10 @@ export interface UsageStats {
     tier: string;
     totalAnalyses: number;
     todayAnalyses: number;
+    todayEmails?: number;
     totalAICalls: number; // Cumulative AI events
     limit: number;
+    emailLimit?: number;
     inboundEmailToken?: string;
 }
 
@@ -78,13 +80,30 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
         const totalAnalyses = profile?.job_analyses_count || 0;
         const totalAICalls = profile?.total_ai_calls || 0;
 
+        const { count: todayEmailCount } = await supabase
+            .from('jobs')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .eq('source', 'email')
+            .gte('date_added', new Date().toISOString().split('T')[0]);
+
+        const emailLimit = ({
+            'free': 0,
+            'plus': 5,
+            'pro': 25,
+            'admin': 100,
+            'tester': 100
+        } as Record<string, number>)[tier] || 0;
+
         return {
             tier,
             totalAnalyses,
             todayAnalyses: todayCount || 0,
+            todayEmails: todayEmailCount || 0,
             totalAICalls,
             limit: tier === 'free' ? 3 : Infinity,
-            inboundEmailToken: profile?.inbound_email_token
+            emailLimit,
+            inboundEmailToken: tier === 'free' ? undefined : profile?.inbound_email_token
         };
     } catch (err) {
         console.error('Error fetching usage stats:', err);
@@ -92,8 +111,11 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
             tier: 'free',
             totalAnalyses: 0,
             todayAnalyses: 0,
+            todayEmails: 0,
             totalAICalls: 0,
-            limit: 3
+            limit: 3,
+            emailLimit: 0,
+            inboundEmailToken: undefined
         };
     }
 };

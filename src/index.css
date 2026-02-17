@@ -214,7 +214,7 @@ textarea::-webkit-scrollbar-thumb:hover {
   background: #a3a3a3;
 }
 
-/* PRINT STYLES FOR RESUME BUILDER */
+/* PRINT STYLES FOR RESUME */
 @media print {
   body * {
     visibility: hidden;

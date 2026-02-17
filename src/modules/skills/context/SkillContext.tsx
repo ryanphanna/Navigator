@@ -32,7 +32,7 @@ export const SkillProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Initial Load
     useEffect(() => {
         let mounted = true;
-        setIsLoading(true);
+        // setIsLoading(true); // Initial state is true
         Storage.getSkills().then(loadedSkills => {
             if (mounted) {
                 setSkills(loadedSkills);

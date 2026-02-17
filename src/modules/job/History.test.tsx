@@ -215,7 +215,7 @@ describe('History', () => {
     expect(screen.getByText('Incomplete Analysis')).toBeInTheDocument();
 
     // Check for status labels
-    expect(screen.getByText('Analyzing...')).toBeInTheDocument();
+    expect(screen.getByText('Finding your fit...')).toBeInTheDocument();
     expect(screen.getByText('Failed')).toBeInTheDocument();
   });
 });

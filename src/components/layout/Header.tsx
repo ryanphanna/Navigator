@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, Briefcase, LogOut, Settings, Bookmark, Zap, Sparkles, FileText, Users, Target, GraduationCap, ShieldCheck, Sun, Moon, PenTool } from 'lucide-react';
+import { TrendingUp, Briefcase, LogOut, Settings, Bookmark, Sparkles, FileText, Users, Target, GraduationCap, ShieldCheck, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../../contexts/UserContext';
 import { useModal } from '../../contexts/ModalContext';
@@ -26,15 +26,15 @@ export const Header: React.FC<HeaderProps> = ({
     const navGroups = [
         {
             id: 'job',
-            label: 'Job',
+            label: 'Jobs',
             icon: Briefcase,
             isActive: !isCoachMode && !isEduMode,
             defaultView: 'job-home',
             items: [
-                { id: 'resumes', label: 'Resumes', icon: FileText },
+                { id: 'resumes', label: 'Resume', icon: FileText },
                 { id: 'feed', label: 'Feed', icon: Sparkles },
                 { id: 'history', label: 'History', icon: Bookmark },
-                { id: 'cover-letters', label: 'Letters', icon: PenTool }
+
             ]
         },
         {
@@ -42,11 +42,10 @@ export const Header: React.FC<HeaderProps> = ({
             label: 'Career',
             icon: TrendingUp,
             isActive: isCoachMode,
-            defaultView: 'career-home',
+            defaultView: 'coach-home',
             items: [
-                { id: 'skills', label: 'Skills', icon: Zap },
-                { id: 'career-growth', label: 'Growth', icon: Target },
-                { id: 'career-models', label: 'Models', icon: Users }
+                { id: 'coach-role-models', label: 'Models', icon: Users },
+                { id: 'coach-gap-analysis', label: 'Analysis', icon: Target }
             ]
         },
         {
@@ -111,11 +110,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                                 <div className="relative z-10 flex items-center gap-1">
                                     <button
-                                        onClick={() => {
-                                            const target = (group as any).defaultView || group.items[0].id;
-                                            console.log('[Header] handleGroupClick:', { groupId: group.id, target });
-                                            onViewChange(target);
-                                        }}
+                                        onClick={() => onViewChange((group as any).defaultView || group.items[0].id)}
                                         className={`px-2.5 py-2 rounded-2xl text-[11px] font-bold transition-all duration-300 flex items-center gap-2 ${group.isActive
                                             ? (group.id === 'career' ? 'text-emerald-600' : group.id === 'edu' ? 'text-amber-600' : 'text-indigo-600')
                                             : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200'

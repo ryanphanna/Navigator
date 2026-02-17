@@ -32,8 +32,8 @@ export const getDeviceFingerprint = async (): Promise<string> => {
         // Store and return
         localStorage.setItem('nav_device_id', hashHex);
         return hashHex;
-    } catch (e) {
-        console.warn("Fingerprinting failed, generating random backup ID", e);
+    } catch {
+        console.warn("Fingerprinting failed, generating random backup ID");
         // Fallback to random ID if fingerprinting fails (e.g. strict privacy settings)
         // We prefer a random ID over nothing, so we can at least track *this* session
         const randomId = crypto.randomUUID();
@@ -61,7 +61,7 @@ const getCanvasFingerprint = (): string => {
         ctx.fillText("Navigator-FP", 4, 17);
 
         return canvas.toDataURL();
-    } catch (e) {
+    } catch {
         return 'canvas-error';
     }
 }

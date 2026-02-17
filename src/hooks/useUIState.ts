@@ -20,7 +20,7 @@ export const useUIState = (jobs: SavedJob[]) => {
     const currentView = (() => {
         const path = location.pathname;
         if (path === ROUTES.HOME) return 'home';
-        if (path === ROUTES.ANALYZE) return 'job-fit';
+        // if (path === ROUTES.ANALYZE) return 'job-fit'; // Removed: ROUTES.ANALYZE is undefined
         if (path === ROUTES.HISTORY) return 'history';
         if (path.startsWith('/job/')) return 'job-detail';
         if (path === ROUTES.RESUMES) return 'resumes';

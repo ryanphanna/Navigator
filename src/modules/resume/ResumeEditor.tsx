@@ -139,7 +139,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
     return (
         <PageLayout
-            title="Resume Builder"
+            title="Resume"
             description="Manage your experience blocks. We assemble these into your final resume."
             icon={<Briefcase />}
             themeColor="indigo"

@@ -126,10 +126,16 @@ describe('getUsageStats', () => {
         });
         const mockSelectProfile = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: mockSingle }) });
 
-        // Mock chain for jobs query (count)
+        // Mock chain for jobs query (count) using recursive approach
         const mockGte = vi.fn().mockResolvedValue({ count: 5 });
-        const mockEqJobs = vi.fn().mockReturnValue({ gte: mockGte });
-        const mockSelectJobs = vi.fn().mockReturnValue({ eq: mockEqJobs });
+        const jobsChain = {
+            eq: vi.fn(),
+            gte: mockGte
+        };
+        // Make eq return the chain itself to support multiple .eq().eq()
+        jobsChain.eq.mockReturnValue(jobsChain);
+
+        const mockSelectJobs = vi.fn().mockReturnValue({ eq: jobsChain.eq });
 
         vi.mocked(supabase.from).mockImplementation((table: string) => {
             if (table === 'profiles') return { select: mockSelectProfile } as any;
@@ -145,7 +151,9 @@ describe('getUsageStats', () => {
             todayAnalyses: 5,
             totalAICalls: 100,
             limit: Infinity,
-            inboundEmailToken: 'token-123'
+            inboundEmailToken: 'token-123',
+            emailLimit: 25,
+            todayEmails: 5
         });
     });
 
@@ -161,9 +169,15 @@ describe('getUsageStats', () => {
             }
         });
         const mockSelectProfile = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: mockSingle }) });
+
         const mockGte = vi.fn().mockResolvedValue({ count: 0 });
-        const mockEqJobs = vi.fn().mockReturnValue({ gte: mockGte });
-        const mockSelectJobs = vi.fn().mockReturnValue({ eq: mockEqJobs });
+        const jobsChain = {
+            eq: vi.fn(),
+            gte: mockGte
+        };
+        jobsChain.eq.mockReturnValue(jobsChain);
+
+        const mockSelectJobs = vi.fn().mockReturnValue({ eq: jobsChain.eq });
 
         vi.mocked(supabase.from).mockImplementation((table: string) => {
             if (table === 'profiles') return { select: mockSelectProfile } as any;
@@ -189,9 +203,15 @@ describe('getUsageStats', () => {
             }
         });
         const mockSelectProfile = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: mockSingle }) });
+
         const mockGte = vi.fn().mockResolvedValue({ count: 0 });
-        const mockEqJobs = vi.fn().mockReturnValue({ gte: mockGte });
-        const mockSelectJobs = vi.fn().mockReturnValue({ eq: mockEqJobs });
+        const jobsChain = {
+            eq: vi.fn(),
+            gte: mockGte
+        };
+        jobsChain.eq.mockReturnValue(jobsChain);
+
+        const mockSelectJobs = vi.fn().mockReturnValue({ eq: jobsChain.eq });
 
         vi.mocked(supabase.from).mockImplementation((table: string) => {
             if (table === 'profiles') return { select: mockSelectProfile } as any;
@@ -219,7 +239,10 @@ describe('getUsageStats', () => {
             totalAnalyses: 0,
             todayAnalyses: 0,
             totalAICalls: 0,
-            limit: 3
+            limit: 3,
+            emailLimit: 0,
+            todayEmails: 0,
+            inboundEmailToken: undefined
         });
         expect(consoleSpy).toHaveBeenCalledWith('Error fetching usage stats:', expect.any(Error));
 
