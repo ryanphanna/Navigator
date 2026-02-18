@@ -10,6 +10,9 @@ export interface SEORoleBucket {
         topSkills: string[];
         commonMistakes: string[];
         proTip: string;
+        promptAdvice?: string[];
+        tailoringFocus?: string[];
+        coverLetterStrategy?: string;
     };
 }
 

@@ -16,7 +16,18 @@ export const SEO_BUCKETS: SEORoleBucket[] = [
                 "Focusing on responsibilities instead of impact (e.g., 'Refactored API' vs 'Reduced latency by 40%').",
                 "Ignoring the specific stack mentioned in the JD."
             ],
-            proTip: "Quantify your engineering impact. Did you reduce build times? Increase uptime? Scale to X users? Numbers speak louder than code."
+            proTip: "Quantify your engineering impact. Did you reduce build times? Increase uptime? Scale to X users? Numbers speak louder than code.",
+            promptAdvice: [
+                "Prioritize technical stack alignment (languages, frameworks, tools).",
+                "Look for evidence of system design, scalability, and performance optimization.",
+                "Identify specific contributions to open source or complex internal projects."
+            ],
+            tailoringFocus: [
+                "Quantifiable technical impact (e.g., 'Reduced latency by 40%').",
+                "Explicit mention of the target stack in professional experience.",
+                "Evidence of architectural decision-making."
+            ],
+            coverLetterStrategy: "Emphasize a problem-solving engineering mindset. Connect your technical skills directly to the company's hardest engineering challenges."
         }
     },
     {
@@ -34,7 +45,18 @@ export const SEO_BUCKETS: SEORoleBucket[] = [
                 "Failing to mention specific product outcomes (launch metrics, user growth).",
                 "Focusing too much on technical details instead of business value."
             ],
-            proTip: "Focus on the 'Why' and the 'So What'. Why did you build that feature? What was the business outcome?"
+            proTip: "Focus on the 'Why' and the 'So What'. Why did you build that feature? What was the business outcome?",
+            promptAdvice: [
+                "Look for experience with the full product lifecycle (discovery to launch).",
+                "Evaluate stakeholder management and cross-functional leadership skills.",
+                "Identify data-driven decision making and KPI ownership."
+            ],
+            tailoringFocus: [
+                "Business outcomes and user growth metrics.",
+                "Strategy, roadmap prioritization, and feature discovery.",
+                "Successful cross-functional collaborations."
+            ],
+            coverLetterStrategy: "Narrate your product vision. Explain how you turn ambiguous user needs into high-impact features and business value."
         }
     },
     {
@@ -52,7 +74,18 @@ export const SEO_BUCKETS: SEORoleBucket[] = [
                 "Forgetting to include campaign performance metrics (ROI, conversion rates).",
                 "Not tailoring the resume to the specific marketing channel (e.g., B2B vs B2C)."
             ],
-            proTip: "Use numbers to tell your story. 'Increased leads by 200%' is better than 'Managed lead generation'."
+            proTip: "Use numbers to tell your story. 'Increased leads by 200%' is better than 'Managed lead generation'.",
+            promptAdvice: [
+                "Focus on channel-specific expertise (SEO, PPC, Content, etc.).",
+                "Analyze conversion rate optimization (CRO) and ROI tracking experience.",
+                "Look for brand consistency and creative strategy leadership."
+            ],
+            tailoringFocus: [
+                "Growth metrics, lead generation, and customer acquisition costs.",
+                "Campaign ROI and performance tracking.",
+                "Brand positioning and market penetration."
+            ],
+            coverLetterStrategy: "Demonstrate your ability to drive growth. Show how your creative strategies lead to measurable business results."
         }
     },
     {
@@ -70,7 +103,18 @@ export const SEO_BUCKETS: SEORoleBucket[] = [
                 "Overloading the resume with academic jargon.",
                 "Ignoring the data cleaning and preparation process."
             ],
-            proTip: "Balance the math with the business. How did your model improve decision-making or revenue?"
+            proTip: "Balance the math with the business. How did your model improve decision-making or revenue?",
+            promptAdvice: [
+                "Evaluate modeling techniques and statistical rigor.",
+                "Look for experience with specific data stacks (Python, Spark, SQL, etc.).",
+                "Identify the ability to translate technical insights for non-technical stakeholders."
+            ],
+            tailoringFocus: [
+                "Model performance metrics (accuracy, precision, lift).",
+                "Business insights derived from complex datasets.",
+                "End-to-end data pipeline development."
+            ],
+            coverLetterStrategy: "Bridge the gap between data and decisions. Highlight how your analytical insights provide a competitive advantage."
         }
     },
     {
@@ -88,7 +132,18 @@ export const SEO_BUCKETS: SEORoleBucket[] = [
                 "Failing to mention specific certifications (BLS, ACLS).",
                 "Not quantifying patient load or unit specifics."
             ],
-            proTip: "Emphasize your versatility and ability to handle high-pressure situations with compassion."
+            proTip: "Emphasize your versatility and ability to handle high-pressure situations with compassion.",
+            promptAdvice: [
+                "Verify clinical settings (ICU, ER, etc.) and patient load management.",
+                "Check for mandatory certifications (RN, CPR, ACLS) and licensing.",
+                "Evaluate soft skills like patient advocacy, teamwork, and communication."
+            ],
+            tailoringFocus: [
+                "Clinical competencies and unit-specific experience.",
+                "Strict adherence to safety protocols and quality of care.",
+                "Crisis management and patient relationship building."
+            ],
+            coverLetterStrategy: "Highlight your dedication to patient care and safety. Focus on your clinical competence in high-stakes environments."
         }
     },
     {
@@ -106,7 +161,12 @@ export const SEO_BUCKETS: SEORoleBucket[] = [
                 "Including irrelevant hobbies or outdated experience.",
                 "Typos and formatting errors."
             ],
-            proTip: "Always tailor your resume to the job description. Use the exact keywords they use."
+            proTip: "Always tailor your resume to the job description. Use the exact keywords they use.",
+            promptAdvice: [
+                "Focus on transferrable skills like communication and leadership.",
+                "Highlight adaptability and quick learning.",
+                "Emphasize reliability and professionalism."
+            ]
         }
     }
 ];
