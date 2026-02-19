@@ -1,82 +1,69 @@
 import React from 'react';
-import { Trash2, Sparkles } from 'lucide-react';
-import type { UserTier } from '../../types/app';
+import { Trash2, Check } from 'lucide-react';
 import type { CustomSkill } from '../../types';
+import { Card } from '../ui/Card';
 
 interface SkillCardProps {
     skill: CustomSkill;
     onDelete: (name: string) => void;
-    onVerify: (name: string) => void;
-    userTier: UserTier;
 }
 
-export const SkillCard: React.FC<SkillCardProps> = ({ skill, onDelete, onVerify, userTier }) => {
+export const SkillCard: React.FC<SkillCardProps> = ({ skill, onDelete }) => {
     const getProficiencyStyle = (level: string) => {
         switch (level) {
-            case 'expert': return 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800';
-            case 'comfortable': return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
-            default: return 'bg-neutral-50 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700';
-        }
-    };
-
-    const getProficiencyIcon = (level: string) => {
-        switch (level) {
-            case 'expert': return '⭐';
-            case 'comfortable': return '✓';
-            default: return '○';
+            case 'expert': return 'bg-amber-100/50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300 border-amber-200/50 dark:border-amber-500/20';
+            case 'comfortable': return 'bg-accent-primary/5 text-accent-primary-hex dark:bg-accent-primary/10 dark:text-accent-primary-hex border-accent-primary/20 dark:border-accent-primary/20';
+            default: return 'bg-neutral-100 text-neutral-600 dark:bg-neutral-500/10 dark:text-neutral-400 border-neutral-200/50 dark:border-neutral-800';
         }
     };
 
     return (
-        <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-200 group">
-            <div className="flex items-center gap-4">
-                {/* Proficiency Icon */}
-                <div className={`w-12 h-12 rounded-xl ${getProficiencyStyle(skill.proficiency)} border flex items-center justify-center text-2xl flex-shrink-0`}>
-                    {getProficiencyIcon(skill.proficiency)}
-                </div>
+        <Card
+            variant="glass"
+            glow
+            className="group border-accent-primary/10 hover:border-accent-primary/30 h-full"
+        >
+            <div className="p-6 h-full flex flex-col">
+                <div className="flex items-start justify-between gap-4">
+                    {/* Skill Info */}
+                    <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-black text-neutral-900 dark:text-white group-hover:text-accent-primary-hex transition-colors break-words tracking-tight">
+                            {skill.name}
+                            {skill.evidence && (
+                                <span className="inline-flex items-center ml-1.5 align-middle" title="Verified Skill">
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-accent-primary/10 border border-accent-primary/20">
+                                        <Check className="w-3 h-3 text-accent-primary-hex stroke-[3]" />
+                                    </span>
+                                </span>
+                            )}
+                        </h3>
 
-                {/* Skill Info */}
-                <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold text-neutral-900 dark:text-white truncate">
-                        {skill.name}
-                    </h3>
-                    {skill.description && (
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 mb-1 line-clamp-1">
-                            {skill.description}
-                        </p>
-                    )}
-                    <div className="flex items-center gap-2 mt-1">
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${getProficiencyStyle(skill.proficiency)}`}>
-                            {skill.proficiency}
-                        </span>
-                        {skill.evidence && (
-                            <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium">
-                                ✓ Verified
-                            </span>
+                        {skill.description && (
+                            <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mt-1.5 mb-3 line-clamp-2 group-hover:line-clamp-none transition-all duration-300 leading-relaxed">
+                                {skill.description}
+                            </p>
                         )}
-                    </div>
-                </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                    {(userTier === 'admin' || userTier === 'tester') && (
-                        <button
-                            onClick={() => onVerify(skill.name)}
-                            className="p-2.5 bg-neutral-50 dark:bg-neutral-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl transition-all"
-                            title={skill.evidence ? 'Re-verify proficiency' : 'Verify with AI'}
-                        >
-                            <Sparkles className="w-4 h-4" />
-                        </button>
-                    )}
+                        <div className="mt-auto pt-3">
+                            <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getProficiencyStyle(skill.proficiency)}`}>
+                                {skill.proficiency}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Delete Action */}
                     <button
-                        onClick={() => onDelete(skill.name)}
-                        className="p-2.5 text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(skill.name);
+                        }}
+                        className="p-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-red-500/50 hover:bg-red-50 dark:hover:bg-red-900/40 text-neutral-400 hover:text-red-500 rounded-xl transition-all shadow-sm active:scale-95 shrink-0 opacity-0 group-hover:opacity-100"
                         title="Delete skill"
                     >
                         <Trash2 className="w-4 h-4" />
                     </button>
                 </div>
             </div>
-        </div>
+        </Card>
     );
 };

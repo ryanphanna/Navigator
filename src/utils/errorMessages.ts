@@ -32,21 +32,24 @@ export const ERROR_MESSAGES = {
   // Generic errors
   UNKNOWN_ERROR: "Something went wrong. Please try again.",
   SERVER_ERROR: "Server error. Our team has been notified. Please try again later.",
+  NOT_A_JOB: "This content doesn't look like a valid job description. Please check your source and try again.",
 } as const;
 
 /**
  * Converts technical error messages to user-friendly ones
  */
 export function getUserFriendlyError(error: Error | string): string {
-  const message = typeof error === 'string' ? error : error.message;
+  const originalMessage = typeof error === 'string' ? error : error.message;
+  // Use lowercase for insensitive matching, but keep original for fallback
+  const message = originalMessage.toLowerCase();
 
   // Daily quota
-  if (message.includes('DAILY_QUOTA_EXCEEDED') || message.includes('PerDay')) {
+  if (message.includes('daily_quota_exceeded') || message.includes('perday')) {
     return ERROR_MESSAGES.DAILY_QUOTA_EXCEEDED;
   }
 
   // Rate limiting
-  if (message.includes('RATE_LIMIT_EXCEEDED') || message.includes('429') || message.includes('quota')) {
+  if (message.includes('rate_limit_exceeded') || message.includes('429') || message.includes('quota')) {
     return ERROR_MESSAGES.RATE_LIMIT_EXCEEDED;
   }
 
@@ -60,25 +63,26 @@ export function getUserFriendlyError(error: Error | string): string {
   }
 
   // API key errors
-  if (message.includes('403') || message.includes('permission')) {
+  if (message.includes('403') || message.includes('permission') || message.includes('apikey') || message.includes('apikey')) {
     return ERROR_MESSAGES.API_KEY_PERMISSION_DENIED;
   }
 
-  if (message.includes('400') || message.includes('invalid')) {
+  // Only match "Invalid API key" if it's explicitly about the key
+  if (message.includes('invalid api key')) {
     return ERROR_MESSAGES.INVALID_API_KEY;
   }
 
   // Scraping errors
-  if (message.includes('scrape') || message.includes('Scraped content is too short')) {
-    return ERROR_MESSAGES.SCRAPE_EMPTY;
+  if (message.includes('scrape') || message.includes('scraped content is too short') || message.includes('not_a_job') || message.includes('not a job description')) {
+    return ERROR_MESSAGES.NOT_A_JOB;
   }
 
   // Auth errors
-  if (message.includes('Invalid login credentials')) {
+  if (message.includes('invalid login credentials')) {
     return ERROR_MESSAGES.AUTH_INVALID_CREDENTIALS;
   }
 
-  if (message.includes('User not found')) {
+  if (message.includes('user not found')) {
     return ERROR_MESSAGES.AUTH_USER_NOT_FOUND;
   }
 
@@ -86,21 +90,21 @@ export function getUserFriendlyError(error: Error | string): string {
     return ERROR_MESSAGES.AUTH_EMAIL_IN_USE;
   }
 
-  if (message.includes('Password should be')) {
+  if (message.includes('password should be')) {
     return ERROR_MESSAGES.AUTH_WEAK_PASSWORD;
   }
 
-  if (message.includes('Invalid') && message.includes('invite')) {
+  if (message.includes('invalid') && message.includes('invite')) {
     return ERROR_MESSAGES.AUTH_INVALID_INVITE;
   }
 
   // If no match, return the original message (it might already be friendly)
   // or a generic error if it looks too technical
-  if (message.length > 100 || message.includes('Error:') || message.includes('at ')) {
+  if (message.length > 100 || message.includes('error:') || message.includes('at ')) {
     return ERROR_MESSAGES.UNKNOWN_ERROR;
   }
 
-  return message;
+  return originalMessage;
 }
 
 /**

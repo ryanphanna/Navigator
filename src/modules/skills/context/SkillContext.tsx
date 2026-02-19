@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { CustomSkill } from '../../../types';
+import { TRACKING_EVENTS } from '../../../constants';
 import { Storage } from '../../../services/storageService';
 import { EventService } from '../../../services/eventService';
 
@@ -10,7 +11,7 @@ interface SkillContextType {
 
     // Actions
     setInterviewSkill: (skill: string | null) => void;
-    handleInterviewComplete: (proficiency: CustomSkill['proficiency'], evidence: string) => Promise<void>;
+    handleInterviewComplete: (proficiency: CustomSkill['proficiency'], evidence: string, skillNameOverride?: string) => Promise<void>;
     updateSkills: (skills: CustomSkill[]) => void;
 }
 
@@ -42,20 +43,24 @@ export const SkillProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return () => { mounted = false; };
     }, []);
 
-    const handleInterviewComplete = useCallback(async (proficiency: CustomSkill['proficiency'], evidence: string) => {
-        if (!interviewSkill) return;
+    const handleInterviewComplete = useCallback(async (proficiency: CustomSkill['proficiency'], evidence: string, skillNameOverride?: string) => {
+        const skillToUpdate = skillNameOverride || interviewSkill;
 
-        const updatedSkill = await Storage.saveSkill({ name: interviewSkill, proficiency, evidence });
-        EventService.trackUsage('keywords');
+        if (!skillToUpdate) return;
+
+        const updatedSkill = await Storage.saveSkill({ name: skillToUpdate, proficiency, evidence });
+        EventService.trackUsage(TRACKING_EVENTS.SKILLS);
         setSkills(prev => {
-            const exists = prev.some(s => s.name === interviewSkill);
+            const exists = prev.some(s => s.name === skillToUpdate);
             if (exists) {
-                return prev.map(s => s.name === interviewSkill ? updatedSkill : s);
+                return prev.map(s => s.name === skillToUpdate ? updatedSkill : s);
             }
             return [...prev, updatedSkill];
         });
 
-        setInterviewSkill(null);
+        if (!skillNameOverride) {
+            setInterviewSkill(null);
+        }
     }, [interviewSkill]);
 
     const updateSkills = useCallback((newSkills: CustomSkill[]) => {

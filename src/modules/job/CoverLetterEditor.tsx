@@ -9,6 +9,7 @@ import {
     Copy, Check, CheckCircle, Users
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { TRACKING_EVENTS } from '../../constants';
 import { useToast } from '../../contexts/ToastContext';
 import { EventService } from '../../services/eventService';
 
@@ -37,7 +38,9 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
     const [analysisProgress, setAnalysisProgress] = React.useState<string | null>(null);
     const [comparisonVersions, setComparisonVersions] = React.useState<{ text: string; promptVersion: string }[] | null>(null);
     const [localJob, setLocalJob] = React.useState(job);
-    const { showError } = useToast();
+    const [showFeedbackInput, setShowFeedbackInput] = React.useState(false);
+    const [feedbackText, setFeedbackText] = React.useState('');
+    const { showError, showSuccess } = useToast();
 
     // Sync with parent when job prop changes
     React.useEffect(() => {
@@ -88,16 +91,17 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
 
             // Check eligibility for Agent Loop
             const isPro = ['pro', 'admin', 'tester'].includes(userTier);
+            const canonicalTitle = analysis.distilledJob?.canonicalTitle;
 
-            // Draft Comparison Logic: 10% chance to show two options side-by-side
-            const isComparisonTriggered = !critiqueContext && Math.random() < 0.1;
+            // Draft Comparison Logic: 10% chance for Pro users to see two options side-by-side
+            const isComparisonTriggered = !critiqueContext && isPro && Math.random() < 0.1;
 
             if (isComparisonTriggered) {
                 setAnalysisProgress("Generating stylistic variants...");
                 const variants = Object.keys(ANALYSIS_PROMPTS.COVER_LETTER.VARIANTS).slice(0, 2); // Pick first two
 
                 const results = await Promise.all(variants.map(v =>
-                    generateCoverLetter(textToUse, bestResume, instructions || [], finalContext, v, trajectoryContext, localJob.id)
+                    generateCoverLetter(textToUse, bestResume, instructions || [], finalContext, v, trajectoryContext, localJob.id, canonicalTitle)
                 ));
 
                 setComparisonVersions(results);
@@ -113,7 +117,8 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                     finalContext,
                     (msg) => setAnalysisProgress(msg),
                     trajectoryContext,
-                    localJob.id
+                    localJob.id,
+                    canonicalTitle
                 );
 
                 const updated = {
@@ -127,7 +132,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                 Storage.updateJob(updated);
                 setLocalJob(updated);
                 onJobUpdate(updated);
-                EventService.trackUsage('cover_letters');
+                EventService.trackUsage(TRACKING_EVENTS.COVER_LETTERS);
 
                 console.log(`[Pro] Cover letter generated with quality score: ${result.score}/100 (${result.attempts} attempts)`);
             } else {
@@ -138,7 +143,8 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                     finalContext,
                     undefined,
                     trajectoryContext,
-                    localJob.id
+                    localJob.id,
+                    canonicalTitle
                 );
 
                 const updated = {
@@ -152,7 +158,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                 Storage.updateJob(updated);
                 setLocalJob(updated);
                 onJobUpdate(updated);
-                EventService.trackUsage('cover_letters');
+                EventService.trackUsage(TRACKING_EVENTS.COVER_LETTERS);
             }
         } catch (e) {
             console.error(e);
@@ -356,6 +362,9 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                         contentEditable
                                         suppressContentEditableWarning
                                         onBlur={(e) => handleEditCoverLetter(e.currentTarget.innerText)}
+                                        role="textbox"
+                                        aria-label="Cover Letter Content"
+                                        spellCheck={false}
                                     >
                                         {localJob.coverLetter}
                                     </div>
@@ -366,14 +375,21 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                         <div className="flex items-center gap-2">
                                             <span className="text-xs text-neutral-400 mr-2">Rate this output:</span>
                                             <button
-                                                onClick={() => { Storage.submitFeedback(localJob.id, 1, 'cover_letter'); setRated(1); }}
+                                                onClick={() => {
+                                                    Storage.submitFeedback(localJob.id, 1, 'cover_letter');
+                                                    setRated(1);
+                                                    showSuccess("Thanks for the feedback!");
+                                                }}
                                                 className={`p-1.5 rounded hover:bg-neutral-100 transition-colors ${rated === 1 ? 'text-green-600 bg-green-50' : 'text-neutral-400'}`}
                                                 disabled={!!rated}
                                             >
                                                 <ThumbsUp className="w-4 h-4" />
                                             </button>
                                             <button
-                                                onClick={() => { Storage.submitFeedback(localJob.id, -1, 'cover_letter'); setRated(-1); }}
+                                                onClick={() => {
+                                                    setRated(-1);
+                                                    setShowFeedbackInput(true);
+                                                }}
                                                 className={`p-1.5 rounded hover:bg-neutral-100 transition-colors ${rated === -1 ? 'text-red-600 bg-red-50' : 'text-neutral-400'}`}
                                                 disabled={!!rated}
                                             >
@@ -381,6 +397,32 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                             </button>
                                         </div>
                                     </div>
+
+                                    {showFeedbackInput && (
+                                        <div className="mt-4 p-4 bg-rose-50 rounded-xl border border-rose-100 animate-in slide-in-from-top-2">
+                                            <p className="text-xs font-bold text-rose-900 mb-2">How can we improve this?</p>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={feedbackText}
+                                                    onChange={(e) => setFeedbackText(e.target.value)}
+                                                    placeholder="e.g. Too formal, missed my React experience..."
+                                                    className="flex-1 text-xs p-2 bg-white border border-rose-200 rounded-lg focus:ring-2 focus:ring-rose-200 focus:outline-none"
+                                                    autoFocus
+                                                />
+                                                <button
+                                                    onClick={() => {
+                                                        Storage.submitFeedback(localJob.id, -1, `cover_letter: ${feedbackText}`);
+                                                        setShowFeedbackInput(false);
+                                                        showSuccess("Feedback received. We'll use this to improve!");
+                                                    }}
+                                                    className="px-4 py-2 bg-rose-600 text-white text-xs font-bold rounded-lg hover:bg-rose-700 transition-colors"
+                                                >
+                                                    Send
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </>
                             ) : (
                                 <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 opacity-60">
@@ -400,7 +442,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                 </div>
 
                 {/* Sidebar Column */}
-                <div className="lg:col-span-4 space-y-6 hidden lg:block">
+                <div className="lg:col-span-4 space-y-6">
                     <div className="sticky top-20 space-y-6">
                         {/* Context Card */}
                         <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm">

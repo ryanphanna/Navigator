@@ -1,8 +1,9 @@
 @import "tailwindcss";
-@custom-variant dark (&.dark);
+@custom-variant dark (@media (prefers-color-scheme: dark) or .dark &);
 
 @theme {
-  --font-inter: "Inter", sans-serif;
+  --font-inter: "Inter",
+  sans-serif;
 
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -11,8 +12,10 @@
   --color-foreground: hsl(var(--foreground));
 
   --accent-primary: 79, 70, 229;
-  /* Indigo 600 */
   --accent-glow: 79, 70, 229;
+  --accent-primary-hex: #4f46e5;
+  --accent-secondary-hex: #7c3aed;
+  --accent-gradient: linear-gradient(135deg, var(--accent-primary-hex) 0%, var(--accent-secondary-hex) 100%);
 
   @keyframes blob {
     0% {
@@ -169,16 +172,25 @@
   .theme-job {
     --accent-primary: 79, 70, 229;
     --accent-glow: 79, 70, 229;
+    --accent-primary-hex: #4f46e5;
+    --accent-secondary-hex: #7c3aed;
+    --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
   }
 
   .theme-coach {
     --accent-primary: 16, 185, 129;
     --accent-glow: 16, 185, 129;
+    --accent-primary-hex: #10b981;
+    --accent-secondary-hex: #14b8a6;
+    --accent-gradient: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
   }
 
   .theme-edu {
     --accent-primary: 245, 158, 11;
     --accent-glow: 245, 158, 11;
+    --accent-primary-hex: #f59e0b;
+    --accent-secondary-hex: #f97316;
+    --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
   }
 }
 
@@ -194,6 +206,52 @@
 .dark .glass-card {
   background: rgba(10, 10, 10, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* PREMIUM UI UTILITIES */
+.btn-premium {
+  @apply relative overflow-hidden transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:active:scale-100;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.btn-premium:hover:not(:disabled) {
+  @apply -translate-y-0.5 shadow-lg;
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+}
+
+.btn-premium::after {
+  content: '';
+  @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+}
+
+.btn-premium:hover::after {
+  @apply opacity-100;
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600;
+}
+
+.dark .text-gradient {
+  @apply from-indigo-400 to-violet-400;
+}
+
+.card-premium {
+  @apply relative transition-all duration-500 border border-neutral-200/50 dark:border-neutral-700/30 rounded-3xl overflow-hidden;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+}
+
+.dark .card-premium {
+  background: rgba(23, 23, 23, 0.7);
+}
+
+.card-premium:hover {
+  @apply -translate-y-1 shadow-2xl;
+  border-color: rgba(99, 102, 241, 0.4);
 }
 
 /* Custom scrollbar for textareas */

@@ -11,35 +11,26 @@ interface DetailTabsProps {
     tabs: TabItem[];
     activeTab: string;
     onTabChange: (id: string) => void;
-    themeColor?: 'indigo' | 'emerald';
+    themeColor?: 'accent' | 'neutral';
 }
 
 export const DetailTabs: React.FC<DetailTabsProps> = ({
     tabs,
     activeTab,
     onTabChange,
-    themeColor = 'indigo'
 }) => {
-    const activeTextClass = themeColor === 'emerald'
-        ? 'text-emerald-600'
-        : 'text-indigo-600';
-
-    const hoverTextClass = themeColor === 'emerald'
-        ? 'hover:text-emerald-700'
-        : 'hover:text-indigo-700';
-
     return (
-        <div className="px-6 pb-6 pt-2 border-b border-neutral-200">
-            <div className="flex p-1 bg-neutral-100/80 rounded-xl w-fit">
+        <div className="px-6 pb-6 pt-2 border-b border-neutral-200 dark:border-neutral-800">
+            <div className="flex p-1 bg-neutral-100/80 dark:bg-neutral-800/80 rounded-xl w-fit">
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => onTabChange(tab.id)}
                         className={`
-                            px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2
+                            px-4 py-2 rounded-lg text-sm font-black transition-all flex items-center gap-2
                             ${activeTab === tab.id
-                                ? `bg-white ${activeTextClass} shadow-sm ring-1 ring-neutral-200`
-                                : `text-neutral-500 ${hoverTextClass} hover:bg-neutral-200/50`
+                                ? `bg-white dark:bg-neutral-700 text-accent-primary-hex shadow-sm ring-1 ring-neutral-200 dark:ring-neutral-600`
+                                : `text-neutral-500 hover:text-accent-primary-hex hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50`
                             }
                         `}
                     >

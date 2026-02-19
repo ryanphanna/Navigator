@@ -2,13 +2,16 @@ import React, { useState, useRef } from 'react';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { EventService } from '../../services/eventService';
 import type { CustomSkill, RoleModelProfile, TargetJob, Transcript } from '../../types';
-import { HEADLINES } from '../../constants';
+import { TRACKING_EVENTS } from '../../constants';
 
 // Refactored Components
 import { CoachHero } from './components/CoachHero';
 import { RoleModelSection } from './components/RoleModelSection';
 import { GapAnalysisSection } from './components/GapAnalysisSection';
 import { RoleModelComparison } from './components/RoleModelComparison';
+import { GrowthPage } from './components/GrowthPage';
+import { useHeadlines } from '../../hooks/useHeadlines';
+import { PageHeader } from '../../components/ui/PageHeader';
 import type { ResumeProfile } from '../resume/types';
 import type { CoachViewType } from './types';
 
@@ -30,9 +33,6 @@ interface CoachDashboardProps {
     onViewChange: (view: CoachViewType) => void;
     activeAnalysisIds?: Set<string>;
 }
-
-const COACH_HEADLINES = HEADLINES.goal;
-
 
 export const CoachDashboard: React.FC<CoachDashboardProps> = ({
     userSkills,
@@ -61,14 +61,9 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
     const [url, setUrl] = useState('');
     const [isScrapingUrl, setIsScrapingUrl] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [activeHeadline, setActiveHeadline] = useState({ text: 'Design your', highlight: 'Future' });
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Effects
-    React.useEffect(() => {
-        const randomChoice = COACH_HEADLINES[Math.floor(Math.random() * COACH_HEADLINES.length)];
-        setActiveHeadline(randomChoice);
-    }, []);
+    const activeHeadline = useHeadlines('goal');
 
     // Handlers
     const handleFiles = async (files: File[]) => {
@@ -81,7 +76,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
             for (let i = 0; i < files.length; i++) {
                 setUploadProgress(prev => ({ ...prev, current: i + 1 }));
                 await onAddRoleModel(files[i]);
-                EventService.trackUsage('coach');
+                EventService.trackUsage(TRACKING_EVENTS.COACH);
             }
         } finally {
             setIsUploading(false);
@@ -123,7 +118,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
     };
 
     return (
-        <SharedPageLayout maxWidth="full" animate={false} className="relative" spacing="hero">
+        <SharedPageLayout maxWidth="full" animate={false} className="relative theme-coach" spacing="hero">
             <input
                 type="file"
                 ref={fileInputRef}
@@ -135,13 +130,21 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
 
             {/* Ambient Background Glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-full pointer-events-none -z-10">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl mix-blend-multiply animate-blob" />
-                <div className="absolute top-40 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl mix-blend-multiply animate-blob animation-delay-2000" />
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent-primary/10 rounded-full blur-3xl mix-blend-multiply animate-blob" />
+                <div className="absolute top-40 right-1/4 w-96 h-96 bg-accent-primary/10 rounded-full blur-3xl mix-blend-multiply animate-blob animation-delay-2000" />
             </div>
 
             {view === 'coach-home' && (
+                <PageHeader
+                    variant="hero"
+                    title={activeHeadline.text}
+                    highlight={activeHeadline.highlight}
+                    subtitle="Distill career paths into your personalized growth roadmap."
+                />
+            )}
+
+            {view === 'coach-home' && (
                 <CoachHero
-                    activeHeadline={activeHeadline}
                     isTargetMode={isTargetMode}
                     setIsTargetMode={setIsTargetMode}
                     isUploading={isUploading}
@@ -156,7 +159,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
                     roleModels={roleModels}
                     targetJobs={targetJobs}
                     userSkills={userSkills}
-                    onViewChange={onViewChange}
+                    onViewChange={(view) => onViewChange(view as CoachViewType)}
                 />
             )}
 
@@ -167,7 +170,6 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
                         selectedRoleModelId={selectedRoleModelId}
                         setSelectedRoleModelId={setSelectedRoleModelId}
                         isUploading={isUploading}
-                        handleFiles={handleFiles}
                         onDeleteRoleModel={onDeleteRoleModel}
                         handleEmulateRoleModel={handleEmulateRoleModel}
                     />
@@ -187,6 +189,16 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
                         onToggleMilestone={onToggleMilestone}
                         onCompare={(id) => setComparisonRoleModelId(id)}
                         activeAnalysisIds={activeAnalysisIds}
+                    />
+                )
+            }
+
+            {
+                view === 'career-growth' && (
+                    <GrowthPage
+                        targetJobs={targetJobs}
+                        onToggleMilestone={onToggleMilestone}
+                        onViewChange={onViewChange}
                     />
                 )
             }

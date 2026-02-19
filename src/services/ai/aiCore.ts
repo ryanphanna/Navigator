@@ -1,30 +1,12 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabase } from "../supabase";
-import { getSecureItem, setSecureItem, removeSecureItem, migrateToSecureStorage } from "../../utils/secureStorage";
 import { getUserFriendlyError, getRetryMessage } from "../../utils/errorMessages";
-import { API_CONFIG, STORAGE_KEYS } from "../../constants";
+import { API_CONFIG } from "../../constants";
 
 export type RetryProgressCallback = (message: string, attempt: number, maxAttempts: number) => void;
 
-let migrationDone = false;
-const migrateApiKeyIfNeeded = async () => {
-    if (!migrationDone) {
-        await migrateToSecureStorage('gemini_api_key', STORAGE_KEYS.API_KEY);
-        migrationDone = true;
-    }
-};
-
 export const getApiKey = async (): Promise<string | null> => {
-    await migrateApiKeyIfNeeded();
-    return (await getSecureItem(STORAGE_KEYS.API_KEY)) || import.meta.env.VITE_API_KEY || null;
-};
-
-export const saveApiKey = async (key: string): Promise<void> => {
-    await setSecureItem(STORAGE_KEYS.API_KEY, key);
-};
-
-export const clearApiKey = (): void => {
-    removeSecureItem(STORAGE_KEYS.API_KEY);
+    return import.meta.env.VITE_API_KEY || null;
 };
 
 export interface ModelParams {
@@ -68,7 +50,8 @@ export const getModel = async (params: ModelParams) => {
 
             return {
                 response: {
-                    text: () => data.text as string
+                    text: () => data.text as string,
+                    usageMetadata: data.usage
                 }
             };
         }
@@ -110,12 +93,8 @@ export const logToSupabase = async (params: {
             metadata: params.metadata || {}
         });
 
-        const tokenUsage = (params.metadata?.token_usage as { totalTokens?: number })?.totalTokens || 0;
-        supabase.rpc('track_usage', { p_tokens: tokenUsage }).then(({ error }) => {
-            if (error) {
-                // Silent fail in production
-            }
-        });
+        // Token usage is now tracked centrally in the Edge Function for proxy calls.
+        // We only log it to the logs table here for visibility.
 
     } catch (err) {
         console.error("Failed to write log to Supabase:", err);

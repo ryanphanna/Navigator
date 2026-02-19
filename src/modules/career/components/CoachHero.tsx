@@ -7,13 +7,15 @@ import {
     Loader2,
     CheckCircle2,
     Link as LinkIcon,
-    Sparkles
+    Sparkles,
+    ArrowRight,
+    Map
 } from 'lucide-react';
-import { SharedHeader } from '../../../components/common/SharedHeader';
 import type { CustomSkill, RoleModelProfile, TargetJob } from '../../../types';
+import { Card } from '../../../components/ui/Card';
+import { Button } from '../../../components/ui/Button';
 
 interface CoachHeroProps {
-    activeHeadline: { text: string; highlight: string };
     isTargetMode: boolean;
     setIsTargetMode: (mode: boolean) => void;
     isUploading: boolean;
@@ -28,11 +30,10 @@ interface CoachHeroProps {
     roleModels: RoleModelProfile[];
     targetJobs: TargetJob[];
     userSkills: CustomSkill[];
-    onViewChange: (view: 'coach-role-models' | 'coach-gap-analysis') => void;
+    onViewChange: (view: string) => void;
 }
 
 export const CoachHero: React.FC<CoachHeroProps> = ({
-    activeHeadline,
     isTargetMode,
     setIsTargetMode,
     isUploading,
@@ -51,13 +52,6 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
 }) => {
     return (
         <>
-            <SharedHeader
-                title={activeHeadline.text}
-                highlight={activeHeadline.highlight}
-                subtitle="Distill career paths into your personalized growth roadmap."
-                theme="coach"
-            />
-
             {/* Mode Selector */}
             <div className="flex justify-center mb-10">
                 <div className="relative bg-neutral-100/50 dark:bg-neutral-900/40 p-1.5 rounded-2xl flex items-center border border-neutral-200/50 dark:border-neutral-800/50 backdrop-blur-xl shadow-inner-sm">
@@ -68,7 +62,7 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
 
                     <button
                         onClick={() => setIsTargetMode(false)}
-                        className={`relative z-10 px-8 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2.5 ${!isTargetMode ? 'text-emerald-600' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}
+                        className={`relative z-10 px-8 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2.5 ${!isTargetMode ? 'text-accent-primary-hex' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}
                     >
                         <Users className={`w-4 h-4 transition-transform duration-300 ${!isTargetMode ? 'scale-110' : 'scale-100'}`} />
                         <span>Emulate</span>
@@ -76,7 +70,7 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
 
                     <button
                         onClick={() => setIsTargetMode(true)}
-                        className={`relative z-10 px-8 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2.5 ${isTargetMode ? 'text-emerald-600' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}
+                        className={`relative z-10 px-8 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2.5 ${isTargetMode ? 'text-accent-primary-hex' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}
                     >
                         <Target className={`w-4 h-4 transition-transform duration-300 ${isTargetMode ? 'scale-110' : 'scale-100'}`} />
                         <span>Destination</span>
@@ -87,10 +81,9 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
             {/* High-Impact Input Area */}
             <div className="w-full max-w-3xl mx-auto animate-in fade-in duration-1000 delay-200">
                 {!isTargetMode ? (
-                    <div className="relative group">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-[2.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                        <div className="relative bg-white dark:bg-neutral-950/80 backdrop-blur-xl border border-neutral-200 dark:border-emerald-800/30 rounded-[2.5rem] p-4 shadow-2xl flex flex-col md:flex-row items-center gap-4 group-hover:border-emerald-500/30 transition-all duration-500">
-                            <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/30 rounded-3xl flex items-center justify-center text-emerald-600 shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                    <Card variant="glass" className="p-4 border-accent-primary/20 hover:border-accent-primary/50" glow>
+                        <div className="flex flex-col md:flex-row items-center gap-4">
+                            <div className="w-16 h-16 bg-accent-primary/10 rounded-3xl flex items-center justify-center text-accent-primary-hex shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500">
                                 {isUploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <TrendingUp className="w-8 h-8" />}
                             </div>
 
@@ -103,55 +96,56 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                                 </div>
                             </div>
 
-                            <button
+                            <Button
                                 onClick={triggerUpload}
                                 disabled={isUploading}
-                                className="w-full md:w-auto px-8 py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
+                                variant="accent"
+                                size="lg"
+                                icon={<Plus className="w-5 h-5" />}
                             >
-                                <Plus className="w-5 h-5" />
-                                <span>Add Profile</span>
-                            </button>
+                                Add Profile
+                            </Button>
                         </div>
-                    </div>
+                    </Card>
                 ) : (
-                    <form onSubmit={handleTargetJobSubmit} className="relative group">
-                        <div className={`absolute -inset-1 rounded-[2.5rem] blur-xl transition-all duration-1000 ${isScrapingUrl
-                            ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 opacity-100 animate-pulse'
-                            : 'bg-gradient-to-r from-emerald-500 to-teal-500 opacity-20 group-hover:opacity-100 transition-opacity'
-                            }`} />
-                        <div className="relative bg-white dark:bg-neutral-950/80 backdrop-blur-xl border border-neutral-200 dark:border-emerald-800/30 rounded-[2.5rem] p-4 shadow-2xl flex flex-col md:flex-row items-center gap-4 group-hover:border-emerald-500/30 transition-all duration-500">
-                            <div className="w-16 h-16 rounded-3xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600">
-                                {isScrapingUrl ? (
-                                    <Loader2 className="h-8 w-8 animate-spin" />
-                                ) : (
-                                    <LinkIcon className="h-8 w-8" />
-                                )}
-                            </div>
-
-                            <div className="flex-1 w-full text-center md:text-left">
-                                <div className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-1">
-                                    Dream Job
+                    <form onSubmit={handleTargetJobSubmit}>
+                        <Card variant="glass" className="p-4 border-accent-primary/20 hover:border-accent-primary/50" glow>
+                            <div className="flex flex-col md:flex-row items-center gap-4">
+                                <div className="w-16 h-16 rounded-3xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500 bg-accent-primary/10 text-accent-primary-hex">
+                                    {isScrapingUrl ? (
+                                        <Loader2 className="h-8 w-8 animate-spin" />
+                                    ) : (
+                                        <LinkIcon className="h-8 w-8" />
+                                    )}
                                 </div>
-                                <input
-                                    type="text"
-                                    value={url}
-                                    onChange={(e) => { setUrl(e.target.value); setError(null); }}
-                                    placeholder={isScrapingUrl ? "Analyzing job requirements..." : "Enter job URL or title..."}
-                                    className="w-full bg-transparent border-none rounded-xl text-lg font-medium text-neutral-600 dark:text-neutral-300 placeholder:text-neutral-400 focus:ring-0 focus:outline-none transition-all duration-300"
-                                    autoFocus
-                                    disabled={isScrapingUrl}
-                                />
-                            </div>
 
-                            <button
-                                type="submit"
-                                disabled={!url.trim() || isScrapingUrl}
-                                className="w-full md:w-auto px-8 py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
-                            >
-                                {isScrapingUrl ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                                <span>Set Goal</span>
-                            </button>
-                        </div>
+                                <div className="flex-1 w-full text-center md:text-left">
+                                    <div className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-1">
+                                        Dream Job
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={url}
+                                        onChange={(e) => { setUrl(e.target.value); setError(null); }}
+                                        placeholder={isScrapingUrl ? "Analyzing job requirements..." : "Enter job URL or title..."}
+                                        className="w-full bg-transparent border-none rounded-xl text-lg font-medium text-neutral-600 dark:text-neutral-300 placeholder:text-neutral-400 focus:ring-0 focus:outline-none transition-all duration-300"
+                                        autoFocus
+                                        disabled={isScrapingUrl}
+                                    />
+                                </div>
+
+                                <Button
+                                    type="submit"
+                                    disabled={!url.trim() || isScrapingUrl}
+                                    variant="accent"
+                                    size="lg"
+                                    loading={isScrapingUrl}
+                                    icon={<Sparkles className="w-5 h-5" />}
+                                >
+                                    Set Goal
+                                </Button>
+                            </div>
+                        </Card>
                         {error && (
                             <p className="absolute -bottom-10 left-6 text-sm font-bold text-red-500 animate-in slide-in-from-top-2">
                                 {error}
@@ -166,12 +160,12 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                         onClick={() => onViewChange('coach-role-models')}
                         className="flex items-center gap-3 cursor-pointer group transition-all hover:scale-105"
                     >
-                        <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm group-hover:border-emerald-500/50 group-hover:text-emerald-500 transition-colors">
+                        <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm group-hover:border-accent-primary/50 group-hover:text-accent-primary-hex transition-colors">
                             <Users className="w-5 h-5" />
                         </div>
                         <div>
                             <div className="text-lg font-black text-neutral-900 dark:text-white leading-none">{roleModels.length}</div>
-                            <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 group-hover:text-emerald-600 transition-colors">Profiles</div>
+                            <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 group-hover:text-accent-primary-hex transition-colors">Profiles</div>
                         </div>
                     </div>
 
@@ -181,27 +175,85 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                         onClick={() => onViewChange('coach-gap-analysis')}
                         className="flex items-center gap-3 cursor-pointer group transition-all hover:scale-105"
                     >
-                        <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm group-hover:border-emerald-500/50 group-hover:text-emerald-500 transition-colors">
+                        <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm group-hover:border-accent-primary/50 group-hover:text-accent-primary-hex transition-colors">
                             <Target className="w-5 h-5" />
                         </div>
                         <div>
                             <div className="text-lg font-black text-neutral-900 dark:text-white leading-none">{targetJobs.length}</div>
-                            <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 group-hover:text-emerald-600 transition-colors">Goals</div>
+                            <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 group-hover:text-accent-primary-hex transition-colors">Goals</div>
                         </div>
                     </div>
 
                     <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-800" />
 
-                    <div className="flex items-center gap-3 select-none">
-                        <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm">
+                    <div
+                        onClick={() => onViewChange('skills' as any)}
+                        className="flex items-center gap-3 cursor-pointer group transition-all hover:scale-105"
+                    >
+                        <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm group-hover:border-accent-primary/50 group-hover:text-accent-primary-hex transition-colors">
                             <CheckCircle2 className="w-5 h-5" />
                         </div>
                         <div>
                             <div className="text-lg font-black text-neutral-900 dark:text-white leading-none">{userSkills.length}</div>
-                            <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-400">Skills</div>
+                            <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 group-hover:text-accent-primary-hex transition-colors">Skills</div>
                         </div>
                     </div>
                 </div>
+
+                {/* Quick-Start Guide (only when empty) */}
+                {roleModels.length === 0 && targetJobs.length === 0 && (
+                    <div className="mt-14 max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 delay-700">
+                        <div className="text-center mb-6">
+                            <div className="text-[10px] uppercase tracking-widest font-black text-neutral-400">Getting Started</div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div
+                                onClick={() => onViewChange('coach-role-models')}
+                                className="p-6 bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 cursor-pointer group hover:border-accent-primary/30 hover:shadow-lg hover:shadow-accent-primary/5 transition-all hover:-translate-y-1"
+                            >
+                                <div className="w-12 h-12 bg-accent-primary/10 rounded-2xl flex items-center justify-center text-accent-primary-hex mb-4 group-hover:scale-110 transition-transform">
+                                    <Users className="w-6 h-6" />
+                                </div>
+                                <div className="text-[10px] uppercase tracking-widest font-black text-accent-primary-hex mb-1">Step 1</div>
+                                <h4 className="font-bold text-neutral-900 dark:text-white mb-1">Add Mentors</h4>
+                                <p className="text-xs text-neutral-400 leading-relaxed">Upload LinkedIn profiles of people whose careers you admire.</p>
+                                <div className="flex items-center gap-1 mt-3 text-xs font-bold text-accent-primary-hex opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Start here <ArrowRight className="w-3 h-3" />
+                                </div>
+                            </div>
+
+                            <div
+                                onClick={() => onViewChange('coach-gap-analysis')}
+                                className="p-6 bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 cursor-pointer group hover:border-accent-primary/30 hover:shadow-lg hover:shadow-accent-primary/5 transition-all hover:-translate-y-1"
+                            >
+                                <div className="w-12 h-12 bg-accent-primary/10 rounded-2xl flex items-center justify-center text-accent-primary-hex mb-4 group-hover:scale-110 transition-transform">
+                                    <Target className="w-6 h-6" />
+                                </div>
+                                <div className="text-[10px] uppercase tracking-widest font-black text-accent-primary-hex mb-1">Step 2</div>
+                                <h4 className="font-bold text-neutral-900 dark:text-white mb-1">Set Goals</h4>
+                                <p className="text-xs text-neutral-400 leading-relaxed">Define your dream role and run a gap analysis against your profile.</p>
+                                <div className="flex items-center gap-1 mt-3 text-xs font-bold text-accent-primary-hex opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Set a goal <ArrowRight className="w-3 h-3" />
+                                </div>
+                            </div>
+
+                            <div
+                                onClick={() => onViewChange('career-growth')}
+                                className="p-6 bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 cursor-pointer group hover:border-accent-primary/30 hover:shadow-lg hover:shadow-accent-primary/5 transition-all hover:-translate-y-1"
+                            >
+                                <div className="w-12 h-12 bg-accent-primary/10 rounded-2xl flex items-center justify-center text-accent-primary-hex mb-4 group-hover:scale-110 transition-transform">
+                                    <Map className="w-6 h-6" />
+                                </div>
+                                <div className="text-[10px] uppercase tracking-widest font-black text-accent-primary-hex mb-1">Step 3</div>
+                                <h4 className="font-bold text-neutral-900 dark:text-white mb-1">Track Growth</h4>
+                                <p className="text-xs text-neutral-400 leading-relaxed">Generate a 12-month roadmap and track milestones as you progress.</p>
+                                <div className="flex items-center gap-1 mt-3 text-xs font-bold text-accent-primary-hex opacity-0 group-hover:opacity-100 transition-opacity">
+                                    View roadmap <ArrowRight className="w-3 h-3" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </>
     );

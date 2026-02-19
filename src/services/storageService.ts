@@ -44,6 +44,21 @@ export const Storage = {
         await supabase.auth.signOut();
     },
 
+    async clearAllData() {
+        // Wipe all user-specific localStorage keys
+        const userKeys = [
+            STORAGE_KEYS.RESUMES,
+            STORAGE_KEYS.JOBS_HISTORY,
+            STORAGE_KEYS.SKILLS,
+            STORAGE_KEYS.ROLE_MODELS,
+            STORAGE_KEYS.TARGET_JOBS,
+            STORAGE_KEYS.TRANSCRIPT_CACHE,
+            'jobfit_vault_seed' // Also clear the encryption seed
+        ];
+
+        userKeys.forEach(key => localStorage.removeItem(key));
+    },
+
     // Legacy support for feedback and optimization logging if needed
     async submitFeedback(jobId: string, rating: 1 | -1, context: string) {
         const userId = await getUserId();

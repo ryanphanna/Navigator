@@ -26,6 +26,31 @@ Deno.serve(async (req) => {
         const { data: { user }, error: authError } = await supabase.auth.getUser()
         if (authError || !user) throw new Error('Unauthorized')
 
+        // Fetch user profile for tier/verification
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('subscription_tier, is_admin, is_tester, email_verified')
+            .eq('id', user.id)
+            .single();
+
+        if (!profile) throw new Error('Profile not found');
+
+        // 1b. Check Limits (Verification Gate & Token Ceiling)
+        const { data: limitCheck } = await supabase.rpc('check_analysis_limit', {
+            p_user_id: user.id
+        });
+
+        if (limitCheck && !limitCheck.allowed) {
+            return new Response(JSON.stringify({
+                error: "Limit Reached",
+                reason: limitCheck.reason,
+                message: limitCheck.message || "You have reached your limit."
+            }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 429
+            });
+        }
+
         // 2. Parse Request
         const { url, source, mode } = await req.json()
         if (!url) throw new Error('Missing URL')
@@ -112,38 +137,50 @@ Deno.serve(async (req) => {
             const apiKey = Deno.env.get('GEMINI_API_KEY')
             if (!apiKey) throw new Error('GEMINI_API_KEY not set')
 
+            // Resolve tiered model
+            let userTier = profile.subscription_tier || 'free';
+            if (profile.is_admin) userTier = 'admin';
+            else if (profile.is_tester) userTier = 'tester';
+
+            const TIER_MODELS: Record<string, string> = {
+                free: 'gemini-2.0-flash',
+                plus: 'gemini-2.0-flash',
+                pro: 'gemini-1.5-pro',
+                admin: 'gemini-1.5-pro',
+                tester: 'gemini-1.5-pro'
+            };
+            const modelName = TIER_MODELS[userTier] || TIER_MODELS.free;
+
             const prompt = `
             You are a smart web scraper. Your task is to extract ALL job listings from the provided HTML.
 
-            IMPORTANT INSTRUCTIONS:
-            1. Look for job titles in <a> tags, <h3> tags, <div> tags, or any other elements
-            2. Job titles often contain words like "Co-op", "Student", "Analyst", "Engineer", etc.
-            3. Each job may have an associated closing date (e.g., "Last Day to Apply: 18 January 2026")
-            4. Look for links that point to job application pages (often containing "career", "job", "apply", etc.)
-            5. If you find a list of jobs (<ul> or <ol> with <li> items), extract each one
-            6. The company name might be in the page title, header, or metadata - infer it if not explicit
-
-            Return ONLY a valid JSON array with NO markdown formatting (no backticks, no "json" label).
+            CRITICAL VALIDATION:
+            1. First, check if this page actually contains job listings.
+            2. If no jobs are found or it's not a job board, return exactly: {"error": "no_jobs_found"}
             
+            EXTRACTION RULES:
+            - Look for job titles in <a>, <h3>, <div> etc.
+            - Job titles often contain words like "Co-op", "Student", "Analyst", "Engineer".
+            - Each job may have an associated closing date.
+            - Return ONLY a valid JSON array of objects.
+
             Schema:
             [
               {
-                "title": "Job Title (remove any job ID numbers in parentheses)",
-                "url": "absolute URL to job posting (resolve relative paths using base: ${new URL(url).origin})",
-                "company": "Company name (inferred from page if needed)",
+                "title": "Job Title",
+                "url": "absolute URL (base: ${new URL(url).origin})",
+                "company": "Company name",
                 "location": "Location or null",
                 "postedDate": "Closing/Posted date in ISO format or null"
               }
             ]
-
-            If you find NO jobs, return an empty array: []
 
             HTML Content:
             ${cleanHtml}
             `
 
             // Call Gemini via Fetch (Native)
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
             const aiResponse = await fetch(apiUrl, {
                 method: 'POST',
@@ -164,9 +201,28 @@ Deno.serve(async (req) => {
                 text = result.candidates[0].content.parts.map((p: { text: string }) => p.text).join('');
             }
 
-            // Clean JSON (remove markdown fences if AI adds them)
+            // Clean JSON
             const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim()
-            jobs = JSON.parse(jsonStr)
+            const parsed = JSON.parse(jsonStr)
+
+            // Validation check
+            if (parsed.error === "no_jobs_found") {
+                return new Response(JSON.stringify([]), {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    status: 200,
+                })
+            }
+            jobs = parsed
+
+            // Track Usage
+            const totalTokens = result.usageMetadata?.totalTokenCount || 0;
+            if (totalTokens > 0) {
+                const { error: usageError } = await supabase.rpc('track_usage', {
+                    p_tokens: totalTokens,
+                    p_is_analysis: false // Scraping list is not a credit-deducting analysis
+                });
+                if (usageError) console.error("Usage tracking error:", usageError);
+            }
         }
 
         // 5. Return jobs

@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, Upload, ArrowRight, ArrowLeft, Check, Loader2, GraduationCap, Search, Building2, Shield, ExternalLink, Lock, Zap, PenTool, Key, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { setSecureItem } from '../../utils/secureStorage';
+import { Sparkles, Upload, ArrowRight, ArrowLeft, Check, Loader2, GraduationCap, Search, Building2, Shield, ExternalLink, Lock, Zap, PenTool } from 'lucide-react';
+import { useResumeContext } from '../resume/context/ResumeContext';
+import { TranscriptUpload } from '../grad/TranscriptUpload';
+import type { ExperienceBlock } from '../resume/types';
 
 type JourneyStage = 'student' | 'job-hunter' | 'employed' | 'career-changer';
 
@@ -36,34 +38,68 @@ const TAILORED_CONTENT: Record<JourneyStage, { headline: string; tips: string[] 
     }
 };
 
+const detectStudentStatus = (blocks: ExperienceBlock[]) => {
+    return blocks.some(block =>
+        block.type === 'education' &&
+        (block.dateRange.toLowerCase().includes('present') ||
+            block.dateRange.toLowerCase().includes('expected') ||
+            block.dateRange.toLowerCase().includes('current'))
+    );
+};
+
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     isOpen,
     onContinue,
     onImportResume,
     isParsing = false
 }) => {
-    // Step 1: Privacy -> Step 1.5: Name -> Step 2: Model Setup -> Step 3: Journey -> Step 4: Upload -> Step 5: Features -> Step 6: Done
-    const [step, setStep] = useState<1 | 1.5 | 2 | 3 | 4 | 5 | 6>(1);
+    const { resumes } = useResumeContext();
+    const [lastKnownResumeCount, setLastKnownResumeCount] = useState(resumes.length);
+    const [isStudent, setIsStudent] = useState(false);
+
+    const [parsingSnapshot, setParsingSnapshot] = useState<{ skills: number, roles: number, education: boolean } | null>(null);
+
+    // Step 1: Privacy -> Step 1.5: Name -> Step 3: Journey -> Step 4: Upload -> Step 5: Features -> Step 5.5: Transcript -> Step 6: Done
+    const [step, setStep] = useState<1 | 1.5 | 3 | 4 | 5 | 5.5 | 6>(1);
     const [selectedJourneys, setSelectedJourneys] = useState<JourneyStage[]>([]);
     const [resumeUploaded, setResumeUploaded] = useState(false);
+    const [transcriptUploaded, setTranscriptUploaded] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
-
-    // API Key State
-    const [apiKeyMode, setApiKeyMode] = useState<'selection' | 'input'>('selection');
-    const [apiKey, setApiKey] = useState('');
-    const [showKey, setShowKey] = useState(false);
-    const [keyStatus, setKeyStatus] = useState<'idle' | 'validating' | 'success' | 'error'>('idle');
-    const [keyMessage, setKeyMessage] = useState('');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Auto-advance from Feature Highlight (Step 5) when parsing completes
     useEffect(() => {
         if (step === 5 && !isParsing && resumeUploaded) {
-            const timer = setTimeout(() => setStep(6), 1500);
+            const hasNewResume = resumes.length > lastKnownResumeCount;
+            const lastResume = hasNewResume ? resumes[resumes.length - 1] : null;
+
+            if (lastResume) {
+                const detected = detectStudentStatus(lastResume.blocks);
+                const snapshot = {
+                    skills: lastResume.blocks.filter(b => b.type === 'skill').length ||
+                        lastResume.blocks.filter(b => b.type === 'work').reduce((acc, b) => acc + (b.bullets?.length || 0), 0),
+                    roles: lastResume.blocks.filter(b => b.type === 'work').length,
+                    education: detected
+                };
+                setParsingSnapshot(snapshot);
+                setIsStudent(detected || selectedJourneys.includes('student'));
+            }
+
+            setLastKnownResumeCount(resumes.length);
+
+            const delay = 2500; // Give a bit more time for the delight snapshot
+            const timer = setTimeout(() => {
+                const detected = hasNewResume ? detectStudentStatus(resumes[resumes.length - 1].blocks) : false;
+                if (detected || selectedJourneys.includes('student')) {
+                    setStep(5.5);
+                } else {
+                    setStep(6);
+                }
+            }, delay);
             return () => clearTimeout(timer);
         }
-    }, [step, isParsing, resumeUploaded]);
+    }, [step, isParsing, resumeUploaded, resumes, lastKnownResumeCount, selectedJourneys]);
 
     useEffect(() => {
         // Load partial progress if needed or handle keydown
@@ -85,9 +121,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     }, [isOpen]);
 
     const toggleJourney = (journey: JourneyStage) => {
-        setSelectedJourneys(prev =>
+        setSelectedJourneys((prev: JourneyStage[]) =>
             prev.includes(journey)
-                ? prev.filter(j => j !== journey)
+                ? prev.filter((j: JourneyStage) => j !== journey)
                 : [...prev, journey]
         );
     };
@@ -106,41 +142,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         const file = e.dataTransfer.files[0];
         if (file) handleFileUpload(file);
     };
-
-    const handleSaveKey = async () => {
-        if (!apiKey.trim()) {
-            setKeyMessage('Please enter a valid API Key');
-            setKeyStatus('error');
-            return;
-        }
-
-        setKeyStatus('validating');
-        setKeyMessage('Saving key...');
-
-        await setSecureItem('api_key', apiKey);
-
-        // Clear limits
-        localStorage.removeItem('navigator_quota_status');
-        localStorage.removeItem('navigator_daily_usage');
-        window.dispatchEvent(new CustomEvent('quotaStatusCleared'));
-        window.dispatchEvent(new CustomEvent('apiKeySaved'));
-
-        setKeyStatus('success');
-        setKeyMessage('Key saved securely');
-
-        setTimeout(() => {
-            setKeyStatus('idle');
-            setKeyMessage('');
-            setStep(3); // Advance
-        }, 1000);
-    };
-
-    const handleStandardSelect = () => {
-        // Just proceed, essentially "Free" mode
-        setStep(3);
-    };
-
-    const primaryJourney = selectedJourneys[0] || 'job-hunter';
+    const primaryJourney = (selectedJourneys[0] || 'job-hunter') as JourneyStage;
     const tailoredContent = TAILORED_CONTENT[primaryJourney];
 
     const handleContinue = () => {
@@ -148,15 +150,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             localStorage.setItem('navigator_privacy_accepted', 'true');
             setStep(1.5);
         } else if (step === 1.5) {
-            setStep(2);
-        } else if (step === 2) {
-            // Should participate in selection flow
+            setStep(3);
         } else if (step === 3 && selectedJourneys.length > 0) {
             setStep(4);
         } else if (step === 4) {
             setStep(6); // Skip upload
         } else if (step === 5) {
             setStep(6);
+        } else if (step === 5.5) {
             setStep(6);
         } else if (step === 6) {
             let intent: 'navigator' | 'coach' | 'grad' = 'navigator';
@@ -188,17 +189,21 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 {/* Header / Progress */}
                 <div className="px-8 pt-6 flex justify-between items-center">
                     <div className="flex gap-2">
-                        {[1, 2, 3, 4, 5, 6].map((s) => (
-                            <div
-                                key={s}
-                                className={`h-1.5 rounded-full transition-all duration-500 ${s === step
-                                    ? 'w-8 bg-gradient-to-r from-indigo-600 to-violet-600'
-                                    : s < step
-                                        ? 'w-2 bg-indigo-200 dark:bg-indigo-900'
-                                        : 'w-2 bg-neutral-100 dark:bg-neutral-800'
-                                    }`}
-                            />
-                        ))}
+                        {[1, 3, 4, 5, 5.5, 6].map((s) => {
+                            // Only show 5.5 if it's the current step or we are a student
+                            if (s === 5.5 && step < 5.5 && !isStudent) return null;
+                            return (
+                                <div
+                                    key={s}
+                                    className={`h-1.5 rounded-full transition-all duration-500 ${s === step
+                                        ? 'w-8 bg-gradient-to-r from-indigo-600 to-violet-600'
+                                        : s < step
+                                            ? 'w-2 bg-indigo-200 dark:bg-indigo-900'
+                                            : 'w-2 bg-neutral-100 dark:bg-neutral-800'
+                                        }`}
+                                />
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -304,7 +309,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                             </div>
 
                             <button
-                                onClick={() => setStep(2)}
+                                onClick={() => setStep(3)}
                                 disabled={!firstName.trim() || !lastName.trim()}
                                 className="w-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                             >
@@ -314,143 +319,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                         </div>
                     )}
 
-                    {/* Step 2: Model Setup */}
-                    {step === 2 && (
-                        <div className="animate-in fade-in slide-in-from-right-4 duration-500 flex-1 flex flex-col">
-                            {apiKeyMode === 'selection' ? (
-                                <>
-                                    <div className="text-center mb-6">
-                                        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
-                                            Choose Your Engine
-                                        </h1>
-                                        <p className="text-neutral-600 dark:text-neutral-400">
-                                            Select how you want to power Navigator's AI analysis.
-                                        </p>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 mb-8">
-                                        {/* Standard */}
-                                        <button
-                                            onClick={handleStandardSelect}
-                                            className="w-full text-left p-6 rounded-2xl border-2 border-neutral-100 dark:border-neutral-800 hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-all group relative overflow-hidden flex flex-col h-full"
-                                        >
-                                            <div className="flex items-start gap-4 mb-4">
-                                                <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/40 transition-colors">
-                                                    <Zap className="w-6 h-6" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-lg text-neutral-900 dark:text-white">Standard</span>
-                                                        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Free with Limits</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed font-medium mb-4 flex-1">
-                                                Instant setup using shared keys. Good for testing, but has daily usage limits.
-                                            </p>
-                                        </button>
-
-                                        {/* Pro / BYOK */}
-                                        <button
-                                            onClick={() => setApiKeyMode('input')}
-                                            className="w-full text-left p-6 rounded-2xl border-2 border-neutral-100 dark:border-neutral-800 hover:border-violet-500 dark:hover:border-violet-500 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-all group relative overflow-hidden flex flex-col h-full shadow-sm hover:shadow-xl hover:shadow-violet-500/5"
-                                        >
-                                            <div className="flex items-start gap-4 mb-4">
-                                                <div className="p-3 bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 rounded-xl group-hover:bg-violet-100 dark:group-hover:bg-violet-900/40 transition-colors">
-                                                    <Key className="w-6 h-6" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-lg text-neutral-900 dark:text-white">Pro / BYOK</span>
-                                                        <span className="text-[10px] font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider">Free Forever</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed font-medium mb-4 flex-1">
-                                                Use your own free Google Gemini API key. Higher limits and total privacy.
-                                            </p>
-                                        </button>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="animate-in slide-in-from-right-4 duration-300 flex-1 flex flex-col">
-                                    <div className="flex items-center gap-2 mb-6 cursor-pointer text-neutral-500 hover:text-neutral-700" onClick={() => setApiKeyMode('selection')}>
-                                        <ArrowLeft className="w-4 h-4" />
-                                        <span className="text-sm font-medium">Back to options</span>
-                                    </div>
-
-                                    <div className="text-center mb-6">
-                                        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
-                                            Setup Your Key
-                                        </h1>
-                                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                            Navigator uses your Gemini API key locally.
-                                        </p>
-                                    </div>
-
-                                    <div className="space-y-4 mb-8">
-                                        <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl p-4 flex items-center justify-between">
-                                            <div className="text-xs text-indigo-900 dark:text-indigo-300 font-medium">
-                                                Don't have a key? Get one free.
-                                            </div>
-                                            <a
-                                                href="https://aistudio.google.com/app/apikey"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center gap-1 text-xs bg-white dark:bg-neutral-800 border border-indigo-200 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 font-bold px-3 py-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-neutral-700 transition-all"
-                                            >
-                                                Get API Key <ExternalLink className="w-3 h-3" />
-                                            </a>
-                                        </div>
-
-                                        <div className="relative">
-                                            <input
-                                                type={showKey ? 'text' : 'password'}
-                                                value={apiKey}
-                                                onChange={(e) => {
-                                                    setApiKey(e.target.value);
-                                                    setKeyStatus('idle');
-                                                    setKeyMessage('');
-                                                }}
-                                                placeholder="Paste Gemini API Key..."
-                                                className={`w-full pl-10 pr-12 py-3 rounded-xl border text-sm font-mono transition-all outline-none focus:ring-2 ${keyStatus === 'error'
-                                                    ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20 bg-rose-50'
-                                                    : keyStatus === 'success'
-                                                        ? 'border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500/20 bg-emerald-50'
-                                                        : 'border-neutral-200 focus:border-indigo-500 focus:ring-indigo-500/20'
-                                                    }`}
-                                            />
-                                            <div className="absolute left-3 top-3.5 text-neutral-400">
-                                                <Key className="w-4 h-4" />
-                                            </div>
-                                            <button
-                                                onClick={() => setShowKey(!showKey)}
-                                                className="absolute right-3 top-3 p-1 text-neutral-400 hover:text-neutral-600"
-                                            >
-                                                {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                            </button>
-                                        </div>
-
-                                        {keyMessage && (
-                                            <div className={`text-xs flex items-center gap-1.5 ${keyStatus === 'error' ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                                {keyStatus === 'error' ? <AlertCircle className="w-3 h-3" /> : <Check className="w-3 h-3" />}
-                                                {keyMessage}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <button
-                                        onClick={handleSaveKey}
-                                        disabled={keyStatus === 'validating' || !apiKey}
-                                        className="w-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:scale-100"
-                                    >
-                                        {keyStatus === 'validating' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
-                                        <span>Save & Continue</span>
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                    {/* Step 2: Model Setup - REMOVED (BYOK verify) */}
+                    {/* Simplified to auto-advance or skipped entirely */}
 
                     {/* Step 3: Journey Selection */}
                     {step === 3 && (
@@ -606,9 +476,76 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                                 </div>
                             </div>
 
-                            <div className="mt-8">
-                                <p className="text-xs text-neutral-400 animate-pulse">Extracting experience blocks...</p>
+                            <div className="mt-8 relative h-12">
+                                {!parsingSnapshot ? (
+                                    <p className="text-xs text-neutral-400 animate-pulse">Extracting experience blocks...</p>
+                                ) : (
+                                    <div className="flex items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-xs font-bold border border-indigo-100 dark:border-indigo-800/50">
+                                            <div className="w-1 h-1 rounded-full bg-indigo-600 animate-pulse" />
+                                            {parsingSnapshot.roles} roles found
+                                        </div>
+                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full text-xs font-bold border border-emerald-100 dark:border-emerald-800/50">
+                                            <div className="w-1 h-1 rounded-full bg-emerald-600 animate-pulse" />
+                                            Skills mapped
+                                        </div>
+                                        {parsingSnapshot.education && (
+                                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-full text-xs font-bold border border-violet-100 dark:border-violet-800/50">
+                                                <div className="w-1 h-1 rounded-full bg-violet-600 animate-pulse" />
+                                                Education detected
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
+                        </div>
+                    )}
+
+                    {/* Step 5.5: Smart Transcript Prompt */}
+                    {step === 5.5 && (
+                        <div className="animate-in fade-in slide-in-from-right-4 duration-500 flex-1 flex flex-col">
+                            <div className="text-center mb-6">
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-2xl mb-4 shadow-lg ring-4 ring-violet-50 dark:ring-violet-900/10">
+                                    <GraduationCap className="w-8 h-8" />
+                                </div>
+                                <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
+                                    Sync Your Academic Plan
+                                </h1>
+                                <p className="text-neutral-600 dark:text-neutral-400">
+                                    We detected you're currently in school. Upload your transcript to track your GPA and credits automatically.
+                                </p>
+                            </div>
+
+                            <div className="flex-1 flex flex-col items-center justify-center">
+                                <TranscriptUpload
+                                    onUploadComplete={(parsed) => {
+                                        // useAcademicLogic handleUploadComplete logic would go here
+                                        // For now, we manually save to cache to maintain consistency
+                                        localStorage.setItem('NAVIGATOR_TRANSCRIPT_CACHE', JSON.stringify(parsed));
+                                        setTranscriptUploaded(true);
+                                        setStep(6);
+                                    }}
+                                />
+
+                                <div className="mt-8 grid grid-cols-2 gap-4 w-full max-w-sm">
+                                    <div className="bg-neutral-50 dark:bg-neutral-800/50 p-4 rounded-xl border border-neutral-100 dark:border-neutral-700/50">
+                                        <div className="font-bold text-neutral-900 dark:text-white text-sm mb-1">GPA Tracking</div>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">Visual charts and goal setting.</p>
+                                    </div>
+                                    <div className="bg-neutral-50 dark:bg-neutral-800/50 p-4 rounded-xl border border-neutral-100 dark:border-neutral-700/50">
+                                        <div className="font-bold text-neutral-900 dark:text-white text-sm mb-1">Program Fit</div>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">See which grad schools match your grades.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => setStep(6)}
+                                className="w-full mt-8 py-3 rounded-xl font-semibold transition-all bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 flex items-center justify-center gap-2"
+                            >
+                                Pass for now
+                                <ArrowRight className="w-4 h-4" />
+                            </button>
                         </div>
                     )}
 
@@ -627,6 +564,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                                         ? "Let's find your perfect job match."
                                         : "Let's explore your career options."}
                                 </p>
+                                {transcriptUploaded && (
+                                    <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-full text-sm font-bold animate-bounce">
+                                        <GraduationCap className="w-4 h-4" />
+                                        <span>Transcript Synced</span>
+                                    </div>
+                                )}
                             </div>
 
                             <button

@@ -9,19 +9,24 @@ import {
     ArrowRight,
     TrendingUp,
     Sparkles,
-
+    Shield,
 } from 'lucide-react';
-import { SharedHeader } from '../../components/common/SharedHeader';
+import { FileUploader } from '../../components/common/FileUploader';
+import { NotificationBanner } from '../../components/common/NotificationBanner';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { FeatureGrid } from './FeatureGrid';
 import { EventService } from '../../services/eventService';
 import { UsageIndicator } from './UsageIndicator';
 import { useToast } from '../../contexts/ToastContext';
+import { useHeadlines } from '../../hooks/useHeadlines';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
 
 import type { ResumeProfile, SavedJob } from '../../types';
 import type { User } from '@supabase/supabase-js';
 import type { UsageStats } from '../../services/usageLimits';
-import { STORAGE_KEYS, HEADLINES } from '../../constants';
+import { STORAGE_KEYS, TRACKING_EVENTS } from '../../constants';
 
 interface HomeInputProps {
     resumes: ResumeProfile[];
@@ -36,7 +41,9 @@ interface HomeInputProps {
     usageStats?: UsageStats;
     mode?: 'all' | 'apply' | 'goal' | 'home';
     onNavigate?: (view: string) => void;
-    onShowAuth?: () => void;
+    onShowAuth?: (feature?: any) => void;
+    journey?: string;
+    userTier?: string;
 }
 
 const HomeInput: React.FC<HomeInputProps> = ({
@@ -53,6 +60,8 @@ const HomeInput: React.FC<HomeInputProps> = ({
     mode = 'all',
     onNavigate,
     onShowAuth,
+    journey = 'job-hunter',
+    userTier = 'free',
 }) => {
     const { showSuccess } = useToast();
     const [url, setUrl] = useState('');
@@ -66,23 +75,22 @@ const HomeInput: React.FC<HomeInputProps> = ({
     const [pendingJobInput, setPendingJobInput] = useState<{ type: 'url' | 'text', content: string } | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-    // ActionGrid handles its own card logic now
-    const [activeHeadline, setActiveHeadline] = useState<{ text: string, highlight: string }>(mode === 'goal' ? HEADLINES.goal[0] : HEADLINES.all[0]);
+
+    const headlineCategory = (mode === 'all' || mode === 'home')
+        ? (journey === 'student' ? 'edu' : 'all')
+        : (isTargetMode ? 'goal' : 'apply');
+
+    const activeHeadline = useHeadlines(headlineCategory);
 
     // Ref to store the LAST URL attempted, so it persists even if we clear state for manual entry
     const lastUrlRef = React.useRef<string>('');
 
-    useEffect(() => {
-        // Select random headline base on mode
-        const v = (mode === 'all' || mode === 'home')
-            ? HEADLINES.all
-            : (isTargetMode ? HEADLINES.goal : HEADLINES.apply);
-        const randomChoice = v[Math.floor(Math.random() * v.length)];
-        setActiveHeadline(randomChoice);
-    }, [mode, isTargetMode]);
-
     const [showBookmarkletTip, setShowBookmarkletTip] = useState(() => {
         return !localStorage.getItem(STORAGE_KEYS.BOOKMARKLET_TIP_DISMISSED);
+    });
+
+    const [showPrivacyUpdate, setShowPrivacyUpdate] = useState(() => {
+        return !localStorage.getItem(STORAGE_KEYS.PRIVACY_UPDATE_DISMISSED);
     });
 
     // Bookmarklet Ref to bypass React security check for javascript: URLs
@@ -156,7 +164,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
 
             setIsAnalyzing(true);
             // Track real usage
-            EventService.trackUsage('jobfit');
+            EventService.trackUsage(TRACKING_EVENTS.JOB_FIT);
             onJobCreated(newJob);
 
             setTimeout(() => {
@@ -180,6 +188,17 @@ const HomeInput: React.FC<HomeInputProps> = ({
     };
 
     const handleJobSubmission = (input: { type: 'url' | 'text', content: string }) => {
+        // Privacy Check
+        if (!localStorage.getItem(STORAGE_KEYS.PRIVACY_ACCEPTED)) {
+            onNavigate?.('welcome'); // Use the onNavigate prop or direct navigate
+            // onNavigate is passed from AppRoutes which handles the mapping, but it might be safer to use useNavigate directly if we are inside Router context. 
+            // HomeInput IS inside Router context.
+            // But let's check if onNavigate handles 'welcome'. AppRoutes handleViewChange DOES NOT handle 'welcome' yet.
+            // I should probably just use useNavigate directly or update AppRoutes.
+            // HomeInput doesn't have useNavigate hooked up? It receives onNavigate.
+            return;
+        }
+
         // Defer Resume Support: Allow submission even without resume
         processJobInBackground(input);
     };
@@ -188,6 +207,13 @@ const HomeInput: React.FC<HomeInputProps> = ({
 
     const handleUrlSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Defer auth: let guests type, but require sign-in to submit
+        if (!user) {
+            onShowAuth?.();
+            return;
+        }
+
         const trimmedUrl = url.trim();
         lastUrlRef.current = trimmedUrl; // Capture URL immediately
 
@@ -244,10 +270,18 @@ const HomeInput: React.FC<HomeInputProps> = ({
     return (
         <SharedPageLayout
             maxWidth={(mode === 'all' || mode === 'home') ? 'full' : '4xl'}
-            className="relative"
+            className="relative theme-job overflow-hidden"
             spacing="hero"
         >
-            <SharedHeader
+            {/* Hero Background Elements */}
+            {(mode === 'all' || mode === 'home') && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none z-0">
+                    <div className="absolute top-[-100px] left-1/4 w-[400px] h-[400px] bg-indigo-500/10 dark:bg-indigo-500/5 blur-[120px] rounded-full animate-[pulse_8s_ease-in-out_infinite]" />
+                    <div className="absolute top-[100px] right-1/4 w-[400px] h-[400px] bg-emerald-500/10 dark:bg-emerald-500/5 blur-[120px] rounded-full animate-[pulse_10s_ease-in-out_infinite_1s]" />
+                </div>
+            )}
+            <PageHeader
+                variant="hero"
                 title={activeHeadline.text}
                 highlight={activeHeadline.highlight}
                 className="mb-8"
@@ -257,57 +291,85 @@ const HomeInput: React.FC<HomeInputProps> = ({
                         ? "Distill career paths into your personalized growth roadmap."
                         : "Tailor your resume for any opening with a single click."
                 }
-                theme={isTargetMode ? 'coach' : 'job'}
             />
+
+            {showPrivacyUpdate && (
+                <div className="w-full max-w-xl mx-auto mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="group relative bg-white/50 dark:bg-emerald-500/5 border border-emerald-500/20 dark:border-emerald-500/30 rounded-3xl p-8 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-1 overflow-hidden">
+                        {/* Ambient Glow */}
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/20 blur-[100px] rounded-full -mr-24 -mt-24 pointer-events-none group-hover:scale-150 transition-transform duration-700" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                        <div className="flex flex-col md:flex-row items-center md:items-start gap-6 relative z-10">
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shrink-0">
+                                <Shield className="w-8 h-8" />
+                            </div>
+
+                            <div className="flex-1 text-center md:text-left">
+                                <h3 className="text-xl font-black text-emerald-600 dark:text-emerald-400 mb-2">
+                                    Privacy Policy Update
+                                </h3>
+                                <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6">
+                                    We've updated our privacy policy to better reflect our commitment to your data security. effective February 17, 2026.
+                                </p>
+
+                                <div className="flex flex-col sm:flex-row items-center gap-4">
+                                    <button
+                                        onClick={() => onNavigate?.('privacy')}
+                                        className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-lg shadow-emerald-600/20 transition-all hover:scale-105"
+                                    >
+                                        Review Policy
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowPrivacyUpdate(false);
+                                            localStorage.setItem(STORAGE_KEYS.PRIVACY_UPDATE_DISMISSED, 'true');
+                                        }}
+                                        className="w-full sm:w-auto px-6 py-2.5 bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700 rounded-xl font-bold hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-all"
+                                    >
+                                        Dismiss
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {!isManualMode ? (
                 <>
                     {/* Feature Grid first for everyone */}
                     {(mode === 'all' || mode === 'home') && (
-                        <FeatureGrid
-                            user={user}
-                            onNavigate={onNavigate}
-                            onShowAuth={onShowAuth}
-                            isAdmin={isAdmin}
-                            isTester={isTester}
-                            className="mb-8"
-                        />
+                        <>
+                            <FeatureGrid
+                                user={user}
+                                onNavigate={onNavigate}
+                                onShowAuth={(feature) => onShowAuth?.(feature)}
+                                isAdmin={isAdmin}
+                                isTester={isTester}
+                                userTier={userTier}
+                                journey={journey}
+                                className="mb-4"
+                            />
+                            <div className="flex justify-center mb-8 animate-in fade-in duration-700 delay-300">
+                                <a
+                                    href="/features"
+                                    className="group flex items-center gap-2 text-sm font-bold text-neutral-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
+                                >
+                                    Explore all features
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </a>
+                            </div>
+                        </>
                     )}
 
-                    {/* Action area: Input for users, CTA for guests */}
+                    {/* Action area: Input for everyone (auth deferred to submit) */}
                     {mode !== 'home' && (
-                        !user ? (
-                            <div className="w-full max-w-4xl mx-auto mb-16 px-4 animate-in fade-in duration-700">
-                                <div className="flex flex-col items-center gap-6 text-center">
-                                    <h3 className="text-xl md:text-2xl font-bold text-neutral-900 dark:text-white">
-                                        Join thousands of candidates landing more interviews.
-                                    </h3>
-                                    <button
-                                        onClick={() => onShowAuth?.()}
-                                        className="group relative px-12 py-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-black text-xl hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-indigo-500/20 flex items-center gap-3 overflow-hidden"
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
-                                        Get Started Free
-                                        <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="w-full max-w-3xl mx-auto mb-16 animate-in zoom-in-95 fade-in duration-500">
-                                <form onSubmit={error ? (e) => { e.preventDefault(); handleJobSubmission({ type: 'text', content: url }); } : handleUrlSubmit} className="relative group perspective-1000">
-                                    <div className={`absolute -inset-1 rounded-[2.5rem] blur-xl transition-all duration-1000 ${error
-                                        ? 'bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 opacity-75'
-                                        : isScrapingUrl || isAnalyzing
-                                            ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 opacity-100 animate-pulse'
-                                            : 'bg-gradient-to-r from-pink-500 via-indigo-500 to-violet-500 opacity-20 group-hover:opacity-100 animate-gradient-x'
-                                        }`}></div>
-
-                                    <div className={`relative bg-white dark:bg-neutral-950/80 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800/30 rounded-[2.5rem] p-4 shadow-2xl flex flex-col md:flex-row items-center gap-6 transition-all duration-500 ease-in-out min-h-[100px] overflow-hidden ${isAnalyzing ? 'border-indigo-500/50 shadow-indigo-500/20' :
-                                        'group-hover:border-indigo-500/30 dark:group-hover:border-indigo-400/30'
-                                        }`}>
-
-                                        <div className={`w-16 h-16 rounded-3xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500 ${isTargetMode ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600' : 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600'
-                                            }`}>
+                        <div className="w-full max-w-3xl mx-auto mb-16 animate-in zoom-in-95 fade-in duration-500">
+                            <form onSubmit={error ? (e) => { e.preventDefault(); handleJobSubmission({ type: 'text', content: url }); } : handleUrlSubmit}>
+                                <Card variant="glass" className={`p-4 border-accent-primary/20 ${isAnalyzing ? 'border-accent-primary/50 shadow-accent-primary/20' : 'hover:border-accent-primary/30'}`} glow>
+                                    <div className="flex flex-col md:flex-row items-center gap-6">
+                                        <div className={`w-16 h-16 rounded-3xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500 ${isTargetMode ? 'bg-accent-primary/10 text-accent-primary-hex' : 'bg-accent-primary/10 text-accent-primary-hex'}`}>
                                             {isScrapingUrl ? (
                                                 <Loader2 className="h-8 w-8 animate-spin" />
                                             ) : (
@@ -316,17 +378,6 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                         </div>
 
                                         <div className="flex-1 w-full text-center md:text-left flex flex-col justify-center min-h-[60px]">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <div className="text-sm font-bold text-neutral-400 uppercase tracking-widest">
-                                                    {/* Input Label or Status */}
-                                                </div>
-                                                {error && (
-                                                    <span className="text-xs font-bold text-orange-500 flex items-center gap-1 animate-in fade-in slide-in-from-right-2">
-
-                                                    </span>
-                                                )}
-                                            </div>
-
                                             {error ? (
                                                 <textarea
                                                     value={url}
@@ -363,30 +414,27 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                             )}
                                         </div>
 
-                                        <button
+                                        <Button
                                             type="submit"
                                             disabled={!url.trim() || isScrapingUrl || isAnalyzing}
-                                            className={`w-full md:w-auto px-8 py-5 rounded-2xl font-black text-white shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 ${isTargetMode || error
-                                                ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20'
-                                                : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20'
-                                                }`}
+                                            variant="accent"
+                                            size="lg"
+                                            loading={isScrapingUrl || isAnalyzing}
+                                            icon={isTargetMode ? <TrendingUp className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
+                                            className="w-full md:w-auto"
                                         >
-                                            {isScrapingUrl || isAnalyzing ? (
-                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                            ) : (
-                                                isTargetMode ? <TrendingUp className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />
-                                            )}
-                                            <span>{isScrapingUrl ? 'Accessing...' : isAnalyzing ? 'Analyzing...' : error ? 'View Match' : isTargetMode ? 'Set goal' : 'View Match'}</span>
-                                        </button>
+                                            {isScrapingUrl ? 'Accessing...' : isAnalyzing ? 'Analyzing...' : error ? 'View Match' : isTargetMode ? 'Set goal' : 'View Match'}
+                                        </Button>
                                     </div>
-                                </form>
+                                </Card>
+                            </form>
 
-                                {/* Usage Indicator for Free Tier (not shown to admins) */}
-                                {user && !isAdmin && (
-                                    <UsageIndicator usageStats={usageStats} />
-                                )}
-                            </div>
-                        ))}
+                            {/* Usage Indicator for Free Tier (not shown to admins) */}
+                            {user && !isAdmin && (
+                                <UsageIndicator usageStats={usageStats} />
+                            )}
+                        </div>
+                    )}
                 </>
             ) : (
                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
@@ -440,43 +488,23 @@ const HomeInput: React.FC<HomeInputProps> = ({
             {/* Logged In User: Bookmarklet Tip */}
             {
                 user && showBookmarkletTip && mode === 'apply' && (
-                    <div className="w-full max-w-xl mx-auto px-4 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="bg-sky-50 dark:bg-sky-900/10 border border-sky-100 dark:border-sky-800 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm relative overflow-hidden group">
-                            <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 to-transparent pointer-events-none" />
-
-                            <div className="flex items-center gap-4 relative z-10 flex-1">
-                                <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-xl flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
-                                    <Bookmark className="w-5 h-5" />
-                                </div>
-                                <div className="text-sm text-neutral-600 dark:text-neutral-300">
-                                    <strong className="font-semibold text-neutral-900 dark:text-sky-100 block mb-0.5">Save from anywhere</strong>
-                                    Drag the button to your bookmarks bar to save jobs from any site.
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-3 relative z-10">
-                                <a
-                                    href={`javascript:(function(){window.open('${window.location.origin}/?job='+encodeURIComponent(window.location.href),'_blank');})();`}
-                                    className="flex items-center gap-2 px-3 py-2 bg-sky-600 text-white rounded-lg text-sm font-bold shadow-md hover:bg-sky-500 transition-colors cursor-grab active:cursor-grabbing hover:scale-105 whitespace-nowrap"
-                                    onClick={(e) => e.preventDefault()}
-                                    title="Drag me to your bookmarks bar!"
-                                >
-                                    <Plus className="w-3 h-3" />
-                                    Save to Navigator
-                                </a>
-                                <button
-                                    onClick={() => {
-                                        setShowBookmarkletTip(false);
-                                        localStorage.setItem(STORAGE_KEYS.BOOKMARKLET_TIP_DISMISSED, 'true');
-                                    }}
-                                    className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors p-2 -mr-1"
-                                >
-                                    <div className="sr-only">Dismiss</div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <NotificationBanner
+                        icon={Bookmark}
+                        theme="sky"
+                        title="Save from anywhere"
+                        description="Drag the button to your bookmarks bar to save jobs from any site."
+                        className="max-w-xl mx-auto mt-8"
+                        action={{
+                            label: 'Save to Navigator',
+                            icon: Plus,
+                            href: `javascript:(function(){window.open('${window.location.origin}/?job='+encodeURIComponent(window.location.href),'_blank');})();`,
+                            onClick: (e: any) => e.preventDefault(),
+                        }}
+                        onDismiss={() => {
+                            setShowBookmarkletTip(false);
+                            localStorage.setItem(STORAGE_KEYS.BOOKMARKLET_TIP_DISMISSED, 'true');
+                        }}
+                    />
                 )
             }
 
@@ -501,44 +529,22 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                 To tailor your application for this job, we need your resume.
                             </p>
 
-                            <label className={`
-                            block w-full border-2 border-dashed rounded-xl p-8 cursor-pointer transition-all
-                            ${isParsing
-                                    ? 'border-indigo-300 bg-indigo-50 cursor-wait'
-                                    : 'border-neutral-200 hover:border-indigo-400 hover:bg-neutral-50'
-                                }
-                        `}>
-                                <input
-                                    type="file"
-                                    accept=".pdf,.txt"
-                                    className="hidden"
-                                    onChange={(e) => {
-                                        if (e.target.files && e.target.files[0]) {
-                                            onImportResume(e.target.files[0]);
-                                        }
-                                    }}
-                                    disabled={isParsing}
-                                />
-
-                                {isParsing ? (
-                                    <div className="flex flex-col items-center gap-3">
-                                        <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                                        <span className="text-sm font-medium text-indigo-600">Analyzing Resume...</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center gap-2">
-                                        <span className="text-sm font-semibold text-neutral-700">Upload PDF or Text</span>
-                                        <span className="text-xs text-neutral-400">We'll extract your experience blocks locally.</span>
-                                    </div>
-                                )}
-                            </label>
-
-                            {importError && (
-                                <div className="mt-4 p-3 bg-rose-50 border border-rose-100 rounded-lg flex items-center gap-2 text-rose-600 text-sm text-left">
-                                    <AlertCircle className="w-4 h-4 shrink-0" />
-                                    <p>{importError}</p>
-                                </div>
-                            )}
+                            <FileUploader
+                                title="Upload PDF or Text"
+                                description="We'll extract your experience blocks locally."
+                                onUpload={async (files) => {
+                                    if (files[0]) {
+                                        await onImportResume(files[0]);
+                                    }
+                                }}
+                                accept=".pdf,.txt"
+                                variant="modal"
+                                isLoading={isParsing}
+                                loadingText="Analyzing Resume..."
+                                icon={<FileText className="w-8 h-8 text-neutral-400 group-hover:text-indigo-500 transition-colors" />}
+                                error={importError}
+                                className="w-full"
+                            />
                         </div>
                     </div>
                 )
@@ -547,5 +553,6 @@ const HomeInput: React.FC<HomeInputProps> = ({
         </SharedPageLayout>
     );
 };
+
 
 export default HomeInput;

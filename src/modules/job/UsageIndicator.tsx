@@ -1,11 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { UsageStats } from '../../services/usageLimits';
+import { ROUTES } from '../../constants';
 
 interface UsageIndicatorProps {
     usageStats?: UsageStats | null;
 }
 
 export const UsageIndicator: React.FC<UsageIndicatorProps> = ({ usageStats }) => {
+    const navigate = useNavigate();
+
     if (!usageStats || usageStats.tier !== 'free') return null;
 
     return (
@@ -14,7 +18,7 @@ export const UsageIndicator: React.FC<UsageIndicatorProps> = ({ usageStats }) =>
                 <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                     <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-                        {usageStats.totalAnalyses}/{usageStats.limit}
+                        {usageStats.totalAnalyses}/{usageStats.analysisLimit}
                     </span>
                     <span className="text-neutral-500 dark:text-neutral-400">
                         free analyses used
@@ -22,7 +26,7 @@ export const UsageIndicator: React.FC<UsageIndicatorProps> = ({ usageStats }) =>
                 </div>
                 {usageStats.totalAnalyses >= 2 && (
                     <button
-                        onClick={() => alert('Upgrade flow coming soon!')}
+                        onClick={() => navigate(ROUTES.PLANS)}
                         className="ml-2 px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold rounded-full hover:from-blue-700 hover:to-purple-700 transition-all"
                     >
                         Upgrade

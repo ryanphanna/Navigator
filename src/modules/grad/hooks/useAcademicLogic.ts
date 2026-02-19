@@ -1,10 +1,12 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
-import type { Transcript, Course } from '../types';
+import type { Transcript, Course, AdmissionEligibility } from '../types';
+import { analyzeCurrentProgramRequirements } from '../../../services/ai/eduAiService';
+import { useToast } from '../../../contexts/ToastContext';
 
 export const useAcademicLogic = () => {
     const [transcript, setTranscript] = useLocalStorage<Transcript | null>('NAVIGATOR_TRANSCRIPT_CACHE', null);
-    const [targetCredits, setTargetCredits] = useLocalStorage<number>('NAVIGATOR_TARGET_CREDITS', 20.0);
+    const [targetCredits, setTargetCredits] = useLocalStorage<number>('NAVIGATOR_TARGET_CREDITS', 0);
     const [tempTranscript, setTempTranscript] = useState<Transcript | null>(null);
     const [showVerification, setShowVerification] = useState(false);
     const [editingCourse, setEditingCourse] = useState<{
@@ -12,6 +14,9 @@ export const useAcademicLogic = () => {
         courseIndex: number;
         course: Course
     } | null>(null);
+    const [programRequirements, setProgramRequirements] = useLocalStorage<AdmissionEligibility | null>('NAVIGATOR_PROGRAM_REQUIREMENTS', null);
+    const [isAnalyzingRequirements, setIsAnalyzingRequirements] = useState(false);
+    const { showError } = useToast();
 
     const handleUploadComplete = useCallback((parsed: Transcript) => {
         setTempTranscript(parsed);
@@ -51,11 +56,144 @@ export const useAcademicLogic = () => {
         setEditingCourse(null);
     }, [transcript, editingCourse, setTranscript]);
 
+    const fetchRequirements = useCallback(async () => {
+        if (!transcript || !transcript.program || !transcript.university) return;
+
+        setIsAnalyzingRequirements(true);
+        try {
+            const result = await analyzeCurrentProgramRequirements(
+                transcript,
+                transcript.program,
+                transcript.university
+            );
+            setProgramRequirements(result);
+            if (result.targetCredits) {
+                setTargetCredits(result.targetCredits);
+            }
+        } catch (err: any) {
+            showError(err.message || "Failed to analyze program requirements");
+        } finally {
+            setIsAnalyzingRequirements(false);
+        }
+    }, [transcript, setProgramRequirements, setTargetCredits, showError]);
+
+    // Cleanup requirements if transcript is reset
+    useEffect(() => {
+        if (!transcript) {
+            setProgramRequirements(null);
+        }
+    }, [transcript, setProgramRequirements]);
+
+    const addSemester = useCallback(() => {
+        if (!transcript) return;
+        const newSemesters = [...transcript.semesters];
+
+        // Predict next term
+        let newTerm = 'Next Term';
+        let newYear = new Date().getFullYear();
+
+        if (newSemesters.length > 0) {
+            const last = newSemesters[0]; // Assuming reverse chronological order (newest first)
+            newYear = last.year;
+            if (last.term.toLowerCase().includes('fall') || last.term.toLowerCase() === 'fw') {
+                newTerm = 'Winter';
+                newYear++;
+            } else if (last.term.toLowerCase().includes('winter')) {
+                newTerm = 'Summer';
+            } else {
+                newTerm = 'Fall';
+            }
+        }
+
+        newSemesters.unshift({
+            term: newTerm,
+            year: newYear,
+            courses: []
+        });
+
+        setTranscript({ ...transcript, semesters: newSemesters });
+    }, [transcript, setTranscript]);
+
+    const deleteSemester = useCallback((semIndex: number) => {
+        if (!transcript) return;
+        if (!confirm('Are you sure you want to delete this semester and all its courses?')) return;
+
+        const newSemesters = [...transcript.semesters];
+        newSemesters.splice(semIndex, 1);
+        setTranscript({ ...transcript, semesters: newSemesters });
+    }, [transcript, setTranscript]);
+
+    const addCourse = useCallback((semIndex: number) => {
+        if (!transcript) return;
+
+        const newSemesters = [...transcript.semesters];
+        newSemesters[semIndex].courses.push({
+            code: 'NEW 100',
+            title: 'New Course',
+            grade: '', // Empty grade = Planned
+            credits: 3.0 // Default credits (usually 3.0 or 0.5 depending on system, user can edit)
+        });
+
+        setTranscript({ ...transcript, semesters: newSemesters });
+    }, [transcript, setTranscript]);
+
     const totalCredits = useMemo(() => transcript
-        ? transcript.semesters.reduce((acc, s) => acc + s.courses.reduce((cAcc, c) => cAcc + (c.credits || 0.5), 0), 0)
+        ? transcript.semesters.reduce((acc, s) => acc + s.courses.reduce((cAcc, c) => {
+            // Only count completed courses (with a grade)
+            return (c.grade && c.grade.trim().length > 0) ? cAcc + (c.credits || 0) : cAcc;
+        }, 0), 0)
         : 0, [transcript]);
 
-    const progressPercentage = useMemo(() => Math.min((totalCredits / targetCredits) * 100, 100), [totalCredits, targetCredits]);
+    const calculatedGpa = useMemo(() => {
+        if (!transcript) return '0.00';
+
+        // 4.0 Scale Mapping
+        const gradeMap: Record<string, number> = {
+            'A+': 4.0, 'A': 4.0, 'A-': 3.7,
+            'B+': 3.3, 'B': 3.0, 'B-': 2.7,
+            'C+': 2.3, 'C': 2.0, 'C-': 1.7,
+            'D+': 1.3, 'D': 1.0, 'D-': 0.7,
+            'E': 0, 'F': 0
+        };
+
+        let totalPoints = 0;
+        let totalUnits = 0;
+
+        transcript.semesters.forEach(sem => {
+            sem.courses.forEach(course => {
+                const gradeKey = course.grade?.trim().toUpperCase();
+                if (!gradeKey) return;
+
+                let points = gradeMap[gradeKey];
+
+                // Numeric fallback
+                if (points === undefined && !isNaN(parseFloat(gradeKey))) {
+                    const num = parseFloat(gradeKey);
+                    if (num >= 90) points = 4.0;
+                    else if (num >= 85) points = 3.9;
+                    else if (num >= 80) points = 3.7;
+                    else if (num >= 77) points = 3.3;
+                    else if (num >= 73) points = 3.0;
+                    else if (num >= 70) points = 2.7;
+                    else if (num >= 67) points = 2.3;
+                    else if (num >= 63) points = 2.0;
+                    else if (num >= 60) points = 1.7;
+                    else if (num >= 50) points = 1.0;
+                    else points = 0;
+                }
+
+                if (points !== undefined) {
+                    const credits = course.credits || 0;
+                    totalPoints += points * credits;
+                    totalUnits += credits;
+                }
+            });
+        });
+
+        return totalUnits > 0 ? (totalPoints / totalUnits).toFixed(2) : '0.00';
+    }, [transcript]);
+
+    const progressPercentage = useMemo(() => targetCredits > 0 ? Math.min((totalCredits / targetCredits) * 100, 100) : 0, [totalCredits, targetCredits]);
 
     return {
         transcript,
@@ -72,6 +210,13 @@ export const useAcademicLogic = () => {
         handleCourseUpdate,
         handleCourseDelete,
         totalCredits,
-        progressPercentage
+        progressPercentage,
+        calculatedGpa,
+        addSemester,
+        deleteSemester,
+        addCourse,
+        programRequirements,
+        isAnalyzingRequirements,
+        fetchRequirements
     };
 };

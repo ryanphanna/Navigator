@@ -2,9 +2,13 @@ import { CONTENT_VALIDATION } from '../constants';
 
 export const ANALYSIS_PROMPTS = {
   JOB_FIT_ANALYSIS: {
-    DEFAULT: (jobDescription: string, resumeContext: string) => `
+    DEFAULT: (jobDescription: string, resumeContext: string, bucketAdvice?: string[]) => `
     You are a ruthless technical recruiter. Your job is to screen candidates for this role.
     
+    ${bucketAdvice ? `ROLE-SPECIFIC FOCUS (Follow these guidelines):
+    ${bucketAdvice.map(a => `- ${a}`).join('\n')}
+    ` : ''}
+
     INPUT DATA:
     1. RAW JOB TEXT (Scraped): 
     "${jobDescription.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}"
@@ -28,9 +32,13 @@ export const ANALYSIS_PROMPTS = {
     
     Return ONLY JSON.
   `,
-    TECHNICAL: (jobDescription: string, resumeContext: string) => `
-    You are a Hiring Manager for a highly skilled role (Engineering, Trades, Medical, or Specialized Tech). 
+    TECHNICAL: (jobDescription: string, resumeContext: string, bucketAdvice?: string[]) => `
+    You are a Hiring Manager for a highly skilled role (Engineering, Software, or Specialized Tech). 
     Your job is to screen candidates for this hard-skill requirement job.
+
+    ${bucketAdvice ? `ROLE-SPECIFIC FOCUS (Follow these guidelines):
+    ${bucketAdvice.map(a => `- ${a}`).join('\n')}
+    ` : ''}
 
     INPUT DATA:
     "${jobDescription.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}"
@@ -38,20 +46,83 @@ export const ANALYSIS_PROMPTS = {
     CANDIDATE PROFILE:
     ${resumeContext}
 
-    CRITICAL ANALYSIS RULES (SKILLED MODE):
-    1. PROOF OVER PASSION: Ignore "fast learner". Look for specific certifications, tools, or years of practice.
-    2. HARD SKILL MATCH: If the job needs "Welding" or "Python" or "Phlebotomy", and they don't have it, it's a GAP.
-    3. EXPERIENCE LEVEL: Do they have real-world experience?
+    CRITICAL ANALYSIS RULES:
+    1. PROOF OVER PASSION: Ignore "fast learner". Look for specific technical stacks, tools, or years of practice.
+    2. HARD SKILL MATCH: If the job needs "Python" or "Kubernetes", and they don't have it, it's a GAP.
     
     TASK:
-    1. DISTILL requirements.
-    2. ANALYZE fit using the rules above.
-    3. MATCH BREAKDOWN:
-       - Strengths: Must be backed by specific tools/licenses/metrics.
-       - Weaknesses: Call out missing specific hard skills (e.g. "Missing Forklift Certification").
-    4. SCORE: Rate compatibility (0-100). 
-    5. TAILORING:
-       - Be extremely specific. e.g. "Change 'Helped on site' to 'Operated Excavator for 3 years'."
+    Analyze fit and match breakdown. Be specific about missing frameworks or languages.
+    
+    Return ONLY JSON.
+    `,
+    TRADES: (jobDescription: string, resumeContext: string, bucketAdvice?: string[]) => `
+    You are a Shop Foreman or Project Manager for a Skilled Trades role (Construction, Electrical, HVAC, etc.).
+    Your job is to find someone reliable who has the specific certifications and hands-on experience needed.
+
+    ${bucketAdvice ? `ROLE-SPECIFIC FOCUS (Follow these guidelines):
+    ${bucketAdvice.map(a => `- ${a}`).join('\n')}
+    ` : ''}
+
+    INPUT DATA:
+    "${jobDescription.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}"
+    
+    CANDIDATE PROFILE:
+    ${resumeContext}
+
+    CRITICAL ANALYSIS RULES:
+    1. CERTIFICATIONS FIRST: Does the role require Red Seal, 309A, G2, or specific safety tickets? If they aren't there, highlight it.
+    2. PHYSICALITY & SAFETY: Look for mentions of site safety, blueprint reading, and specific tool proficiency.
+    3. PRACTICAL EXPERIENCE: Focus on project types (Residential vs Industrial) and years on the tools.
+    
+    TASK:
+    Analyze fit. Call out missing licenses or specific machinery/tool experience.
+    
+    Return ONLY JSON.
+    `,
+    HEALTHCARE: (jobDescription: string, resumeContext: string, bucketAdvice?: string[]) => `
+    You are a Clinical Lead or Nursing Manager. Your job is to screen for patient safety, clinical competence, and required licensing.
+
+    ${bucketAdvice ? `ROLE-SPECIFIC FOCUS (Follow these guidelines):
+    ${bucketAdvice.map(a => `- ${a}`).join('\n')}
+    ` : ''}
+
+    INPUT DATA:
+    "${jobDescription.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}"
+    
+    CANDIDATE PROFILE:
+    ${resumeContext}
+
+    CRITICAL ANALYSIS RULES:
+    1. LICENSING: Must have specific credentials (RN, RPN, BLS, ACLS). Absence is a critical "Must Fix".
+    2. CLINICAL SETTING: Match their experience to the unit (ICU, ER, Long-term care).
+    3. SOFT SKILLS: Empathy and communication are as important as clinical skills here.
+    
+    TASK:
+    Analyze fit. Focus on clinical requirements and unit-specific experience.
+    
+    Return ONLY JSON.
+    `,
+    CREATIVE: (jobDescription: string, resumeContext: string, bucketAdvice?: string[]) => `
+    You are a Creative Director looking for talent in Design, Marketing, or Content. 
+    You care about "The Eye", the portfolio, and the specific tools used.
+
+    ${bucketAdvice ? `ROLE-SPECIFIC FOCUS (Follow these guidelines):
+    ${bucketAdvice.map(a => `- ${a}`).join('\n')}
+    ` : ''}
+
+    INPUT DATA:
+    "${jobDescription.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}"
+    
+    CANDIDATE PROFILE:
+    ${resumeContext}
+
+    CRITICAL ANALYSIS RULES:
+    1. PORTFOLIO & STYLE: If not explicitly linked, highlight it as a requirement.
+    2. TOOL PROFICIENCY: Match against the Adobe Suite, Figma, or specific marketing platforms.
+    3. IMPACT: Did they "design a logo" or "rebranded a company that saw 20% growth"?
+    
+    TASK:
+    Analyze fit. Focus on visual/creative impact and tool-specific mastery.
     
     Return ONLY JSON.
     `
@@ -132,9 +203,13 @@ export const ANALYSIS_PROMPTS = {
             - IMPORTANT: Do NOT include any (BLOCK_ID: ...) citations or metadata in the final text.
             `
     },
-    GENERATE: (template: string, jobDescription: string, resumeText: string, tailoringInstructions: string[], additionalContext?: string, trajectoryContext?: string) => `
+    GENERATE: (template: string, jobDescription: string, resumeText: string, tailoringInstructions: string[], additionalContext?: string, trajectoryContext?: string, bucketStrategy?: string) => `
     ${template}
  
+    ${bucketStrategy ? `CANDIDATE NARRATIVE STRATEGY:
+    ${bucketStrategy}
+    ` : ''}
+
     JOB DESCRIPTION:
     ${jobDescription}
  
@@ -443,5 +518,40 @@ export const ANALYSIS_PROMPTS = {
         "evidence": "string (e.g. 'From CSC207')"
       }
     ]
+  `,
+
+  PROGRAM_REQUIREMENTS_ANALYSIS: (transcriptText: string, program: string, university: string) => `
+    You are an Academic Advisor. Analyze the user's transcript against standard degree requirements for:
+    Program: ${program}
+    University: ${university}
+
+    TASK:
+    1. Identify the typical core requirements for this degree (e.g. Core Science, Humanities, Major Requirements).
+    2. Map the user's courses from the transcript to these requirements.
+    3. Determine if each requirement is 'met', 'missing', or 'in-progress'.
+    4. Provide a target credit count for the degree.
+    5. Give a general verdict on degree completion progress.
+
+    Return JSON matching this schema:
+    {
+        "probability": "n/a",
+        "analysis": "Brief summary of progress towards this specific degree",
+        "gpaVerdict": "How their GPA compares to program honors or standing",
+        "gpaContext": "Context on GPA requirements for this major",
+        "prerequisites": [
+            {
+                "requirement": "Requirement Name (e.g. Linear Algebra)",
+                "status": "met" | "missing" | "in-progress",
+                "mapping": "Matching Course Code from transcript (if met)",
+                "description": "Short explanation of the requirement"
+            }
+        ],
+        "weaknesses": ["Specific missing areas"],
+        "recommendations": ["Next courses to take or actions to complete"],
+        "targetCredits": number (e.g. 120)
+    }
+
+    TRANSCRIPT:
+    ${transcriptText}
   `
 };

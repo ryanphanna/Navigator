@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { getUsageOutliers, type UsageOutlier } from '../../services/adminService';
-import { Loader2, AlertTriangle, ShieldAlert, Activity, RefreshCw, TrendingUp, Users } from 'lucide-react';
+import { Loader2, AlertTriangle, ShieldAlert, Activity, RefreshCw, TrendingUp, Users, Laptop } from 'lucide-react';
+import { useUser } from '../../contexts/UserContext';
 
 const StatsCard = ({ title, value, subtext, icon: Icon, color }: { title: string, value: string, subtext?: string, icon: any, color: string }) => (
     <div className="bg-white dark:bg-neutral-800 p-6 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm flex items-start justify-between">
@@ -16,6 +17,7 @@ const StatsCard = ({ title, value, subtext, icon: Icon, color }: { title: string
 );
 
 export const AdminDashboard: React.FC = () => {
+    const { simulatedTier, setSimulatedTier } = useUser();
     const [outliers, setOutliers] = useState<UsageOutlier[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -112,6 +114,27 @@ export const AdminDashboard: React.FC = () => {
                         >
                             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         </button>
+                        <div className="flex bg-white dark:bg-neutral-800 p-1 rounded-lg border border-neutral-200 dark:border-neutral-700 items-center gap-2">
+                            <span className="text-[10px] font-bold text-neutral-400 px-2 uppercase tracking-tight flex items-center gap-1">
+                                <Laptop className="w-3 h-3" /> Dev
+                            </span>
+                            {[
+                                { id: null, label: 'Default' },
+                                { id: 'pro', label: 'Pro' },
+                                { id: 'free', label: 'Free' }
+                            ].map((tier: any) => (
+                                <button
+                                    key={tier.label}
+                                    onClick={() => setSimulatedTier(tier.id)}
+                                    className={`px-2 py-1.5 text-[10px] font-bold rounded-md transition-all ${simulatedTier === tier.id
+                                        ? 'bg-neutral-900 text-white shadow-sm'
+                                        : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                                        }`}
+                                >
+                                    {tier.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 

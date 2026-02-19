@@ -19,6 +19,7 @@ Navigator helps you manage your professional experience as discrete "blocks" and
 ### 🧭 Career Coach
 - **Role Model Emulation**: Bridge the gap between your profile and specific high-achiever role models.
 - **Gap Analysis**: Identifies exactly which strengths you have and which skills you're missing for your target career path.
+- **Interview Advisor**: Chat-based AI mock interviews with adaptive personas.
 - **12-Month Trajectory**: Automated professional roadmap generation to get you from Point A to Point B.
 
 ### 🧩 Chrome Extension
@@ -33,10 +34,9 @@ Navigator helps you manage your professional experience as discrete "blocks" and
 
 ## 🛠️ Getting Started
 
-1. **Sign In**: Join via the Early Access portal.
-2. **Setup**: Add your Gemini API Key in Settings (stored securely via AES-GCM encryption).
-3. **Build**: Create your resume blocks (Work, Projects, Skills) or upload your Transcript.
-4. **Navigate**: Paste a job, add a role model, or explore programs to start navigating!
+1. **Sign In**: Create an account or sign in as a guest.
+2. **Build**: Create your resume blocks (Work, Projects, Skills) or upload your Transcript.
+3. **Navigate**: Paste a job, add a role model, or explore programs to start navigating!
 
 ---
 

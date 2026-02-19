@@ -4,6 +4,7 @@ import { LoadingState } from '../common/LoadingState';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 import { ROUTES } from '../../constants';
 import { lazyWithRetry } from '../../utils/lazyWithRetry';
+import { ProtectedRoute } from './ProtectedRoute';
 
 // Context Hooks
 import { useJobContext } from '../../modules/job/context/JobContext';
@@ -15,10 +16,10 @@ import { useGlobalUI } from '../../contexts/GlobalUIContext';
 import { useUser } from '../../contexts/UserContext';
 
 // Core Modules
-import HomeInput from '../../modules/job/HomeInput';
 import { NudgeCard } from '../NudgeCard';
 
 // Lazy load heavy modules
+const HomeInput = lazyWithRetry(() => import('../../modules/job/HomeInput'));
 const History = lazyWithRetry(() => import('../../modules/job/History'));
 const JobDetail = lazyWithRetry(() => import('../../modules/job/JobDetail'));
 const CoachDashboard = lazyWithRetry(() => import('../../modules/career/CoachDashboard').then(m => ({ default: m.CoachDashboard })));
@@ -29,7 +30,18 @@ const EducationDashboard = lazyWithRetry(() => import('../../modules/grad/Educat
 const AcademicHQ = lazyWithRetry(() => import('../../modules/grad/AcademicHQ').then(m => ({ default: m.AcademicHQ })));
 const SEOLandingPage = lazyWithRetry(() => import('../../modules/seo/SEOLandingPage').then(m => ({ default: m.SEOLandingPage })));
 const SkillsView = lazyWithRetry(() => import('../skills/SkillsView').then(m => ({ default: m.SkillsView })));
-// const CoverLetters = lazyWithRetry(() => import('../../modules/job/CoverLetters').then(m => ({ default: m.CoverLetters }))); // Removed unused component
+const CoverLetters = lazyWithRetry(() => import('../../modules/job/CoverLetters').then(m => ({ default: m.CoverLetters })));
+const Privacy = lazyWithRetry(() => import('../../modules/legal/Privacy').then(m => ({ default: m.Privacy })));
+const GPACalculatorPage = lazyWithRetry(() => import('../../modules/grad/GPACalculatorPage').then(m => ({ default: m.GPACalculatorPage })));
+const ProgramExplorerPage = lazyWithRetry(() => import('../../modules/grad/ProgramExplorerPage').then(m => ({ default: m.ProgramExplorerPage })));
+const Terms = lazyWithRetry(() => import('../../modules/legal/Terms').then(m => ({ default: m.Terms })));
+const Contact = lazyWithRetry(() => import('../../modules/contact/Contact').then(m => ({ default: m.Contact })));
+const PlansPage = lazyWithRetry(() => import('../../modules/plans/PlansPage').then(m => ({ default: m.PlansPage })));
+const ComparisonTable = lazyWithRetry(() => import('../../modules/plans/ComparisonTable').then(m => ({ default: m.ComparisonTable })));
+const FeaturesPage = lazyWithRetry(() => import('../../modules/features/FeaturesPage').then(m => ({ default: m.FeaturesPage })));
+const OnboardingPage = lazyWithRetry(() => import('../../modules/onboarding/OnboardingPage').then(m => ({ default: m.OnboardingPage })));
+const SkillInterviewPage = lazyWithRetry(() => import('../../modules/skills/SkillInterviewPage').then(m => ({ default: m.SkillInterviewPage })));
+const InterviewAdvisor = lazyWithRetry(() => import('../../modules/job/InterviewAdvisor').then(m => ({ default: m.InterviewAdvisor })));
 
 export const AppRoutes: React.FC = () => {
     const {
@@ -51,7 +63,7 @@ export const AppRoutes: React.FC = () => {
     } = useCoachContext();
 
     const {
-        skills, setInterviewSkill, updateSkills
+        skills, updateSkills
     } = useSkillContext();
 
     const {
@@ -60,7 +72,7 @@ export const AppRoutes: React.FC = () => {
 
     const { openModal } = useModal();
 
-    const { user, userTier, isAdmin, isTester } = useUser();
+    const { user, userTier, isAdmin, isTester, journey } = useUser();
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -78,23 +90,37 @@ export const AppRoutes: React.FC = () => {
             [ROUTES.PRO_FEED]: 'feed',
             [ROUTES.HISTORY]: 'history',
             [ROUTES.RESUMES]: 'resumes',
+            [ROUTES.INTERVIEWS]: 'interviews',
             [ROUTES.COVER_LETTERS]: 'cover-letters',
 
             // Career
             [ROUTES.CAREER_HOME]: 'coach-home',
             [ROUTES.SKILLS]: 'skills',
-            [ROUTES.CAREER_MODELS]: 'career-models',
+            [ROUTES.CAREER_MODELS]: 'coach-role-models',
             [ROUTES.CAREER_GROWTH]: 'career-growth',
+            [ROUTES.COACH_GAP]: 'coach-gap-analysis',
 
             // Edu
             [ROUTES.EDUCATION_HOME]: 'edu-home',
             [ROUTES.TRANSCRIPT]: 'edu-transcript',
+            [ROUTES.GPA_CALCULATOR]: 'edu-gpa',
+            [ROUTES.PROGRAM_EXPLORER]: 'edu-programs',
 
             [ROUTES.ADMIN]: 'admin',
+            [ROUTES.PRIVACY]: 'privacy',
+            [ROUTES.TERMS]: 'terms',
+            [ROUTES.CONTACT]: 'contact',
+            [ROUTES.PLANS]: 'plans',
+            [ROUTES.PLANS_COMPARE]: 'plans-compare',
+            [ROUTES.FEATURES]: 'features',
+            [ROUTES.WELCOME]: 'welcome',
         };
 
         // Handle dynamic job detail route
-
+        if (path.startsWith('/jobs/match/')) {
+            if (currentView !== 'job-detail') setView('job-detail');
+            return;
+        }
 
         // Handle dynamic SEO routes
         if (path.startsWith('/resume-for/')) {
@@ -110,7 +136,7 @@ export const AppRoutes: React.FC = () => {
 
     // URL Job Sync Effect
     useEffect(() => {
-        const match = location.pathname.match(/\/job\/([^/]+)/);
+        const match = location.pathname.match(/\/jobs\/match\/([^/]+)/);
         const urlJobId = match ? match[1] : null;
         if (urlJobId !== activeJobId) {
             setActiveJobId(urlJobId);
@@ -126,28 +152,41 @@ export const AppRoutes: React.FC = () => {
             'feed': ROUTES.FEED,
             'history': ROUTES.HISTORY,
             'resumes': ROUTES.RESUMES,
+            'interviews': ROUTES.INTERVIEWS,
             'cover-letters': ROUTES.COVER_LETTERS,
 
             // Career
             'coach-home': ROUTES.CAREER_HOME,
             'career-home': ROUTES.CAREER_HOME,
             'skills': ROUTES.SKILLS,
+            'coach-role-models': ROUTES.CAREER_MODELS,
             'career-models': ROUTES.CAREER_MODELS,
             'career-growth': ROUTES.CAREER_GROWTH,
+            'coach-gap-analysis': ROUTES.CAREER_HOME,
 
             // Edu
             'edu-home': ROUTES.EDUCATION_HOME,
             'edu-transcript': ROUTES.TRANSCRIPT,
+            'edu-gpa': ROUTES.GPA_CALCULATOR,
+            'edu-programs': ROUTES.PROGRAM_EXPLORER,
 
             'admin': ROUTES.ADMIN,
+            'plans': ROUTES.PLANS,
+            'plans-compare': ROUTES.PLANS_COMPARE,
+            'welcome': ROUTES.WELCOME,
+            'privacy': ROUTES.PRIVACY,
+            'terms': ROUTES.TERMS,
+            'contact': ROUTES.CONTACT,
+            'features': ROUTES.FEATURES,
         };
 
         const path = viewToPath[viewId];
 
+        // CRITICAL: Update state and URL together to prevent lag/stuck states
+        setView(viewId);
+
         if (path) {
             navigate(path);
-        } else {
-            setView(viewId);
         }
     };
 
@@ -169,6 +208,36 @@ export const AppRoutes: React.FC = () => {
                                 />
                             </div>
                         )}
+                        <Suspense fallback={<LoadingState />}>
+                            <HomeInput
+                                resumes={resumes}
+                                onJobCreated={handleJobCreated}
+                                onTargetJobCreated={handleTargetJobCreated}
+                                onImportResume={handleImportResume}
+                                isParsing={isParsingResume}
+                                importError={importError}
+                                isAdmin={isAdmin}
+                                isTester={isTester}
+                                user={user}
+                                usageStats={usageStats}
+                                mode="home"
+                                journey={journey}
+                                userTier={userTier}
+                                onNavigate={handleViewChange}
+                                onShowAuth={(feature) => openModal('AUTH', feature ? { feature } : undefined)}
+                            />
+                        </Suspense>
+                    </>
+                } />
+
+                <Route path={ROUTES.WELCOME} element={
+                    <Suspense fallback={<LoadingState />}>
+                        <OnboardingPage />
+                    </Suspense>
+                } />
+
+                <Route path={ROUTES.JOB_HOME} element={
+                    <Suspense fallback={<LoadingState />}>
                         <HomeInput
                             resumes={resumes}
                             onJobCreated={handleJobCreated}
@@ -180,29 +249,13 @@ export const AppRoutes: React.FC = () => {
                             isTester={isTester}
                             user={user}
                             usageStats={usageStats}
-                            mode="home"
+                            mode="apply"
+                            journey={journey}
+                            userTier={userTier}
                             onNavigate={handleViewChange}
-                            onShowAuth={() => openModal('AUTH')}
+                            onShowAuth={(feature) => openModal('AUTH', feature ? { feature } : undefined)}
                         />
-                    </>
-                } />
-
-                <Route path={ROUTES.JOB_HOME} element={
-                    <HomeInput
-                        resumes={resumes}
-                        onJobCreated={handleJobCreated}
-                        onTargetJobCreated={handleTargetJobCreated}
-                        onImportResume={handleImportResume}
-                        isParsing={isParsingResume}
-                        importError={importError}
-                        isAdmin={isAdmin}
-                        isTester={isTester}
-                        user={user}
-                        usageStats={usageStats}
-                        mode="apply"
-                        onNavigate={handleViewChange}
-                        onShowAuth={() => openModal('AUTH')}
-                    />
+                    </Suspense>
                 } />
 
 
@@ -214,113 +267,190 @@ export const AppRoutes: React.FC = () => {
                 } />
 
                 {/* Core Views */}
-                <Route path={ROUTES.FEED} element={
-                    <Suspense fallback={<LoadingState message="Loading Pro Feed..." />}>
-                        <NavigatorPro onDraftApplication={handleDraftApplication} onPromoteFromFeed={handlePromoteFromFeed} />
+                <Route element={<ProtectedRoute />}>
+                    <Route path={ROUTES.FEED} element={
+                        <Suspense fallback={<LoadingState message="Loading Pro Feed..." />}>
+                            <NavigatorPro onDraftApplication={handleDraftApplication} onPromoteFromFeed={handlePromoteFromFeed} />
+                        </Suspense>
+                    } />
+                </Route>
+
+                <Route element={<ProtectedRoute requireAdmin />}>
+                    <Route path="/admin" element={
+                        <Suspense fallback={<LoadingState message="Loading Admin Console..." />}>
+                            <AdminDashboard />
+                        </Suspense>
+                    } />
+                </Route>
+
+                <Route element={<ProtectedRoute />}>
+                    <Route path={ROUTES.RESUMES} element={
+                        <Suspense fallback={<LoadingState message="Opening Editor..." />}>
+                            <ResumeEditor
+                                resumes={resumes}
+                                skills={skills}
+                                onSave={handleUpdateResumes}
+                                onImport={handleImportResume}
+                                isParsing={isParsingResume}
+                                importError={importError}
+                                importTrigger={0}
+                            />
+                        </Suspense>
+                    } />
+
+
+                    <Route path={ROUTES.INTERVIEWS} element={
+                        <Suspense fallback={<LoadingState message="Prepping Advisor..." />}>
+                            {isAdmin ? <InterviewAdvisor /> : <Navigate to={ROUTES.HOME} replace />}
+                        </Suspense>
+                    } />
+
+
+                    {/* Career Routes */}
+                    <Route path={ROUTES.CAREER_HOME + "/*"} element={
+                        <Suspense fallback={<LoadingState message="Consulting Career Coach..." />}>
+                            <CoachDashboard
+                                userSkills={skills}
+                                roleModels={roleModels}
+                                targetJobs={targetJobs}
+                                resumes={resumes}
+                                transcript={transcript}
+                                activeAnalysisIds={activeAnalysisIds}
+                                view={typeof currentView === 'string' && (currentView.startsWith('career') || currentView.startsWith('coach')) ? (currentView as any) : 'coach-home'}
+                                onViewChange={handleViewChange}
+                                onAddRoleModel={handleAddRoleModel}
+                                onAddTargetJob={handleTargetJobCreated}
+                                onUpdateTargetJob={handleUpdateTargetJob}
+                                onEmulateRoleModel={handleEmulateRoleModel}
+                                onDeleteRoleModel={handleDeleteRoleModel}
+                                onRunGapAnalysis={(id: string) => handleRunGapAnalysis(id, { resumes, skills })}
+                                onGenerateRoadmap={handleGenerateRoadmap}
+                                onToggleMilestone={handleToggleMilestone}
+                            />
+                        </Suspense>
+                    } />
+
+                    {/* Skills is now distinct but under Career header */}
+                    <Route path={ROUTES.SKILLS} element={
+                        <Suspense fallback={<LoadingState message="Loading Skills Dashboard..." />}>
+                            <SkillsView
+                                skills={skills}
+                                resumes={resumes}
+                                onSkillsUpdated={updateSkills}
+                                onStartUnifiedInterview={(skillsToVerify: { name: string; proficiency: string }[]) => navigate('/career/skills/interview', { state: { skills: skillsToVerify } })}
+                            />
+                        </Suspense>
+                    } />
+
+                    <Route path="/career/skills/interview" element={
+                        <Suspense fallback={<LoadingState message="Starting Interview..." />}>
+                            <SkillInterviewPage />
+                        </Suspense>
+                    } />
+
+                    {/* History */}
+                    <Route path={ROUTES.HISTORY} element={
+                        <Suspense fallback={<LoadingState message="Opening History..." />}>
+                            <History
+                                jobs={jobs}
+                                onSelectJob={setActiveJobId}
+                                onDeleteJob={handleDeleteJob}
+                            />
+                        </Suspense>
+                    } />
+
+                    <Route path={ROUTES.JOB_DETAIL} element={
+                        <Suspense fallback={<LoadingState message="Analyzing Job..." />}>
+                            {activeJob ? (
+                                <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-24 animate-in slide-in-from-right-4 duration-500">
+                                    <JobDetail
+                                        job={activeJob}
+                                        resumes={resumes}
+                                        onBack={() => handleViewChange('history')}
+                                        onUpdateJob={handleUpdateJob}
+                                        onAnalyzeJob={(j) => handleAnalyzeJob(j, { resumes, skills })}
+                                        userTier={userTier}
+                                        userSkills={skills}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <LoadingState message="Loading Job..." />
+                                </div>
+                            )}
+                        </Suspense>
+                    } />
+
+                    <Route path={ROUTES.EDUCATION_HOME} element={
+                        <Suspense fallback={<LoadingState message="Loading Education Dashboard..." />}>
+                            <EducationDashboard />
+                        </Suspense>
+                    } />
+
+
+
+                    <Route path={ROUTES.COVER_LETTERS} element={
+                        <Suspense fallback={<LoadingState message="Opening Cover Letters..." />}>
+                            <CoverLetters
+                                jobs={jobs}
+                                onSelectJob={setActiveJobId}
+                            />
+                        </Suspense>
+                    } />
+
+                    <Route path={ROUTES.TRANSCRIPT} element={
+                        <Suspense fallback={<LoadingState message="Loading Academic HQ..." />}>
+                            <AcademicHQ />
+                        </Suspense>
+                    } />
+
+                    <Route path={ROUTES.GPA_CALCULATOR} element={
+                        <Suspense fallback={<LoadingState message="Loading GPA Calculator..." />}>
+                            <GPACalculatorPage />
+                        </Suspense>
+                    } />
+
+                    <Route path={ROUTES.PROGRAM_EXPLORER} element={
+                        <Suspense fallback={<LoadingState message="Loading Program Explorer..." />}>
+                            <ProgramExplorerPage />
+                        </Suspense>
+                    } />
+                </Route>
+
+                <Route path={ROUTES.PRIVACY} element={
+                    <Suspense fallback={<LoadingState />}>
+                        <Privacy />
                     </Suspense>
                 } />
 
-                <Route path="/admin" element={
-                    <Suspense fallback={<LoadingState message="Loading Admin Console..." />}>
-                        <AdminDashboard />
+                <Route path={ROUTES.TERMS} element={
+                    <Suspense fallback={<LoadingState />}>
+                        <Terms />
                     </Suspense>
                 } />
 
-                <Route path={ROUTES.RESUMES} element={
-                    <Suspense fallback={<LoadingState message="Opening Editor..." />}>
-                        <ResumeEditor
-                            resumes={resumes}
-                            skills={skills}
-                            onSave={handleUpdateResumes}
-                            onImport={handleImportResume}
-                            isParsing={isParsingResume}
-                            importError={importError}
-                            importTrigger={0}
-                        />
+                <Route path={ROUTES.CONTACT} element={
+                    <Suspense fallback={<LoadingState />}>
+                        <Contact />
                     </Suspense>
                 } />
 
 
-                {/* Career Routes */}
-                <Route path={ROUTES.CAREER_HOME + "/*"} element={
-                    <Suspense fallback={<LoadingState message="Consulting Career Coach..." />}>
-                        <CoachDashboard
-                            userSkills={skills}
-                            roleModels={roleModels}
-                            targetJobs={targetJobs}
-                            resumes={resumes}
-                            transcript={transcript}
-                            activeAnalysisIds={activeAnalysisIds}
-                            view={typeof currentView === 'string' && currentView.startsWith('career') ? (currentView as any) : 'coach-home'}
-                            onViewChange={handleViewChange}
-                            onAddRoleModel={handleAddRoleModel}
-                            onAddTargetJob={handleTargetJobCreated}
-                            onUpdateTargetJob={handleUpdateTargetJob}
-                            onEmulateRoleModel={handleEmulateRoleModel}
-                            onDeleteRoleModel={handleDeleteRoleModel}
-                            onRunGapAnalysis={(id: string) => handleRunGapAnalysis(id, { resumes, skills })}
-                            onGenerateRoadmap={handleGenerateRoadmap}
-                            onToggleMilestone={handleToggleMilestone}
-                        />
+                <Route path={ROUTES.PLANS} element={
+                    <Suspense fallback={<LoadingState message="Loading Plans..." />}>
+                        <PlansPage />
                     </Suspense>
                 } />
 
-                {/* Skills is now distinct but under Career header */}
-                <Route path={ROUTES.SKILLS} element={
-                    <Suspense fallback={<LoadingState message="Loading Skills Dashboard..." />}>
-                        <SkillsView
-                            skills={skills}
-                            resumes={resumes}
-                            onSkillsUpdated={updateSkills}
-                            onStartInterview={setInterviewSkill}
-                            userTier={userTier}
-                        />
+                <Route path={ROUTES.PLANS_COMPARE} element={
+                    <Suspense fallback={<LoadingState message="Loading Comparison..." />}>
+                        <ComparisonTable />
                     </Suspense>
                 } />
 
-                {/* History */}
-                <Route path={ROUTES.HISTORY} element={
-                    <Suspense fallback={<LoadingState message="Opening History..." />}>
-                        <History
-                            jobs={jobs}
-                            onSelectJob={setActiveJobId}
-                            onDeleteJob={handleDeleteJob}
-                        />
-                    </Suspense>
-                } />
-
-                <Route path={ROUTES.JOB_DETAIL} element={
-                    <Suspense fallback={<LoadingState message="Analyzing Job..." />}>
-                        {activeJob ? (
-                            <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-24 animate-in slide-in-from-right-4 duration-500">
-                                <JobDetail
-                                    job={activeJob}
-                                    resumes={resumes}
-                                    onBack={() => handleViewChange('history')}
-                                    onUpdateJob={handleUpdateJob}
-                                    onAnalyzeJob={(j) => handleAnalyzeJob(j, { resumes, skills })}
-                                    userTier={userTier}
-                                />
-                            </div>
-                        ) : (
-                            <div className="text-center">
-                                <LoadingState message="Loading Job..." />
-                            </div>
-                        )}
-                    </Suspense>
-                } />
-
-                <Route path={ROUTES.EDUCATION_HOME} element={
-                    <Suspense fallback={<LoadingState message="Loading Education Dashboard..." />}>
-                        <EducationDashboard />
-                    </Suspense>
-                } />
-
-
-
-                <Route path={ROUTES.TRANSCRIPT} element={
-                    <Suspense fallback={<LoadingState message="Loading Academic HQ..." />}>
-                        <AcademicHQ />
+                <Route path={ROUTES.FEATURES} element={
+                    <Suspense fallback={<LoadingState message="Loading Features..." />}>
+                        <FeaturesPage />
                     </Suspense>
                 } />
 

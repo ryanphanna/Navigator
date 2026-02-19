@@ -4,10 +4,10 @@ import type { SavedJob, AppState } from '../../../types';
 import { Storage } from '../../../services/storageService';
 import { analyzeJobFit } from '../../../services/geminiService';
 import { ScraperService } from '../../../services/scraperService';
-import { CanonicalService } from '../../../services/seo/canonicalService';
-import { checkAnalysisLimit, incrementAnalysisCount, getUsageStats, type UsageStats, type UsageLimitResult } from '../../../services/usageLimits';
+import { checkAnalysisLimit, getUsageStats, type UsageStats, type UsageLimitResult } from '../../../services/usageLimits';
 import { useToast } from '../../../contexts/ToastContext';
 import { useUser } from '../../../contexts/UserContext';
+import { ROUTES } from '../../../constants';
 
 export const useJobManager = () => {
     const { user, isAdmin } = useUser();
@@ -23,8 +23,12 @@ export const useJobManager = () => {
         tier: isAdmin ? 'admin' : 'free',
         totalAnalyses: 0,
         todayAnalyses: 0,
+        weekAnalyses: 0,
+        todayEmails: 0,
         totalAICalls: 0,
-        limit: isAdmin ? Infinity : 3
+        analysisLimit: isAdmin ? Infinity : 3,
+        analysisPeriod: 'lifetime',
+        emailLimit: 0
     });
     const [upgradeModalData, setUpgradeModalData] = useState<UsageLimitResult | null>(null);
 
@@ -73,9 +77,25 @@ export const useJobManager = () => {
 
             if (!textToAnalyze) throw new Error("No job description found.");
 
-            const analysis = await analyzeJobFit(textToAnalyze, resumes, skills, undefined, job.id);
+            const analysis = await analyzeJobFit(
+                textToAnalyze,
+                resumes,
+                skills,
+                async (msg, step, total) => {
+                    // Calculate progress percentage
+                    const progress = Math.round((step / total) * 100);
+
+                    // We only update the local state to trigger UI updates, 
+                    // avoiding heavy Storage writes for every progress tick if possible, 
+                    // but for now let's keep it simple and just update the in-memory jobs list via handleUpdateJob
+                    // which does write to storage. If performance is bad, we can optimize.
+                    // Actually, let's just update local state for progress to be smooth.
+                    setJobs(prev => prev.map(j => j.id === job.id ? { ...j, progress, progressMessage: msg } : j));
+                },
+                job.id
+            );
+
             const roleTitle = analysis.distilledJob?.roleTitle || job.position;
-            const { bucket } = CanonicalService.getCanonicalRole(roleTitle);
 
             const completedJob: SavedJob = {
                 ...job,
@@ -84,7 +104,9 @@ export const useJobManager = () => {
                 analysis,
                 position: roleTitle,
                 company: analysis.distilledJob?.companyName || job.company,
-                roleId: bucket.id
+                roleId: analysis.distilledJob?.canonicalTitle || job.roleId,
+                progress: 100, // Ensure we hit 100%
+                progressMessage: 'Analysis complete!'
             };
 
             await Storage.updateJob(completedJob);
@@ -92,7 +114,7 @@ export const useJobManager = () => {
             return completedJob;
         } catch (err) {
             console.error("Analysis Failed:", err);
-            const failedJob = { ...job, status: 'error' as const };
+            const failedJob = { ...job, status: 'error' as const, progress: 0, progressMessage: 'Failed' };
             await Storage.updateJob(failedJob);
             await handleUpdateJob(failedJob);
             throw err;
@@ -116,10 +138,9 @@ export const useJobManager = () => {
             return [newJob, ...prev];
         });
         setActiveJobId(newJob.id);
-        navigate(`/job/${newJob.id}`);
+        navigate(ROUTES.JOB_DETAIL.replace(':id', newJob.id));
 
         if (user && !isAdmin) {
-            await incrementAnalysisCount(user.id);
             const stats = await getUsageStats(user.id);
             setUsageStats(stats);
         }
@@ -154,7 +175,7 @@ export const useJobManager = () => {
         await Storage.updateJob(updatedJob);
         setJobs(prev => prev.map(j => j.id === jobId ? updatedJob : j));
         setActiveJobId(jobId);
-        navigate(`/job/${jobId}`);
+        navigate(ROUTES.JOB_DETAIL.replace(':id', jobId));
         showInfo("Promoting job alert to application...");
     }, [jobs, navigate, showInfo, showError]);
 
@@ -174,7 +195,7 @@ export const useJobManager = () => {
         await Storage.addJob(newJob);
         setJobs(prev => [newJob, ...prev]);
         setActiveJobId(jobId);
-        navigate(`/job/${jobId}`);
+        navigate(ROUTES.JOB_DETAIL.replace(':id', jobId));
         showInfo("Drafting your tailored application...");
     }, [navigate, showInfo]);
 

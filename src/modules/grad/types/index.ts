@@ -44,4 +44,5 @@ export interface AdmissionEligibility {
     prerequisites?: AdmissionPrerequisite[];
     weaknesses: string[];
     recommendations: string[];
+    targetCredits?: number;
 }

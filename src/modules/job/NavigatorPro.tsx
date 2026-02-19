@@ -25,6 +25,9 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
     const [sort, setSort] = useState<'date' | 'match'>('date');
 
 
+
+
+
     useEffect(() => {
         loadFeedWithCache();
     }, []);
@@ -211,23 +214,11 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
 
     const displayFeed = getProcessedFeed();
 
-    const headerActions = (
-        <button
-            onClick={loadFeed}
-            disabled={loading}
-            className="p-3 bg-white dark:bg-neutral-800 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm transition-all disabled:opacity-50 shrink-0"
-        >
-            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-        </button>
-    );
+
 
     return (
         <PageLayout
-            title="Job Feed"
-            description="Live updates from City of Toronto & TTC. We specifically track student and co-op opportunities for you."
-            icon={<Zap />}
             themeColor="indigo"
-            actions={headerActions}
         >
             {/* Filters Row */}
             <div className="flex items-center gap-3 mb-10 overflow-x-auto pb-2 scrollbar-hide">
@@ -273,6 +264,17 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
                 >
                     <Zap className={`w-4 h-4 ${filterClosingSoon ? 'text-orange-200' : 'text-neutral-400'}`} />
                     Closing Soon
+                </button>
+
+                <div className="flex-1" />
+
+                <button
+                    onClick={loadFeed}
+                    disabled={loading}
+                    className="p-2.5 bg-white dark:bg-neutral-800 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm transition-all disabled:opacity-50 shrink-0"
+                    title="Refresh Feed"
+                >
+                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 </button>
             </div>
 

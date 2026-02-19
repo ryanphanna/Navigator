@@ -20,31 +20,31 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ limitInfo, onClose, 
 
     const PLAN_FEATURES = [
         {
-            name: 'Free',
+            name: 'Explorer',
             price: '$0',
-            description: 'Core job search tools',
+            description: 'Try Navigator for free',
             features: [
-                '3 Job Analyses / day',
+                '3 Job Analyses (lifetime)',
                 'Basic AI Model (Gemini Flash)',
-                '1 Cover Letter Generation',
-                'Manual Refinements',
-                'Standard Priority'
+                'Cover Letter Generation',
+                'Application Tracker',
+                'Match Quality Ratings'
             ],
-            cta: userTier === 'free' ? 'Current Plan' : 'Free Plan',
+            cta: userTier === 'free' ? 'Current Plan' : 'Explorer Plan',
             disabled: userTier === 'free',
             premium: false
         },
         {
             name: 'Plus',
-            price: '$5',
+            price: '$19',
             period: '/mo',
             description: 'For the active searcher',
             features: [
-                'Unlimited Job Analyses',
+                '200 Job Analyses / week',
                 '5 Email Job Alerts / day',
-                '3 Auto AI CL Rewrites',
-                'Standard AI (Gemini Flash)',
-                'Standard Priority'
+                '5 Career Mentors',
+                'Pro AI Model (Gemini 2.5 Pro)',
+                'Detailed Match Scores'
             ],
             cta: userTier === 'plus' ? 'Current Plan' : 'Upgrade to Plus',
             disabled: userTier === 'plus',
@@ -53,15 +53,15 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ limitInfo, onClose, 
         },
         {
             name: 'Pro',
-            price: '$12',
+            price: '$29',
             period: '/mo',
             description: 'For the career pivoter',
             features: [
                 'Unlimited Job Analyses',
                 '25 Email Job Alerts / day',
-                '3 Auto AI CL Rewrites',
-                'Pro AI Models (Ultra/1.5 Pro)',
-                'Priority Processing'
+                'Unlimited Career Mentors',
+                'Best AI Model (Gemini 3 Pro)',
+                'Cover Letter Quality Loop'
             ],
             cta: (userTier === 'pro' || userTier === 'admin' || userTier === 'tester') ? 'Current Plan' : 'Upgrade to Pro',
             disabled: (userTier === 'pro' || userTier === 'admin' || userTier === 'tester'),
@@ -96,9 +96,9 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ limitInfo, onClose, 
                             <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 rounded-2xl p-4 mb-8">
                                 <p className="text-sm text-amber-800 dark:text-amber-400 font-medium leading-relaxed">
                                     {limitInfo?.reason === 'free_limit_reached' ? (
-                                        <>You've used your <strong>{limitInfo.limit} daily analyses</strong>. Upgrade to unlock unlimited access and automation.</>
+                                        <>You've used all <strong>{limitInfo.limit} free analyses</strong>. Upgrade to unlock more analyses and premium features.</>
                                     ) : (
-                                        <>You've hit the safety limit for today. Come back tomorrow or upgrade for higher throughput.</>
+                                        <>You've hit your analysis limit for this period. Upgrade for higher limits and the best AI models.</>
                                     )}
                                 </p>
                             </div>
@@ -123,7 +123,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ limitInfo, onClose, 
                             <div className="text-center mb-12">
                                 <h1 className="text-4xl font-black text-neutral-900 dark:text-white mb-4 tracking-tighter">Choose Your Velocity</h1>
                                 <p className="text-sm text-neutral-500 dark:text-neutral-400 font-medium max-w-lg mx-auto leading-relaxed">
-                                    From casual searching to high-stakes career pivoting, there's a Navigator plan built for your path.
+                                    From casual exploring to high-stakes career pivoting, there's a Navigator plan built for your path.
                                 </p>
                             </div>
 
@@ -190,7 +190,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ limitInfo, onClose, 
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <Cpu className="w-5 h-5 text-emerald-500" />
-                                    <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">Advanced AI Integration</span>
+                                    <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">Cancel Anytime</span>
                                 </div>
                             </div>
                         </div>

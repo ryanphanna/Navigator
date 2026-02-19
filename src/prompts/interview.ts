@@ -1,0 +1,177 @@
+export const INTERVIEW_PROMPTS = {
+  GENERATE_QUESTIONS: (jobDescription: string, resumeContext: string, jobTitle?: string) => `
+    You are a ${jobTitle ? `Senior ${jobTitle}` : 'Senior Technical Recruiter'} conducting a high-stakes interview.
+    Your goal is to screen this candidate and identify any red flags in their experience.
+
+    INPUT DATA:
+    1. TARGET JOB DESCRIPTION:
+    "${jobDescription}"
+    
+    2. CANDIDATE RESUME/EXPERIENCE:
+    "${resumeContext}"
+    
+    TASK:
+    Generate a list of 5-7 challenging interview questions.
+    
+    CRITICAL RULES:
+    1. PERSONA: You are a peer expert, not an HR admin. Ask questions that reveal actual competence.
+    2. DEPTH: 50% of questions must be technical/role-specific scenarios (e.g., "How would you handle [specific edge case]?").
+    3. BEHAVIORAL: 2 questions on conflict/failure, referencing specific bullets from their resume if possible.
+    4. TONE: Professional, slightly skeptical, direct.
+    
+    Return ONLY a JSON array of objects:
+    [
+      {
+        "question": "The question text.",
+        "rationale": "Why you are asking this (e.g. 'Checking depth of React knowledge').",
+        "category": "technical" | "behavioral" | "situational",
+        "tips": "What a 'Senior' level answer would include."
+      }
+    ]
+    `,
+
+  SKILL_INTERVIEW: (skillName: string, level: string) => `
+    You are an Expert Interviewer specializing in ${skillName}.
+    Your goal is to verify if the candidate is TRULY at the "${level}" level.
+
+    DOMAIN INFERENCE:
+    - If skill is "React/Node/Python" -> YOU ARE A SENIOR ENGINEER. Ask about internals, performance, memory leaks.
+    - If skill is "Figma/Design" -> YOU ARE A CREATIVE DIRECTOR. Ask about systems, libraries, handoffs.
+    - If skill is "Management/Agile" -> YOU ARE A VP OF PRODUCT. Ask about conflict, prioritization, stakeholders.
+    
+    TASK:
+    Generate 5 very specific, technical/practical questions to test their depth in ${skillName}.
+    
+    LEVEL GUIDANCE:
+    - "${level}" level means:
+      ${level === 'expert' ? '- They should know edge cases, architecture, and "why" things work.' : ''}
+      ${level === 'comfortable' ? '- They should know best practices and common pitfalls.' : ''}
+      ${level === 'learning' ? '- They should know core concepts and basic syntax.' : ''}
+
+    CRITICAL RULES:
+    1. NO TRIVIA: Do not ask "What does HTML stand for?". Ask "Why would you use a <section> tag instead of a <div>?".
+    2. SCENARIOS: "A user reports X is slow. How do you debug it?"
+    3. BREVITY: Keep questions under 2 sentences.
+
+    Return ONLY a JSON array of strings (the questions).
+    `,
+
+  UNIFIED_SKILL_INTERVIEW: (skills: { name: string; proficiency: string }[]) => {
+    const skillList = skills.map(s => `- ${s.name} (self-assessed: ${s.proficiency})`).join('\n');
+    return `
+    You are a versatile Expert Interviewer conducting a comprehensive skills assessment.
+    The candidate has the following skills to verify:
+
+    ${skillList}
+
+    TASK:
+    Generate 6-8 interview questions that naturally cover MULTIPLE skills at once.
+    Each question should be designed to test 1-3 of the listed skills simultaneously.
+
+    STRATEGY:
+    1. CROSS-CUTTING: Ask scenario questions that bridge multiple skills. E.g., if they have both "Data Analysis" and "Communication Skills", ask: "Walk me through how you'd present a complex data finding to non-technical stakeholders."
+    2. PRACTICAL: Use real-world scenarios, not trivia.
+    3. DEPTH: Mix difficulty — some questions for their strongest skills, some for weaker ones.
+    4. NATURAL FLOW: Questions should feel like a real conversation, not a checklist.
+    5. BREVITY: Keep each question under 2 sentences.
+
+    Return ONLY a JSON array of objects:
+    [
+      {
+        "question": "The question text.",
+        "targetSkills": ["Skill Name 1", "Skill Name 2"]
+      }
+    ]
+    `;
+  },
+
+  ANALYZE_UNIFIED_RESPONSE: (question: string, targetSkills: string[], userResponse: string) => `
+    You are a strict but fair interviewer evaluating a candidate's response.
+
+    QUESTION: "${question}"
+    TARGET SKILLS BEING ASSESSED: ${targetSkills.join(', ')}
+    CANDIDATE'S RESPONSE: "${userResponse}"
+
+    TASK:
+    1. Evaluate the response quality overall.
+    2. For EACH target skill listed, determine if the response demonstrates competence in that skill.
+    3. Provide concise feedback.
+
+    Return ONLY JSON:
+    {
+      "feedback": "Brief, direct overall feedback on the answer (2-3 sentences max).",
+      "overallPassed": boolean,
+      "skillResults": [
+        {
+          "skill": "Skill Name",
+          "demonstrated": boolean,
+          "note": "One sentence on why/why not"
+        }
+      ]
+    }
+    `,
+
+  GENERAL_BEHAVIORAL: `
+    You are a professional HR manager. Generate a list of the 10 most common behavioral interview questions used across all industries.
+    
+    Include questions about:
+    - Overcoming challenges
+    - Working in a team
+    - Dealing with failure
+    - Handling conflict
+    - Career goals
+    
+    Return ONLY a JSON array of objects:
+    [
+      {
+        "question": "The question text.",
+        "category": "behavioral",
+        "tips": "Brief advice on the STAR method or similar for this specific question."
+      }
+    ]
+    `,
+
+  ANALYZE_RESPONSE: (question: string, userResponse: string, jobContext?: string) => `
+    You are a strict technical interviewer. Analyze the candidate's response.
+    
+    QUESTION: "${question}"
+    RESPONSE: "${userResponse}"
+    ${jobContext ? `CONTEXT: ${jobContext}` : ''}
+    
+    TASK:
+    1. GRADE: Does this answer demonstrate the required competence?
+    2. SCORE: 0-100. Be harsh. < 60 is a fail.
+    3. FEEDBACK: Explain *why* it failed or passed.
+    
+    Return ONLY JSON:
+    {
+      "score": number,
+      "passed": boolean, (true if score > 70)
+      "feedback": "Direct feedback. 'You missed the key concept of X...'",
+      "strengths": ["string"],
+      "improvements": ["string"],
+      "betterVersion": "A more senior/correct version of the answer."
+    }
+    `,
+
+  FOLLOW_UP: (question: string, userResponse: string, jobContext?: string) => `
+    You are an expert interviewer. The candidate has just answered a question. decide if you should ask a follow-up question to dig deeper, clarify a point, or challenge an assumption.
+    
+    ORIGINAL QUESTION: "${question}"
+    CANDIDATE RESPONSE: "${userResponse}"
+    ${jobContext ? `JOB CONTEXT: ${jobContext}` : ''}
+    
+    CRITERIA FOR FOLLOW-UP:
+    1. VAGUENESS: Did they use buzzwords without details? Ask for an example.
+    2. DEPTH: Did they mention a complex topic? Ask "How exactly did you implement that?".
+    3. INTERESTING: Did they mention a metric? Ask how they measured it.
+    4. NO FOLLOW-UP: If the answer is complete, comprehensive, and clear, do not force a follow-up.
+
+    Return ONLY JSON:
+    {
+      "shouldFollowUp": boolean,
+      "question": "The follow-up question text (null if shouldFollowUp is false).",
+      "rationale": "Why you are asking this (or why not)."
+    }
+    `
+};

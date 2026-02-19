@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.15.1] - 2026-02-19
+
+### Fixed
+- **Stability**: Fixed a build error causing Vercel deployment failures by correcting deprecated `variant="default"` props on `Card` components.
+- **Documentation**: Updated `README.md` to reflect recent feature additions (Interview Advisor) and removed outdated API key instructions.
+
 ## [2.15.0] - 2026-02-19
 
 ### Added

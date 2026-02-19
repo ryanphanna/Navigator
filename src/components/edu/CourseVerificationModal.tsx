@@ -62,65 +62,60 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg border border-neutral-100 dark:border-neutral-700">
-                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Student Name</label>
+                <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-neutral-50/30 dark:bg-neutral-900">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div className="p-4 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm">
+                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-2">Student Name</label>
                             <input
                                 type="text"
                                 value={editableTranscript.studentName || ''}
                                 onChange={(e) => setEditableTranscript({ ...editableTranscript, studentName: e.target.value })}
-                                className="w-full bg-transparent border-none p-0 text-sm font-semibold focus:ring-0"
+                                className="w-full bg-transparent border-b border-neutral-200 dark:border-neutral-700 focus:border-indigo-500 p-1 text-sm font-semibold focus:ring-0 transition-colors"
+                                placeholder="Student Name"
                             />
                         </div>
-                        <div className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg border border-neutral-100 dark:border-neutral-700">
-                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">University</label>
+                        <div className="p-4 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm">
+                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-2">University</label>
                             <input
                                 type="text"
                                 value={editableTranscript.university || ''}
                                 onChange={(e) => setEditableTranscript({ ...editableTranscript, university: e.target.value })}
-                                className="w-full bg-transparent border-none p-0 text-sm font-semibold focus:ring-0"
-                            />
-                        </div>
-                        <div className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg border border-neutral-100 dark:border-neutral-700">
-                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Stated cGPA</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={editableTranscript.cgpa || ''}
-                                onChange={(e) => setEditableTranscript({ ...editableTranscript, cgpa: parseFloat(e.target.value) })}
-                                className="w-full bg-transparent border-none p-0 text-sm font-semibold focus:ring-0"
+                                className="w-full bg-transparent border-b border-neutral-200 dark:border-neutral-700 focus:border-indigo-500 p-1 text-sm font-semibold focus:ring-0 transition-colors"
+                                placeholder="University Name"
                             />
                         </div>
                     </div>
 
                     {editableTranscript.semesters.map((sem, sIdx) => (
-                        <div key={sIdx} className="space-y-3">
-                            <div className="flex items-center justify-between pb-2 border-b border-neutral-100 dark:border-neutral-800">
-                                <h3 className="font-bold text-neutral-800 dark:text-neutral-200">{sem.term} {sem.year}</h3>
+                        <div key={sIdx} className="space-y-4 bg-white dark:bg-neutral-800 p-5 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm">
+                            <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-700">
+                                <h3 className="font-bold text-neutral-800 dark:text-neutral-200 text-lg">{sem.term} {sem.year}</h3>
                                 <button
                                     onClick={() => addCourse(sIdx)}
-                                    className="text-xs flex items-center gap-1 text-indigo-600 hover:text-indigo-700 font-medium"
+                                    className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 font-medium transition-colors"
                                 >
-                                    <Plus className="w-3 h-3" /> Add Course
+                                    <Plus className="w-3.5 h-3.5" /> Add Course
                                 </button>
                             </div>
-                            <div className="grid grid-cols-12 gap-3 text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-2">
+
+                            <div className="grid grid-cols-12 gap-4 text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-3">
                                 <div className="col-span-2">Code</div>
                                 <div className="col-span-6">Title</div>
                                 <div className="col-span-2 text-center">Grade</div>
                                 <div className="col-span-1 text-center">Cred</div>
                                 <div className="col-span-1"></div>
                             </div>
+
                             <div className="space-y-2">
                                 {sem.courses.map((course, cIdx) => (
-                                    <div key={cIdx} className="grid grid-cols-12 gap-3 items-center bg-neutral-50 dark:bg-neutral-800/30 p-2 rounded-lg group transition-all hover:bg-neutral-100 dark:hover:bg-neutral-800/50">
+                                    <div key={cIdx} className="grid grid-cols-12 gap-4 items-center bg-neutral-50 dark:bg-neutral-800/50 p-3 rounded-xl border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700 group transition-all">
                                         <div className="col-span-2">
                                             <input
                                                 type="text"
                                                 value={course.code}
                                                 onChange={(e) => handleCourseChange(sIdx, cIdx, 'code', e.target.value)}
-                                                className="w-full bg-transparent border-none p-0 text-xs font-medium focus:ring-0"
+                                                className="w-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1 text-xs font-semibold focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                                                placeholder="Code"
                                             />
                                         </div>
                                         <div className="col-span-6">
@@ -128,7 +123,8 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                                                 type="text"
                                                 value={course.title}
                                                 onChange={(e) => handleCourseChange(sIdx, cIdx, 'title', e.target.value)}
-                                                className="w-full bg-transparent border-none p-0 text-xs focus:ring-0"
+                                                className="w-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                                                placeholder="Course Title"
                                             />
                                         </div>
                                         <div className="col-span-2">
@@ -136,22 +132,23 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                                                 type="text"
                                                 value={course.grade}
                                                 onChange={(e) => handleCourseChange(sIdx, cIdx, 'grade', e.target.value)}
-                                                className="w-full bg-transparent border-none p-0 text-xs font-bold text-center focus:ring-0"
+                                                className="w-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1 text-xs font-bold text-center focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                                                placeholder="-"
                                             />
                                         </div>
-                                        <div className="col-span-1 text-center text-xs">
+                                        <div className="col-span-1">
                                             <input
                                                 type="number"
                                                 step="0.1"
                                                 value={course.credits}
                                                 onChange={(e) => handleCourseChange(sIdx, cIdx, 'credits', parseFloat(e.target.value))}
-                                                className="w-full bg-transparent border-none p-0 text-xs text-center focus:ring-0"
+                                                className="w-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded px-2 py-1 text-xs text-center focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                                             />
                                         </div>
                                         <div className="col-span-1 flex justify-end">
                                             <button
                                                 onClick={() => removeCourse(sIdx, cIdx)}
-                                                className="p-1.5 text-neutral-300 hover:text-red-500 rounded transition-colors"
+                                                className="p-1.5 text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                             </button>
@@ -167,7 +164,7 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                 <div className="p-6 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/50 dark:bg-neutral-800/50">
                     <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-500 font-medium">
                         <AlertCircle className="w-4 h-4" />
-                        Changes will be saved to your local vault.
+                        Changes will be saved to your secure Navigator Vault.
                     </div>
                     <div className="flex items-center gap-3">
                         <button

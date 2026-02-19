@@ -25,7 +25,7 @@ export const PARSING_PROMPTS = {
     
     CRITICAL INSTRUCTIONS:
     1. Look for lists of jobs, tables, or repeated "card" elements.
-    2. For TTC/SAP sites, jobs might be in a "current opportunities" section or a search results table.
+    2. Identify the structure of the specific jobs site (e.g. search results table, grid labels).
     3. Tables often have "Job Title", "Date", "Location" columns.
     4. If you see a "Search Jobs" button but NO results, return an empty array (do not hallucinate).
     5. Extract the REAL link (href). Resolving relative URLs against "${baseUrl}".
@@ -37,8 +37,8 @@ export const PARSING_PROMPTS = {
       {
         "title": "string (The clear job title)",
         "url": "string (The absolute URL to the specific job details)",
-        "company": "string (Default to 'TTC' if not found)",
-        "location": "string (Toronto)",
+        "company": "string (Name of the employer)",
+        "location": "string (City, Prov/State)",
         "postedDate": "string (ISO date or 'Recently')"
       }
     ]
@@ -92,7 +92,8 @@ export const PARSING_PROMPTS = {
     If this is NOT a transcript (e.g. receipt, essay, random text), return a JSON object with { "error": "Invalid Document Type" }.
 
     TASK:
-    1. Extract Student Info (Name, University, Program).
+    1. Extract Student Info (Name, University, Program). 
+       CRITICAL: Do NOT guess or infer the university or program. If it is not explicitly stated in the document, return null or an empty string. Never default to Stanford or any other institution.
     2. Extract Cumulative GPA (CGPA) if explicitly stated.
     3. Group courses by Semester (Term/Year).
     4. For each course, extract Code, Title, Grade, and Credits.

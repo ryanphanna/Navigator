@@ -1,53 +1,92 @@
 import React from 'react';
-import { Sparkles } from 'lucide-react';
-import type { CustomSkill, ResumeProfile } from '../../types';
+import { Sparkles, Plus, ShieldCheck, TrendingUp } from 'lucide-react';
+import type { CustomSkill } from '../../types';
+import { BentoCard } from '../ui/BentoCard';
+import { FEATURE_COLORS } from '../../featureRegistry';
 
 interface SkillsStatsProps {
     skills: CustomSkill[];
-    resumes: ResumeProfile[];
     onSuggestSkills: () => void;
     isSuggesting: boolean;
+    onAddSkill: () => void;
+    onVerifySkills?: () => void;
+    unverifiedCount?: number;
 }
 
-export const SkillsStats: React.FC<SkillsStatsProps> = ({ skills, resumes, onSuggestSkills, isSuggesting }) => {
+export const SkillsStats: React.FC<SkillsStatsProps> = ({
+    skills,
+    onSuggestSkills,
+    isSuggesting,
+    onAddSkill,
+    onVerifySkills,
+    unverifiedCount = 0
+}) => {
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-            <div className="bg-white dark:bg-neutral-900 p-6 rounded-[2rem] border border-neutral-200 dark:border-neutral-800 shadow-sm">
-                <div className="text-3xl font-black text-indigo-600">{skills.length}</div>
-                <div className="text-xs font-bold text-neutral-400 uppercase tracking-widest mt-1">Total Skills</div>
-            </div>
-            <div className="bg-white dark:bg-neutral-900 p-6 rounded-[2rem] border border-neutral-200 dark:border-neutral-800 shadow-sm">
-                <div className="text-3xl font-black text-emerald-500">
-                    {skills.filter(s => s.proficiency === 'expert').length}
-                </div>
-                <div className="text-xs font-bold text-neutral-400 uppercase tracking-widest mt-1">Expert Level</div>
-            </div>
-            <div className="bg-violet-50/50 dark:bg-violet-500/5 backdrop-blur-xl p-6 rounded-[2rem] border border-violet-500/10 dark:border-violet-500/20 shadow-sm flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
-                <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-1">
-                        <Sparkles className="w-4 h-4 text-violet-600 dark:text-violet-400" />
-                        <span className="text-xs font-bold uppercase tracking-widest text-violet-600 dark:text-violet-400">Skill Discovery</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            {/* Stat: Skill Analytics */}
+            <BentoCard
+                id="skill-stats"
+                icon={TrendingUp}
+                title="Skill Analytics"
+                description="Your current proficiency and tracking overview."
+                color={FEATURE_COLORS.indigo}
+                className="theme-job"
+                previewContent={
+                    <div className="flex items-end gap-6 h-full pb-2">
+                        <div className="flex flex-col items-center">
+                            <div className="text-4xl font-black text-white tracking-tighter leading-none hover:scale-110 transition-transform duration-300">{skills.length}</div>
+                            <div className="text-[8px] uppercase tracking-widest font-black text-white/50 mt-2">Total</div>
+                        </div>
+                        <div className="w-px h-8 bg-white/10" />
+                        <div className="flex flex-col items-center">
+                            <div className="text-4xl font-black text-amber-400 tracking-tighter leading-none hover:scale-110 transition-transform duration-300">
+                                {skills.filter(s => s.proficiency === 'expert').length}
+                            </div>
+                            <div className="text-[8px] uppercase tracking-widest font-black text-white/50 mt-2">Expert</div>
+                        </div>
                     </div>
-                    <p className="text-sm font-medium leading-snug mb-4 text-neutral-600 dark:text-neutral-300">
-                        Let AI find missing skills from your resumes.
-                    </p>
-                </div>
-                <button
-                    onClick={onSuggestSkills}
-                    disabled={isSuggesting || resumes.length === 0}
-                    className="relative z-10 bg-violet-600 hover:bg-violet-500 active:scale-95 transition-all text-xs font-black uppercase tracking-widest py-3 px-4 rounded-xl text-white flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                    {isSuggesting ? (
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                        <>
-                            <Sparkles className="w-3.5 h-3.5" />
-                            Find Skills
-                        </>
-                    )}
-                </button>
-            </div>
+                }
+            />
+
+            {/* Action: Add Skill */}
+            <BentoCard
+                id="add-skill"
+                icon={Plus}
+                title="Add Skill"
+                description="Manually add a new skill to track."
+                onAction={onAddSkill}
+                actionLabel="Add New"
+                className="theme-coach"
+            />
+
+            {/* Action: Verify Skills (Conditional) */}
+            {unverifiedCount > 0 && (
+                <BentoCard
+                    id="verify-skills"
+                    icon={ShieldCheck}
+                    title="Verify Skills"
+                    description={`Verify ${unverifiedCount} skills with AI.`}
+                    onAction={onVerifySkills}
+                    actionLabel="Start Proof"
+                    className="theme-job"
+                />
+            )}
+
+            {/* Action: Skill Discovery */}
+            <BentoCard
+                id="skill-discovery"
+                icon={Sparkles}
+                title="Skill Discovery"
+                description="Find skills from your resumes."
+                onAction={onSuggestSkills}
+                actionLabel={isSuggesting ? "Finding..." : "Discover"}
+                className="theme-edu"
+                previewContent={
+                    <div className="relative w-full h-full flex items-center justify-center">
+                        <Sparkles className={`w-8 h-8 text-amber-500 ${isSuggesting ? 'animate-pulse' : ''}`} />
+                    </div>
+                }
+            />
         </div>
     );
 };

@@ -1,0 +1,59 @@
+import { supabase } from './supabase';
+import { FunctionsHttpError } from '@supabase/supabase-js';
+
+export const paymentService = {
+    async createCheckoutSession(priceId: string, returnUrl?: string): Promise<{ url: string }> {
+        // Use getUser() to force a server-side token validation & refresh
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+            throw new Error('User not authenticated');
+        }
+
+        // Get fresh session with valid access token
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+            throw new Error('User not authenticated');
+        }
+
+        const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+            body: { priceId, returnUrl }
+        });
+
+
+        if (error) {
+            console.error('[PaymentService] Edge function error:', error);
+
+            // Extract detailed error from FunctionsHttpError response body
+            if (error instanceof FunctionsHttpError) {
+                try {
+                    const errorBody = await error.context.json();
+                    console.error('[PaymentService] Error body:', errorBody);
+                    const message = errorBody?.details || errorBody?.error || errorBody?.message || errorBody?.msg || error.message;
+                    throw new Error(message);
+                } catch (parseErr) {
+                    // If we can't parse the body, use the raw message
+                    if (parseErr instanceof Error && parseErr.message !== error.message) {
+                        throw parseErr;
+                    }
+                }
+            }
+
+            throw new Error(error.message || 'Checkout failed');
+        }
+
+
+
+        if (!data?.url) {
+            throw new Error('No checkout URL returned from server');
+        }
+
+        return data;
+    },
+
+
+    async getPortalUrl(): Promise<string> {
+        // TODO: Implement portal session creation similarly
+        return '';
+    }
+};

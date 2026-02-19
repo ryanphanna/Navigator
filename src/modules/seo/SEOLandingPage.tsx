@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { CanonicalService } from '../../services/seo/canonicalService';
 import { SEO_BUCKETS } from '../../services/seo/seo-data';
 import { ArrowRight, CheckCircle2, Star, TrendingUp, AlertTriangle, Briefcase } from 'lucide-react';
 import { ROUTES } from '../../constants';
+import { SEO } from '../../components/common/SEO';
 
 export const SEOLandingPage: React.FC = () => {
     const { role } = useParams<{ role: string }>();
@@ -16,24 +17,18 @@ export const SEOLandingPage: React.FC = () => {
     // We use the *specific* query for the H1, but the *bucket* content for advice.
     const displayTitle = originalQuery || 'Professional';
 
-    useEffect(() => {
-        // Update document title for SEO
-        document.title = `Best ${displayTitle} Resume Keywords & Skills (2025 Guide) - Navigator`;
-
-        // Dynamic Meta Description
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) {
-            metaDesc.setAttribute('content', `Build a tailored ${displayTitle} resume. ${bucket.description}`);
-        }
-    }, [displayTitle, bucket]);
-
     const handleStartBuilding = () => {
         // Redirect to home with pre-filled job title context
-        navigate(`/?job=${encodeURIComponent(displayTitle)}`);
+        navigate(`/jobs?job=${encodeURIComponent(displayTitle)}`);
     };
 
     return (
         <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 pt-20 pb-20 px-4 sm:px-6 lg:px-8">
+            <SEO
+                title={`Best ${displayTitle} Resume Keywords & Skills (2025 Guide)`}
+                description={`Build a tailored ${displayTitle} resume. ${bucket.description}`}
+                canonical={`/resume-for/${role || 'general'}`}
+            />
             <div className="max-w-5xl mx-auto space-y-16">
 
                 {/* Hero Section */}

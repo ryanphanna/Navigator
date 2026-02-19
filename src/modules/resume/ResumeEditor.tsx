@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ResumeProfile, ExperienceBlock, CustomSkill } from '../../types';
-import { Upload, Loader2, Plus, Trash2, Briefcase, GraduationCap, Code, Layers, Calendar, Building2, UserCircle } from 'lucide-react';
-import { PageLayout } from '../../components/common/PageLayout';
+import { Upload, Loader2, Plus, Trash2, Briefcase, GraduationCap, Code, Layers, Calendar, Building2, UserCircle, FileText, Zap, Sparkles } from 'lucide-react';
+import { TRACKING_EVENTS } from '../../constants';
+import { SharedPageLayout } from '../../components/common/SharedPageLayout';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { Card } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { BentoCard } from '../../components/ui/BentoCard';
 import { EventService } from '../../services/eventService';
 
 interface ResumeEditorProps {
@@ -49,7 +54,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
             const updatedProfile = { ...initialResume, blocks };
             onSave([updatedProfile]);
             // Track usage of resume builder
-            EventService.trackUsage('resumes');
+            EventService.trackUsage(TRACKING_EVENTS.RESUMES);
         }, 500);
         return () => clearTimeout(handler);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,24 +132,47 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
     const showEmptyState = blocks.length === 0 && !hasStartedManually && !isParsing;
 
     const headerActions = (
-        <button
+        <Button
             onClick={() => fileInputRef.current?.click()}
             disabled={isParsing}
-            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-70 disabled:cursor-wait"
+            variant="accent"
+            icon={isParsing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
         >
-            {isParsing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
             {isParsing ? 'Parsing...' : 'Import Resume'}
-        </button>
+        </Button>
     );
 
+    if (isParsing) {
+        return (
+            <SharedPageLayout>
+                <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 animate-in fade-in zoom-in-95 duration-700">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full animate-pulse" />
+                        <Card variant="glass" className="relative p-8 rounded-[3rem] shadow-2xl border-indigo-100 dark:border-neutral-800">
+                            <Loader2 className="w-16 h-16 text-indigo-600 animate-spin" />
+                        </Card>
+                    </div>
+                    <div className="text-center space-y-4">
+                        <h2 className="text-4xl font-black text-neutral-900 dark:text-white tracking-tight">
+                            Analyzing your history...
+                        </h2>
+                        <p className="text-lg text-neutral-500 dark:text-neutral-400 font-medium max-w-sm mx-auto leading-relaxed">
+                            Our AI is extracting your achievements and mapping your professional impact.
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3 px-6 py-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
+                        <Sparkles className="w-5 h-5 text-indigo-500 animate-bounce" />
+                        <span className="text-sm font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+                            Intelligence Engine active
+                        </span>
+                    </div>
+                </div>
+            </SharedPageLayout>
+        );
+    }
+
     return (
-        <PageLayout
-            title="Resume"
-            description="Manage your experience blocks. We assemble these into your final resume."
-            icon={<Briefcase />}
-            themeColor="indigo"
-            actions={headerActions}
-        >
+        <SharedPageLayout>
             <input
                 type="file"
                 ref={fileInputRef}
@@ -153,55 +181,110 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                 className="hidden"
             />
 
+            <PageHeader
+                title="Resume Editor"
+                subtitle="Craft your professional story"
+                variant="simple"
+                actions={!showEmptyState ? headerActions : undefined}
+            />
+
             {showEmptyState ? (
-                <div className="max-w-2xl mx-auto mt-8 text-center space-y-8 animate-in zoom-in-95 duration-500">
-                    <div className="space-y-4">
-                        <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-indigo-100">
-                            <Briefcase className="w-10 h-10 text-indigo-600" />
+                <div className="animate-in zoom-in-95 duration-500 overflow-hidden relative min-h-[calc(100vh-12rem)]">
+                    {/* Ambient Background Glows */}
+                    <div className="absolute top-1/4 -left-24 w-96 h-96 bg-indigo-500/10 blur-[150px] rounded-full" />
+                    <div className="absolute bottom-1/4 -right-24 w-96 h-96 bg-emerald-500/10 blur-[150px] rounded-full" />
+
+                    <div className="relative z-10 max-w-7xl mx-auto">
+                        {importError && (
+                            <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 text-indigo-600 rounded-xl text-sm animate-in slide-in-from-top-2 font-medium">
+                                {importError}
+                            </div>
+                        )}
+
+                        {/* 3-Card Layout: Process Flow */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+                            <BentoCard
+                                id="foundation"
+                                icon={FileText}
+                                title="Foundation"
+                                description="Start with your current resume. Our smart importer handles the heavy lifting, turning your history into a dynamic professional baseline."
+                                previewContent={
+                                    <ul className="space-y-3 pt-4">
+                                        {['Smart File Import', 'Automatic Cleanup', 'Privacy-First Engine'].map((item) => (
+                                            <li key={item} className="flex items-center gap-3 text-xs font-bold text-neutral-400">
+                                                <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                }
+                            />
+
+                            <BentoCard
+                                id="intelligence"
+                                icon={Zap}
+                                title="Intelligence"
+                                description="We go beyond keywords to understand your true impact. AI deconstructs your wins to highlight your potential for any role."
+                                previewContent={
+                                    <ul className="space-y-3 pt-4">
+                                        {['Achievement Analysis', 'Skill Discovery', 'Career Alignment'].map((item) => (
+                                            <li key={item} className="flex items-center gap-3 text-xs font-bold text-neutral-400">
+                                                <div className="w-1 h-1 rounded-full bg-indigo-500" />
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                }
+                            />
+
+                            <Card variant="glass" className="flex flex-col p-8 md:p-10 h-full">
+                                <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-indigo-600/5 blur-[80px] group-hover:bg-indigo-600/20 transition-all duration-700" />
+                                <div className="relative z-10 flex flex-col h-full space-y-8">
+                                    <div className="p-4 bg-indigo-600 text-white rounded-[1.5rem] w-fit shadow-xl shadow-indigo-500/30 group-hover:scale-110 transition-transform duration-500">
+                                        <Sparkles className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-3xl font-black tracking-tight text-neutral-900 dark:text-white">Upload</h3>
+
+                                    <div className="space-y-4 pt-4">
+                                        <Button
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="w-full justify-between"
+                                            size="lg"
+                                            variant="accent"
+                                            icon={<Upload className="w-6 h-6" />}
+                                        >
+                                            <div className="text-left">
+                                                <div className="text-lg font-black leading-tight">Drop Resume</div>
+                                                <div className="text-[10px] font-black uppercase tracking-widest mt-1 opacity-70">PDF / Image / TXT</div>
+                                            </div>
+                                        </Button>
+
+                                        <Button
+                                            onClick={() => setHasStartedManually(true)}
+                                            className="w-full justify-between"
+                                            size="lg"
+                                            variant="secondary"
+                                            icon={<Plus className="w-5 h-5" />}
+                                        >
+                                            <div className="text-left">
+                                                <div className="text-lg font-black leading-tight">Start Fresh</div>
+                                                <div className="text-[10px] font-black uppercase tracking-widest mt-1 opacity-70">Manual Entry</div>
+                                            </div>
+                                        </Button>
+                                    </div>
+
+                                    <div className="mt-8 pt-8 border-t border-neutral-100 dark:border-neutral-800/50">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 text-center">
+                                            Privacy First: We never train on your data
+                                        </p>
+                                    </div>
+                                </div>
+                            </Card>
                         </div>
-                        <h2 className="text-3xl font-bold text-neutral-900">Let's build your resume</h2>
-                        <p className="text-neutral-500 text-lg max-w-md mx-auto">
-                            Import your existing resume to get a head start, or build one from scratch.
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-lg mx-auto">
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="group relative flex flex-col items-center gap-4 p-8 bg-white border-2 border-neutral-200 hover:border-indigo-600 hover:bg-neutral-50/50 rounded-2xl transition-all duration-300 text-left hover:shadow-xl hover:shadow-indigo-500/10"
-                        >
-                            <div className="p-4 bg-indigo-50 group-hover:bg-indigo-600 rounded-xl transition-colors duration-300">
-                                <Upload className="w-8 h-8 text-indigo-600 group-hover:text-white transition-colors duration-300" />
-                            </div>
-                            <div className="text-center">
-                                <h3 className="text-lg font-bold text-neutral-900 group-hover:text-indigo-700 transition-colors">Import Resume</h3>
-                                <p className="text-sm text-neutral-500 mt-1">Upload PDF or Image</p>
-                            </div>
-                        </button>
-
-                        <button
-                            onClick={() => setHasStartedManually(true)}
-                            className="group relative flex flex-col items-center gap-4 p-8 bg-white border-2 border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50/50 rounded-2xl transition-all duration-300 text-left hover:shadow-lg"
-                        >
-                            <div className="p-4 bg-neutral-100 group-hover:bg-neutral-800 rounded-xl transition-colors duration-300">
-                                <Plus className="w-8 h-8 text-neutral-600 group-hover:text-white transition-colors duration-300" />
-                            </div>
-                            <div className="text-center">
-                                <h3 className="text-lg font-bold text-neutral-900">Start Fresh</h3>
-                                <p className="text-sm text-neutral-500 mt-1">Enter details manually</p>
-                            </div>
-                        </button>
-                    </div>
-
-                    <div className="pt-8 border-t border-neutral-100 mt-8">
-                        <p className="text-xs text-neutral-400">
-                            Works with standard PDF resumes and clear images. Your data stays private.
-                        </p>
                     </div>
                 </div>
             ) : (
                 <>
-
                     {importError && (
                         <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 text-indigo-600 rounded-xl text-sm animate-in slide-in-from-top-2 font-medium">
                             {importError}
@@ -219,23 +302,24 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                         <div className={`p-1.5 rounded-md ${getTypeColor(section.type)} bg-opacity-50`}>
                                             {section.icon}
                                         </div>
-                                        <h2 className="text-lg font-bold text-neutral-900">{section.label}</h2>
-                                        <span className="ml-auto text-xs font-medium text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-full">
+                                        <h2 className="text-lg font-bold text-neutral-900 dark:text-white">{section.label}</h2>
+                                        <span className="ml-auto text-xs font-medium text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full">
                                             {sectionBlocks.length}
                                         </span>
                                     </div>
 
                                     <div className="space-y-4">
                                         {sectionBlocks.map((block) => (
-                                            <div
+                                            <Card
                                                 key={block.id}
-                                                className="group relative bg-white dark:bg-neutral-900 rounded-[2.5rem] border border-neutral-200 dark:border-neutral-800 p-8 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300"
+                                                variant="glass"
+                                                className="group relative p-8 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300"
                                             >
                                                 {/* Top Controls */}
                                                 <div className="flex flex-col gap-6 mb-6">
 
                                                     <div className="flex justify-between items-start">
-                                                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getTypeColor(block.type)}`}>
+                                                        <div className={`px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-[0.2em] border shadow-sm ${getTypeColor(block.type)} transform hover:scale-105 transition-transform cursor-default`}>
                                                             {SECTIONS.find(s => s.type === block.type)?.label || block.type}
                                                         </div>
 
@@ -309,7 +393,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                             <div className="space-y-2">
                                                                 {block.bullets.map((bullet: string, idx: number) => (
                                                                     <div key={idx} className="group/line flex items-start gap-3 relative pl-1">
-                                                                        <span className={`mt-2.5 w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${bullet.trim() ? 'bg-neutral-400' : 'bg-neutral-200'}`} />
+                                                                        <span className={`mt-2.5 w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${bullet.trim() ? 'bg-neutral-400' : 'bg-neutral-200'} `} />
                                                                         <textarea
                                                                             value={bullet}
                                                                             onChange={(e) => updateBullet(block.id, idx, e.target.value)}
@@ -323,7 +407,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                                                     removeBullet(block.id, idx);
                                                                                 }
                                                                             }}
-                                                                            className="w-full text-sm text-neutral-700 leading-relaxed bg-transparent border-b border-transparent hover:border-neutral-100 focus:border-indigo-300 rounded-none px-1 py-1 resize-none overflow-hidden focus:outline-none transition-all placeholder:text-neutral-300"
+                                                                            className="w-full text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed bg-transparent border-b border-transparent hover:border-neutral-100 dark:hover:border-neutral-700 focus:border-indigo-300 rounded-none px-1 py-1 resize-none overflow-hidden focus:outline-none transition-all placeholder:text-neutral-400"
                                                                             placeholder="Add details..."
                                                                             rows={1}
                                                                             ref={(el) => {
@@ -353,12 +437,12 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </Card>
                                         ))}
 
                                         {/* Empty State for Section */}
                                         {sectionBlocks.length === 0 && (
-                                            <div className="text-center py-6 border-2 border-dashed border-neutral-100 rounded-xl">
+                                            <div className="text-center py-6 border-2 border-dashed border-neutral-100 dark:border-neutral-800 rounded-xl">
                                                 <p className="text-xs text-neutral-400 mb-2">No {section.label.toLowerCase()} added yet.</p>
                                             </div>
                                         )}
@@ -366,7 +450,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                         {/* Add Block Button for Section */}
                                         <button
                                             onClick={() => addBlock(section.type)}
-                                            className="w-full py-2 flex items-center justify-center gap-2 text-sm font-medium text-neutral-400 hover:text-indigo-600 border border-transparent hover:border-indigo-100 hover:bg-indigo-50 rounded-lg transition-all border-dashed"
+                                            className="w-full py-2 flex items-center justify-center gap-2 text-sm font-medium text-neutral-400 hover:text-indigo-600 border border-transparent hover:border-indigo-100 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-lg transition-all border-dashed"
                                         >
                                             <Plus className="w-4 h-4" /> Add {section.label}
                                         </button>
@@ -377,7 +461,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                     </div>
                 </>
             )}
-        </PageLayout >
+        </SharedPageLayout>
     );
 };
 

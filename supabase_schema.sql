@@ -20,6 +20,8 @@ create table profiles (
   total_ai_calls int default 0,
   last_analysis_date timestamp with time zone,
   inbound_email_token text unique,
+  stripe_customer_id text, -- Stripe Customer ID
+  stripe_subscription_id text, -- Stripe Subscription ID
   device_id text, -- Browser fingerprint for abuse prevention
   email_verified boolean default false, -- Email verification status
   normalized_email text, -- Stored without +tags for abuse checks
@@ -46,7 +48,15 @@ create table jobs (
   source_type text default 'manual',
   analysis jsonb, -- Stores the Analysis result
   status text default 'new' check (status in ('new', 'saved', 'applied', 'interview', 'offer', 'rejected', 'ghosted', 'feed', 'error')),
+  canonical_role text, -- Added for role farming
   date_added timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- CANONICAL_ROLES: Stores standard job titles and their manually-vetted guidelines
+create table canonical_roles (
+  id text primary key, -- The slug/canonical title (e.g. 'Software Engineer')
+  guidelines jsonb, -- Stores promptAdvice, tailoringFocus, etc.
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 -- FEEDBACK: Stores user feedback on AI responses
@@ -73,6 +83,7 @@ create table daily_usage (
   date date not null default current_date,
   request_count int not null default 0,
   token_count int not null default 0,
+  analysis_count int not null default 0, -- Track analyses separately for periodic limits
   primary key (user_id, date)
 );
 
@@ -156,6 +167,12 @@ create policy "Users can manage own role models" on role_models for all using (a
 
 -- Target Jobs Policies
 create policy "Users can manage own target jobs" on target_jobs for all using (auth.uid() = user_id);
+
+-- Canonical Roles Policies
+create policy "Anyone can view canonical roles" on canonical_roles for select using (true);
+create policy "Admins can manage canonical roles" on canonical_roles for all using (
+  exists (select 1 from profiles where id = auth.uid() and is_admin = true)
+);
 
 -- Feedback Policies
 create policy "Users can insert own feedback" on feedback for insert with check (auth.uid() = user_id);
@@ -277,7 +294,8 @@ CREATE INDEX IF NOT EXISTS idx_user_skills_name ON user_skills(name);
 CREATE INDEX IF NOT EXISTS idx_user_skills_proficiency ON user_skills(proficiency);
 
 -- Function to check if user can create a new analysis
-CREATE OR REPLACE FUNCTION check_analysis_limit(p_user_id UUID)
+-- Supports both active (browser/manual) and passive (email) limiting
+CREATE OR REPLACE FUNCTION check_analysis_limit(p_user_id UUID, p_source_type TEXT DEFAULT 'manual')
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -286,48 +304,186 @@ AS $$
 DECLARE
   v_tier TEXT;
   v_count INT;
-  v_today_count INT;
+  v_today_inbound_jobs_count INT;
+  v_today_email_count INT;
   v_is_admin BOOLEAN;
   v_is_tester BOOLEAN;
+  
+  -- Limits
+  v_inbound_email_limit INT;
+  v_inbound_job_limit INT;
+  v_total_job_limit INT;
 BEGIN
   -- Get user details
-  SELECT subscription_tier, job_analyses_count, is_admin, is_tester
-  INTO v_tier, v_count, v_is_admin, v_is_tester
+  SELECT subscription_tier, job_analyses_count, is_admin, is_tester, email_verified
+  INTO v_tier, v_count, v_is_admin, v_is_tester, v_email_verified
   FROM profiles
   WHERE id = p_user_id;
 
-  -- Admin/Tester/Pro: High limit (100/day)
-  IF v_is_admin OR v_is_tester OR v_tier = 'pro' THEN
-    SELECT COUNT(*)
-    INTO v_today_count
-    FROM jobs
-    WHERE user_id = p_user_id
-    AND date_added::date = CURRENT_DATE;
+  -- Resolve Tier Limits
+  IF v_is_admin OR v_is_tester THEN
+    v_inbound_email_limit := 100;
+    v_inbound_job_limit := 500;
+    v_total_job_limit := 1000000;
+  ELSIF v_tier = 'pro' THEN
+    v_inbound_email_limit := 100;
+    v_inbound_job_limit := 500;
+    v_total_job_limit := 500; -- Daily limit (Human-unlimited safety cap)
+  ELSIF v_tier = 'plus' THEN
+    v_inbound_email_limit := 10;
+    v_inbound_job_limit := 25;
+    v_total_job_limit := 200; -- Weekly limit
+  ELSE -- Free
+    v_inbound_email_limit := 0;
+    v_inbound_job_limit := 0;
+    v_total_job_limit := 3; -- Lifetime limit
+  END IF;
 
-    IF v_today_count >= 100 THEN
+  -- 0. Email Verification Gate (Highly Recommended for Public Beta)
+  IF NOT v_is_admin AND NOT v_is_tester AND NOT v_email_verified THEN
+    RETURN jsonb_build_object(
+      'allowed', false,
+      'reason', 'email_unverified',
+      'message', 'Please verify your email address to use AI credits.'
+    );
+  END IF;
+
+  -- 1. Anti-Abuse: Cross-Account Checks (Free Tier only)
+  IF v_tier = 'free' THEN
+    DECLARE
+      v_abuse_owner_id UUID;
+      v_normalized_email TEXT;
+      v_device_id TEXT;
+    BEGIN
+      -- Get current user's identifiers
+      SELECT normalized_email, device_id INTO v_normalized_email, v_device_id
+      FROM profiles WHERE id = p_user_id;
+
+      -- A. Check Device Fingerprint
+      SELECT id INTO v_abuse_owner_id
+      FROM profiles
+      WHERE device_id = v_device_id
+      AND id != p_user_id
+      AND job_analyses_count >= v_total_job_limit
+      LIMIT 1;
+
+      IF v_abuse_owner_id IS NOT NULL THEN
+        RETURN jsonb_build_object(
+          'allowed', false,
+          'reason', 'device_limit_reached',
+          'message', 'A different account on this device has already used the free credits.'
+        );
+      END IF;
+
+      -- B. Check Normalized Email (Gmail dots/plus abuse)
+      SELECT id INTO v_abuse_owner_id
+      FROM profiles
+      WHERE normalized_email = v_normalized_email
+      AND id != p_user_id
+      AND job_analyses_count >= v_total_job_limit
+      LIMIT 1;
+
+      IF v_abuse_owner_id IS NOT NULL THEN
+        RETURN jsonb_build_object(
+          'allowed', false,
+          'reason', 'email_alias_limit_reached',
+          'message', 'A different alias of this email address has already used the free credits.'
+        );
+      END IF;
+    END;
+  END IF;
+
+  -- 2. Analysis Count Check
+  IF v_tier = 'pro' THEN
+    -- Pro: 100/day
+    SELECT COALESCE(SUM(analysis_count), 0) INTO v_count
+    FROM daily_usage
+    WHERE user_id = p_user_id AND date = CURRENT_DATE;
+    
+    IF v_count >= v_total_job_limit THEN
       RETURN jsonb_build_object(
         'allowed', false,
         'reason', 'daily_limit_reached',
-        'used', v_today_count,
-        'limit', 100
+        'used', v_count,
+        'limit', v_total_job_limit
       );
     END IF;
-    RETURN jsonb_build_object('allowed', true);
+  ELSIF v_tier = 'plus' THEN
+    -- Plus: 200/week (rolling 7 days)
+    SELECT COALESCE(SUM(analysis_count), 0) INTO v_count
+    FROM daily_usage
+    WHERE user_id = p_user_id AND date > CURRENT_DATE - INTERVAL '7 days';
+    
+    IF v_count >= v_total_job_limit THEN
+      RETURN jsonb_build_object(
+        'allowed', false,
+        'reason', 'weekly_limit_reached',
+        'used', v_count,
+        'limit', v_total_job_limit
+      );
+    END IF;
+  ELSE -- Free (Lifetime)
+    IF v_count >= v_total_job_limit THEN
+      RETURN jsonb_build_object(
+        'allowed', false,
+        'reason', 'free_limit_reached',
+        'used', v_count,
+        'limit', v_total_job_limit
+      );
+    END IF;
   END IF;
 
-  -- Plus: Unlimited (effectively same as pro in this simple check)
-  IF v_tier = 'plus' THEN
-     RETURN jsonb_build_object('allowed', true);
+  -- 2. Inbound Specific Gates
+  IF p_source_type = 'email' THEN
+    -- Check Daily Email Count (Unique forwards)
+    -- Note: We count unique date_added stamps or we need an email_id to be truly accurate.
+    -- For now, we'll approximate emails by counting 'email' source type rows (Jobs per-email gate is handled by logic)
+    -- Actually, if we want a separate email gate, we need better tracking. 
+    -- For now, let's treat inbound_job_limit as the primary gate.
+    
+    SELECT COUNT(*)
+    INTO v_today_inbound_jobs_count
+    FROM jobs
+    WHERE user_id = p_user_id
+    AND source_type = 'email'
+    AND date_added::date = CURRENT_DATE;
+
+    IF v_today_inbound_jobs_count >= v_inbound_job_limit THEN
+      RETURN jsonb_build_object(
+        'allowed', false,
+        'reason', 'daily_limit_reached',
+        'used', v_today_inbound_jobs_count,
+        'limit', v_inbound_job_limit
+      );
+    END IF;
   END IF;
 
-  -- Free tier: 3 total analyses
-  IF v_count >= 3 THEN
-    RETURN jsonb_build_object(
-      'allowed', false,
-      'reason', 'free_limit_reached',
-      'used', v_count,
-      'limit', 3
-    );
+  -- 3. Daily Token Usage Ceiling (Emergency Safety Fuse)
+  IF NOT v_is_admin AND NOT v_is_tester THEN
+    DECLARE
+      v_token_count INT;
+      v_token_limit INT;
+    BEGIN
+      -- Tiered token ceilings (Emergency Safety Fuse)
+      IF v_tier = 'pro' THEN v_token_limit := 5000000; -- 5M/day
+      ELSIF v_tier = 'plus' THEN v_token_limit := 1000000; -- 1M/day
+      ELSE v_token_limit := 250000; -- 250k/day
+      END IF;
+
+      SELECT COALESCE(SUM(token_count), 0) INTO v_token_count
+      FROM daily_usage
+      WHERE user_id = p_user_id AND date = CURRENT_DATE;
+
+      IF v_token_count >= v_token_limit THEN
+        RETURN jsonb_build_object(
+          'allowed', false,
+          'reason', 'token_limit_reached',
+          'used', v_token_count,
+          'limit', v_token_limit,
+          'message', 'Daily token usage exceeded. Try again tomorrow.'
+        );
+      END IF;
+    END;
   END IF;
 
   -- All checks passed
@@ -335,20 +491,77 @@ BEGIN
 END;
 $$;
 
--- Function to increment analysis count after successful job creation
+-- Function to increment analysis count pessimistically
 CREATE OR REPLACE FUNCTION increment_analysis_count(p_user_id UUID)
 RETURNS VOID
-LANGUAGE SQL
-LANGUAGE SQL
+LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+BEGIN
+  -- 1. Update Profile (Lifetime count)
   UPDATE profiles
   SET 
     job_analyses_count = job_analyses_count + 1,
     last_analysis_date = NOW()
   WHERE id = p_user_id;
+
+  -- 2. Update Daily Usage (Periodic counts)
+  INSERT INTO daily_usage (user_id, date, analysis_count)
+  VALUES (p_user_id, CURRENT_DATE, 1)
+  ON CONFLICT (user_id, date)
+  DO UPDATE SET analysis_count = daily_usage.analysis_count + 1;
+END;
 $$;
+
+-- Function to decrement analysis count (refund logic)
+CREATE OR REPLACE FUNCTION decrement_analysis_count(p_user_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE profiles
+  SET job_analyses_count = GREATEST(0, job_analyses_count - 1)
+  WHERE id = p_user_id;
+
+  -- Also decrement from daily_usage if possible
+  UPDATE daily_usage
+  SET analysis_count = GREATEST(0, analysis_count - 1)
+  WHERE user_id = p_user_id AND date = CURRENT_DATE;
+END;
+$$;
+
+-- Function to handle email normalization for abuse prevention
+CREATE OR REPLACE FUNCTION set_normalized_email()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_local TEXT;
+  v_domain TEXT;
+BEGIN
+  v_local := lower(split_part(NEW.email, '@', 1));
+  v_domain := lower(split_part(NEW.email, '@', 2));
+
+  -- Step 1: Handle plus addressing (common to Gmail, Outlook, iCloud)
+  v_local := split_part(v_local, '+', 1);
+
+  -- Step 2: Handle Gmail/Google dots
+  IF v_domain IN ('gmail.com', 'googlemail.com') THEN
+    v_local := replace(v_local, '.', '');
+  END IF;
+
+  NEW.normalized_email := v_local || '@' || v_domain;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger for email normalization
+DROP TRIGGER IF EXISTS tr_normalize_email ON profiles;
+CREATE TRIGGER tr_normalize_email
+  BEFORE INSERT OR UPDATE OF email ON profiles
+  FOR EACH ROW
+  EXECUTE PROCEDURE set_normalized_email();
 
 -- Function to prevent users from updating their own tier/admin status
 CREATE OR REPLACE FUNCTION protect_sensitive_profile_fields()
@@ -372,7 +585,7 @@ CREATE TRIGGER ensure_tier_integrity
   EXECUTE PROCEDURE protect_sensitive_profile_fields();
 
 -- Function to track daily token usage and total AI calls
-create or replace function track_usage(p_tokens int)
+create or replace function track_usage(p_tokens int, p_is_analysis boolean default false)
 returns void
 language plpgsql
 security definer
@@ -380,12 +593,13 @@ set search_path = public
 as $$
 begin
   -- 1. Daily Usage (Token based)
-  insert into daily_usage (user_id, date, request_count, token_count)
-  values (auth.uid(), current_date, 1, p_tokens)
+  insert into daily_usage (user_id, date, request_count, token_count, analysis_count)
+  values (auth.uid(), current_date, 1, p_tokens, case when p_is_analysis then 1 else 0 end)
   on conflict (user_id, date)
   do update set 
     request_count = daily_usage.request_count + 1,
-    token_count = daily_usage.token_count + excluded.token_count;
+    token_count = daily_usage.token_count + excluded.token_count,
+    analysis_count = daily_usage.analysis_count + excluded.analysis_count;
 
   -- 2. Profile Cumulative Stats
   update profiles 
@@ -422,3 +636,4 @@ order by x_times_normal desc;
 
 -- 6. INITIAL SEEDING
 insert into invite_codes (code, remaining_uses) values ('JOBFIT2024', 9999) on conflict do nothing;
+

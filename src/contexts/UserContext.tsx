@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
+import { Storage } from '../services/storageService';
+import { getDeviceFingerprint } from '../utils/fingerprint';
 
 import type { UserTier } from '../types';
 
@@ -14,7 +16,8 @@ interface UserContextType {
     signOut: () => Promise<void>;
     setSimulatedTier: (tier: UserTier | null) => void; // Admin-only: simulate viewing as different tier
     simulatedTier: UserTier | null;
-    updateProfile: (updates: Partial<{ first_name: string; last_name: string; device_id: string }>) => Promise<void>;
+    updateProfile: (updates: Partial<{ first_name: string; last_name: string; device_id: string; journey: string }>) => Promise<void>;
+    journey: string; // User's onboarding journey stage (student, job-hunter, etc.)
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -25,6 +28,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [simulatedTier, setSimulatedTier] = useState<UserTier | null>(null);
     const [isTester, setIsTester] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [journey, setJourney] = useState<string>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('navigator_user_journey') || 'job-hunter';
+        }
+        return 'job-hunter';
+    });
     const [isLoading, setIsLoading] = useState(true);
 
     // The tier used by the app - simulated if set by admin, otherwise actual
@@ -45,6 +54,19 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setActualTier(data.is_admin ? 'admin' : tier);
                     setIsAdmin(data.is_admin || false);
                     setIsTester(data.is_tester || false);
+                    if ((data as any).journey) {
+                        setJourney((data as any).journey);
+                        localStorage.setItem('navigator_user_journey', (data as any).journey);
+                    }
+
+                    // Abuse Prevention: Sync device fingerprint
+                    getDeviceFingerprint().then(fingerprint => {
+                        if (data && (data as any).device_id !== fingerprint) {
+                            supabase.from('profiles').update({ device_id: fingerprint }).eq('id', currentUser.id).then(({ error: syncError }) => {
+                                if (syncError) console.error("Failed to sync device fingerprint", syncError);
+                            });
+                        }
+                    });
                 } else if (error) {
                     if (import.meta.env.DEV) {
                         console.error('Error fetching user profile:', error);
@@ -79,18 +101,35 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const signOut = async () => {
+        // 1. Clear physical Storage
+        await Storage.clearAllData();
+
+        // 2. Sign out from Supabase
         await supabase.auth.signOut();
-        setUser(null);
-        setActualTier('free');
-        setIsAdmin(false);
-        setIsTester(false);
-        setSimulatedTier(null);
+
+        // 3. Force hard reload to homepage to clear React memory
+        window.location.href = '/';
     };
 
-    const updateProfile = async (updates: Partial<{ first_name: string; last_name: string; device_id: string }>) => {
-        if (!user) return;
+    const updateProfile = async (updates: Partial<{ first_name: string; last_name: string; device_id: string; journey: string }>) => {
+        if (!user) {
+            // If not logged in, just update local state/storage
+            if (updates.journey) {
+                setJourney(updates.journey);
+                localStorage.setItem('navigator_user_journey', updates.journey);
+            }
+            return;
+        }
+
         const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
-        if (error) console.error("Failed to update profile context", error);
+        if (error) {
+            console.error("Failed to update profile context", error);
+        } else {
+            if (updates.journey) {
+                setJourney(updates.journey);
+                localStorage.setItem('navigator_user_journey', updates.journey);
+            }
+        }
     };
 
     return (
@@ -104,7 +143,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             signOut,
             simulatedTier,
             setSimulatedTier,
-            updateProfile
+            updateProfile,
+            journey
         }}>
             {children}
         </UserContext.Provider>

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { PenTool, Search, ArrowRight, Copy, FileText, Building, Calendar, X } from 'lucide-react';
+import { PenTool, Search, ArrowRight, Copy, Building, Calendar, X } from 'lucide-react';
 import { PageLayout } from '../../components/common/PageLayout';
 import type { SavedJob } from '../../types';
 
@@ -32,9 +32,6 @@ export const CoverLetters: React.FC<CoverLettersProps> = ({ jobs, onSelectJob })
 
     return (
         <PageLayout
-            title="Cover Letters"
-            description="Manage your tailored applications and stylistic variants."
-            icon={<FileText />}
             themeColor="indigo"
         >
             {/* Search */}

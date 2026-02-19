@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import React from 'react';
+import { X, Lock, Copy, Check, Star, Puzzle, Mail, Activity, ArrowRight } from 'lucide-react';
 
 import type { User } from '@supabase/supabase-js';
 import { APP_VERSION } from '../constants';
 import { useModal } from '../contexts/ModalContext';
+import { useToast } from '../contexts/ToastContext';
+import { supabase } from '../services/supabase';
 
 import type { UserTier } from '../types/app';
+import { Button } from './ui/Button';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -19,12 +22,11 @@ interface SettingsModalProps {
     usageStats?: any;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, userTier, isTester, isAdmin, simulatedTier, onSimulateTier, usageStats }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, userTier, isTester, isAdmin, simulatedTier, usageStats }) => {
     const { openModal } = useModal();
-    const [_, setConfirmReset] = useState(false);
-
-
-
+    const { showInfo, showError } = useToast();
+    const [isCopyingToken, setIsCopyingToken] = React.useState(false);
+    const [isCopyingEmail, setIsCopyingEmail] = React.useState(false);
 
     React.useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -42,7 +44,34 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
         };
     }, [isOpen, onClose]);
 
-    if (!isOpen) return null;
+    const handleResetPassword = async () => {
+        if (user?.email) {
+            const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+                redirectTo: window.location.origin + '/reset-password',
+            });
+            if (error) {
+                showError(error.message);
+            } else {
+                showInfo("Password reset email sent!");
+            }
+        }
+    };
+
+    const handleCopyToken = async () => {
+        const { data } = await supabase.auth.getSession();
+        if (data.session?.access_token) {
+            navigator.clipboard.writeText(data.session.access_token);
+            setIsCopyingToken(true);
+            setTimeout(() => setIsCopyingToken(false), 2000);
+        }
+    };
+
+    const handleCopyEmail = () => {
+        const email = `navigator-${usageStats?.inboundEmailToken || 'admin'}@inbound.navigator.work`;
+        navigator.clipboard.writeText(email);
+        setIsCopyingEmail(true);
+        setTimeout(() => setIsCopyingEmail(false), 2000);
+    };
 
     if (!isOpen) return null;
 
@@ -73,11 +102,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                 <div className="flex-1 overflow-hidden relative z-10 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-neutral-100 dark:divide-neutral-800">
 
                     {/* Column 1: Account */}
-                    <div className="flex flex-col p-8 bg-neutral-50/30 dark:bg-neutral-900/10">
-                        <div className="flex-1 space-y-8">
+                    <div className="flex flex-col p-8 pb-12 md:pb-8 bg-neutral-50/30 dark:bg-neutral-900/10 overflow-y-auto custom-scrollbar">
+                        <div className="space-y-8">
                             <div>
                                 <h4 className="font-bold text-[11px] text-neutral-400 uppercase tracking-widest mb-6">Account</h4>
-                                <div className="flex flex-col gap-1">
+                                <div className="flex flex-col gap-1 mb-4">
                                     <div className="text-sm font-bold text-neutral-900 dark:text-white truncate">{user?.email || 'Not Signed In'}</div>
                                     <div className="flex gap-2 mt-2">
                                         {isAdmin && (
@@ -92,204 +121,168 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                         )}
                                     </div>
                                 </div>
+
+                                <div className="flex flex-col gap-1 items-start mt-2">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleResetPassword}
+                                        icon={<Lock className="w-3.5 h-3.5" />}
+                                        className="!px-0 !justify-start !text-neutral-500 hover:!text-neutral-900 dark:hover:!text-white"
+                                    >
+                                        Change Password
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-
                     </div>
 
                     {/* Column 2: Plan & Usage */}
-                    <div className="flex flex-col p-8">
+                    <div className="flex flex-col p-8 pb-12 md:pb-8 bg-white dark:bg-[#0a0a0a]">
                         <div className="flex-1 space-y-8">
                             <div>
                                 <h4 className="font-bold text-[11px] text-neutral-400 uppercase tracking-widest mb-6">Plan & Usage</h4>
 
                                 <div className="flex items-center justify-between mb-8">
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] font-medium text-neutral-400 uppercase tracking-wider mb-1">Current Plan</span>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Star className="w-3 h-3 text-amber-500" />
+                                            <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Current Plan</span>
+                                        </div>
                                         <span className="text-sm font-bold text-neutral-900 dark:text-white capitalize">
-                                            {isAdmin && !simulatedTier ? 'Unlimited Access' : userTier}
+                                            {simulatedTier ?
+                                                (simulatedTier === 'free' ? 'Explorer' : (simulatedTier === 'plus' ? 'Plus' : 'Pro')) :
+                                                (userTier === 'free' ? 'Explorer' : (userTier === 'plus' ? 'Plus' : 'Pro'))
+                                            }
                                         </span>
                                     </div>
                                 </div>
 
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-end">
-                                        <span className="text-xs font-semibold text-neutral-500">Analysis Used</span>
-                                        <span className="text-sm font-bold text-neutral-900 dark:text-white">
-                                            {usageStats?.todayAnalyses || 0} <span className="text-neutral-300 dark:text-neutral-600 font-normal">/ {usageStats?.limit === Infinity || (isAdmin && !simulatedTier) ? '∞' : usageStats?.limit || 0}</span>
-                                        </span>
+                                <div className="space-y-4">
+                                    {/* Jobs Analyzed */}
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-end">
+                                            <div className="flex items-center gap-2">
+                                                <Activity className="w-3 h-3 text-emerald-500" />
+                                                <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                                                    Jobs Analyzed {usageStats?.analysisPeriod === 'weekly' ? '(this week)' : usageStats?.analysisPeriod === 'lifetime' ? '(total)' : '(today)'}
+                                                </span>
+                                            </div>
+                                            <span className="text-sm font-bold text-neutral-900 dark:text-white">
+                                                {(usageStats?.analysisPeriod === 'weekly' ? usageStats?.weekAnalyses : usageStats?.todayAnalyses) || 0} <span className="text-neutral-300 dark:text-neutral-600 font-normal">/ {usageStats?.analysisLimit === Infinity || ((isAdmin || isTester) && !simulatedTier) ? '∞' : usageStats?.analysisLimit || 0}</span>
+                                            </span>
+                                        </div>
+
+                                        <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-emerald-500 dark:bg-emerald-400 transition-all duration-1000"
+                                                style={{ width: `${(isAdmin || isTester) && !simulatedTier ? 0 : Math.min(100, ((usageStats?.analysisPeriod === 'weekly' ? usageStats?.weekAnalyses : usageStats?.todayAnalyses) || 0) / (usageStats?.analysisLimit || 1) * 100)}%` }}
+                                            />
+                                        </div>
                                     </div>
 
-                                    {/* Analysis Progress Bar */}
-                                    <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                                        <div
-                                            className={`h-full transition-all duration-1000 ${userTier === 'pro' ? 'bg-neutral-900 dark:bg-white' : 'bg-neutral-900 dark:bg-white'}`}
-                                            style={{ width: `${Math.min(100, ((usageStats?.todayAnalyses || 0) / (usageStats?.limit || 1)) * 100)}%` }}
-                                        />
-                                    </div>
-
-                                    {/* Email Alerts Usage (Only if available) */}
-                                    {usageStats?.emailLimit && usageStats.emailLimit > 0 && (
-                                        <div className="pt-2 space-y-2">
+                                    {/* Inbound Emails (Gate 1) */}
+                                    {usageStats?.emailLimit > 0 && (
+                                        <div className="space-y-2">
                                             <div className="flex justify-between items-end">
-                                                <span className="text-xs font-semibold text-neutral-500">Email Alerts Used</span>
+                                                <div className="flex items-center gap-2">
+                                                    <Mail className="w-3 h-3 text-indigo-500" />
+                                                    <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Inbound Emails</span>
+                                                </div>
                                                 <span className="text-sm font-bold text-neutral-900 dark:text-white">
-                                                    {usageStats?.todayEmails || 0} <span className="text-neutral-300 dark:text-neutral-600 font-normal">/ {usageStats?.emailLimit}</span>
+                                                    {usageStats?.todayEmails || 0} <span className="text-neutral-300 dark:text-neutral-600 font-normal">/ {(isAdmin || isTester) && !simulatedTier ? '∞' : usageStats?.emailLimit}</span>
                                                 </span>
                                             </div>
                                             <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                                                 <div
                                                     className="h-full bg-indigo-500 transition-all duration-1000"
-                                                    style={{ width: `${Math.min(100, ((usageStats?.todayEmails || 0) / (usageStats?.emailLimit || 1)) * 100)}%` }}
+                                                    style={{ width: `${(isAdmin || isTester) && !simulatedTier ? 0 : Math.min(100, ((usageStats?.todayEmails || 0) / (usageStats?.emailLimit || 1)) * 100)}%` }}
                                                 />
                                             </div>
                                         </div>
                                     )}
 
-                                    <p className="text-[10px] text-neutral-400 pt-1">
-                                        <span className="text-neutral-900 dark:text-white font-bold">{usageStats?.totalAnalyses || 0}</span> analyses created total
-                                    </p>
+
+
                                 </div>
                             </div>
                         </div>
 
                         {userTier !== 'pro' && !isAdmin && (
                             <div className="pt-8 mt-auto">
-                                <button
-                                    onClick={() => openModal('UPGRADE', { initialView: 'compare' })}
-                                    className="w-full py-3 bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-bold rounded-xl transition-all shadow-lg shadow-neutral-500/10 flex items-center justify-center gap-2"
+                                <Button
+                                    variant="premium"
+                                    className="w-full"
+                                    onClick={() => {
+                                        onClose();
+                                        window.dispatchEvent(new CustomEvent('navigate-to-plans'));
+                                    }}
+                                    icon={<ArrowRight className="w-4 h-4" />}
                                 >
-                                    Upgrade to Pro
-                                </button>
+                                    Upgrade & View Plans
+                                </Button>
                             </div>
                         )}
                     </div>
 
-                    {/* Column 3: Settings */}
-                    <div className="flex flex-col p-8 bg-neutral-50/30 dark:bg-neutral-900/10 overflow-y-auto custom-scrollbar">
-                        <h4 className="font-bold text-[11px] text-neutral-400 uppercase tracking-widest mb-6">Settings</h4>
+                    {/* Column 3: Integrations */}
+                    <div className="flex flex-col p-8 pb-12 md:pb-8 bg-neutral-50/30 dark:bg-neutral-900/10 overflow-y-auto custom-scrollbar">
+                        <h4 className="font-bold text-[11px] text-neutral-400 uppercase tracking-widest mb-6">Integrations</h4>
 
                         <div className="space-y-8">
-
-                            {/* Job Ingestion */}
+                            {/* Browser Extension */}
                             <div className="space-y-3">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Job Alerts</span>
-                                </div>
-                                <p className="text-[10px] text-neutral-500 leading-relaxed">
-                                    Send up to <strong className="text-neutral-700 dark:text-neutral-300">{usageStats?.emailLimit || 0} jobs/day</strong> via email to auto-save them.
-                                </p>
-
-                                {usageStats?.inboundEmailToken ? (
-                                    <div className="flex flex-col gap-2">
-                                        <div className="p-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg">
-                                            <p className="font-mono text-[10px] text-neutral-500 truncate select-all">
-                                                {`navigator-${usageStats.inboundEmailToken}@...`}
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(`navigator-${usageStats.inboundEmailToken}@inbound.navigator.work`);
-                                            }}
-                                            className="text-[10px] font-bold text-neutral-900 dark:text-white hover:text-neutral-600 dark:hover:text-neutral-300 w-full text-left"
-                                        >
-                                            Copy Address
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <button
-                                        onClick={() => openModal('UPGRADE')}
-                                        className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline w-full text-left"
-                                    >
-                                        Upgrade to unlock
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className="h-px bg-neutral-100 dark:bg-neutral-800/50 w-full" />
-
-                            {/* Extension Auth */}
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Puzzle className="w-3 h-3 text-blue-500" />
                                     <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Browser Extension</span>
                                 </div>
                                 <p className="text-[10px] text-neutral-500 leading-relaxed">
-                                    Copy this token to connect the Navigator extension.
+                                    Save jobs from anywhere using our browser extension.
                                 </p>
 
-                                <div className="flex flex-col gap-2">
-                                    <button
-                                        onClick={async () => {
-                                            // We need to access the session token. 
-                                            // Since we don't have direct access here, we can use a small hack or passed prop?
-                                            // Actually, best to get it via supabase client if available or props.
-                                            // For now, let's assume we can get it from localStorage for the default supabase key
-                                            // OR use the useUser hook if we import it.
-
-                                            // Let's try to get it from the `sb-` cookie or storage if possible, 
-                                            // but actually the cleanest way is `supabase.auth.getSession()`
-
-                                            // Since we don't have supabase imported here, let's dynamic import or use what we have.
-                                            // Ideally we should import { supabase } from '../services/supabase'.
-                                            const { supabase } = await import('../services/supabase');
-                                            const { data } = await supabase.auth.getSession();
-                                            if (data.session?.access_token) {
-                                                navigator.clipboard.writeText(data.session.access_token);
-                                                // Visual feedback?
-                                                const btn = document.getElementById('copy-token-btn');
-                                                if (btn) btn.innerText = "Copied!";
-                                                setTimeout(() => { if (btn) btn.innerText = "Copy Access Token"; }, 2000);
-                                            }
-                                        }}
-                                        id="copy-token-btn"
-                                        className="w-full py-2 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-2"
-                                    >
-                                        Copy Access Token
-                                    </button>
-                                    <p className="text-[9px] text-neutral-400">
-                                        Do not share this token with anyone.
-                                    </p>
-                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleCopyToken}
+                                    icon={isCopyingToken ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                                    className="!px-0 !justify-start !text-neutral-900 dark:!text-white hover:!text-neutral-600 dark:hover:!text-neutral-300"
+                                >
+                                    {isCopyingToken ? 'Copied Token!' : 'Copy Access Token'}
+                                </Button>
                             </div>
-
-                            {/* Admin Simulator */}
-                            {isAdmin && (
-                                <>
-                                    <div className="h-px bg-neutral-100 dark:bg-neutral-800/50 w-full" />
-                                    <div className="space-y-3 opacity-50 hover:opacity-100 transition-opacity">
-                                        <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Developer Mode</span>
-                                        <div className="grid grid-cols-3 gap-1">
-                                            {[
-                                                { id: null, label: 'Default' },
-                                                { id: 'pro', label: 'Pro' },
-                                                { id: 'free', label: 'Free' }
-                                            ].map((tier) => (
-                                                <button
-                                                    key={tier.label}
-                                                    onClick={() => onSimulateTier(tier.id as UserTier | null)}
-                                                    className={`py-1.5 rounded-md text-[9px] font-bold uppercase transition-all ${simulatedTier === tier.id
-                                                        ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
-                                                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500'
-                                                        }`}
-                                                >
-                                                    {tier.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </>
-                            )}
 
                             <div className="h-px bg-neutral-100 dark:bg-neutral-800/50 w-full" />
 
-                            {/* Danger Zone */}
-                            <div className="pt-1">
-                                <button
-                                    onClick={() => setConfirmReset(true)}
-                                    className="text-[11px] font-medium text-neutral-400 hover:text-rose-500 transition-colors"
-                                >
-                                    Reset Local Data
-                                </button>
+                            {/* Email Alerts */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Mail className="w-3 h-3 text-indigo-500" />
+                                    <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Email Alerts</span>
+                                </div>
+                                <p className="text-[10px] text-neutral-500 leading-relaxed">
+                                    Email jobs to your unique address and we'll process them automatically.
+                                </p>
+
+                                {(usageStats?.inboundEmailToken || isAdmin || isTester) ? (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleCopyEmail}
+                                        icon={isCopyingEmail ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                                        className="!px-0 !justify-start !text-neutral-900 dark:!text-white hover:!text-neutral-600 dark:hover:!text-neutral-300"
+                                    >
+                                        {isCopyingEmail ? 'Copied Address!' : 'Copy Email Address'}
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => openModal('UPGRADE')}
+                                        className="!px-0 !justify-start !text-indigo-600 dark:!text-indigo-400 hover:!underline"
+                                    >
+                                        Upgrade to unlock
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </div>

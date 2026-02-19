@@ -149,11 +149,13 @@ describe('getUsageStats', () => {
             tier: 'pro',
             totalAnalyses: 50,
             todayAnalyses: 5,
+            weekAnalyses: 5,
+            todayEmails: 5,
             totalAICalls: 100,
-            limit: Infinity,
-            inboundEmailToken: 'token-123',
+            analysisLimit: 100,
+            analysisPeriod: 'daily',
             emailLimit: 25,
-            todayEmails: 5
+            inboundEmailToken: 'token-123'
         });
     });
 
@@ -188,7 +190,8 @@ describe('getUsageStats', () => {
         const result = await getUsageStats(userId);
 
         expect(result.tier).toBe('admin');
-        expect(result.limit).toBe(Infinity);
+        expect(result.analysisLimit).toBe(Infinity);
+        expect(result.emailLimit).toBe(100);
     });
 
     it('should return tester tier and unlimited limit for tester users', async () => {
@@ -222,7 +225,8 @@ describe('getUsageStats', () => {
         const result = await getUsageStats(userId);
 
         expect(result.tier).toBe('tester');
-        expect(result.limit).toBe(Infinity);
+        expect(result.analysisLimit).toBe(Infinity);
+        expect(result.emailLimit).toBe(100);
     });
 
     it('should return default stats on error', async () => {
@@ -238,10 +242,12 @@ describe('getUsageStats', () => {
             tier: 'free',
             totalAnalyses: 0,
             todayAnalyses: 0,
-            totalAICalls: 0,
-            limit: 3,
-            emailLimit: 0,
+            weekAnalyses: 0,
             todayEmails: 0,
+            totalAICalls: 0,
+            analysisLimit: 3,
+            analysisPeriod: 'lifetime',
+            emailLimit: 0,
             inboundEmailToken: undefined
         });
         expect(consoleSpy).toHaveBeenCalledWith('Error fetching usage stats:', expect.any(Error));

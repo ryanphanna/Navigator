@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import History from './History';
 import type { SavedJob } from '../../types';
 
@@ -64,11 +65,13 @@ describe('History', () => {
 
   it('should render empty state when no jobs', () => {
     render(
-      <History
-        jobs={[]}
-        onSelectJob={mockOnSelectJob}
-        onDeleteJob={mockOnDeleteJob}
-      />
+      <MemoryRouter>
+        <History
+          jobs={[]}
+          onSelectJob={mockOnSelectJob}
+          onDeleteJob={mockOnDeleteJob}
+        />
+      </MemoryRouter>
     );
 
     expect(screen.getByText('No history yet')).toBeInTheDocument();
@@ -76,11 +79,13 @@ describe('History', () => {
 
   it('should render job list', () => {
     render(
-      <History
-        jobs={mockJobs}
-        onSelectJob={mockOnSelectJob}
-        onDeleteJob={mockOnDeleteJob}
-      />
+      <MemoryRouter>
+        <History
+          jobs={mockJobs}
+          onSelectJob={mockOnSelectJob}
+          onDeleteJob={mockOnDeleteJob}
+        />
+      </MemoryRouter>
     );
 
     expect(screen.getByText('Software Engineer')).toBeInTheDocument();
@@ -89,11 +94,13 @@ describe('History', () => {
 
   it('should filter jobs by search query', () => {
     render(
-      <History
-        jobs={mockJobs}
-        onSelectJob={mockOnSelectJob}
-        onDeleteJob={mockOnDeleteJob}
-      />
+      <MemoryRouter>
+        <History
+          jobs={mockJobs}
+          onSelectJob={mockOnSelectJob}
+          onDeleteJob={mockOnDeleteJob}
+        />
+      </MemoryRouter>
     );
 
     const searchInput = screen.getByPlaceholderText(/search/i);
@@ -110,11 +117,13 @@ describe('History', () => {
 
   it('should filter by company name', () => {
     render(
-      <History
-        jobs={mockJobs}
-        onSelectJob={mockOnSelectJob}
-        onDeleteJob={mockOnDeleteJob}
-      />
+      <MemoryRouter>
+        <History
+          jobs={mockJobs}
+          onSelectJob={mockOnSelectJob}
+          onDeleteJob={mockOnDeleteJob}
+        />
+      </MemoryRouter>
     );
 
     const searchInput = screen.getByPlaceholderText(/search/i);
@@ -127,11 +136,13 @@ describe('History', () => {
 
   it('should be case insensitive', () => {
     render(
-      <History
-        jobs={mockJobs}
-        onSelectJob={mockOnSelectJob}
-        onDeleteJob={mockOnDeleteJob}
-      />
+      <MemoryRouter>
+        <History
+          jobs={mockJobs}
+          onSelectJob={mockOnSelectJob}
+          onDeleteJob={mockOnDeleteJob}
+        />
+      </MemoryRouter>
     );
 
     const searchInput = screen.getByPlaceholderText(/search/i);
@@ -143,11 +154,13 @@ describe('History', () => {
 
   it('should show all jobs when search is cleared', () => {
     render(
-      <History
-        jobs={mockJobs}
-        onSelectJob={mockOnSelectJob}
-        onDeleteJob={mockOnDeleteJob}
-      />
+      <MemoryRouter>
+        <History
+          jobs={mockJobs}
+          onSelectJob={mockOnSelectJob}
+          onDeleteJob={mockOnDeleteJob}
+        />
+      </MemoryRouter>
     );
 
     const searchInput = screen.getByPlaceholderText(/search/i);
@@ -166,11 +179,13 @@ describe('History', () => {
 
   it('should call onSelectJob when job is clicked', () => {
     render(
-      <History
-        jobs={mockJobs}
-        onSelectJob={mockOnSelectJob}
-        onDeleteJob={mockOnDeleteJob}
-      />
+      <MemoryRouter>
+        <History
+          jobs={mockJobs}
+          onSelectJob={mockOnSelectJob}
+          onDeleteJob={mockOnDeleteJob}
+        />
+      </MemoryRouter>
     );
 
     const jobCard = screen.getByText('Software Engineer').closest('div');
@@ -183,11 +198,13 @@ describe('History', () => {
 
   it('should display fit scores', () => {
     render(
-      <History
-        jobs={mockJobs}
-        onSelectJob={mockOnSelectJob}
-        onDeleteJob={mockOnDeleteJob}
-      />
+      <MemoryRouter>
+        <History
+          jobs={mockJobs}
+          onSelectJob={mockOnSelectJob}
+          onDeleteJob={mockOnDeleteJob}
+        />
+      </MemoryRouter>
     );
 
     expect(screen.getByText('85% Match')).toBeInTheDocument();
@@ -201,11 +218,13 @@ describe('History', () => {
     ];
 
     render(
-      <History
-        jobs={statusJobs}
-        onSelectJob={mockOnSelectJob}
-        onDeleteJob={mockOnDeleteJob}
-      />
+      <MemoryRouter>
+        <History
+          jobs={statusJobs}
+          onSelectJob={mockOnSelectJob}
+          onDeleteJob={mockOnDeleteJob}
+        />
+      </MemoryRouter>
     );
 
     // Should be in 'Saved' filter by default (or when selected)
@@ -216,6 +235,77 @@ describe('History', () => {
 
     // Check for status labels
     expect(screen.getByText('Finding your fit...')).toBeInTheDocument();
+    expect(screen.getByText('0%')).toBeInTheDocument();
     expect(screen.getByText('Failed')).toBeInTheDocument();
+  });
+
+  it('should display progress bar with custom message', () => {
+    const progressJob: SavedJob = {
+      id: '5',
+      company: 'Startup',
+      position: 'Analyzing Role',
+      description: '...',
+      resumeId: 'r1',
+      dateAdded: Date.now(),
+      status: 'analyzing',
+      progress: 45,
+      progressMessage: 'Extracting skills...'
+    };
+
+    const mockOnSelect = vi.fn();
+    const mockOnDelete = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <History
+          jobs={[progressJob]}
+          onSelectJob={mockOnSelect}
+          onDeleteJob={mockOnDelete}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Extracting skills...')).toBeInTheDocument();
+    expect(screen.getByText('45%')).toBeInTheDocument();
+  });
+
+  it('should restrict access when analyzing', () => {
+    const analyzingJob: SavedJob = {
+      id: '6',
+      company: 'Analyzing Corp',
+      position: 'Processing Role',
+      description: '...',
+      resumeId: 'r1',
+      dateAdded: Date.now(),
+      status: 'analyzing',
+      progress: 50
+    };
+
+    const mockOnSelect = vi.fn();
+    const mockOnDelete = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <History
+          jobs={[analyzingJob]}
+          onSelectJob={mockOnSelect}
+          onDeleteJob={mockOnDelete}
+        />
+      </MemoryRouter>
+    );
+
+    // Click card should not select
+    const card = screen.getByText('Processing Job...').closest('div');
+    if (card) {
+      fireEvent.click(card);
+    }
+    expect(mockOnSelect).not.toHaveBeenCalled();
+
+    // View Analysis button should not be present
+    expect(screen.queryByText('View Analysis')).not.toBeInTheDocument();
+
+    // Delete button should be disabled
+    const deleteBtn = screen.getByTitle('Delete');
+    expect(deleteBtn).toBeDisabled();
   });
 });

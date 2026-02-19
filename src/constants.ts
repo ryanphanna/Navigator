@@ -19,6 +19,10 @@ export const AGENT_LOOP = {
   QUALITY_THRESHOLD: 70,    // Score below which the agent triggers a rewrite
 } as const;
 
+export const RESUME_TAILORING = {
+  MAX_TAILORS_PER_BLOCK: 2, // Max times a single block can be hyper-tailored per job
+} as const;
+
 // Content Validation
 export const CONTENT_VALIDATION = {
   MIN_PDF_TEXT_LENGTH: 50,
@@ -75,7 +79,6 @@ export const STORAGE_KEYS = {
   ROLE_MODELS: 'navigator_role_models',
   TARGET_JOBS: 'navigator_target_jobs',
   HISTORY_SEED: 'navigator_history_seed',
-  API_KEY: 'api_key', // Encrypted via secureStorage
   THEME: 'navigator_theme',
   PRIVACY_ACCEPTED: 'navigator_privacy_accepted',
   WELCOME_SEEN: 'navigator_welcome_seen',
@@ -84,19 +87,63 @@ export const STORAGE_KEYS = {
   CURRENT_VIEW: 'navigator_current_view',
   ACTIVE_TAB: 'navigator_active_tab',
   BOOKMARKLET_TIP_DISMISSED: 'navigator_bookmarklet_tip_dismissed',
+  PRIVACY_UPDATE_DISMISSED: 'navigator_privacy_update_dismissed_2026_02_17',
   SKILL_SUGGESTIONS: 'navigator_skill_suggestions',
   TRANSCRIPT_CACHE: 'NAVIGATOR_TRANSCRIPT_CACHE',
   FEED_CACHE: 'navigator_feed_cache',
   FEED_CACHE_TIMESTAMP: 'navigator_feed_timestamp',
 } as const;
 
+// Feature Tracking Events
+export const TRACKING_EVENTS = {
+  JOB_FIT: 'jobfit',
+  RESUMES: 'resumes',
+  COACH: 'coach',
+  SKILLS: 'keywords',
+  COVER_LETTERS: 'cover_letters',
+} as const;
+
+// Feature Registry (re-exports for backward compatibility)
+// The canonical source is featureRegistry.ts
+export {
+  BENTO_CARDS_COMPAT as BENTO_CARDS,
+  BENTO_CATEGORIES_COMPAT as BENTO_CATEGORIES,
+  BENTO_RANKINGS_COMPAT as BENTO_RANKINGS,
+} from './featureRegistry';
+export type { FeatureDefinition as BentoCardConfig } from './featureRegistry';
+
+// Date Display Formats
+export const DATE_FORMATS = {
+  DISPLAY_FULL: 'MMMM D, YYYY',
+  SHORT_MONTH: 'MMM YYYY',
+} as const;
+
+// Resume Section Types
+export const RESUME_SECTION_TYPES = {
+  SUMMARY: 'summary',
+  WORK: 'work',
+  EDUCATION: 'education',
+  PROJECT: 'project',
+} as const;
+
+// External Utility Links
+export const EXTERNAL_LINKS = {
+  SUPPORT_EMAIL: 'mailto:support@navigator.com',
+  LINKEDIN_EXPORT_GUIDE: 'https://www.linkedin.com/help/linkedin/answer/a511674',
+} as const;
+
 // Application Routes
 export const ROUTES = {
   HOME: '/',
+  WELCOME: '/welcome',
+  PLANS: '/plans',
+  PLANS_COMPARE: '/plans/compare',
+  FEATURES: '/features',
 
   // Jobs Section
   JOB_HOME: '/jobs',
   RESUMES: '/jobs/resumes',
+  INTERVIEWS: '/jobs/interviews',
   FEED: '/jobs/feed',
   HISTORY: '/jobs/history',
   COVER_LETTERS: '/jobs/cover-letters',
@@ -115,11 +162,16 @@ export const ROUTES = {
   EDUCATION_HOME: '/education',
   TRANSCRIPT: '/education/transcript', // Formerly GRAD
   GRAD: '/education/transcript',
+  GPA_CALCULATOR: '/education/gpa',
+  PROGRAM_EXPLORER: '/education/programs',
   COACH_HOME: '/career',
 
   // Other
   SEO_LANDING: '/resume-for/:role',
   ADMIN: '/admin',
+  PRIVACY: '/privacy',
+  TERMS: '/terms',
+  CONTACT: '/contact',
 } as const;
 
 // User Tiers
@@ -128,6 +180,67 @@ export const USER_TIERS = {
   PLUS: 'plus',
   PRO: 'pro',
   ADMIN: 'admin',
+  TESTER: 'tester',
+} as const;
+
+// Plan Pricing
+export const PLAN_PRICING = {
+  [USER_TIERS.PLUS]: {
+    MONTHLY: 19,
+    ANNUAL_MONTHLY: 15,
+    PRICE_ID_MONTHLY: 'price_1T2KjOCgQ7xClTHZxDaMextv', // Navigator Plus Monthly (Confirmed)
+    PRICE_ID_ANNUAL: 'price_1T2KlyCgQ7xClTHZrBT9Ah6'  // Navigator Plus Annual (Confirmed)
+  },
+  [USER_TIERS.PRO]: {
+    MONTHLY: 29,
+    ANNUAL_MONTHLY: 25,
+    PRICE_ID_MONTHLY: 'price_1T2KkOCgQ7xClTHZF9S1f1ro', // Navigator Pro Monthly (Confirmed)
+    PRICE_ID_ANNUAL: 'price_1T2KmJCgQ7xClTHZnYHfcQQF'  // Navigator Pro Annual (Confirmed)
+  },
+} as const;
+
+
+// Usage Limits
+// Explorer (free): 3 lifetime analyses, no alerts/mentors
+// Plus: 200/week analyses, 5 emails/day, 5 mentors
+// Pro: 100/day analyses (effectively unlimited), 25 emails/day, unlimited mentors
+export const PLAN_LIMITS = {
+  [USER_TIERS.FREE]: {
+    DAILY_EMAILS: 0,
+    TOTAL_ANALYSES: 3,
+    ANALYSES_PERIOD: 'lifetime' as const,
+    MENTORS: 0,
+  },
+  [USER_TIERS.PLUS]: {
+    DAILY_EMAILS: 5,
+    WEEKLY_ANALYSES: 200,
+    ANALYSES_PERIOD: 'weekly' as const,
+    MENTORS: 5,
+  },
+  [USER_TIERS.PRO]: {
+    DAILY_EMAILS: 25,
+    DAILY_ANALYSES: 100,
+    ANALYSES_PERIOD: 'daily' as const,
+    MENTORS: Infinity,
+  },
+  [USER_TIERS.ADMIN]: {
+    DAILY_EMAILS: 100,
+    DAILY_ANALYSES: Infinity,
+    ANALYSES_PERIOD: 'daily' as const,
+    MENTORS: Infinity,
+  },
+  [USER_TIERS.TESTER]: {
+    DAILY_EMAILS: 100,
+    DAILY_ANALYSES: Infinity,
+    ANALYSES_PERIOD: 'daily' as const,
+    MENTORS: Infinity,
+  },
+} as const;
+
+// Alert Thresholds (soft caps — trigger admin notifications)
+export const ALERT_THRESHOLDS = {
+  [USER_TIERS.PLUS]: { WEEKLY_ANALYSES: 100 },
+  [USER_TIERS.PRO]: { DAILY_ANALYSES: 50 },
 } as const;
 
 // Job Status Types
@@ -158,211 +271,6 @@ export const FEATURES = {
   ENABLE_KEYBOARD_SHORTCUTS: true,
   ENABLE_RETRY_MESSAGES: true,
 } as const;
-// Bento Grid Configuration
-export const BENTO_CARDS = {
-  JOBFIT: {
-    id: 'jobfit',
-    rank: 1,
-    iconName: 'Sparkles',
-    targetView: 'job-home',
-    title: { marketing: 'Job Match', action: 'Match' },
-    description: {
-      marketing: 'Instant 0-100 compatibility rating.',
-      action: 'Get an instant match score and detailed fit analysis. We break down exactly how well you align with any job description in seconds.'
-    },
-    action: { marketing: 'View Match', action: 'View Match' },
-    colors: {
-      bg: 'bg-indigo-50/50 dark:bg-indigo-500/5',
-      text: 'text-indigo-500 dark:text-indigo-400',
-      accent: 'border-indigo-500/10 dark:border-indigo-500/20',
-      iconBg: 'bg-indigo-500',
-      preview: 'from-indigo-500/5',
-      glow: 'bg-indigo-500/10 group-hover:bg-indigo-500/20'
-    }
-  },
-  KEYWORDS: {
-    id: 'keywords',
-    rank: 2,
-    iconName: 'Zap',
-    targetView: 'skills',
-    title: { marketing: 'Skill Gaps', action: 'Skills' },
-    description: {
-      marketing: 'Identify missing skills to beat the ATS.',
-      action: 'Identify and bridge your skill gaps with AI. We scan descriptions for missing keywords so you can optimize your profile for every role.'
-    },
-    action: { marketing: 'Audit', action: 'Audit gaps' },
-    colors: {
-      bg: 'bg-sky-50/50 dark:bg-sky-500/5',
-      text: 'text-sky-500 dark:text-sky-400',
-      accent: 'border-sky-500/10 dark:border-sky-500/20',
-      iconBg: 'bg-sky-500',
-      preview: 'from-sky-500/5',
-      glow: 'bg-sky-500/10 group-hover:bg-sky-500/20'
-    }
-  },
-  RESUMES: {
-    id: 'resumes',
-    rank: 3,
-    iconName: 'FileText',
-    targetView: 'resumes',
-    title: { marketing: 'Resume Sync', action: 'Resume' },
-    description: {
-      marketing: 'Tailored summaries for every application.',
-      action: 'Store and edit your resume profiles. We help you maintain multiple versions of your experience to target different industries effectively.'
-    },
-    action: { marketing: 'Sync', action: 'Manage' },
-    colors: {
-      bg: 'bg-rose-50/50 dark:bg-rose-500/5',
-      text: 'text-rose-500 dark:text-rose-400',
-      accent: 'border-rose-500/10 dark:border-rose-500/20',
-      iconBg: 'bg-rose-500',
-      preview: 'from-rose-500/5',
-      glow: 'bg-rose-500/10 group-hover:bg-rose-500/20'
-    }
-  },
-  COACH: {
-    id: 'coach',
-    rank: 1, // High rank for career mode
-    iconName: 'TrendingUp',
-    targetView: 'career-home',
-    title: { marketing: 'Growth Analysis', action: 'Roadmap' },
-    description: {
-      marketing: 'Analyze skill gaps for any role.',
-      action: 'Compare your skills against role models and target jobs to see exactly what you need to learn next.'
-    },
-    action: { marketing: 'Learn more', action: 'Scale up' },
-    colors: {
-      bg: 'bg-teal-50/50 dark:bg-teal-500/5',
-      text: 'text-teal-500 dark:text-teal-400',
-      accent: 'border-teal-500/10 dark:border-teal-500/20',
-      iconBg: 'bg-teal-500',
-      preview: 'from-teal-500/5',
-      glow: 'bg-teal-500/10 group-hover:bg-teal-500/20'
-    }
-  },
-  HISTORY: {
-    id: 'history',
-    rank: 4,
-    iconName: 'Bookmark',
-    targetView: 'history',
-    title: { marketing: 'Save Jobs', action: 'History' },
-    description: {
-      marketing: 'Save jobs from any site with one click.',
-      action: 'Review your analyzed jobs and insights. Keep track of every application and see how your compatibility scores evolve over time.'
-    },
-    action: { marketing: 'Install', action: 'View all' },
-    colors: {
-      bg: 'bg-blue-50/50 dark:bg-blue-500/5',
-      text: 'text-blue-500 dark:text-blue-400',
-      accent: 'border-blue-500/10 dark:border-blue-500/20',
-      iconBg: 'bg-blue-500',
-      preview: 'from-blue-500/5',
-      glow: 'bg-blue-500/10 group-hover:bg-blue-500/20'
-    }
-  },
-  COVER_LETTERS: {
-    id: 'cover_letters',
-    rank: 5,
-    iconName: 'PenTool',
-    targetView: 'cover-letters',
-    title: { marketing: 'Cover Letters', action: 'Cover Letters' },
-    description: {
-      marketing: 'Generate persuasive cover letters instantly.',
-      action: 'Generate AI-tailored cover letters. Our engine synthesizes your experience and the job description to write unique, persuasive applications.'
-    },
-    action: { marketing: 'Write', action: 'Create' },
-    colors: {
-      bg: 'bg-violet-50/50 dark:bg-violet-500/5',
-      text: 'text-violet-500 dark:text-violet-400',
-      accent: 'border-violet-500/10 dark:border-violet-500/20',
-      iconBg: 'bg-violet-500',
-      preview: 'from-violet-500/5',
-      glow: 'bg-violet-500/10 group-hover:bg-violet-500/20'
-    }
-  },
-  EDU_TRANSCRIPT: {
-    id: 'edu-transcript',
-    rank: 1,
-    iconName: 'GraduationCap',
-    targetView: 'edu-transcript',
-    title: { marketing: 'Academic Record', action: 'Transcript' },
-    description: {
-      marketing: 'Manage coursework and monitor degree progress.',
-      action: 'Manage your coursework, track credits, and monitor degree progress. View a high-fidelity breakdown of your academic journey.'
-    },
-    action: { marketing: 'Open', action: 'View' },
-    colors: {
-      bg: 'bg-amber-50/50 dark:bg-amber-500/5',
-      text: 'text-amber-500 dark:text-amber-400',
-      accent: 'border-amber-500/10 dark:border-amber-500/20',
-      iconBg: 'bg-amber-500',
-      preview: 'from-amber-500/5',
-      glow: 'bg-amber-500/10 group-hover:bg-amber-500/20'
-    }
-  },
-  EDU_EXPLORER: {
-    id: 'edu-explorer',
-    rank: 2,
-    iconName: 'School',
-    targetView: 'edu-home',
-    title: { marketing: 'Program Explorer', action: 'Programs' },
-    description: {
-      marketing: 'Explore master\'s degrees and certificates.',
-      action: 'Explore master\'s degrees and certificate programs tailored to your goals. We match your career ambitions with precise educational paths.'
-    },
-    action: { marketing: 'Explore', action: 'Scout' },
-    colors: {
-      bg: 'bg-emerald-50/50 dark:bg-emerald-500/5',
-      text: 'text-emerald-500 dark:text-emerald-400',
-      accent: 'border-emerald-500/10 dark:border-emerald-500/20',
-      iconBg: 'bg-emerald-500',
-      preview: 'from-emerald-500/5',
-      glow: 'bg-emerald-500/10 group-hover:bg-emerald-500/20'
-    }
-  },
-  EDU_GPA: {
-    id: 'edu-gpa',
-    rank: 3,
-    iconName: 'Calculator',
-    targetView: 'edu-home',
-    title: { marketing: 'GPA Calculator', action: 'GPA' },
-    description: {
-      marketing: 'Calculate targets and track performance.',
-      action: 'Calculate your GPA and see what grades you need to hit your targets. Model different scenarios for your academic performance.'
-    },
-    action: { marketing: 'Calculate', action: 'Calculate' },
-    colors: {
-      bg: 'bg-blue-50/50 dark:bg-blue-500/5',
-      text: 'text-blue-500 dark:text-blue-400',
-      accent: 'border-blue-500/10 dark:border-blue-500/20',
-      iconBg: 'bg-blue-500',
-      preview: 'from-blue-500/5',
-      glow: 'bg-blue-500/10 group-hover:bg-blue-500/20'
-    }
-  },
-  EDU: {
-    id: 'edu',
-    rank: 1, // High rank for edu mode
-    iconName: 'GraduationCap',
-    targetView: 'edu-home',
-    title: { marketing: 'Transcript', action: 'Edu' },
-    description: {
-      marketing: 'High-fidelity academic pathfinding.',
-      action: 'Explore degree programs and certifications. We match your career goals with the precise educational paths needed to achieve them.'
-    },
-    action: { marketing: 'Scout', action: 'Scout' },
-    colors: {
-      bg: 'bg-amber-50/50 dark:bg-amber-500/5',
-      text: 'text-amber-500 dark:text-amber-400',
-      accent: 'border-amber-500/10 dark:border-amber-500/20',
-      iconBg: 'bg-amber-500',
-      preview: 'from-amber-500/5',
-      glow: 'bg-amber-500/10 group-hover:bg-amber-500/20'
-    }
-  }
-} as const;
-
-export type BentoCardConfig = typeof BENTO_CARDS[keyof typeof BENTO_CARDS];
 
 // Marketing Headlines
 export const HEADLINES = {
@@ -390,5 +298,12 @@ export const HEADLINES = {
     { text: "Maximize your", highlight: "Potential" },
     { text: "Scale your", highlight: "Education" },
     { text: "Chart your", highlight: "Success" }
+  ],
+  plans: [
+    { text: "Plans to match", highlight: "your ambition" },
+    { text: "Fuel your", highlight: "Next Move" },
+    { text: "Invest in", highlight: "your Career" },
+    { text: "Unlock your full", highlight: "Potential" },
+    { text: "Power up", highlight: "your Search" }
   ]
 } as const;

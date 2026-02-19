@@ -30,23 +30,23 @@ export const Footer: React.FC = () => {
             title: 'Career',
             items: [
                 { label: 'Skills', path: ROUTES.SKILLS, view: 'skills', icon: Zap },
-                { label: 'Growth Analysis', path: ROUTES.CAREER_GROWTH, view: 'career-growth', icon: Target },
-                { label: 'Role Models', path: ROUTES.CAREER_MODELS, view: 'career-models', icon: Users },
-                { label: 'Coach', path: ROUTES.CAREER_HOME, view: 'career-home', icon: Sparkles },
+                { label: 'Roadmap', path: ROUTES.CAREER_GROWTH, view: 'career-growth', icon: Target },
+                { label: 'Mentors', path: ROUTES.CAREER_MODELS, view: 'career-models', icon: Users },
             ]
         },
         {
             title: 'Education',
             items: [
                 { label: 'Transcript', path: ROUTES.TRANSCRIPT, view: 'edu-transcript', icon: GraduationCap },
+                { label: 'Programs', path: ROUTES.PROGRAM_EXPLORER, view: 'edu-programs', icon: Sparkles },
             ]
         },
         {
             title: 'About',
             items: [
-                { label: 'Contact', path: '#', view: 'contact', icon: Mail },
-                { label: 'Privacy', path: '#', view: 'privacy', icon: Shield },
-                { label: 'Terms', path: '#', view: 'terms', icon: Scale },
+                { label: 'Contact', path: '/contact', view: 'contact', icon: Mail },
+                { label: 'Privacy', path: ROUTES.PRIVACY, view: 'privacy', icon: Shield },
+                { label: 'Terms', path: '/terms', view: 'terms', icon: Scale },
             ]
         }
     ];
@@ -69,9 +69,6 @@ export const Footer: React.FC = () => {
                             </div>
                             <span className="text-xl font-black tracking-tight dark:text-white">Navigator</span>
                         </div>
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed">
-                            Your career, articulated. Navigator helps you bridge skill gaps and land your next role with AI.
-                        </p>
                     </div>
 
                     {/* Navigation Columns */}

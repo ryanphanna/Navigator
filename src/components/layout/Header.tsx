@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, Briefcase, LogOut, Settings, Bookmark, Sparkles, FileText, Users, Target, GraduationCap, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { TrendingUp, Briefcase, LogOut, Settings, Bookmark, Sparkles, FileText, Users, Target, GraduationCap, ShieldCheck, Sun, Moon, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../../contexts/UserContext';
 import { useModal } from '../../contexts/ModalContext';
@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
     isCoachMode = false,
     isEduMode = false
 }) => {
-    const { user, isLoading, isAdmin, signOut } = useUser();
+    const { user, isLoading, isAdmin, isTester, signOut } = useUser();
     const { openModal } = useModal();
     const { isDark, toggleDarkMode } = useGlobalUI();
 
@@ -28,10 +28,11 @@ export const Header: React.FC<HeaderProps> = ({
             id: 'job',
             label: 'Jobs',
             icon: Briefcase,
-            isActive: !isCoachMode && !isEduMode,
+            isActive: !isCoachMode && !isEduMode && !['privacy', 'home'].includes(currentView),
             defaultView: 'job-home',
             items: [
                 { id: 'resumes', label: 'Resume', icon: FileText },
+                ...(isAdmin ? [{ id: 'interviews', label: 'Interviews', icon: MessageSquare }] : []),
                 { id: 'feed', label: 'Feed', icon: Sparkles },
                 { id: 'history', label: 'History', icon: Bookmark },
 
@@ -44,8 +45,8 @@ export const Header: React.FC<HeaderProps> = ({
             isActive: isCoachMode,
             defaultView: 'coach-home',
             items: [
-                { id: 'coach-role-models', label: 'Models', icon: Users },
-                { id: 'coach-gap-analysis', label: 'Analysis', icon: Target }
+                { id: 'skills', label: 'Skills', icon: Target },
+                { id: 'coach-role-models', label: 'Mentors', icon: Users },
             ]
         },
         {
@@ -55,10 +56,24 @@ export const Header: React.FC<HeaderProps> = ({
             isActive: isEduMode,
             defaultView: 'edu-home',
             items: [
-                { id: 'edu-transcript', label: 'Transcript', icon: GraduationCap }
+                { id: 'edu-transcript', label: 'Transcript', icon: GraduationCap },
+                { id: 'edu-programs', label: 'Programs', icon: Sparkles }
             ]
+        },
+        {
+            id: 'plans',
+            label: 'Upgrade',
+            icon: Sparkles,
+            isActive: currentView === 'plans',
+            defaultView: 'plans',
+            items: []
         }
-    ];
+    ].filter(group => {
+        if (group.id === 'career' || group.id === 'edu') {
+            return isAdmin || isTester;
+        }
+        return true;
+    });
 
 
     return (
@@ -90,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <motion.nav
                         layout
                         transition={{ layout: { duration: 0.3, type: "spring", bounce: 0 } }}
-                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center bg-white/40 dark:bg-neutral-900/40 p-1.5 rounded-[2.5rem] border border-white/20 dark:border-neutral-800/40 backdrop-blur-3xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
+                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center bg-white/80 dark:bg-neutral-900/80 p-1.5 rounded-[2.5rem] border border-white/30 dark:border-neutral-800/50 backdrop-blur-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
                     >
                         {navGroups.map((group) => (
                             <div
@@ -112,9 +127,9 @@ export const Header: React.FC<HeaderProps> = ({
                                     <button
                                         onClick={() => onViewChange((group as any).defaultView || group.items[0].id)}
                                         className={`px-2.5 py-2 rounded-2xl text-[11px] font-bold transition-all duration-300 flex items-center gap-2 ${group.isActive
-                                            ? (group.id === 'career' ? 'text-emerald-600' : group.id === 'edu' ? 'text-amber-600' : 'text-indigo-600')
-                                            : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200'
-                                            }`}
+                                            ? (group.id === 'career' ? 'text-emerald-600' : group.id === 'edu' ? 'text-amber-600' : group.id === 'plans' ? 'text-amber-500' : 'text-indigo-600')
+                                            : (group.id === 'plans' ? 'text-amber-500/80 hover:text-amber-600' : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200')
+                                            } ${group.id === 'plans' ? '!py-1.5 !px-3' : ''}`}
                                     >
                                         <group.icon className={`w-3.5 h-3.5 transition-transform duration-300 ${group.isActive ? 'scale-110' : 'opacity-70 group-hover:opacity-100'}`} />
                                         <span className="hidden leading-none md:block tracking-wider">{group.label}</span>
@@ -122,7 +137,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                                     {/* Inline Sub-items (Expand Right of the Active Category) */}
                                     <AnimatePresence mode="popLayout" initial={false}>
-                                        {group.isActive && (
+                                        {group.isActive && group.items.length > 0 && (
                                             <motion.div
                                                 initial={{ opacity: 0, x: -10 }}
                                                 animate={{ opacity: 1, x: 0 }}

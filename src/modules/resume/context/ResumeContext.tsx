@@ -70,7 +70,6 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
                         const updatedResumes = await Storage.addResume(newResume);
                         setResumes(updatedResumes);
-                        showSuccess("Resume parsed successfully!");
                         resolve();
                     } catch (err) {
                         reject(err);

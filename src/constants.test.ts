@@ -7,6 +7,11 @@ import {
   AI_MODELS,
   AI_TEMPERATURE,
   HEADLINES,
+  TRACKING_EVENTS,
+  BENTO_CATEGORIES,
+  DATE_FORMATS,
+  RESUME_SECTION_TYPES,
+  EXTERNAL_LINKS,
 } from './constants';
 
 describe('constants', () => {
@@ -50,7 +55,6 @@ describe('constants', () => {
     it('should have all required storage keys', () => {
       expect(STORAGE_KEYS.RESUMES).toBeTruthy();
       expect(STORAGE_KEYS.JOBS_HISTORY).toBeTruthy();
-      expect(STORAGE_KEYS.API_KEY).toBeTruthy();
       expect(STORAGE_KEYS.THEME).toBeTruthy();
     });
 
@@ -108,6 +112,43 @@ describe('constants', () => {
     it('should contain expected headlines', () => {
       const allTexts = HEADLINES.goal.map(h => `${h.text} ${h.highlight}`);
       expect(allTexts).toContain("Scale your Impact");
+    });
+  });
+
+  describe('TRACKING_EVENTS', () => {
+    it('should have basic feature keys', () => {
+      expect(Object.keys(TRACKING_EVENTS)).toContain('JOB_FIT');
+      expect(Object.keys(TRACKING_EVENTS)).toContain('RESUMES');
+      expect(Object.keys(TRACKING_EVENTS)).toContain('COVER_LETTERS');
+    });
+  });
+
+  describe('BENTO_CATEGORIES', () => {
+    it('should have standard UI categories', () => {
+      expect(Object.values(BENTO_CATEGORIES)).toContain('JOB');
+      expect(Object.values(BENTO_CATEGORIES)).toContain('COACH');
+      expect(Object.values(BENTO_CATEGORIES)).toContain('EDUCATION');
+    });
+  });
+
+  describe('DATE_FORMATS', () => {
+    it('should have wait-vibe date patterns', () => {
+      expect(DATE_FORMATS.DISPLAY_FULL).toContain('YYYY');
+      expect(DATE_FORMATS.SHORT_MONTH).toContain('MMM');
+    });
+  });
+
+  describe('RESUME_SECTION_TYPES', () => {
+    it('should match core database/ai keys', () => {
+      expect(RESUME_SECTION_TYPES.SUMMARY).toBe('summary');
+      expect(RESUME_SECTION_TYPES.WORK).toBe('work');
+    });
+  });
+
+  describe('EXTERNAL_LINKS', () => {
+    it('should have valid utility links', () => {
+      expect(EXTERNAL_LINKS.SUPPORT_EMAIL).toContain('mailto:');
+      expect(EXTERNAL_LINKS.LINKEDIN_EXPORT_GUIDE).toContain('https://');
     });
   });
 });

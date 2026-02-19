@@ -8,7 +8,8 @@ export interface DistilledJob {
     coreResponsibilities: string[];
     salaryRange?: string | null;
     source?: string | null;
-    category?: 'technical' | 'general' | 'managerial'; // AI-determined category
+    category?: 'technical' | 'general' | 'managerial' | 'trades' | 'healthcare' | 'creative'; // AI-determined category
+    canonicalTitle?: string; // New: Standardized title for farming
     isAiBanned?: boolean; // New: Safety flag
     aiBanReason?: string; // New: Context for the ban
 }
@@ -62,11 +63,17 @@ export interface SavedJob {
     // Hyper-Tailored Resume (Ephemeral)
     // Key = Block ID, Value = Rewritten Bullets
     tailoredResumes?: Record<string, string[]>;
+    tailoredSummary?: string;
+    tailorCounts?: Record<string, number>; // Tracks how many times each block has been tailored
 
     // Optimization / A/B Testing
     initialCoverLetter?: string; // The raw AI output before user edits
     promptVersion?: string;      // ID of the prompt variant used
     editScore?: number;          // Levenshtein distance (lower = better)
+
+    // Analysis Progress (Ephemeral-ish)
+    progress?: number; // 0-100
+    progressMessage?: string; // e.g. "Extracting details..."
 
     // Outcome Tracking
     status?: 'saved' | 'applied' | 'interview' | 'offer' | 'rejected' | 'ghosted' | 'analyzing' | 'error' | 'feed';
@@ -84,4 +91,23 @@ export interface JobFeedItem {
     sourceType?: 'scraper' | 'email';
     triageReasoning?: string;
     isNew?: boolean;
+}
+
+export interface InterviewQuestion {
+    id: string;
+    question: string;
+    rationale?: string;
+    category: 'technical' | 'behavioral' | 'situational'; // Re-added
+    tips?: string;
+    followUp?: InterviewQuestion;
+    isFollowUp?: boolean; // New: Flag to identify inserted follow-up questions
+}
+
+export interface InterviewResponseAnalysis {
+    score: number;
+    passed?: boolean; // New: Strict pass/fail for technical questions
+    feedback: string;
+    strengths: string[];
+    improvements: string[];
+    betterVersion: string;
 }

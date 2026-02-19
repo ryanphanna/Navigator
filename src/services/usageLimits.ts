@@ -1,20 +1,24 @@
 import { supabase } from './supabase';
+import type { UserTier } from '../types/app';
+import { PLAN_LIMITS } from '../constants';
 
 export interface UsageLimitResult {
     allowed: boolean;
-    reason?: 'free_limit_reached' | 'daily_limit_reached' | 'rate_limit';
+    reason?: 'free_limit_reached' | 'daily_limit_reached' | 'weekly_limit_reached' | 'rate_limit';
     used?: number;
     limit?: number;
 }
 
 export interface UsageStats {
-    tier: string;
+    tier: UserTier;
     totalAnalyses: number;
     todayAnalyses: number;
-    todayEmails?: number;
+    weekAnalyses: number;
+    todayEmails: number;
     totalAICalls: number; // Cumulative AI events
-    limit: number;
-    emailLimit?: number;
+    analysisLimit: number;
+    analysisPeriod: string;
+    emailLimit: number;
     inboundEmailToken?: string;
 }
 
@@ -73,6 +77,15 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
             .eq('user_id', userId)
             .gte('date_added', new Date().toISOString().split('T')[0]);
 
+        // Weekly count: jobs created in the last 7 days
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const { count: weekCount } = await supabase
+            .from('jobs')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .gte('date_added', weekAgo.toISOString());
+
         let tier = profile?.subscription_tier || 'free';
         if (profile?.is_admin) tier = 'admin';
         else if (profile?.is_tester) tier = 'tester';
@@ -84,25 +97,33 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
             .from('jobs')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', userId)
-            .eq('source', 'email')
+            .eq('source_type', 'email')
             .gte('date_added', new Date().toISOString().split('T')[0]);
 
-        const emailLimit = ({
-            'free': 0,
-            'plus': 5,
-            'pro': 25,
-            'admin': 100,
-            'tester': 100
-        } as Record<string, number>)[tier] || 0;
+        const limits = PLAN_LIMITS[tier as keyof typeof PLAN_LIMITS] || PLAN_LIMITS['free'];
+
+        // Determine the analysis limit based on tier period
+        let analysisLimit: number;
+        if ('TOTAL_ANALYSES' in limits) {
+            analysisLimit = limits.TOTAL_ANALYSES;
+        } else if ('WEEKLY_ANALYSES' in limits) {
+            analysisLimit = limits.WEEKLY_ANALYSES;
+        } else if ('DAILY_ANALYSES' in limits) {
+            analysisLimit = limits.DAILY_ANALYSES as number;
+        } else {
+            analysisLimit = 3; // Fallback
+        }
 
         return {
-            tier,
+            tier: tier as UserTier,
             totalAnalyses,
             todayAnalyses: todayCount || 0,
+            weekAnalyses: weekCount || 0,
             todayEmails: todayEmailCount || 0,
             totalAICalls,
-            limit: tier === 'free' ? 3 : Infinity,
-            emailLimit,
+            analysisLimit,
+            analysisPeriod: limits.ANALYSES_PERIOD,
+            emailLimit: limits.DAILY_EMAILS,
             inboundEmailToken: tier === 'free' ? undefined : profile?.inbound_email_token
         };
     } catch (err) {
@@ -111,9 +132,11 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
             tier: 'free',
             totalAnalyses: 0,
             todayAnalyses: 0,
+            weekAnalyses: 0,
             todayEmails: 0,
             totalAICalls: 0,
-            limit: 3,
+            analysisLimit: 3,
+            analysisPeriod: 'lifetime',
             emailLimit: 0,
             inboundEmailToken: undefined
         };
