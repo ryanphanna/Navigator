@@ -3,7 +3,78 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+## [2.15.0] - 2026-02-19
+
 ### Added
+- **Security & Safety**:
+  - Implemented **Pessimistic Quota Enforcement** and a **Refund Mechanism** for failed AI calls.
+  - Added **Strict Email Normalization** and **Device Fingerprinting** to prevent abuse.
+  - Integrated an **Email Verification Gate** and a global **Token Safety Ceiling** as emergency fuses.
+  - Added automated **"Is-a-Job" Content Validation** with auto-refunds for non-job content.
+  - Consolidated background tasks (`inbound-email`, `scrape-jobs`) to use centralized `gemini-proxy` logic.
+- **AI & Architecture**:
+  - Harmonized model mappings — **Gemini 1.5 Pro** now powers all Pro/Admin features.
+  - Created centralized `featureRegistry.ts` as the single source of truth for all feature definitions.
+- **UI/UX & Design**:
+  - Implemented **3D tilt and 4px lift effects** on homepage Bento cards.
+  - Added **micro-animations** (pulsing AI Safety shield, interactive match score) and background glows to the Hero section.
+  - Created a reusable **Notification Banner** system and a premium Privacy Policy announcement.
+  - Redesigned **Interview Advisor** with a chat-based UI and adaptive personas (e.g., "Senior Engineer").
+- **Onboarding & Authentication**:
+  - Implemented **delayed authentication**, allowing flow completion (journey, resume upload) before account creation.
+  - Added **personalized "delight" snapshots** during parsing and high-fidelity loading states.
+  - Integrated inline account creation and improved monthly/annual pricing toggles.
+- **Features**:
+  - **Skills**: Launched **Unified Skills Interview** (multi-skill assessment) with Proficiency Filtering.
+  - **Education**: Added **Dynamic Degree Requirements** checklist and program-based progress tracking.
+  - **Interviews**: Enhanced **Tailored Job Interview** mode with role-appropriate technical scenarios.
+- **Plans & Monetization**:
+  - Significantly increased **Pro Limits** (500 analyses/day) and implemented dynamic **Stripe Tier Mapping**.
+  - Added **promotion code support** and dynamic **headline cycling** on the Plans page.
+- **Legal**: Added **"Key Takeaway" cards** to TOS and expanded the Privacy Policy (Data Retention, User Rights).
+
+### Changed
+- **Premium Design Refresh**:
+  - Massive UI overhaul of **Skills**, **Settings**, **Resume Editor**, and **Job** modules with a "glassmorphism" aesthetic.
+  - Redesigned core `Card.tsx` and `BentoCard.tsx` to use light glass effects and ambient accent glows.
+  - Refined **Skill Card** and **Application History** layouts for better visual consistency.
+- **Navigation & Layout**:
+  - Implemented **cumulative tier filtering** on the Features page (Pro includes all, Plus includes Explorer).
+  - Standardized **Header padding** and nav island opacity (80%) to prevent content bleed.
+  - Switched Features grid to **CSS Grid** for consistent alignment and centered final rows.
+- **Stripe & Checkout**:
+  - Migrated from embedded modals to **full-page hosted checkout** for improved reliability.
+  - Fixed quota alignment and updated plan badges (e.g., "Recommended" for Pro).
+- **Core Improvements**:
+  - Migrated feature data into the centralized `featureRegistry.ts` for single-source-of-truth parity.
+  - Updated homepage grid to follow a process-driven workflow: **Match → Skills → Resume → Cover Letters → Job Feed**.
+- **Performance & Stability**:
+  - Implemented build-time **code splitting** (Vite `manualChunks`) and `esbuild` minification.
+  - Added `preconnect` and `dns-prefetch` hints for Google Fonts and deferred `pdf.js` loading.
+
+### Fixed
+- **UI & Navigation**:
+  - Resolved invisible headline text and fixed vertical alignment in Settings and Home sections.
+  - Fixed critical navigation bugs where header links/buttons failed to trigger route changes.
+  - Resolved a navigation bug where the **"Jobs" tab incorrectly remained highlighted** while on the Home page.
+  - Resolved active state highlighting for nested sub-routes and synchronized URL changes with internal state.
+- **Stripe & Auth**:
+  - Fixed "Invalid API key" and "Invalid JWT" errors by improving error identification and reporting.
+  - Resolved `400 Bad Request` in checkout session generation for new users.
+  - Synchronized price IDs with confirmed Stripe Test Mode values.
+- **Stability**:
+  - Resolved critical runtime crashes in `Header.tsx`, `AppRoutes.tsx`, and `OnboardingPage.tsx` caused by missing imports or malformed JSX.
+  - Fixed a critical **"useUser" Context error** by implementing robust prop-passing across lazy-loaded module boundaries (`HomeInput`, `FeatureGrid`).
+  - Fixed module import errors for `BentoCard`, `interviewAiService`, and `SkillInterviewModal`.
+  - Resolved session start bugs in the Interview Advisor.
+- **Code Quality**:
+  - Cleaned up TypeScript linting errors and removed unused imports/variables across the codebase.
+
+### Removed
+- **Redundancy**: Removed "Admin Beta" tags, "Beta Feature" notices, and "Resume parsed successfully" toasts.
+- **Legacy Components**: Deleted deprecated `SkillInterviewModal.tsx` and removed redundant Education dashboard cards.
+- **Design Clutter**: Removed footer taglines and "Added" dates from skill cards to simplify the interface.
 
 ## [2.14.0] - 2026-02-18
 
