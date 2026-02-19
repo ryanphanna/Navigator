@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.15.2] - 2026-02-19
+
+### Fixed
+- **Deployment**: Added `.npmrc` to bypass strict ERESOLVE peer dependencies caused by React 19 (`react-helmet-async`), resolving Vercel deployment failures.
+
 ## [2.15.1] - 2026-02-19
 
 ### Fixed
