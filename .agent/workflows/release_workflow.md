@@ -25,6 +25,7 @@ When the user requests a version bump or "release" (e.g., at the end of the day)
     *   **Minor**: Backward-compatible functionality.
     *   **Patch**: Backward-compatible bug fixes.
 3.  Upon user approval of the version number:
+    *   **Rewrite the `## [Unreleased]` section**: Condense the raw, chronological bullet points into a cohesive, grouped, and human-readable format highlighting major features and bug fixes.
     *   Rename `## [Unreleased]` to `## [VERSION] - YYYY-MM-DD`.
     *   Update the `version` field in `package.json`.
     *   Create a new empty `## [Unreleased]` section at the top of `CHANGELOG.md`.
