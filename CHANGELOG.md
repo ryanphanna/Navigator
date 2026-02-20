@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Settings**: Added a "Current Focus" dropdown allowing users to change their targeted role (Job Hunter, Career Planner, Student) at any time.
+
 ## [2.16.0] - 2026-02-20
 
 ### Added
