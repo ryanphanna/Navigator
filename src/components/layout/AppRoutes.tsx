@@ -53,7 +53,8 @@ export const AppRoutes: React.FC = () => {
     } = useJobContext();
 
     const {
-        resumes, isParsingResume, importError, handleImportResume, handleUpdateResumes, clearImportError
+        resumes, isParsingResume, importError, isLoading: isResumesLoading,
+        handleImportResume, handleUpdateResumes, clearImportError
     } = useResumeContext();
 
     const {
@@ -288,15 +289,19 @@ export const AppRoutes: React.FC = () => {
                 <Route element={<ProtectedRoute />}>
                     <Route path={ROUTES.RESUMES} element={
                         <Suspense fallback={<LoadingState message="Opening Editor..." />}>
-                            <ResumeEditor
-                                resumes={resumes}
-                                skills={skills}
-                                onSave={handleUpdateResumes}
-                                onImport={handleImportResume}
-                                isParsing={isParsingResume}
-                                importError={importError}
-                                importTrigger={0}
-                            />
+                            {isResumesLoading ? (
+                                <LoadingState message="Loading Resume..." />
+                            ) : (
+                                <ResumeEditor
+                                    resumes={resumes}
+                                    skills={skills}
+                                    onSave={handleUpdateResumes}
+                                    onImport={handleImportResume}
+                                    isParsing={isParsingResume}
+                                    importError={importError}
+                                    importTrigger={0}
+                                />
+                            )}
                         </Suspense>
                     } />
 

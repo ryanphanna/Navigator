@@ -75,7 +75,12 @@ export const ResumeStorage = {
         await Vault.setSecure(STORAGE_KEYS.RESUMES, updated);
         const userId = await getUserId();
         if (userId) {
-            await supabase.from('resumes').update({ content: updated }).eq('user_id', userId);
+            const { data: existingRow } = await supabase.from('resumes').select('id').eq('user_id', userId).maybeSingle();
+            if (existingRow) {
+                await supabase.from('resumes').update({ content: updated }).eq('user_id', userId);
+            } else {
+                await supabase.from('resumes').insert({ user_id: userId, name: 'Default Profile', content: updated });
+            }
         }
         return updated;
     }
