@@ -11,6 +11,7 @@ export interface BentoCardProps {
     previewContent?: React.ReactNode;
     actionLabel?: string;
     onAction?: () => void;
+    isComingSoon?: boolean;
     className?: string;
 }
 
@@ -22,6 +23,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
     previewContent,
     actionLabel,
     onAction,
+    isComingSoon = false,
     className = "",
 }) => {
     const cardRef = useRef<HTMLDivElement>(null);
@@ -85,8 +87,13 @@ export const BentoCard: React.FC<BentoCardProps> = ({
                 <div className={`w-10 h-10 shrink-0 ${iconBgClass} ${iconColorClass} rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/10 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out`}>
                     <Icon className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-black text-neutral-900 dark:text-white tracking-tight leading-tight pt-0.5">
+                <h3 className="text-lg font-black text-neutral-900 dark:text-white tracking-tight leading-tight pt-0.5 flex items-center gap-2">
                     {title}
+                    {isComingSoon && (
+                        <span className="px-1.5 py-0.5 bg-neutral-100 dark:bg-white/5 text-[8px] font-black uppercase tracking-wider text-neutral-400 dark:text-neutral-500 rounded-md border border-neutral-200/50 dark:border-white/5">
+                            Soon
+                        </span>
+                    )}
                 </h3>
             </div>
 

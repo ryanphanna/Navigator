@@ -208,31 +208,36 @@ export const PLAN_LIMITS = {
     DAILY_EMAILS: 0,
     TOTAL_ANALYSES: 3,
     ANALYSES_PERIOD: 'lifetime' as const,
-    MENTORS: 0,
+    ROLE_MODELS: 0,
+    SKILLS_INTERVIEWS: 0,
   },
   [USER_TIERS.PLUS]: {
     DAILY_EMAILS: 5,
-    WEEKLY_ANALYSES: 200,
+    WEEKLY_ANALYSES: 100,
     ANALYSES_PERIOD: 'weekly' as const,
-    MENTORS: 5,
+    ROLE_MODELS: 5,
+    SKILLS_INTERVIEWS: 2, // Per month (Comprehensive audit)
   },
   [USER_TIERS.PRO]: {
     DAILY_EMAILS: 25,
-    DAILY_ANALYSES: 100,
-    ANALYSES_PERIOD: 'daily' as const,
-    MENTORS: Infinity,
+    WEEKLY_ANALYSES: 350,
+    ANALYSES_PERIOD: 'weekly' as const,
+    ROLE_MODELS: 25,
+    SKILLS_INTERVIEWS: 5, // Per month (Comprehensive audit)
   },
   [USER_TIERS.ADMIN]: {
     DAILY_EMAILS: 100,
-    DAILY_ANALYSES: Infinity,
-    ANALYSES_PERIOD: 'daily' as const,
-    MENTORS: Infinity,
+    WEEKLY_ANALYSES: Infinity,
+    ANALYSES_PERIOD: 'weekly' as const,
+    ROLE_MODELS: Infinity,
+    SKILLS_INTERVIEWS: Infinity,
   },
   [USER_TIERS.TESTER]: {
     DAILY_EMAILS: 100,
-    DAILY_ANALYSES: Infinity,
-    ANALYSES_PERIOD: 'daily' as const,
-    MENTORS: Infinity,
+    WEEKLY_ANALYSES: Infinity,
+    ANALYSES_PERIOD: 'weekly' as const,
+    ROLE_MODELS: Infinity,
+    SKILLS_INTERVIEWS: Infinity,
   },
 } as const;
 
@@ -274,35 +279,35 @@ export const FEATURES = {
 // Marketing Headlines
 export const HEADLINES = {
   all: [
-    { text: "Optimize Your", highlight: "Career" },
-    { text: "Elevate Your", highlight: "Potential" },
-    { text: "Design Your", highlight: "Path" },
-    { text: "Scale Your", highlight: "Ambition" }
+    { text: "Accelerate Your", highlight: "Career" },
+    { text: "Unleash Your", highlight: "Potential" },
+    { text: "Forge Your", highlight: "Path" },
+    { text: "Command Your", highlight: "Future" }
   ],
   apply: [
-    { text: "Land Your", highlight: "Opening" },
-    { text: "Ace The", highlight: "Application" },
+    { text: "Secure The", highlight: "Offer" },
+    { text: "Crush The", highlight: "Application" },
     { text: "Own Your", highlight: "Narrative" },
-    { text: "Perfect Your", highlight: "Match" }
+    { text: "Land The", highlight: "Role" }
   ],
   goal: [
     { text: "Chart Your", highlight: "Course" },
-    { text: "Map Your", highlight: "Growth" },
-    { text: "Build Your", highlight: "Roadmap" },
-    { text: "Design Your", highlight: "Future" },
-    { text: "Scale Your", highlight: "Impact" }
+    { text: "Engineer Your", highlight: "Growth" },
+    { text: "Define Your", highlight: "Roadmap" },
+    { text: "Architect Your", highlight: "Future" },
+    { text: "Maximize Your", highlight: "Impact" }
   ],
   edu: [
-    { text: "Accelerate Your", highlight: "Learning" },
-    { text: "Maximize Your", highlight: "Potential" },
-    { text: "Scale Your", highlight: "Education" },
-    { text: "Chart Your", highlight: "Success" }
+    { text: "Accelerate Your", highlight: "Growth" },
+    { text: "Ignite Your", highlight: "Potential" },
+    { text: "Master Your", highlight: "Craft" },
+    { text: "Drive Your", highlight: "Success" }
   ],
   plans: [
-    { text: "Plans To Match", highlight: "Your Ambition" },
+    { text: "Plans To Match", highlight: "Your Pace" },
     { text: "Fuel Your", highlight: "Next Move" },
-    { text: "Invest In", highlight: "Your Career" },
-    { text: "Unlock Your Full", highlight: "Potential" },
-    { text: "Power Up", highlight: "Your Search" }
+    { text: "Back Your", highlight: "Ambition" },
+    { text: "Unleash Your", highlight: "Potential" },
+    { text: "Supercharge Your", highlight: "Search" }
   ]
 } as const;

@@ -18,13 +18,13 @@ export const UsageIndicator: React.FC<UsageIndicatorProps> = ({ usageStats }) =>
                 <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                     <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-                        {usageStats.totalAnalyses}/{usageStats.analysisLimit}
+                        {usageStats.weekAnalyses}/{usageStats.analysisLimit}
                     </span>
                     <span className="text-neutral-500 dark:text-neutral-400">
-                        free analyses used
+                        weekly analyses used
                     </span>
                 </div>
-                {usageStats.totalAnalyses >= 2 && (
+                {usageStats.weekAnalyses >= 2 && (
                     <button
                         onClick={() => navigate(ROUTES.PLANS)}
                         className="ml-2 px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold rounded-full hover:from-blue-700 hover:to-purple-700 transition-all"

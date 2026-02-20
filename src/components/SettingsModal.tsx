@@ -5,6 +5,7 @@ import type { User } from '@supabase/supabase-js';
 import { APP_VERSION } from '../constants';
 import { useModal } from '../contexts/ModalContext';
 import { useToast } from '../contexts/ToastContext';
+import { useUser } from '../contexts/UserContext';
 import { supabase } from '../services/supabase';
 
 import type { UserTier } from '../types/app';
@@ -25,6 +26,7 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, userTier, isTester, isAdmin, simulatedTier, usageStats }) => {
     const { openModal } = useModal();
     const { showInfo, showError } = useToast();
+    const { updateProfile, journey } = useUser();
     const [isCopyingToken, setIsCopyingToken] = React.useState(false);
     const [isCopyingEmail, setIsCopyingEmail] = React.useState(false);
 
@@ -122,7 +124,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col gap-1 items-start mt-2">
+                                <div className="flex flex-col gap-2 items-start mt-2">
                                     <Button
                                         variant="ghost"
                                         size="sm"
@@ -132,6 +134,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                     >
                                         Change Password
                                     </Button>
+
+                                    <div className="w-full mt-4 space-y-2">
+                                        <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest block">
+                                            Current Focus
+                                        </label>
+                                        <select
+                                            value={journey}
+                                            onChange={(e) => updateProfile({ journey: e.target.value })}
+                                            className="w-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none cursor-pointer"
+                                            style={{
+                                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='currentColor' class='w-4 h-4 text-neutral-500'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9' /%3E%3C/svg%3E")`,
+                                                backgroundRepeat: 'no-repeat',
+                                                backgroundPosition: 'right 0.75rem center',
+                                                backgroundSize: '1rem',
+                                                paddingRight: '2.5rem'
+                                            }}
+                                        >
+                                            <option value="job-hunter">Job Hunting</option>
+                                            <option value="employed">Planning Career</option>
+                                            <option value="student">Focusing on Grad School</option>
+                                        </select>
+                                        <p className="text-[10px] text-neutral-500 dark:text-neutral-400 leading-snug">
+                                            Customizes the resources and recommendations on your home screen.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -258,6 +285,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                 <div className="flex items-center gap-2 mb-1">
                                     <Mail className="w-3 h-3 text-indigo-500" />
                                     <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Email Alerts</span>
+                                    {(!isAdmin && !isTester) && (
+                                        <span className="px-1.5 py-0.5 bg-neutral-100 dark:bg-white/5 text-[8px] font-black uppercase tracking-wider text-neutral-400 dark:text-neutral-500 rounded-md border border-neutral-200/50 dark:border-white/5 ml-1">
+                                            Soon
+                                        </span>
+                                    )}
                                 </div>
                                 <p className="text-[10px] text-neutral-500 leading-relaxed">
                                     Email jobs to your unique address and we'll process them automatically.

@@ -7,6 +7,8 @@ import { TranscriptUpload } from '../TranscriptUpload';
 import type { Transcript } from '../../../types';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
+import { UnifiedUploadHero } from '../../common/UnifiedUploadHero';
+import { Zap } from 'lucide-react';
 
 interface EduHeroProps {
     transcript: Transcript | null;
@@ -31,33 +33,28 @@ export const EduHero: React.FC<EduHeroProps> = ({
         <>
             <div className="w-full max-w-4xl mx-auto mb-16 px-4 animate-in zoom-in-95 fade-in duration-500">
                 {!transcript ? (
-                    <Card variant="glass" className="group border-accent-primary/20 hover:border-accent-primary/50" glow>
-                        <div className="p-8 md:p-12 flex flex-col items-center text-center gap-8 transition-all duration-500 overflow-hidden">
-                            <div className="absolute top-0 right-0 p-12 text-accent-primary/5 group-hover:text-accent-primary/10 transition-colors pointer-events-none">
-                                <GraduationCap className="w-48 h-48" />
-                            </div>
-
-                            <div className="relative z-10 space-y-6">
-                                <div className="w-20 h-20 bg-accent-primary/10 rounded-[2rem] flex items-center justify-center text-accent-primary-hex mx-auto shadow-inner group-hover:scale-110 transition-transform duration-500">
-                                    <GraduationCap className="w-10 h-10" />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <div className="text-[10px] font-black text-accent-primary-hex uppercase tracking-[0.3em]">Academic Record</div>
-                                    <h2 className="text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
-                                        Upload Transcript to start tracking
-                                    </h2>
-                                    <p className="text-neutral-500 dark:text-neutral-400 font-medium max-w-md mx-auto leading-relaxed">
-                                        Experience a smart overview of your academic journey. We'll analyze your courses and calculate your 4.0 GPA automatically.
-                                    </p>
-                                </div>
-
-                                <div className="w-full max-w-sm mx-auto pt-4">
-                                    <TranscriptUpload onUploadComplete={handleUploadComplete} />
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
+                    <div className="w-full max-w-5xl mx-auto pt-4">
+                        <UnifiedUploadHero
+                            title="Upload Transcript"
+                            description="Drag & drop your PDF transcript here to automatically import your academic history"
+                            onUpload={(files) => handleUploadComplete(files[0] as any)} // Cast just to satisfy old types for now if needed, but TranscriptUpload was using File[]
+                            themeColor="amber"
+                            cards={{
+                                foundation: {
+                                    title: "Academic Record",
+                                    description: "We analyze your courses and calculate your 4.0 GPA automatically. Your privacy is our priority.",
+                                    icon: GraduationCap,
+                                    benefits: ['Smart Course Extraction', 'Grade Normalization', 'Privacy-First Parsing']
+                                },
+                                intelligence: {
+                                    title: "Intelligence",
+                                    description: "Experience a smart overview of your academic journey and discover your true potential.",
+                                    icon: Zap,
+                                    benefits: ['GPA Forecasting', 'Credit Tracking', 'Curated Program Discovery']
+                                }
+                            }}
+                        />
+                    </div>
                 ) : (
                     <Card variant="glass" className="p-6 md:p-8 border-accent-primary/20" glow>
                         <div className="flex flex-col md:flex-row items-center gap-8">

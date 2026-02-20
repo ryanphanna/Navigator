@@ -38,6 +38,7 @@ export const GrowthPage: React.FC<GrowthPageProps> = ({
                     highlight="Roadmap"
                     subtitle="Track your career milestones in one place."
                     theme="coach"
+                    variant="compact"
                 />
 
                 <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -92,6 +93,7 @@ export const GrowthPage: React.FC<GrowthPageProps> = ({
                 highlight="Roadmap"
                 subtitle="Track your career milestones in one place."
                 theme="coach"
+                variant="compact"
             />
 
             <div className="max-w-4xl mx-auto px-6 space-y-10 animate-in fade-in duration-500">

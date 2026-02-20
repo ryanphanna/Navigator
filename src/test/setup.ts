@@ -45,6 +45,8 @@ Object.defineProperty(globalThis, 'crypto', {
     subtle: {
       digest: vi.fn(async () => new ArrayBuffer(32)),
       importKey: vi.fn(async () => ({} as CryptoKey)),
+      generateKey: vi.fn(async () => ({} as CryptoKey)),
+      deriveKey: vi.fn(async () => ({} as CryptoKey)),
       encrypt: vi.fn(async (_algo, _key, data) => {
         // Simple mock: just return the data with a prefix
         const prefix = new TextEncoder().encode('encrypted:');
@@ -60,4 +62,40 @@ Object.defineProperty(globalThis, 'crypto', {
       }),
     },
   },
+});
+
+// Mock IndexedDB for tests
+const idbMock = {
+  open: vi.fn().mockImplementation(() => {
+    const request: any = {
+      onupgradeneeded: null,
+      onsuccess: null,
+      onerror: null,
+      result: {
+        objectStoreNames: { contains: vi.fn().mockReturnValue(true) },
+        createObjectStore: vi.fn().mockReturnValue({}),
+        transaction: vi.fn().mockReturnValue({
+          objectStore: vi.fn().mockReturnValue({
+            get: vi.fn().mockReturnValue({ onsuccess: null }),
+            put: vi.fn().mockReturnValue({ onsuccess: null }),
+            delete: vi.fn().mockReturnValue({ onsuccess: null }),
+          }),
+          oncomplete: null,
+          onerror: null,
+        }),
+        close: vi.fn(),
+      },
+    };
+    // Simulate async success
+    setTimeout(() => {
+      if (request.onsuccess) request.onsuccess();
+    }, 0);
+    return request;
+  }),
+};
+
+Object.defineProperty(window as any, 'indexedDB', {
+  value: idbMock,
+  configurable: true,
+  writable: true
 });

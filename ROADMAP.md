@@ -39,3 +39,4 @@ This document tracks future features and strategic pivots for Navigator.
 - [ ] **Org Intelligence**: Tracking which companies hire for specific transit roles over time.
 - [ ] **Credential Mapping**: Automated suggestions for transit-specific certifications based on job requirements.
 - [ ] **Networking Graph**: Tracking alumni or contacts at specific transit agencies.
+- [ ] **Per-Product Pricing**: Consider migrating from a global tier structure (Plus/Pro) to modular, per-product subscriptions (Jobs, Coach, Education) to lower entry barriers and target specific user needs.

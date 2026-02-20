@@ -21,14 +21,17 @@ export const useJobManager = () => {
     // Usage Stats State
     const [usageStats, setUsageStats] = useState<UsageStats>({
         tier: isAdmin ? 'admin' : 'free',
-        totalAnalyses: 0,
         todayAnalyses: 0,
         weekAnalyses: 0,
         todayEmails: 0,
+        monthInterviews: 0,
+        roleModelCount: 0,
         totalAICalls: 0,
         analysisLimit: isAdmin ? Infinity : 3,
         analysisPeriod: 'lifetime',
-        emailLimit: 0
+        emailLimit: 0,
+        roleModelLimit: isAdmin ? Infinity : 0,
+        interviewLimit: isAdmin ? Infinity : 0
     });
     const [upgradeModalData, setUpgradeModalData] = useState<UsageLimitResult | null>(null);
 

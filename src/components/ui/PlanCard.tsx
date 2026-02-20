@@ -5,7 +5,7 @@ import { SimpleTooltip } from './SimpleTooltip';
 interface PlanCardProps {
     title: string;
     price: string;
-    features: { name: string; desc: string }[];
+    features: { name: string; desc: string; isComingSoon?: boolean }[];
     isPopular?: boolean;
     buttonText?: string;
     accentColor?: 'indigo' | 'emerald' | 'amber' | 'slate' | 'violet';
@@ -104,7 +104,12 @@ export const PlanCard = ({
                                 <Check className="w-3 h-3 stroke-[3]" />
                             </div>
                             <div className="flex flex-col min-w-0">
-                                <span className="font-bold text-neutral-900 dark:text-white text-xs leading-tight">{feature.name}</span>
+                                <span className="font-bold text-neutral-900 dark:text-white text-xs leading-tight">
+                                    {feature.name}
+                                    {feature.isComingSoon && (
+                                        <span className="ml-1 text-[10px] font-medium text-neutral-400 dark:text-neutral-500 italic">(Soon)</span>
+                                    )}
+                                </span>
                                 {!isCompact && <span className="text-[10px] text-neutral-500 dark:text-neutral-500 font-medium leading-relaxed mt-0.5">{feature.desc}</span>}
                             </div>
                         </div>

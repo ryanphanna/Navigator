@@ -6,11 +6,10 @@ import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { BentoCard } from '../../components/ui/BentoCard';
-import { DropZone } from '../../components/common/DropZone';
 import { Alert } from '../../components/ui/Alert';
 import { useResumeContext } from './context/ResumeContext';
 import { EventService } from '../../services/eventService';
+import { UnifiedUploadHero } from '../../components/common/UnifiedUploadHero';
 
 interface ResumeEditorProps {
     resumes: ResumeProfile[];
@@ -204,7 +203,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
             <PageHeader
                 title="Resume Editor"
-                subtitle="High-fidelity career data management"
+                subtitle="Manage your professional history and accomplishments"
                 variant="simple"
                 actions={!showEmptyState ? headerActions : undefined}
                 className="mb-12"
@@ -224,69 +223,28 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                             </div>
                         )}
 
-                        {/* 3-Card Layout: Process Flow */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-                            <div className="animate-in slide-in-from-bottom-8 fade-in duration-700 delay-100 fill-mode-both">
-                                <BentoCard
-                                    id="foundation"
-                                    icon={FileText}
-                                    title="Foundation"
-                                    description="We need your history to build a strong foundation. Upload your current resume to provide the essential data for your profile."
-                                    previewContent={
-                                        <ul className="space-y-3 pt-4">
-                                            {['Smart File Import', 'Automatic Cleanup', 'Privacy-First Engine'].map((item) => (
-                                                <li key={item} className="flex items-center gap-3 text-xs font-bold text-neutral-400">
-                                                    <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                                                    {item}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    }
-                                />
-                            </div>
-
-                            <div className="animate-in slide-in-from-bottom-8 fade-in duration-700 delay-200 fill-mode-both">
-                                <BentoCard
-                                    id="intelligence"
-                                    icon={Zap}
-                                    title="Intelligence"
-                                    description="Our AI processes your data to discover your unique strengths. We analyze your past experience to highlight your true impact and potential."
-                                    previewContent={
-                                        <ul className="space-y-3 pt-4">
-                                            {['Achievement Analysis', 'Skill Discovery', 'Career Alignment'].map((item) => (
-                                                <li key={item} className="flex items-center gap-3 text-xs font-bold text-neutral-400">
-                                                    <div className="w-1 h-1 rounded-full bg-indigo-500" />
-                                                    {item}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    }
-                                />
-                            </div>
-
-                            <div className="animate-in slide-in-from-bottom-8 fade-in duration-700 delay-300 fill-mode-both">
-                                <DropZone
-                                    onUpload={(files) => onImport(files[0])}
-                                    accept=".pdf,.png,.jpg,.jpeg,.txt"
-                                    title="Upload"
-                                    description="Drop your resume to begin analysis"
-                                    variant="card"
-                                    themeColor="indigo"
-                                >
-                                    <Button
-                                        onClick={() => setHasStartedManually(true)}
-                                        className="w-full justify-between py-2.5 rounded-2xl"
-                                        variant="secondary"
-                                        icon={<Plus className="w-4 h-4" />}
-                                    >
-                                        <div className="text-left">
-                                            <div className="text-sm font-black leading-tight">Start Fresh</div>
-                                            <div className="text-[9px] font-black uppercase tracking-widest mt-0.5 opacity-70">Manual Entry</div>
-                                        </div>
-                                    </Button>
-                                </DropZone>
-                            </div>
-                        </div>
+                        {/* Unified Upload Hero */}
+                        <UnifiedUploadHero
+                            title="Upload"
+                            description="Drop your resume to begin analysis"
+                            onUpload={(files) => onImport(files[0])}
+                            onManualEntry={() => setHasStartedManually(true)}
+                            themeColor="indigo"
+                            cards={{
+                                foundation: {
+                                    title: "Foundation",
+                                    description: "We need your history to build a strong foundation. Upload your current resume to provide the essential data for your profile.",
+                                    icon: FileText,
+                                    benefits: ['Smart File Import', 'Automatic Cleanup', 'Privacy-First Engine']
+                                },
+                                intelligence: {
+                                    title: "Intelligence",
+                                    description: "Our AI processes your data to discover your unique strengths. We analyze your past experience to highlight your true impact and potential.",
+                                    icon: Zap,
+                                    benefits: ['Achievement Analysis', 'Skill Discovery', 'Career Alignment']
+                                }
+                            }}
+                        />
                     </div>
                 </div>
             ) : (

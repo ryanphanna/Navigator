@@ -7,6 +7,8 @@ import { FEATURE_REGISTRY } from '../../featureRegistry';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { EduHero } from './components/EduHero';
 import { ProgramRequirements } from './components/ProgramRequirements';
+import { GradLaunchpad } from './components/GradLaunchpad';
+import { PortfolioProposer } from './components/PortfolioProposer';
 import { useAcademicLogic } from './hooks/useAcademicLogic';
 import { useHeadlines } from '../../hooks/useHeadlines';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -62,13 +64,17 @@ export const EducationDashboard: React.FC = () => {
                 />
 
                 {transcript && (
-                    <div className="max-w-4xl mx-auto mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                    <div className="max-w-4xl mx-auto mb-16 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
                         <ProgramRequirements
                             requirements={programRequirements}
                             isAnalyzing={isAnalyzingRequirements}
                             onAnalyze={fetchRequirements}
                             programName={transcript.program}
                         />
+
+                        <GradLaunchpad />
+
+                        <PortfolioProposer transcript={transcript} />
                     </div>
                 )}
 

@@ -46,3 +46,11 @@ export interface AdmissionEligibility {
     recommendations: string[];
     targetCredits?: number;
 }
+
+export interface ProjectProposal {
+    title: string;
+    course: string;
+    description: string;
+    skills: string[];
+    evidence: string;
+}

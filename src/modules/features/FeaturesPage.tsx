@@ -42,7 +42,7 @@ export const FeaturesPage: React.FC = () => {
     const [activeTier, setActiveTier] = useState<Tier>('all');
     const hasSetDefaultRef = useRef(false);
     const navigate = useNavigate();
-    const { user, userTier, isLoading } = useUser();
+    const { user, userTier, isAdmin, isLoading } = useUser();
     const { openModal } = useModal();
 
     useEffect(() => {
@@ -57,7 +57,7 @@ export const FeaturesPage: React.FC = () => {
     // Get all features from registry (excluding admin-only for public features page)
     const allFeatures = useMemo(() => {
         return getAllFeatures()
-            .filter(f => !f.requiresAdmin)
+            .filter(f => !f.requiresAdmin || f.isComingSoon)
             .sort((a, b) => a.rank - b.rank);
     }, []);
 
@@ -179,9 +179,14 @@ export const FeaturesPage: React.FC = () => {
                                         title={feature.name}
                                         description={feature.description.full}
                                         color={color}
-                                        actionLabel={actionLabel}
+                                        actionLabel={feature.isComingSoon ? "Coming Soon" : actionLabel}
+                                        isComingSoon={feature.isComingSoon}
                                         previewContent={getPreviewComponent(feature.id, color)}
                                         onAction={() => {
+                                            if (feature.isComingSoon && !isAdmin) {
+                                                // Log interest or show toast
+                                                return;
+                                            }
                                             if (user) {
                                                 if (hasAccess) {
                                                     if (feature.link) navigate(feature.link);

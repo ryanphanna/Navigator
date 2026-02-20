@@ -6,7 +6,8 @@ import type {
     RoadmapMilestone,
     ResumeProfile,
     CustomSkill,
-    AdmissionEligibility
+    AdmissionEligibility,
+    ProjectProposal
 } from "../../types";
 import { AI_MODELS, AI_TEMPERATURE } from "../../constants";
 import { ANALYSIS_PROMPTS, PARSING_PROMPTS } from "../../prompts/index";
@@ -155,4 +156,18 @@ export const analyzeCurrentProgramRequirements = async (
         metadata.token_usage = response.response.usageMetadata;
         return JSON.parse(cleanJsonOutput(response.response.text()));
     }, { event_type: 'program_requirements', prompt, model: 'dynamic' });
+};
+
+export const extractProjectsFromCourses = async (
+    transcript: Transcript
+): Promise<ProjectProposal[]> => {
+    const allCourses = transcript.semesters.flatMap(s => s.courses);
+    const coursesList = JSON.stringify(allCourses);
+    const prompt = ANALYSIS_PROMPTS.COURSE_PROJECT_EXTRACTION(coursesList);
+    return callWithRetry(async (metadata) => {
+        const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
+        const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
+        metadata.token_usage = response.response.usageMetadata;
+        return JSON.parse(cleanJsonOutput(response.response.text()));
+    }, { event_type: 'project_extraction', prompt, model: AI_MODELS.EXTRACTION });
 };

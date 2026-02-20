@@ -126,13 +126,19 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                     coverLetter: result.text,
                     initialCoverLetter: result.text,
                     promptVersion: result.promptVersion,
-                    coverLetterCritique: { score: result.score, decision: 'maybe' as const, feedback: [], strengths: [] },
+                    coverLetterCritique: {
+                        decision: result.decision as any,
+                        feedback: [],
+                        strengths: []
+                    },
                 };
 
                 Storage.updateJob(updated);
                 setLocalJob(updated);
                 onJobUpdate(updated);
                 EventService.trackUsage(TRACKING_EVENTS.COVER_LETTERS);
+
+                console.log(`[Pro] Cover letter generated with decision: ${result.decision} (${result.attempts} attempts)`);
             } else {
                 const { text: letter, promptVersion } = await generateCoverLetter(
                     textToUse,
@@ -291,31 +297,33 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                         </div>
 
                         {/* Quality Badge (Pro Feature) */}
-                        {localJob.coverLetter && typeof localJob.coverLetterCritique === 'object' && localJob.coverLetterCritique?.score && (
-                            <div className={`px-6 py-3 border-b ${localJob.coverLetterCritique.score >= 80 ? 'bg-green-50/50 border-green-100' :
-                                localJob.coverLetterCritique.score >= 70 ? 'bg-blue-50/50 border-blue-100' :
+                        {localJob.coverLetter && typeof localJob.coverLetterCritique === 'object' && localJob.coverLetterCritique?.decision && (
+                            <div className={`px-6 py-3 border-b ${(localJob.coverLetterCritique.decision === 'Exceptional' || localJob.coverLetterCritique.decision === 'Strong') ? 'bg-green-50/50 border-green-100' :
+                                localJob.coverLetterCritique.decision === 'Average' ? 'bg-blue-50/50 border-blue-100' :
                                     'bg-amber-50/50 border-amber-100'
                                 }`}>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        {localJob.coverLetterCritique.score >= 80 ? (
+                                        {(localJob.coverLetterCritique.decision === 'Exceptional' || localJob.coverLetterCritique.decision === 'Strong') ? (
                                             <>
                                                 <CheckCircle className="w-4 h-4 text-green-600" />
-                                                <span className="text-sm font-medium text-green-900">Interview-Ready</span>
+                                                <span className="text-sm font-medium text-green-900">
+                                                    {localJob.coverLetterCritique.decision === 'Exceptional' ? 'Exceptional Fit' : 'Strong Candidate'}
+                                                </span>
                                             </>
-                                        ) : localJob.coverLetterCritique.score >= 70 ? (
+                                        ) : localJob.coverLetterCritique.decision === 'Average' ? (
                                             <>
                                                 <CheckCircle className="w-4 h-4 text-blue-600" />
-                                                <span className="text-sm font-medium text-blue-900">Strong</span>
+                                                <span className="text-sm font-medium text-blue-900">Competitive</span>
                                             </>
                                         ) : (
                                             <>
-                                                <CheckCircle className="w-4 h-4 text-amber-600" />
-                                                <span className="text-sm font-medium text-amber-900">Ready to Review</span>
+                                                <AlertCircle className="w-4 h-4 text-amber-600" />
+                                                <span className="text-sm font-medium text-amber-900">Needs Review</span>
                                             </>
                                         )}
                                     </div>
-                                    {localJob.coverLetterCritique.score < 70 && (
+                                    {['Reject', 'Weak'].includes(localJob.coverLetterCritique.decision) && (
                                         <span className="text-xs text-amber-700 flex items-center gap-1">
                                             <AlertCircle className="w-3 h-3" />
                                             Consider reviewing carefully before sending
@@ -530,12 +538,14 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                             ) : (
                                                 <div className="space-y-6">
                                                     <div className="flex items-center justify-between">
-                                                        <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Strength Score</span>
+                                                        <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Decision Profile</span>
                                                         <div className="flex items-baseline gap-1">
-                                                            <span className={`text-3xl font-black ${localJob.coverLetterCritique.score >= 80 ? 'text-emerald-600' : localJob.coverLetterCritique.score >= 60 ? 'text-indigo-600' : 'text-rose-600'}`}>
-                                                                {localJob.coverLetterCritique.score}
+                                                            <span className={`text-2xl font-black ${(localJob.coverLetterCritique.decision === 'Exceptional' || localJob.coverLetterCritique.decision === 'Strong') ? 'text-emerald-600' :
+                                                                localJob.coverLetterCritique.decision === 'Average' ? 'text-indigo-600' :
+                                                                    'text-rose-600'
+                                                                }`}>
+                                                                {localJob.coverLetterCritique.decision}
                                                             </span>
-                                                            <span className="text-[10px] font-bold text-neutral-400">/100</span>
                                                         </div>
                                                     </div>
 

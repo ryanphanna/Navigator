@@ -33,8 +33,13 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                     )}
                 </h1>
                 {subtitle && (
-                    <div className="text-xl md:text-2xl text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-4xl mx-auto px-4 font-medium">
+                    <div className="text-xl md:text-2xl text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-4xl mx-auto px-4 font-medium mb-8">
                         {subtitle}
+                    </div>
+                )}
+                {actions && (
+                    <div className="flex justify-center">
+                        {actions}
                     </div>
                 )}
             </div>

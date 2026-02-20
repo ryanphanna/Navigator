@@ -3,12 +3,15 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import type { CustomSkill } from '../../types';
 import { generateUnifiedQuestions, analyzeUnifiedResponse } from '../../services/ai/interviewAiService';
 import { useSkillContext } from './context/SkillContext';
+import { checkInterviewLimit } from '../../services/usageLimits';
+import { supabase } from '../../services/supabase';
 import {
     ShieldCheck, CheckCircle2, X,
     Send, Sparkles, AlertCircle,
     ArrowLeft, Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ROUTES } from '../../constants';
 
 type InterviewStep = 'intro' | 'interview' | 'summary';
 
@@ -41,6 +44,7 @@ export const SkillInterviewPage: React.FC = () => {
     const [userAnswer, setUserAnswer] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [messages, setMessages] = useState<InterviewMessage[]>([]);
+    const [limitError, setLimitError] = useState<string | null>(null);
 
     // Track which skills have been demonstrated across all answers
     const [skillScores, setSkillScores] = useState<Record<string, { demonstrated: number; total: number }>>({});
@@ -59,7 +63,22 @@ export const SkillInterviewPage: React.FC = () => {
 
     const handleStart = async () => {
         setIsLoading(true);
+        setLimitError(null);
+
         try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                navigate('/');
+                return;
+            }
+
+            const limit = await checkInterviewLimit(user.id);
+            if (!limit.allowed) {
+                setLimitError(`Monthly assessment limit reached (${limit.used}/${limit.limit}). Upgrade for more sessions.`);
+                setIsLoading(false);
+                return;
+            }
+
             const qs = await generateUnifiedQuestions(skills);
             setQuestions(qs);
             setStep('interview');
@@ -103,6 +122,7 @@ export const SkillInterviewPage: React.FC = () => {
             );
 
             // Update skill scores
+            let updatedScores: Record<string, { demonstrated: number; total: number }> = {};
             setSkillScores(prev => {
                 const updated = { ...prev };
                 analysis.skillResults.forEach(r => {
@@ -113,6 +133,7 @@ export const SkillInterviewPage: React.FC = () => {
                         };
                     }
                 });
+                updatedScores = updated;
                 return updated;
             });
 
@@ -123,6 +144,19 @@ export const SkillInterviewPage: React.FC = () => {
                 overallPassed: analysis.overallPassed,
                 skillResults: analysis.skillResults,
             }]);
+
+            // Live Persistence: Save skills that are currently verified
+            analysis.skillResults.forEach(r => {
+                const score = updatedScores[r.skill];
+                // Require at least 3 questions for a skill to be "Auto-verified" mid-session
+                // This ensures we have a representative sample before saving.
+                if (score && score.total >= 3 && (score.demonstrated / score.total) >= 0.5) {
+                    const evidence = `Verified via unified AI interview. Demonstrated in ${score.demonstrated}/${score.total} questions.`;
+                    const skill = skills.find(s => s.name === r.skill);
+                    const proficiency = (skill?.proficiency || 'learning') as CustomSkill['proficiency'];
+                    handleInterviewComplete(proficiency, evidence, r.skill);
+                }
+            });
 
             // Next question or finish
             if (currentQuestionIndex < questions.length - 1) {
@@ -187,7 +221,6 @@ export const SkillInterviewPage: React.FC = () => {
     if (skills.length === 0) return null;
 
     const verifiedSkills = step === 'summary' ? getVerifiedSkills() : [];
-    const totalSkills = skills.length;
     const verifiedCount = verifiedSkills.length;
 
     return (
@@ -219,9 +252,6 @@ export const SkillInterviewPage: React.FC = () => {
                                         </span>
                                     )}
                                 </h3>
-                                <p className="text-xs font-medium text-neutral-400 mt-0.5">
-                                    {skills.length} skills to verify
-                                </p>
                             </div>
                         </div>
                     </div>
@@ -263,6 +293,21 @@ export const SkillInterviewPage: React.FC = () => {
                                     </p>
                                 </div>
 
+                                {limitError && (
+                                    <div className="w-full max-w-md mb-8 p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-2xl flex items-center gap-3 text-orange-700 dark:text-orange-400 text-sm font-bold">
+                                        <AlertCircle className="w-5 h-5 shrink-0" />
+                                        <div className="flex-1">
+                                            <p>{limitError}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => navigate(ROUTES.PLANS)}
+                                            className="px-3 py-1.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors shrink-0"
+                                        >
+                                            Upgrade
+                                        </button>
+                                    </div>
+                                )}
+
                                 {/* Skills to assess */}
                                 <div className="w-full max-w-md mb-10">
                                     <div className="text-xs font-bold text-neutral-400 tracking-wide mb-3 px-1">
@@ -282,15 +327,20 @@ export const SkillInterviewPage: React.FC = () => {
 
                                 <button
                                     onClick={handleStart}
-                                    disabled={isLoading}
-                                    className="px-10 py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-base transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/20 flex items-center gap-3 disabled:opacity-50"
+                                    disabled={isLoading || !!limitError}
+                                    className="px-10 py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-base transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/20 flex flex-col items-center gap-1 disabled:opacity-50"
                                 >
-                                    {isLoading ? (
-                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    ) : (
-                                        <Sparkles className="w-5 h-5" />
+                                    <div className="flex items-center gap-3">
+                                        {isLoading ? (
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        ) : (
+                                            <Sparkles className="w-5 h-5" />
+                                        )}
+                                        <span>{isLoading ? 'Preparing questions...' : 'Begin assessment'}</span>
+                                    </div>
+                                    {!isLoading && !limitError && (
+                                        <span className="text-[10px] opacity-70 uppercase tracking-widest">Uses 1 credit</span>
                                     )}
-                                    {isLoading ? 'Preparing questions...' : 'Begin assessment'}
                                 </button>
                             </motion.div>
                         )}
@@ -333,8 +383,8 @@ export const SkillInterviewPage: React.FC = () => {
                                                                 <span
                                                                     key={r.skill}
                                                                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${r.demonstrated
-                                                                            ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
-                                                                            : 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                                                                        ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                                                                        : 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
                                                                         }`}
                                                                     title={r.note}
                                                                 >
@@ -385,12 +435,12 @@ export const SkillInterviewPage: React.FC = () => {
                                 </div>
 
                                 <h4 className="text-4xl font-bold text-neutral-900 dark:text-white mb-3 tracking-tight">
-                                    {verifiedCount > 0 ? 'Assessment Complete' : 'Keep Practicing'}
+                                    {verifiedCount > 0 ? 'Mastery Achieved' : 'Practice Session Over'}
                                 </h4>
                                 <p className="text-lg text-neutral-500 dark:text-neutral-400 font-medium mb-10 max-w-lg">
                                     {verifiedCount > 0
-                                        ? `You demonstrated competence in ${verifiedCount} of ${totalSkills} skills.`
-                                        : `You didn't fully demonstrate any skills this time. Practice and try again!`
+                                        ? `You've successfully banked ${verifiedCount} skill${verifiedCount !== 1 ? 's' : ''} in your profile.`
+                                        : `You didn't hit the verification threshold this time. Your progress was saved, but these skills need more proof.`
                                     }
                                 </p>
 
@@ -403,20 +453,25 @@ export const SkillInterviewPage: React.FC = () => {
                                             <div
                                                 key={s.name}
                                                 className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${verified
-                                                        ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
-                                                        : 'bg-neutral-50 dark:bg-neutral-900/50 border-neutral-200 dark:border-neutral-800'
+                                                    ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
+                                                    : 'bg-neutral-50 dark:bg-neutral-900/50 border-neutral-200 dark:border-neutral-800'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${verified
-                                                            ? 'bg-emerald-500 text-white'
-                                                            : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400'
+                                                        ? 'bg-emerald-500 text-white'
+                                                        : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400'
                                                         }`}>
                                                         {verified ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                                                     </div>
-                                                    <span className={`font-bold text-sm ${verified ? 'text-emerald-700 dark:text-emerald-300' : 'text-neutral-500'}`}>
-                                                        {s.name}
-                                                    </span>
+                                                    <div className="text-left">
+                                                        <span className={`font-bold text-sm block ${verified ? 'text-emerald-700 dark:text-emerald-300' : 'text-neutral-500'}`}>
+                                                            {s.name}
+                                                        </span>
+                                                        <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
+                                                            {verified ? 'Verified & Banked' : 'In Development'}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                                 {score && score.total > 0 && (
                                                     <span className="text-xs font-medium text-neutral-400">
@@ -440,7 +495,7 @@ export const SkillInterviewPage: React.FC = () => {
                                             onClick={handleFinish}
                                             className="px-10 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-base hover:scale-105 active:scale-95 transition-all shadow-lg shadow-emerald-500/20"
                                         >
-                                            Save {verifiedCount} verified skill{verifiedCount !== 1 ? 's' : ''}
+                                            Return to Dashboard
                                         </button>
                                     )}
                                 </div>

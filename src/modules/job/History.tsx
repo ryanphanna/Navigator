@@ -86,8 +86,8 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
     return (
         <SharedPageLayout className="theme-job" spacing="none">
             <PageHeader
-                title="History"
-                highlight="Log"
+                variant="simple"
+                title="Application History"
                 subtitle="Track your applications, interviews, and offers in one place."
             />
 

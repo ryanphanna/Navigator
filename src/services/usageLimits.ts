@@ -11,14 +11,17 @@ export interface UsageLimitResult {
 
 export interface UsageStats {
     tier: UserTier;
-    totalAnalyses: number;
     todayAnalyses: number;
     weekAnalyses: number;
     todayEmails: number;
-    totalAICalls: number; // Cumulative AI events
+    monthInterviews: number;
+    roleModelCount: number;
+    totalAICalls: number;
     analysisLimit: number;
     analysisPeriod: string;
     emailLimit: number;
+    roleModelLimit: number;
+    interviewLimit: number;
     inboundEmailToken?: string;
 }
 
@@ -61,6 +64,52 @@ export const incrementAnalysisCount = async (userId: string): Promise<void> => {
 };
 
 /**
+ * Check if user can start a new interview
+ */
+export const checkInterviewLimit = async (userId: string): Promise<UsageLimitResult> => {
+    try {
+        const stats = await getUsageStats(userId);
+        if (stats.tier === 'admin' || stats.tier === 'tester') return { allowed: true };
+
+        if (stats.monthInterviews >= stats.interviewLimit) {
+            return {
+                allowed: false,
+                reason: 'rate_limit',
+                used: stats.monthInterviews,
+                limit: stats.interviewLimit
+            };
+        }
+        return { allowed: true };
+    } catch (err) {
+        console.error('Exception checking interview limit:', err);
+        return { allowed: true };
+    }
+};
+
+/**
+ * Check if user can add a new role model
+ */
+export const checkRoleModelLimit = async (userId: string): Promise<UsageLimitResult> => {
+    try {
+        const stats = await getUsageStats(userId);
+        if (stats.tier === 'admin' || stats.tier === 'tester') return { allowed: true };
+
+        if (stats.roleModelCount >= stats.roleModelLimit) {
+            return {
+                allowed: false,
+                reason: 'free_limit_reached',
+                used: stats.roleModelCount,
+                limit: stats.roleModelLimit
+            };
+        }
+        return { allowed: true };
+    } catch (err) {
+        console.error('Exception checking role model limit:', err);
+        return { allowed: true };
+    }
+};
+
+/**
  * Get current usage statistics for display
  */
 export const getUsageStats = async (userId: string): Promise<UsageStats> => {
@@ -86,11 +135,27 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
             .eq('user_id', userId)
             .gte('date_added', weekAgo.toISOString());
 
+        // Monthly interview count: count the START of sessions, not individual analyses
+        const firstOfMonth = new Date();
+        firstOfMonth.setDate(1);
+        firstOfMonth.setHours(0, 0, 0, 0);
+
+        const { count: monthInterviewCount } = await supabase
+            .from('logs')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .in('event_type', ['interview_generation', 'unified_skill_interview_generation', 'skill_interview_generation'])
+            .gte('created_at', firstOfMonth.toISOString());
+
+        const { count: roleModelCount } = await supabase
+            .from('role_models')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId);
+
         let tier = profile?.subscription_tier || 'free';
         if (profile?.is_admin) tier = 'admin';
         else if (profile?.is_tester) tier = 'tester';
 
-        const totalAnalyses = profile?.job_analyses_count || 0;
         const totalAICalls = profile?.total_ai_calls || 0;
 
         const { count: todayEmailCount } = await supabase
@@ -102,42 +167,39 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
 
         const limits = PLAN_LIMITS[tier as keyof typeof PLAN_LIMITS] || PLAN_LIMITS['free'];
 
-        // Determine the analysis limit based on tier period
-        let analysisLimit: number;
-        if ('TOTAL_ANALYSES' in limits) {
-            analysisLimit = limits.TOTAL_ANALYSES;
-        } else if ('WEEKLY_ANALYSES' in limits) {
-            analysisLimit = limits.WEEKLY_ANALYSES;
-        } else if ('DAILY_ANALYSES' in limits) {
-            analysisLimit = limits.DAILY_ANALYSES as number;
-        } else {
-            analysisLimit = 3; // Fallback
-        }
+        // Determine the analysis limit
+        const analysisLimit = (limits as any).WEEKLY_ANALYSES || (limits as any).DAILY_ANALYSES || (limits as any).TOTAL_ANALYSES || 0;
 
         return {
             tier: tier as UserTier,
-            totalAnalyses,
             todayAnalyses: todayCount || 0,
             weekAnalyses: weekCount || 0,
             todayEmails: todayEmailCount || 0,
+            monthInterviews: monthInterviewCount || 0,
+            roleModelCount: roleModelCount || 0,
             totalAICalls,
             analysisLimit,
-            analysisPeriod: limits.ANALYSES_PERIOD,
+            analysisPeriod: (limits as any).ANALYSES_PERIOD || 'weekly',
             emailLimit: limits.DAILY_EMAILS,
+            roleModelLimit: (limits as any).ROLE_MODELS || 0,
+            interviewLimit: (limits as any).SKILLS_INTERVIEWS || 0,
             inboundEmailToken: tier === 'free' ? undefined : profile?.inbound_email_token
         };
     } catch (err) {
         console.error('Error fetching usage stats:', err);
         return {
             tier: 'free',
-            totalAnalyses: 0,
             todayAnalyses: 0,
             weekAnalyses: 0,
             todayEmails: 0,
+            monthInterviews: 0,
+            roleModelCount: 0,
             totalAICalls: 0,
             analysisLimit: 3,
             analysisPeriod: 'lifetime',
             emailLimit: 0,
+            roleModelLimit: 0,
+            interviewLimit: 0,
             inboundEmailToken: undefined
         };
     }

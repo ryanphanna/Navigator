@@ -8,7 +8,7 @@ export const corsHeaders = {
 
 const MAX_LOG_LENGTH = 200;
 const sanitizeLog = (val: unknown) => {
-    const str = String(val).replace(/[\n\r]/g, ' ');
+    const str = String(val).replace(/[\n\r\t\0\x08\x09\x1a\x1b]/g, ' ');
     return str.length > MAX_LOG_LENGTH ? str.substring(0, MAX_LOG_LENGTH) + '...' : str;
 };
 
@@ -177,7 +177,7 @@ export const handler = async (req: Request) => {
         // 6. CONTENT VALIDATION & REFUND
         // If the AI returns a "not_a_job" flag (which we instruct it to do in prompts), we refund the credit
         if (safeTask === 'analysis' && (text.includes('"error": "not_a_job"') || text.includes('not_a_job'))) {
-            console.warn(`Analysis rejected by AI (not a job) for user ${user.id}`);
+            console.warn(`Analysis rejected by AI (not a job) for user ${sanitizeLog(user.id)}`);
             if (quotaIncremented) {
                 const { error: decError } = await supabase.rpc('decrement_analysis_count', {
                     p_user_id: user.id

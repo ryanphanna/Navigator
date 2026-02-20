@@ -15,10 +15,10 @@ export interface DistilledJob {
 }
 
 export interface CoverLetterCritique {
-    score: number;
-    decision: 'interview' | 'reject' | 'maybe';
+    decision: 'Reject' | 'Weak' | 'Average' | 'Strong' | 'Exceptional';
     feedback: string[];
     strengths: string[];
+    hallucinationAlerts?: string[];
 }
 
 export interface JobAnalysis {
@@ -104,8 +104,7 @@ export interface InterviewQuestion {
 }
 
 export interface InterviewResponseAnalysis {
-    score: number;
-    passed?: boolean; // New: Strict pass/fail for technical questions
+    decision: 'Reject' | 'Weak' | 'Average' | 'Strong' | 'Exceptional';
     feedback: string;
     strengths: string[];
     improvements: string[];

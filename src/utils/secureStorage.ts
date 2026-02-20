@@ -1,51 +1,113 @@
 /**
  * Secure Storage Utility using Web Crypto API
- * Encrypts sensitive data before storing in localStorage
+ * Encrypts sensitive data before storing in localStorage.
+ * Master key is stored securely in IndexedDB and is non-extractable.
  */
 
 const STORAGE_PREFIX = 'jobfit_secure_';
-const MASTER_KEY_STORAGE_NAME = 'jobfit_master_key_v1';
 const ENCRYPTION_ALGORITHM = 'AES-GCM';
 
+// IndexedDB Constants
+const DB_NAME = 'JobFitSecureStorage';
+const STORE_NAME = 'Keys';
+const KEY_PATH = 'masterKey';
+const DB_VERSION = 1;
+
 /**
- * Gets or creates the master encryption key
- * This key is randomly generated and stored in localStorage.
- *
- * SECURITY NOTE: The key is generated using crypto.getRandomValues (CSPRNG).
- * It is NOT derived from browser fingerprinting (userAgent, screen, etc.),
- * which ensures high entropy and stability across browser updates.
+ * Open or create the IndexedDB database
+ */
+function openDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
+ * Gets the master key from IndexedDB
+ */
+async function getStoredKey(db: IDBDatabase): Promise<CryptoKey | null> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get(KEY_PATH);
+
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
+ * Stores the master key in IndexedDB
+ */
+async function storeKey(db: IDBDatabase, key: CryptoKey): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.put(key, KEY_PATH);
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
+ * Gets or creates the master encryption key.
+ * 
+ * Primary storage is IndexedDB (non-extractable).
+ * Migration: If a key exists in localStorage, it's imported and moved to IndexedDB.
  */
 export async function getMasterKey(): Promise<CryptoKey> {
-  const storedKey = localStorage.getItem(MASTER_KEY_STORAGE_NAME);
+  const db = await openDB();
+  let key = await getStoredKey(db);
 
-  if (storedKey) {
+  if (key) return key;
+
+  // Check for legacy key in localStorage
+  const legacyKeyBase64 = localStorage.getItem('jobfit_master_key_v1');
+  if (legacyKeyBase64) {
     try {
-      const binaryKey = Uint8Array.from(atob(storedKey), c => c.charCodeAt(0));
-      return await crypto.subtle.importKey(
+      const binaryKey = Uint8Array.from(atob(legacyKeyBase64), c => c.charCodeAt(0));
+      key = await crypto.subtle.importKey(
         'raw',
         binaryKey,
         { name: ENCRYPTION_ALGORITHM },
-        false,
+        false, // Make it non-extractable in memory too
         ['encrypt', 'decrypt']
       );
+
+      // Store in IndexedDB for future use
+      await storeKey(db, key);
+      // Remove from insecure localStorage
+      localStorage.removeItem('jobfit_master_key_v1');
+
+      return key;
     } catch (e) {
-      console.error('Failed to import master key, regenerating:', e);
+      console.error('Failed to migrate legacy key:', e);
     }
   }
 
-  // Generate new random key
-  const newKey = crypto.getRandomValues(new Uint8Array(32));
-  const base64Key = btoa(String.fromCharCode(...newKey));
-
-  localStorage.setItem(MASTER_KEY_STORAGE_NAME, base64Key);
-
-  return crypto.subtle.importKey(
-    'raw',
-    newKey,
-    { name: ENCRYPTION_ALGORITHM },
-    false,
+  // Generate new random non-extractable key
+  key = await crypto.subtle.generateKey(
+    {
+      name: ENCRYPTION_ALGORITHM,
+      length: 256
+    },
+    false, // extractable: false (CRITICAL)
     ['encrypt', 'decrypt']
   );
+
+  await storeKey(db, key);
+  return key;
 }
 
 /**
@@ -57,7 +119,6 @@ async function encrypt(plaintext: string): Promise<string> {
     const encoder = new TextEncoder();
     const data = encoder.encode(plaintext);
 
-    // Generate a random IV (Initialization Vector)
     const iv = crypto.getRandomValues(new Uint8Array(12));
 
     const encryptedBuffer = await crypto.subtle.encrypt(
@@ -69,12 +130,10 @@ async function encrypt(plaintext: string): Promise<string> {
       data
     );
 
-    // Combine IV and encrypted data
     const combined = new Uint8Array(iv.length + encryptedBuffer.byteLength);
     combined.set(iv, 0);
     combined.set(new Uint8Array(encryptedBuffer), iv.length);
 
-    // Convert to base64 for storage
     return btoa(String.fromCharCode(...combined));
   } catch (error) {
     console.error('Encryption failed:', error);
@@ -85,14 +144,11 @@ async function encrypt(plaintext: string): Promise<string> {
 /**
  * Decrypts an encrypted string value
  */
-async function decrypt(encryptedData: string, key?: CryptoKey): Promise<string> {
+async function decrypt(encryptedData: string): Promise<string> {
   try {
-    const decryptionKey = key || await getMasterKey();
-
-    // Decode base64
+    const key = await getMasterKey();
     const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
 
-    // Extract IV and encrypted data
     const iv = combined.slice(0, 12);
     const data = combined.slice(12);
 
@@ -101,14 +157,13 @@ async function decrypt(encryptedData: string, key?: CryptoKey): Promise<string> 
         name: ENCRYPTION_ALGORITHM,
         iv: iv
       },
-      decryptionKey,
+      key,
       data
     );
 
     const decoder = new TextDecoder();
     return decoder.decode(decryptedBuffer);
   } catch {
-    // We intentionally do not log here to allow silent failover in migration logic
     throw new Error('Failed to decrypt data');
   }
 }
@@ -129,10 +184,8 @@ export async function getSecureItem(key: string): Promise<string | null> {
   if (!encrypted) return null;
 
   try {
-    // Try decrypting with master key first
     return await decrypt(encrypted);
   } catch (error) {
-    // Decryption failed. Data is likely corrupted or key is lost.
     console.error('Failed to decrypt stored data:', error);
     localStorage.removeItem(STORAGE_PREFIX + key);
     return null;

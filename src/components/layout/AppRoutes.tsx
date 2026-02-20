@@ -19,7 +19,8 @@ import { useUser } from '../../contexts/UserContext';
 import { NudgeCard } from '../NudgeCard';
 
 // Lazy load heavy modules
-const HomeInput = lazyWithRetry(() => import('../../modules/job/HomeInput'));
+const HomePage = lazyWithRetry(() => import('../../modules/job/HomePage'));
+const JobMatchInput = lazyWithRetry(() => import('../../modules/job/JobMatchInput'));
 const History = lazyWithRetry(() => import('../../modules/job/History'));
 const JobDetail = lazyWithRetry(() => import('../../modules/job/JobDetail'));
 const CoachDashboard = lazyWithRetry(() => import('../../modules/career/CoachDashboard').then(m => ({ default: m.CoachDashboard })));
@@ -53,7 +54,7 @@ export const AppRoutes: React.FC = () => {
     } = useJobContext();
 
     const {
-        resumes, isParsingResume, importError, handleImportResume, handleUpdateResumes, clearImportError
+        resumes, isParsingResume, importError, handleImportResume, handleUpdateResumes, clearImportError, isLoading: isResumesLoading
     } = useResumeContext();
 
     const {
@@ -209,19 +210,10 @@ export const AppRoutes: React.FC = () => {
                             </div>
                         )}
                         <Suspense fallback={<LoadingState />}>
-                            <HomeInput
-                                resumes={resumes}
-                                onJobCreated={handleJobCreated}
-                                onTargetJobCreated={handleTargetJobCreated}
-                                onImportResume={handleImportResume}
-                                onClearError={clearImportError}
-                                isParsing={isParsingResume}
-                                importError={importError}
+                            <HomePage
+                                user={user}
                                 isAdmin={isAdmin}
                                 isTester={isTester}
-                                user={user}
-                                usageStats={usageStats}
-                                mode="home"
                                 journey={journey}
                                 userTier={userTier}
                                 onNavigate={handleViewChange}
@@ -239,7 +231,7 @@ export const AppRoutes: React.FC = () => {
 
                 <Route path={ROUTES.JOB_HOME} element={
                     <Suspense fallback={<LoadingState />}>
-                        <HomeInput
+                        <JobMatchInput
                             resumes={resumes}
                             onJobCreated={handleJobCreated}
                             onTargetJobCreated={handleTargetJobCreated}
@@ -248,11 +240,9 @@ export const AppRoutes: React.FC = () => {
                             isParsing={isParsingResume}
                             importError={importError}
                             isAdmin={isAdmin}
-                            isTester={isTester}
                             user={user}
                             usageStats={usageStats}
                             mode="apply"
-                            journey={journey}
                             userTier={userTier}
                             onNavigate={handleViewChange}
                             onShowAuth={(feature) => openModal('AUTH', feature ? { feature } : undefined)}
@@ -288,15 +278,19 @@ export const AppRoutes: React.FC = () => {
                 <Route element={<ProtectedRoute />}>
                     <Route path={ROUTES.RESUMES} element={
                         <Suspense fallback={<LoadingState message="Opening Editor..." />}>
-                            <ResumeEditor
-                                resumes={resumes}
-                                skills={skills}
-                                onSave={handleUpdateResumes}
-                                onImport={handleImportResume}
-                                isParsing={isParsingResume}
-                                importError={importError}
-                                importTrigger={0}
-                            />
+                            {isResumesLoading ? (
+                                <LoadingState message="Loading Resume..." />
+                            ) : (
+                                <ResumeEditor
+                                    resumes={resumes}
+                                    skills={skills}
+                                    onSave={handleUpdateResumes}
+                                    onImport={handleImportResume}
+                                    isParsing={isParsingResume}
+                                    importError={importError}
+                                    importTrigger={0}
+                                />
+                            )}
                         </Suspense>
                     } />
 

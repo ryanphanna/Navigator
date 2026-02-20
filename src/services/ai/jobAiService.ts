@@ -82,16 +82,8 @@ export const analyzeJobFit = async (
     const bucket = await BucketStorage.getBucket(canonicalTitle);
     const bucketAdvice = bucket?.guidelines?.promptAdvice;
 
-    // Select Prompt based on Category
-    const category = extractionInfo.category || 'general';
-    let selectedPromptTemplate = ANALYSIS_PROMPTS.JOB_FIT_ANALYSIS.DEFAULT;
-
-    if (category === 'technical') selectedPromptTemplate = ANALYSIS_PROMPTS.JOB_FIT_ANALYSIS.TECHNICAL;
-    else if (category === 'trades') selectedPromptTemplate = ANALYSIS_PROMPTS.JOB_FIT_ANALYSIS.TRADES;
-    else if (category === 'healthcare') selectedPromptTemplate = ANALYSIS_PROMPTS.JOB_FIT_ANALYSIS.HEALTHCARE;
-    else if (category === 'creative') selectedPromptTemplate = ANALYSIS_PROMPTS.JOB_FIT_ANALYSIS.CREATIVE;
-
-    const analysisPrompt = selectedPromptTemplate(cleanedDescription, (resumeContext + skillsContext), bucketAdvice);
+    // Use the consolidated Strategic Professional prompt
+    const analysisPrompt = ANALYSIS_PROMPTS.JOB_FIT_ANALYSIS.DEFAULT(cleanedDescription, (resumeContext + skillsContext), bucketAdvice);
 
     const analysis = await callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
@@ -146,9 +138,10 @@ export const generateCoverLetter = async (
 export const critiqueCoverLetter = async (
     jobDescription: string,
     coverLetter: string,
+    resumeContext: string,
     jobId?: string
-): Promise<{ score: number; decision: 'interview' | 'reject' | 'maybe'; feedback: string[]; strengths: string[] }> => {
-    const prompt = ANALYSIS_PROMPTS.CRITIQUE_COVER_LETTER(jobDescription, coverLetter);
+): Promise<{ decision: 'Reject' | 'Weak' | 'Average' | 'Strong' | 'Exceptional'; feedback: string[]; strengths: string[]; hallucinationAlerts: string[] }> => {
+    const prompt = ANALYSIS_PROMPTS.CRITIQUE_COVER_LETTER(jobDescription, coverLetter, resumeContext);
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
@@ -167,29 +160,30 @@ export const generateCoverLetterWithQuality = async (
     trajectoryContext?: string,
     jobId?: string,
     canonicalTitle?: string
-): Promise<{ text: string; promptVersion: string; score: number; attempts: number }> => {
+): Promise<{ text: string; promptVersion: string; decision: string; attempts: number }> => {
 
     // 1. Initial Draft
     if (onProgress) onProgress("Drafting initial cover letter...");
     let result = await generateCoverLetter(jobDescription, selectedResume, tailoringInstructions, additionalContext, undefined, trajectoryContext, jobId, canonicalTitle);
     let attempts = 1;
 
-    // Fast Path for Free tier (No Loop)
-    if (userTier === USER_TIERS.FREE) {
-        return { ...result, score: 75, attempts }; // Return placeholder score to avoid extra costs
+    // Fast Path for Free and Plus tiers (No iterative loop to protect margins)
+    if (userTier === USER_TIERS.FREE || userTier === USER_TIERS.PLUS) {
+        return { ...result, decision: 'Average', attempts };
     }
 
     // 2. The Agent Loop (Pro/Admin only)
-    let currentScore = 0;
+    let currentDecision: 'Reject' | 'Weak' | 'Average' | 'Strong' | 'Exceptional' = 'Average';
+    const resumeContext = stringifyProfile(selectedResume);
 
     while (attempts <= AGENT_LOOP.MAX_RETRIES + 1) { // +1 for initial draft
         // Critique current draft
         if (onProgress) onProgress(`Critiquing draft (Attempt ${attempts})...`);
-        const critique = await critiqueCoverLetter(jobDescription, result.text, jobId);
-        currentScore = critique.score;
+        const critique = await critiqueCoverLetter(jobDescription, result.text, resumeContext, jobId);
+        currentDecision = critique.decision;
 
-        // Success condition
-        if (currentScore >= AGENT_LOOP.QUALITY_THRESHOLD) {
+        // Success condition: High confidence on spectrum
+        if (currentDecision === 'Strong' || currentDecision === 'Exceptional') {
             break;
         }
 
@@ -199,11 +193,12 @@ export const generateCoverLetterWithQuality = async (
         }
 
         // Regenerate with feedback
-        if (onProgress) onProgress(`Refining based on feedback (Score: ${currentScore}/100)...`);
+        if (onProgress) onProgress(`Refining based on feedback (Decision: ${currentDecision})...`);
         const improvementContext = `
-            PREVIOUS SCORE: ${critique.score}/100
+            PREVIOUS DECISION: ${currentDecision}
             CRITIQUE FEEDBACK: ${critique.feedback.join('; ')}
-            STRICT INSTRUCTION: Fix these specific issues. Do not regress on strengths.
+            ${critique.hallucinationAlerts.length > 0 ? `HALLUCINATION WARNINGS: ${critique.hallucinationAlerts.join('; ')}` : ''}
+            STRICT INSTRUCTION: Fix these specific issues. Do not regress on strengths. Ensure all claims are supported by the provided resume.
         `;
 
         // We append the critique to any existing context
@@ -213,7 +208,7 @@ export const generateCoverLetterWithQuality = async (
         attempts++;
     }
 
-    return { ...result, score: currentScore, attempts };
+    return { ...result, decision: currentDecision, attempts };
 };
 
 export const generateTailoredSummary = async (

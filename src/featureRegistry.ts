@@ -65,6 +65,8 @@ export interface FeatureDefinition {
     showOnHomepage?: boolean;
     /** Hand-picked to appear on plan cards */
     planHighlight?: boolean;
+    /** Feature is currently in development and restricted */
+    isComingSoon?: boolean;
 }
 
 // ─── Shared Color Palette ──────────────────────────────────────────────
@@ -356,6 +358,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         link: '/jobs/feed',
         rank: 9,
         showOnHomepage: true,
+        isComingSoon: true,
     },
     SKILLS_INTERVIEW: {
         id: 'skills-verify',
@@ -394,6 +397,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         targetView: 'interviews',
         link: '/jobs/interviews',
         rank: 18,
+        isComingSoon: true,
     },
     COACH: {
         id: 'coach',
@@ -474,7 +478,6 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         link: '/education',
         rank: 8,
         showOnHomepage: true,
-        requiresAdmin: true,
         planHighlight: true,
     },
     EDU_TRANSCRIPT: {
@@ -495,7 +498,6 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         targetView: 'edu-transcript',
         link: '/education/transcript',
         rank: 10,
-        requiresAdmin: true,
     },
     EDU_EXPLORER: {
         id: 'edu-explorer',
@@ -515,7 +517,6 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         targetView: 'edu-programs',
         link: '/education/programs',
         rank: 11,
-        requiresAdmin: true,
     },
     EDU_GPA: {
         id: 'edu-gpa',
@@ -535,7 +536,6 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         targetView: 'edu-gpa',
         link: '/education/gpa',
         rank: 12,
-        requiresAdmin: true,
     },
 } as const;
 

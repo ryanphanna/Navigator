@@ -56,8 +56,8 @@ export const INTERVIEW_PROMPTS = {
     Return ONLY a JSON array of strings (the questions).
     `,
 
-  UNIFIED_SKILL_INTERVIEW: (skills: { name: string; proficiency: string }[]) => {
-    const skillList = skills.map(s => `- ${s.name} (self-assessed: ${s.proficiency})`).join('\n');
+  UNIFIED_SKILL_INTERVIEW: (skills: { name: string; proficiency: string; evidence?: string }[]) => {
+    const skillList = skills.map(s => `- ${s.name} (self-assessed: ${s.proficiency})${s.evidence ? ` [PREVIOUSLY VERIFIED: ${s.evidence}]` : ''}`).join('\n');
     return `
     You are a versatile Expert Interviewer conducting a comprehensive skills assessment.
     The candidate has the following skills to verify:
@@ -65,13 +65,13 @@ export const INTERVIEW_PROMPTS = {
     ${skillList}
 
     TASK:
-    Generate 6-8 interview questions that naturally cover MULTIPLE skills at once.
+    Generate 10-12 interview questions that naturally cover MULTIPLE skills at once.
     Each question should be designed to test 1-3 of the listed skills simultaneously.
 
     STRATEGY:
-    1. CROSS-CUTTING: Ask scenario questions that bridge multiple skills. E.g., if they have both "Data Analysis" and "Communication Skills", ask: "Walk me through how you'd present a complex data finding to non-technical stakeholders."
+    1. CROSS-CUTTING: Ask scenario questions that bridge multiple skills.
     2. PRACTICAL: Use real-world scenarios, not trivia.
-    3. DEPTH: Mix difficulty — some questions for their strongest skills, some for weaker ones.
+    3. DEPTH: Mix difficulty. If a skill has "PREVIOUSLY VERIFIED" evidence, skip the basics and ask an ADVANCED scenario to test the next level of depth.
     4. NATURAL FLOW: Questions should feel like a real conversation, not a checklist.
     5. BREVITY: Keep each question under 2 sentences.
 
@@ -140,13 +140,12 @@ export const INTERVIEW_PROMPTS = {
     
     TASK:
     1. GRADE: Does this answer demonstrate the required competence?
-    2. SCORE: 0-100. Be harsh. < 60 is a fail.
-    3. FEEDBACK: Explain *why* it failed or passed.
+    2. DECISION: "Reject" | "Weak" | "Average" | "Strong" | "Exceptional"
+    3. FEEDBACK: Explain *why* you made this decision.
     
     Return ONLY JSON:
     {
-      "score": number,
-      "passed": boolean, (true if score > 70)
+      "decision": "Reject" | "Weak" | "Average" | "Strong" | "Exceptional",
       "feedback": "Direct feedback. 'You missed the key concept of X...'",
       "strengths": ["string"],
       "improvements": ["string"],

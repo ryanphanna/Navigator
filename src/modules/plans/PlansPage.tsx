@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Check, ArrowRight, Zap, Shield } from 'lucide-react';
 import { ROUTES, PLAN_LIMITS, PLAN_PRICING, USER_TIERS, HEADLINES } from '../../constants';
 import { getFeaturesForPlan } from '../../featureRegistry';
+import { SharedPageLayout } from '../../components/common/SharedPageLayout';
+import { PageHeader } from '../../components/ui/PageHeader';
 import { useUser } from '../../contexts/UserContext';
 import { useModal } from '../../contexts/ModalContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -86,39 +88,30 @@ export const PlansPage: React.FC = () => {
 
 
     return (
-        <div className="min-h-screen pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-white dark:bg-[#0a0a0a]">
-
-
+        <SharedPageLayout
+            maxWidth="full"
+            spacing="hero"
+            className="relative overflow-hidden bg-white dark:bg-[#0a0a0a] min-h-screen pb-20"
+        >
             {/* Ambient Background Elements */}
             <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] -z-10 animate-pulse" />
             <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] -z-10 animate-pulse-slow" />
 
             <div className="max-w-6xl mx-auto relative z-10">
-                <div className="text-center mb-16 space-y-5">
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="text-4xl md:text-6xl font-extrabold text-neutral-900 dark:text-white tracking-tight"
-                    >
-                        {headline.text} <span className="bg-gradient-to-r from-indigo-500 to-emerald-500 bg-clip-text text-transparent">{headline.highlight}</span>
-                    </motion.h1>
+                <PageHeader
+                    variant="hero"
+                    title={headline.text}
+                    highlight={headline.highlight}
+                    subtitle="Choose the plan that fits your pace — from exploring to all-in."
+                />
 
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="text-neutral-500 dark:text-neutral-400 text-lg max-w-2xl mx-auto"
-                    >
-                        Choose the plan that fits your pace — from exploring to all-in.
-                    </motion.p>
-
+                <div className="text-center mb-16 flex flex-col items-center -mt-8">
                     {/* Monthly / Annual Toggle */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="flex items-center justify-center gap-3 pt-2"
+                        className="flex items-center justify-center gap-3"
                     >
                         <div className="relative inline-flex p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800">
                             {/* Sliding highlight */}
@@ -160,12 +153,12 @@ export const PlansPage: React.FC = () => {
                                     'Trial Plan'
                     }
                     onSelect={() => handleSelectPlan(USER_TIERS.FREE)}
-                    features={getFeaturesForPlan('explorer').map(f => ({ name: f.name, desc: f.description.plan }))}
+                    features={getFeaturesForPlan('explorer').map(f => ({ name: f.name, desc: f.description.plan, isComingSoon: f.isComingSoon }))}
                     limits={{
                         analyses: String(PLAN_LIMITS[USER_TIERS.FREE].TOTAL_ANALYSES),
                         analysesPeriod: 'total',
                         emails: PLAN_LIMITS[USER_TIERS.FREE].DAILY_EMAILS,
-                        mentors: PLAN_LIMITS[USER_TIERS.FREE].MENTORS
+                        mentors: PLAN_LIMITS[USER_TIERS.FREE].ROLE_MODELS
                     }}
                 />
 
@@ -178,12 +171,12 @@ export const PlansPage: React.FC = () => {
                     buttonText={userTier === USER_TIERS.PLUS ? 'Current Plan' : 'Upgrade to Plus'}
                     onSelect={() => handleSelectPlan(USER_TIERS.PLUS)}
                     isLoading={loadingTier === USER_TIERS.PLUS}
-                    features={getFeaturesForPlan('plus').map(f => ({ name: f.name, desc: f.description.plan }))}
+                    features={getFeaturesForPlan('plus').map(f => ({ name: f.name, desc: f.description.plan, isComingSoon: f.isComingSoon }))}
                     limits={{
                         analyses: String(PLAN_LIMITS[USER_TIERS.PLUS].WEEKLY_ANALYSES),
                         analysesPeriod: 'week',
                         emails: PLAN_LIMITS[USER_TIERS.PLUS].DAILY_EMAILS,
-                        mentors: PLAN_LIMITS[USER_TIERS.PLUS].MENTORS
+                        mentors: PLAN_LIMITS[USER_TIERS.PLUS].ROLE_MODELS
                     }}
                 />
 
@@ -197,12 +190,12 @@ export const PlansPage: React.FC = () => {
                     buttonText={userTier === USER_TIERS.PRO ? 'Current Plan' : 'Upgrade to Pro'}
                     onSelect={() => handleSelectPlan(USER_TIERS.PRO)}
                     isLoading={loadingTier === USER_TIERS.PRO}
-                    features={getFeaturesForPlan('pro').map(f => ({ name: f.name, desc: f.description.plan }))}
+                    features={getFeaturesForPlan('pro').map(f => ({ name: f.name, desc: f.description.plan, isComingSoon: f.isComingSoon }))}
                     limits={{
                         analyses: 'Unlimited',
                         analysesPeriod: '',
                         emails: PLAN_LIMITS[USER_TIERS.PRO].DAILY_EMAILS,
-                        mentors: PLAN_LIMITS[USER_TIERS.PRO].MENTORS
+                        mentors: PLAN_LIMITS[USER_TIERS.PRO].ROLE_MODELS
                     }}
                 />
             </div>
@@ -261,7 +254,7 @@ export const PlansPage: React.FC = () => {
                     </div>
                 </div>
             </motion.div>
-        </div>
+        </SharedPageLayout>
     );
 };
 

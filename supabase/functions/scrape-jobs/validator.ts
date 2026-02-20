@@ -15,7 +15,7 @@ function isStrictIPv4(ip: string): boolean {
     return true;
 }
 
-// Helper to check if an IP address is private
+// Helper to check if an IP address is private or reserved
 export function isPrivateIP(ip: string): boolean {
     // IPv6 logic (Check first to handle IPv4-mapped IPv6)
     if (ip.includes(':')) {
@@ -34,11 +34,19 @@ export function isPrivateIP(ip: string): boolean {
         if (lower.startsWith('fe8') || lower.startsWith('fe9') || lower.startsWith('fea') || lower.startsWith('feb')) return true;
 
         // IPv4-mapped IPv6 ::ffff:0:0/96
-        if (lower.startsWith('::ffff:')) return true;
+        if (lower.startsWith('::ffff:')) {
+            const v4Part = ip.split(':').pop() || '';
+            return isPrivateIP(v4Part);
+        }
 
-        // 64:ff9b::/96 (IPv4/IPv6 translation) - arguably public but often internal use
+        // 64:ff9b::/96 (IPv4/IPv6 translation)
+        if (lower.startsWith('64:ff9b:')) return true;
+
         // 2001:db8::/32 (Documentation)
         if (lower.startsWith('2001:db8:')) return true;
+
+        // 2002::/16 (6to4) - can be used for encapsulation
+        if (lower.startsWith('2002:')) return true;
 
         return false;
     }
@@ -61,7 +69,7 @@ export function isPrivateIP(ip: string): boolean {
         // 127.0.0.0/8 (Loopback)
         if (parts[0] === 127) return true;
 
-        // 169.254.0.0/16 (Link-local)
+        // 169.254.0.0/16 (Link-local / APIPA)
         if (parts[0] === 169 && parts[1] === 254) return true;
 
         // 172.16.0.0/12 (Private network)
@@ -200,17 +208,27 @@ export async function fetchSafe(inputUrl: string, options: RequestInit = {}): Pr
     let currentUrl = inputUrl;
     let response: Response | null = null;
     const maxRedirects = 5;
+    const timeout = 15000; // 15 second timeout for scraping
 
     for (let i = 0; i < maxRedirects; i++) {
         // Validate URL (SSRF Prevention)
         await validateUrl(currentUrl);
 
-        // Fetch with manual redirect
-        // Note: We use 'manual' to intercept 3xx responses and validate the new location
-        response = await fetch(currentUrl, {
-            ...options,
-            redirect: 'manual'
-        });
+        // Setup timeout controller
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+
+        try {
+            // Fetch with manual redirect
+            // Note: We use 'manual' to intercept 3xx responses and validate the new location
+            response = await fetch(currentUrl, {
+                ...options,
+                redirect: 'manual',
+                signal: controller.signal
+            });
+        } finally {
+            clearTimeout(id);
+        }
 
         if (response.status >= 300 && response.status < 400) {
             const location = response.headers.get('Location');

@@ -10,15 +10,18 @@ import {
     Loader2,
     Send,
     Brain,
-    ArrowLeft
+    ArrowLeft,
+    AlertCircle
 } from 'lucide-react';
 import { useJobContext } from './context/JobContext';
 import { useResumeContext } from '../resume/context/ResumeContext';
 import { useInterview } from './hooks/useInterview';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DetailLayout } from '../../components/common/DetailLayout';
+import { checkInterviewLimit } from '../../services/usageLimits';
+import { supabase } from '../../services/supabase';
 
 export const InterviewAdvisor: React.FC = () => {
     const { jobs } = useJobContext();
@@ -40,6 +43,7 @@ export const InterviewAdvisor: React.FC = () => {
     const [mode, setMode] = useState<'selection' | 'session'>('selection');
     const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
     const [userResponse, setUserResponse] = useState('');
+    const [limitError, setLimitError] = useState<string | null>(null);
     const navigate = useNavigate();
 
     const messagesEndRef = React.useRef<HTMLDivElement>(null);
@@ -49,7 +53,16 @@ export const InterviewAdvisor: React.FC = () => {
         }
     }, [responses, currentQuestionIndex, isLoading, mode]);
 
-    const handleStartTailored = () => {
+    const handleStartTailored = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const limit = await checkInterviewLimit(user.id);
+        if (!limit.allowed) {
+            setLimitError(`Monthly interview limit reached (${limit.used}/${limit.limit})`);
+            return;
+        }
+
         const job = jobs.find(j => j.id === selectedJobId);
         if (job) {
             loadTailoredQuestions(job, resumes);
@@ -57,7 +70,16 @@ export const InterviewAdvisor: React.FC = () => {
         }
     };
 
-    const handleStartGeneral = () => {
+    const handleStartGeneral = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const limit = await checkInterviewLimit(user.id);
+        if (!limit.allowed) {
+            setLimitError(`Monthly interview limit reached (${limit.used}/${limit.limit})`);
+            return;
+        }
+
         loadGeneralQuestions();
         setMode('session');
     };
@@ -186,7 +208,7 @@ export const InterviewAdvisor: React.FC = () => {
                                             <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-500/20 space-y-3">
                                                 <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 font-bold text-sm">
                                                     <Sparkles className="w-4 h-4" />
-                                                    <span>Feedback ({item.response.analysis.score}/100)</span>
+                                                    <span>Verdict: {item.response.analysis.decision}</span>
                                                 </div>
                                                 <p className="text-sm text-neutral-600 dark:text-neutral-400">
                                                     {item.response.analysis.feedback}
@@ -276,6 +298,23 @@ export const InterviewAdvisor: React.FC = () => {
             <div className="max-w-5xl mx-auto px-4 sm:px-6 mb-8 text-center md:text-left">
                 <h1 className="text-3xl font-black text-neutral-900 dark:text-white tracking-tight">Interview Advisor</h1>
                 <p className="text-neutral-500 dark:text-neutral-400 font-bold mt-1.5">Master your narrative with AI-powered mock sessions</p>
+
+                {limitError && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-4 p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-2xl flex items-center gap-3 text-orange-700 dark:text-orange-400 text-sm font-bold"
+                    >
+                        <AlertCircle className="w-5 h-5 shrink-0" />
+                        <span>{limitError}</span>
+                        <button
+                            onClick={() => navigate(ROUTES.PLANS)}
+                            className="ml-auto px-4 py-1.5 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors"
+                        >
+                            Upgrade
+                        </button>
+                    </motion.div>
+                )}
             </div>
 
             <DetailLayout maxWidth="max-w-6xl">

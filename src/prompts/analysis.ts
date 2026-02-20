@@ -3,129 +3,31 @@ import { CONTENT_VALIDATION } from '../constants';
 export const ANALYSIS_PROMPTS = {
   JOB_FIT_ANALYSIS: {
     DEFAULT: (jobDescription: string, resumeContext: string, bucketAdvice?: string[]) => `
-    You are a ruthless technical recruiter. Your job is to screen candidates for this role.
+    You are a Strategic Career Architect and Hiring Expert. Your job is to analyze this candidate's fit for the role with absolute professional objectivity.
     
     ${bucketAdvice ? `ROLE-SPECIFIC FOCUS (Follow these guidelines):
     ${bucketAdvice.map(a => `- ${a}`).join('\n')}
     ` : ''}
 
     INPUT DATA:
-    1. RAW JOB TEXT (Scraped): 
+    1. RAW JOB TEXT: 
     "${jobDescription.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}"
 
-    2. MY EXPERIENCE PROFILES (Blocks with IDs):
+    2. CANDIDATE RESUME BLOCKS:
     ${resumeContext}
 
     TASK:
-    1. DISTILL: Extract the messy job text into a structured format.
-    2. ANALYZE: Compare the Job to my experience blocks with extreme scrutiny. 
-    3. PROFICIENCY: For 'requiredSkills', categorize based on language:
-       - 'learning': Familiarity, exposure, want to learn, junior-level intro.
-       - 'comfortable': Proficient, strong understanding, 2-5 years, core part of job.
-       - 'expert': Advanced, lead, deep knowledge, 5-8+ years, architect-level.
-    4. MATCH BREAKDOWN: Identify key strengths (PROVEN skills only) and weaknesses (MISSING or UNDER-LEVELLED requirements).
-    5. SCORE: Rate compatibility (0-100). Be harsh. matching < 50% = reject.
-    6. TAILORING: 
-       - Select the specific BLOCK_IDs that are VITAL to this job. Exclude anything irrelevant.
-       - Provide concise instructions. Don't say "Highlight your skills." Say "Rename 'Software Engineer' to 'React Developer' to match line 4 of job description."
-    7. PERSONA: Address the user directly as "You". Do NOT refer to "The Candidate".
-    
+    1. DISTILL: Extract the job requirements into a structured format.
+    2. DOMAIN-AWARE ANALYSIS: 
+       - If this is a Licensed/Regulated role (Healthcare, Legal, Trades), prioritize Certifications and Compliance.
+       - If this is a Technical role (Software, Engineering), prioritize Hard Skill Stacks and Project Complexity.
+       - If this is a Creative role (Design, Marketing), prioritize Portfolio Impact and Tool Mastery.
+    3. GROUNDING RULE: Only credit the candidate for skills and experience explicitly present in the provided Resume Blocks. Do NOT hallucinate levels of seniority.
+    4. MATCH BREAKDOWN: Identify key strengths and HONEST gaps.
+    5. SCORE: Rate compatibility (0-100) based on hard evidence.
+
     Return ONLY JSON.
-  `,
-    TECHNICAL: (jobDescription: string, resumeContext: string, bucketAdvice?: string[]) => `
-    You are a Hiring Manager for a highly skilled role (Engineering, Software, or Specialized Tech). 
-    Your job is to screen candidates for this hard-skill requirement job.
-
-    ${bucketAdvice ? `ROLE-SPECIFIC FOCUS (Follow these guidelines):
-    ${bucketAdvice.map(a => `- ${a}`).join('\n')}
-    ` : ''}
-
-    INPUT DATA:
-    "${jobDescription.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}"
-    
-    CANDIDATE PROFILE:
-    ${resumeContext}
-
-    CRITICAL ANALYSIS RULES:
-    1. PROOF OVER PASSION: Ignore "fast learner". Look for specific technical stacks, tools, or years of practice.
-    2. HARD SKILL MATCH: If the job needs "Python" or "Kubernetes", and they don't have it, it's a GAP.
-    
-    TASK:
-    Analyze fit and match breakdown. Be specific about missing frameworks or languages.
-    
-    Return ONLY JSON.
-    `,
-    TRADES: (jobDescription: string, resumeContext: string, bucketAdvice?: string[]) => `
-    You are a Shop Foreman or Project Manager for a Skilled Trades role (Construction, Electrical, HVAC, etc.).
-    Your job is to find someone reliable who has the specific certifications and hands-on experience needed.
-
-    ${bucketAdvice ? `ROLE-SPECIFIC FOCUS (Follow these guidelines):
-    ${bucketAdvice.map(a => `- ${a}`).join('\n')}
-    ` : ''}
-
-    INPUT DATA:
-    "${jobDescription.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}"
-    
-    CANDIDATE PROFILE:
-    ${resumeContext}
-
-    CRITICAL ANALYSIS RULES:
-    1. CERTIFICATIONS FIRST: Does the role require Red Seal, 309A, G2, or specific safety tickets? If they aren't there, highlight it.
-    2. PHYSICALITY & SAFETY: Look for mentions of site safety, blueprint reading, and specific tool proficiency.
-    3. PRACTICAL EXPERIENCE: Focus on project types (Residential vs Industrial) and years on the tools.
-    
-    TASK:
-    Analyze fit. Call out missing licenses or specific machinery/tool experience.
-    
-    Return ONLY JSON.
-    `,
-    HEALTHCARE: (jobDescription: string, resumeContext: string, bucketAdvice?: string[]) => `
-    You are a Clinical Lead or Nursing Manager. Your job is to screen for patient safety, clinical competence, and required licensing.
-
-    ${bucketAdvice ? `ROLE-SPECIFIC FOCUS (Follow these guidelines):
-    ${bucketAdvice.map(a => `- ${a}`).join('\n')}
-    ` : ''}
-
-    INPUT DATA:
-    "${jobDescription.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}"
-    
-    CANDIDATE PROFILE:
-    ${resumeContext}
-
-    CRITICAL ANALYSIS RULES:
-    1. LICENSING: Must have specific credentials (RN, RPN, BLS, ACLS). Absence is a critical "Must Fix".
-    2. CLINICAL SETTING: Match their experience to the unit (ICU, ER, Long-term care).
-    3. SOFT SKILLS: Empathy and communication are as important as clinical skills here.
-    
-    TASK:
-    Analyze fit. Focus on clinical requirements and unit-specific experience.
-    
-    Return ONLY JSON.
-    `,
-    CREATIVE: (jobDescription: string, resumeContext: string, bucketAdvice?: string[]) => `
-    You are a Creative Director looking for talent in Design, Marketing, or Content. 
-    You care about "The Eye", the portfolio, and the specific tools used.
-
-    ${bucketAdvice ? `ROLE-SPECIFIC FOCUS (Follow these guidelines):
-    ${bucketAdvice.map(a => `- ${a}`).join('\n')}
-    ` : ''}
-
-    INPUT DATA:
-    "${jobDescription.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}"
-    
-    CANDIDATE PROFILE:
-    ${resumeContext}
-
-    CRITICAL ANALYSIS RULES:
-    1. PORTFOLIO & STYLE: If not explicitly linked, highlight it as a requirement.
-    2. TOOL PROFICIENCY: Match against the Adobe Suite, Figma, or specific marketing platforms.
-    3. IMPACT: Did they "design a logo" or "rebranded a company that saw 20% growth"?
-    
-    TASK:
-    Analyze fit. Focus on visual/creative impact and tool-specific mastery.
-    
-    Return ONLY JSON.
-    `
+  `
   },
 
   TAILOR_EXPERIENCE_BLOCK: (jobDescription: string, blockTitle: string, blockOrg: string, blockBullets: string[], instructions: string[]) => `
@@ -175,9 +77,12 @@ export const ANALYSIS_PROMPTS = {
   COVER_LETTER: {
     VARIANTS: {
       v1_direct: `
-            You are an expert copywriter. Write a professional cover letter.
+            You are a Strategic Career Architect. Write a professional, high-impact cover letter.
             
             INSTRUCTIONS:
+            - **Grounding Rule**: Use ONLY evidence from the provided Resume Blocks. Do NOT invent skills or experience.
+            - **Metric Uniqueness**: Strictly forbid repeating the same specific metric/stat (e.g. "98% accuracy") more than once in the entire document.
+            - **Vocabulary Audit**: Avoid generic "filler" phrasing (e.g. "look no further", "passion for"). Standard professional terms like "highly motivated" are acceptable.
             - Structure:
               1. THE HOOK: Open strong. Mention the specific role/company and ONE key reason you fit.
               2. THE EVIDENCE: Connect 1-2 specific achievements from my resume directly to their hardest requirements.
@@ -187,11 +92,14 @@ export const ANALYSIS_PROMPTS = {
             - IMPORTANT: Do NOT include any (BLOCK_ID: ...) citations or metadata in the final text.
             `,
       v2_storytelling: `
-            You are a career coach helping a candidate stand out. Write a cover letter that tells a compelling story.
+            You are a Career Architect helping a candidate stand out with narrative.
             
             INSTRUCTIONS:
+            - **Grounding Rule**: Use ONLY evidence from the provided Resume Blocks. Do NOT invent skills or experience.
+            - **Metric Uniqueness**: Strictly forbid repeating the same specific metric/stat more than once.
+            - **Vocabulary Audit**: Avoid generic filler (e.g. "it is with great honor").
             - DO NOT start with "I am writing to apply". Start with a statement about the company's mission or a specific problem they are solving.
-            - Narrative Arc: "I've always been passionate about [Industry/Problem]... which is why [Company] caught my eye."
+            - Narrative Arc: "I've always been interested in [Industry/Problem]... which is why [Company] caught my eye."
             - Then pivot to: "In my role at [Previous Org], I faced a similar challenge..." (Insert Resume Evidence).
             - Ending: "I'd love to bring this energy to [Company]."
             - Tone: Enthusiastic, genuine, slightly less formal than a standard corporate letter.
@@ -200,6 +108,8 @@ export const ANALYSIS_PROMPTS = {
       v3_experimental_pro: `
             You are a senior executive writing a cover letter. Write a sophisticated, high-level strategic letter.
             Focus on value proposition and ROI, not just skills.
+            - **Grounding Rule**: Use ONLY evidence from the provided Resume Blocks.
+            - **Metric Uniqueness**: Do not repeat specific stats.
             - IMPORTANT: Do NOT include any (BLOCK_ID: ...) citations or metadata in the final text.
             `
     },
@@ -234,37 +144,41 @@ export const ANALYSIS_PROMPTS = {
     (Note: The text above is the critique feedback, not personal context in this case).
     ` : ''}
     
-    FINAL CHECK: Ensure no (BLOCK_ID) tags remain in the output.
+    FINAL CHECK:
+    - Ensure no (BLOCK_ID) tags remain in the output.
+    - REFLECT: Does this letter repeat any specific metric more than once? If yes, remove the repetition.
+    - REFLECT: Does it sound like an AI? Remove "look no further" or excessive "passion for".
   `
   },
 
-  CRITIQUE_COVER_LETTER: (jobDescription: string, coverLetter: string) => `
-    You are a strict technical hiring manager. Review this cover letter for the job below.
+  CRITIQUE_COVER_LETTER: (jobDescription: string, coverLetter: string, resumeContext: string) => `
+    You are a strict technical hiring manager. Review this cover letter against the candidate's actual resume for the job below.
 
     JOB:
     ${jobDescription.substring(0, 5000)}
+
+    CANDIDATE RESUME (Source of Truth):
+    ${resumeContext}
 
     CANDIDATE LETTER:
     ${coverLetter}
 
     TASK:
-    1. Would you interview this person based *only* on the letter?
-    2. Score it 0-100. (50 is average, 75 is strong, 90+ is perfect).
+    1. WOULD YOU INTERVIEW THIS PERSON based on this letter and their resume?
+       - Be extremely critical. If the letter claims achievements NOT found in the resume, it is a "Reject".
     
     CRITIQUE CRITERIA:
-    - Does it have a strong "Hook" (referencing the company/role specifically) or is it generic?
-    - Is it just repeating the resume? (Bad) vs Telling a story? (Good)
-    - Is it concise?
-
-    3. List 3 strengths.
-    4. List 3 specific improvements needed to make it a "Must Hire".
+    - **Truthfulness**: Does the letter accurately reflect the resume? Flag any hallucinations.
+    - **Metric Repetition**: Does it repeat the same stats multiple times?
+    - **Hook**: Is it generic or specific to the company?
+    - **Storytelling**: Is it just a repeat of the resume bullets or a narrative?
 
     Return specific JSON:
     {
-      "score": number, 
-      "decision": "interview" | "reject" | "maybe",
+      "decision": "Reject" | "Weak" | "Average" | "Strong" | "Exceptional",
       "strengths": ["string"],
-      "feedback": ["string"]
+      "feedback": ["string (Be specific about what to fix to get a 'Strong' or 'Exceptional' decision)"],
+      "hallucinationAlerts": ["string (Specific claims not supported by the resume)"]
     }
     `,
 
@@ -458,7 +372,7 @@ export const ANALYSIS_PROMPTS = {
 
   GRAD_SCHOOL_ELIGIBILITY: (transcriptText: string, targetProgram: string) => `
     You are a Graduate Admissions Consultant. Analyze this transcript for eligibility into a specific university program.
-    You must be extremely specific to the named institution (e.g. if they ask for Waterloo, look for Waterloo-specific requirements).
+    You must be extremely specific to the named institution.
 
     TRANSCRIPT SUMMARY:
     ${transcriptText}
@@ -467,10 +381,9 @@ export const ANALYSIS_PROMPTS = {
     ${targetProgram}
 
     TASK:
-    1. RESEARCH prerequisites (mandatory courses, volunteer hours, tests like GRE/GMAT) for THIS specific program.
-    2. MAPPING: Match the user's transcript courses against these prerequisites.
-    3. GPA BENCHMARK: Compare the user's average against the typical competitive intake for this specific program.
-    4. ADMISSION PROBABILITY: Estimate (High, Medium, Low).
+    1. MAPPING: Match the user's transcript courses against the standard requirements for this program.
+    2. GPA BENCHMARK: Compare the user's average against the typical competitive intake.
+    3. ADMISSION PROBABILITY: Estimate (High, Medium, Low).
 
     Return JSON:
     {
@@ -526,12 +439,10 @@ export const ANALYSIS_PROMPTS = {
     University: ${university}
 
     TASK:
-    1. Identify the typical core requirements for this degree (e.g. Core Science, Humanities, Major Requirements).
-    2. Map the user's courses from the transcript to these requirements.
-    3. Determine if each requirement is 'met', 'missing', or 'in-progress'.
-    4. Provide a target credit count for the degree.
-    5. Give a general verdict on degree completion progress.
-
+    1. Map the user's transcript courses against the requirements for this degree.
+    2. Determine if each requirement is 'met', 'missing', or 'in-progress'.
+    3. Provide a target credit count for the degree.
+    4. Give a general verdict on degree completion progress.
     Return JSON matching this schema:
     {
         "probability": "n/a",
@@ -553,5 +464,31 @@ export const ANALYSIS_PROMPTS = {
 
     TRANSCRIPT:
     ${transcriptText}
-  `
+  `,
+
+  COURSE_PROJECT_EXTRACTION: (coursesList: string) => `
+    You are a Career Portfolio Specialist. Your task is to look at a student's university courses and propose 2-3 "Portfolio Blocks" or "Projects" that they can highlight on their resume or GitHub.
+    
+    RATIONALE: We want to turn academic success (an 'A' in a class) into a tangible asset.
+    
+    COURSES:
+    ${coursesList}
+    
+    TASK:
+    1. Identify courses that likely involve significant project work (e.g. "Capstone", "Advanced Design", "Database Systems").
+    2. For each identified course, propose a specific, technical project title and description.
+    3. The description should be written like a high-impact resume bullet point.
+    4. Suggest "Evidence of Mastery" (e.g. "Github Repo", "Technical Report", "Live Demo").
+    
+    Return JSON:
+    [
+      {
+        "title": "string (e.g. 'Distributed File System')",
+        "course": "string (e.g. 'CSC369')",
+        "description": "string (A punchy resume-style bullet point)",
+        "skills": ["string"],
+        "evidence": "string"
+      }
+    ]
+  `,
 };

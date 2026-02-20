@@ -1,5 +1,6 @@
 import { Search, FileDown, Sparkles, ChevronRight, HelpCircle } from 'lucide-react';
 import { DropZone } from '../../../components/common/DropZone';
+import { SharedHeader } from '../../../components/common/SharedHeader';
 
 interface LinkedInExportGuideProps {
     onUpload: (files: File[]) => void;
@@ -19,14 +20,14 @@ export const LinkedInExportGuide: React.FC<LinkedInExportGuideProps> = ({
             <div className="absolute bottom-1/4 -right-24 w-96 h-96 bg-teal-500/10 blur-[150px] rounded-full" />
 
             <div className="relative z-10 max-w-7xl mx-auto">
-                <div className="text-center mb-16 space-y-4">
-                    <h2 className="text-4xl md:text-5xl font-black text-neutral-900 dark:text-white tracking-tight">
-                        Map the <span className="text-emerald-600">Unseen Path</span>
-                    </h2>
-                    <p className="text-neutral-500 dark:text-neutral-400 font-medium text-lg max-w-2xl mx-auto">
-                        Turn any career journey into your personal blueprint. Follow these three steps to ingest a mentor's profile.
-                    </p>
-                </div>
+                <SharedHeader
+                    title="Map the"
+                    highlight="Unseen Path"
+                    subtitle="Turn any career journey into your personal blueprint. Follow these three steps to ingest a mentor's profile."
+                    theme="job"
+                    variant="compact"
+                    className="mb-16"
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
                     {/* Card 1: Identify */}

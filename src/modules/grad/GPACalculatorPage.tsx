@@ -23,6 +23,7 @@ export const GPACalculatorPage: React.FC = () => {
                         highlight="Calculator"
                         subtitle="Calculate your current GPA and forecast future performance scenarios."
                         theme="edu"
+                        variant="compact"
                     />
                 </div>
 

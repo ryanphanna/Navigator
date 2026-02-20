@@ -6,13 +6,21 @@ import type { Transcript, AdmissionEligibility } from '../../types';
 
 interface MAEligibilityProps {
     transcript: Transcript;
+    initialProgram?: string;
 }
 
-export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript }) => {
-    const [targetProgram, setTargetProgram] = useState('');
+export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript, initialProgram }) => {
+    const [targetProgram, setTargetProgram] = useState(initialProgram || '');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [result, setResult] = useState<AdmissionEligibility | null>(null);
     const { showError } = useToast();
+
+    // Sync with initialProgram prop
+    React.useEffect(() => {
+        if (initialProgram) {
+            setTargetProgram(initialProgram);
+        }
+    }, [initialProgram]);
 
     const handleAnalysis = async () => {
         if (!targetProgram.trim()) return;
