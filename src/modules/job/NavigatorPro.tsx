@@ -6,7 +6,7 @@ import {
 import { ScraperService } from '../../services/scraperService';
 import { supabase } from '../../services/supabase';
 import { analyzeJobFit } from '../../services/geminiService';
-import type { JobFeedItem } from '../../types';
+import type { JobFeedItem, ResumeRow } from '../../types';
 import { PageLayout } from '../../components/common/PageLayout';
 import { STORAGE_KEYS } from '../../constants';
 import { StandardSearchBar } from '../../components/common/StandardSearchBar';
@@ -138,7 +138,7 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
 
     };
 
-    const analyzeAndCacheJob = async (job: JobFeedItem, resume: any) => {
+    const analyzeAndCacheJob = async (job: JobFeedItem, resume: ResumeRow) => {
         try {
             // 1. Scrape Job Text
             const jobText = await ScraperService.scrapeJobText(job.url);
@@ -148,7 +148,7 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
             }
 
             // 2. Analyze with Gemini
-            const analysis = await analyzeJobFit(jobText, [resume], undefined, undefined);
+            const analysis = await analyzeJobFit(jobText, resume.content, undefined, undefined);
 
             // 3. Update UI with real score
             const matchScore = analysis.compatibilityScore;
