@@ -1,12 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
+import { sanitizeLog } from '../sanitize.ts';
 
-// Simulate the fixed implementation
 const MAX_LOG_LENGTH = 200;
-const sanitizeLog = (val: unknown) => {
-    const str = String(val).replace(/[\n\r\t\0\x08\x09\x1a\x1b]/g, ' ');
-    return str.length > MAX_LOG_LENGTH ? str.substring(0, MAX_LOG_LENGTH) + '...' : str;
-};
 
 describe('Gemini Proxy Security Fix Verification', () => {
 
@@ -20,6 +16,12 @@ describe('Gemini Proxy Security Fix Verification', () => {
         const input = "Hello\tWorld\0Test\x08Back";
         const sanitized = sanitizeLog(input);
         expect(sanitized).toBe("Hello World Test Back");
+    });
+
+    it('should sanitize vertical tabs and form feeds', () => {
+        const input = "Hello\vWorld\fTest";
+        const sanitized = sanitizeLog(input);
+        expect(sanitized).toBe("Hello World Test");
     });
 
     it('should truncate long strings (Fix Verified)', () => {
