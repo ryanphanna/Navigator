@@ -1,16 +1,11 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { sanitizeLog } from './sanitize.ts';
 
 export const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
-
-const MAX_LOG_LENGTH = 200;
-const sanitizeLog = (val: unknown) => {
-    const str = String(val).replace(/[\n\r\t\0\x08\x09\x1a\x1b]/g, ' ');
-    return str.length > MAX_LOG_LENGTH ? str.substring(0, MAX_LOG_LENGTH) + '...' : str;
-};
 
 export const TIER_MODELS: Record<string, { extraction: string; analysis: string }> = {
     free: {
