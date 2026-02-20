@@ -23,6 +23,7 @@ interface CoachDashboardProps {
     resumes: ResumeProfile[];
     transcript: Transcript | null;
     view: CoachViewType;
+    onViewChange: (view: CoachViewType) => void;
     onAddRoleModel: (file: File) => Promise<void>;
     onAddTargetJob: (url: string) => Promise<void>;
     onUpdateTargetJob: (job: TargetJob) => Promise<void>;
@@ -31,7 +32,6 @@ interface CoachDashboardProps {
     onRunGapAnalysis: (targetJobId: string) => Promise<void>;
     onGenerateRoadmap: (targetJobId: string) => Promise<void>;
     onToggleMilestone: (targetJobId: string, milestoneId: string) => Promise<void>;
-    onViewChange: (view: CoachViewType) => void;
     activeAnalysisIds?: Set<string>;
 }
 
@@ -182,7 +182,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
                     roleModels={roleModels}
                     targetJobs={targetJobs}
                     userSkills={userSkills}
-                    onViewChange={(view) => onViewChange(view as CoachViewType)}
+                    onViewChange={onViewChange}
                 />
             )}
 
