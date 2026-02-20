@@ -133,8 +133,6 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                 setLocalJob(updated);
                 onJobUpdate(updated);
                 EventService.trackUsage(TRACKING_EVENTS.COVER_LETTERS);
-
-                console.log(`[Pro] Cover letter generated with quality score: ${result.score}/100 (${result.attempts} attempts)`);
             } else {
                 const { text: letter, promptVersion } = await generateCoverLetter(
                     textToUse,
@@ -217,7 +215,6 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
     // Auto-Generate on Mount if no letter exists
     React.useEffect(() => {
         if (!localJob.coverLetter && !generating && !localJob.coverLetterCritique) {
-            console.log("Auto-generating cover letter draft...");
             handleGenerateCoverLetter();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

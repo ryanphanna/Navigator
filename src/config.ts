@@ -63,10 +63,6 @@ function validateEnv(): { env: Env | null; errors: string[] } {
 // Validate on module load
 const validation = validateEnv();
 
-if (validation.env && import.meta.env.PROD) {
-  console.log('Environment variables validated successfully');
-}
-
 // Export validation state for the app to check
 export const env = validation.env;
 export const envErrors = validation.errors;

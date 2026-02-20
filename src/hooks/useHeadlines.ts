@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { HEADLINES } from '../constants';
 
 type HeadlineType = 'all' | 'apply' | 'goal' | 'edu' | 'plans';
@@ -10,13 +10,16 @@ interface Headline {
 
 export const useHeadlines = (type: HeadlineType) => {
     const choices = useMemo(() => HEADLINES[type], [type]);
-    const [activeHeadline, setActiveHeadline] = useState<Headline>(choices[0]);
+    const [activeHeadline, setActiveHeadline] = useState<Headline>(
+        () => choices[Math.floor(Math.random() * choices.length)]
+    );
+    const [prevChoices, setPrevChoices] = useState(choices);
 
-    useEffect(() => {
-        const randomChoice = choices[Math.floor(Math.random() * choices.length)];
-        setActiveHeadline(randomChoice);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [choices]);
+    // Re-pick when type changes (avoids setState-in-effect)
+    if (choices !== prevChoices) {
+        setPrevChoices(choices);
+        setActiveHeadline(choices[Math.floor(Math.random() * choices.length)]);
+    }
 
     return activeHeadline;
 };

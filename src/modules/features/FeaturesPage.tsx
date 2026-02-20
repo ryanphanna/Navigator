@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -40,20 +40,19 @@ const TIER_LEVEL: Record<Exclude<Tier, 'all'>, number> = { explorer: 0, plus: 1,
 
 export const FeaturesPage: React.FC = () => {
     const [activeTier, setActiveTier] = useState<Tier>('all');
-    const [hasSetDefault, setHasSetDefault] = useState(false);
+    const hasSetDefaultRef = useRef(false);
     const navigate = useNavigate();
     const { user, userTier, isLoading } = useUser();
     const { openModal } = useModal();
 
     useEffect(() => {
-        if (!isLoading && !hasSetDefault && user) {
-            setHasSetDefault(true);
+        if (!isLoading && !hasSetDefaultRef.current && user) {
+            hasSetDefaultRef.current = true;
             if (userTier !== 'free' && userTier !== 'admin') {
                 setActiveTier(userTier as Tier);
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, userTier, isLoading, hasSetDefault]);
+    }, [user, userTier, isLoading]);
 
     // Get all features from registry (excluding admin-only for public features page)
     const allFeatures = useMemo(() => {

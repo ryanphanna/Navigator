@@ -42,6 +42,13 @@ export const InterviewAdvisor: React.FC = () => {
     const [userResponse, setUserResponse] = useState('');
     const navigate = useNavigate();
 
+    const messagesEndRef = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        if (mode === 'session') {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [responses, currentQuestionIndex, isLoading, mode]);
+
     const handleStartTailored = () => {
         const job = jobs.find(j => j.id === selectedJobId);
         if (job) {
@@ -101,14 +108,6 @@ export const InterviewAdvisor: React.FC = () => {
         }
 
         const currentQ = questions[currentQuestionIndex];
-
-        // Auto-scroll logic
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const messagesEndRef = React.useRef<HTMLDivElement>(null);
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        React.useEffect(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, [responses, currentQuestionIndex, isLoading]);
 
         // Build history with defensive checks
         const conversationHistory = questions.slice(0, currentQuestionIndex + 1).map((q) => ({

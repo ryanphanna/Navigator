@@ -45,7 +45,6 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
             const age = Date.now() - parseInt(cachedTimestamp);
             if (age < ONE_DAY) {
                 // Use cached data
-                console.log('Using cached feed data');
                 setFeed(JSON.parse(cachedData));
                 setLoading(false);
                 return;
@@ -100,8 +99,6 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
     };
 
     const analyzeJobsInBackground = async (jobs: JobFeedItem[]) => {
-        console.log('Starting background analysis...');
-
         // Get user's resume and tier
         const { data: resumes } = await supabase
             .from('resumes')
@@ -110,7 +107,6 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
             .limit(1);
 
         if (!resumes || resumes.length === 0) {
-            console.log('No resume found, skipping analysis');
             return;
         }
 
@@ -140,7 +136,6 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
             }
         }
 
-        console.log('Background analysis complete!');
     };
 
     const analyzeAndCacheJob = async (job: JobFeedItem, resume: any) => {
