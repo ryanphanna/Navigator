@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Education Module: Grad School Discovery**:
+  - Introduced **Program Explorer** to search and filter curated Master's programs with seamless integration into the Program Fit Analyzer.
+  - Added **Application Launchpad**, providing a structured, interactive roadmap for core admission requirements (GRE/GMAT, SOP, LORs).
+  - Created **Portfolio Proposer**, an AI-driven tool that transforms academic courses into tangible, resume-ready technical projects.
 - **Skill Interview "Professional Audit" Model**:
   - Increased interview depth to **10-12 cross-cutting questions** (approx. 24 interactions) for a more comprehensive assessment.
   - Implemented **Atomic Persistence**: Progress is banked "live" after every question, ensuring no work is lost if a session is interrupted.
@@ -19,6 +23,10 @@ All notable changes to this project will be documented in this file.
   - Updated terminology across Skills to be more neutral and professional (e.g., "Verified & Banked" and "In Development").
 
 ### Changed
+- **UI Consistency**:
+  - Unified the "Interview Advisor" page header to use the standard `<PageHeader>` component, resolving alignment and font scale discrepancies with "Application History" and "Resume Editor".
+  - Removed lingering focus outlines (blue pills) from navigation sub-items (e.g., "Interviews", "History") that remained stuck after a mouse click, while preserving standard `:focus-visible` accessibility rings for keyboard navigation.
+- **Upload Experiences**: Unified the upload interface across the application (`ResumeEditor`, `EduHero`, `AcademicHero`) by introducing a new `UnifiedUploadHero` component. This provides a consistent 3-card "Bento" layout and standardized drag-and-drop functionality for both resumes and academic transcripts.
 - **Resume Editor**: Updated the subtitle to be clearer and more literal: "Manage your professional history and accomplishments".
 - **Plans & Monetization**:
   - Standardized usage limits to high-value reset cycles: **Weekly** for Job Analyses and **Monthly** for Skills Interviews.
@@ -29,12 +37,14 @@ All notable changes to this project will be documented in this file.
   - Restored homepage card width by increasing the main content container from `max-w-4xl` to `max-w-6xl`, resolving issues where cards appeared too skinny in the 5-column grid.
   - Refactored the monolithic `HomeInput` component into two dedicated components: `HomePage` (focused landing experience) and `JobMatchInput` (focused job analysis tool).
   - Implemented a global **Header Strategy** that differentiates between "Explanatory" pages (Hero variant) and "Functional" pages (Simple variant).
+  - Integrated the **Coach Mode Toggle** ("Emulate / Destination") directly into the `PageHeader` component's `actions` slot, removing awkward whitespace from the `CoachHero` component layout.
 - **Secure Storage**:
   - Upgraded encryption key management to use **IndexedDB** for master key storage instead of `localStorage`.
   - Implemented **non-extractable keys** using the Web Crypto API, ensuring raw key material cannot be accessed by JavaScript.
   - Removed browser fingerprinting dependencies for key derivation to improve entropy and resolve security findings.
 - **Security & Safety**:
   - **Improved Log Sanitization**: Hardened the `gemini-proxy` log sanitization to strip a broader range of control characters (tabs, null bytes, backspaces) and fixed missing sanitization in error/warning paths to prevent potential log injection.
+  - **Sensitive Data Exposure**: Prevented accidental exposure of sensitive user profile data (subscription tier, admin/tester status) in client-side debug logs.
 ### Fixed
 - **Storage**:
   - Fixed a critical bug where a new user's initial resume upload would fail to persist to the cloud due to a missing `insert` clause in `resumeStorage`.
@@ -74,6 +84,7 @@ All notable changes to this project will be documented in this file.
 - **UI Glitches & Alignment**:
   - Corrected multiple visual discrepancies including clipped hero gradients, broken dark mode toggles in Tailwind v4, and invisible button text on stark glass backdrops.
   - Corrected overlap issues with the fixed app headers across the History framework.
+  - Fixed inconsistent hero header alignment on the Upgrade (`/plans`) page by adopting the standard `SharedPageLayout` component.
 
 ### Removed
 - **Education**: Removed redundant "Back to Education" headers to streamline screen architecture.

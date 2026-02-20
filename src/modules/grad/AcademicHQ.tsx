@@ -19,7 +19,9 @@ export const AcademicHQ: React.FC = () => {
         setShowVerification,
         editingCourse,
         setEditingCourse,
-        handleUploadComplete,
+        handleFileUpload,
+        isParsing,
+        parseError,
         handleVerificationSave,
         handleCourseUpdate,
         handleCourseDelete,
@@ -43,7 +45,9 @@ export const AcademicHQ: React.FC = () => {
 
                 {!transcript ? (
                     <AcademicHero
-                        handleUploadComplete={handleUploadComplete}
+                        handleFileUpload={handleFileUpload}
+                        isParsing={isParsing}
+                        parseError={parseError}
                         tempTranscript={tempTranscript}
                         showVerification={showVerification}
                         setShowVerification={setShowVerification}

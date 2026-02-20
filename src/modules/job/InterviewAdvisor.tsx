@@ -18,9 +18,10 @@ import { useResumeContext } from '../resume/context/ResumeContext';
 import { useInterview } from './hooks/useInterview';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { DetailLayout } from '../../components/common/DetailLayout';
 import { checkInterviewLimit } from '../../services/usageLimits';
+import { PageHeader } from '../../components/ui/PageHeader';
 import { supabase } from '../../services/supabase';
 
 export const InterviewAdvisor: React.FC = () => {
@@ -295,9 +296,12 @@ export const InterviewAdvisor: React.FC = () => {
 
     return (
         <div className="bg-neutral-50 dark:bg-[#000000] min-h-screen pt-24 pb-12">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 mb-8 text-center md:text-left">
-                <h1 className="text-3xl font-black text-neutral-900 dark:text-white tracking-tight">Interview Advisor</h1>
-                <p className="text-neutral-500 dark:text-neutral-400 font-bold mt-1.5">Master your narrative with AI-powered mock sessions</p>
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 mb-8 mt-[-2rem]">
+                <PageHeader
+                    title="Interview Advisor"
+                    subtitle="Master your narrative with AI-powered mock sessions"
+                    variant="simple"
+                />
 
                 {limitError && (
                     <motion.div

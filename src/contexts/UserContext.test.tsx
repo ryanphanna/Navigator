@@ -19,7 +19,7 @@ describe('UserContext Security Check', () => {
     let consoleLogSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
-        consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
         vi.clearAllMocks();
     });
 
@@ -52,6 +52,11 @@ describe('UserContext Security Check', () => {
                     }),
                 }),
             }),
+            update: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                    then: vi.fn().mockImplementation((cb) => cb({ error: null }))
+                }),
+            }),
         });
         vi.mocked(supabase.from).mockImplementation(mockFrom);
 
@@ -68,13 +73,13 @@ describe('UserContext Security Check', () => {
 
         // Check if sensitive data was logged
         // The vulnerable code does: console.log('[Auth Debug] SUCCESS - Profile Data:', data);
-        const sensitiveLogCall = consoleLogSpy.mock.calls.find(call => {
+        const sensitiveLogCall = consoleLogSpy.mock.calls.find((call: any[]) => {
             // Check for specific debug message
             if (call[0] && typeof call[0] === 'string' && call[0].includes('[Auth Debug] SUCCESS - Profile Data:')) {
                 return true;
             }
             // Check if the sensitive object itself was logged as any argument
-            return call.some(arg => {
+            return call.some((arg: any) => {
                 // Direct object match
                 if (typeof arg === 'object' && arg !== null) {
                     try {

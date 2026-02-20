@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import type { Transcript, Course, AdmissionEligibility } from '../types';
 import { analyzeCurrentProgramRequirements } from '../../../services/ai/eduAiService';
+import { parseTranscript } from '../../../services/geminiService';
 import { useToast } from '../../../contexts/ToastContext';
 
 export const useAcademicLogic = () => {
@@ -15,13 +16,47 @@ export const useAcademicLogic = () => {
         course: Course
     } | null>(null);
     const [programRequirements, setProgramRequirements] = useLocalStorage<AdmissionEligibility | null>('NAVIGATOR_PROGRAM_REQUIREMENTS', null);
-    const [isAnalyzingRequirements, setIsAnalyzingRequirements] = useState(false);
+    const [isParsingRequirements, setIsAnalyzingRequirements] = useState(false);
+    const [isParsing, setIsParsing] = useState(false);
+    const [parseError, setParseError] = useState<string | null>(null);
     const { showError } = useToast();
 
-    const handleUploadComplete = useCallback((parsed: Transcript) => {
-        setTempTranscript(parsed);
-        setShowVerification(true);
-    }, []);
+    const handleFileUpload = useCallback(async (files: File[]) => {
+        if (files.length === 0) return;
+        const file = files[0];
+
+        if (!file.type.includes('pdf')) {
+            setParseError('Please upload a PDF transcript.');
+            return;
+        }
+
+        setIsParsing(true);
+        setParseError(null);
+
+        try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const base64 = (reader.result as string).split(',')[1];
+                try {
+                    const parsed = await parseTranscript(base64, file.type);
+                    setTempTranscript(parsed);
+                    setShowVerification(true);
+                } catch (err: any) {
+                    setParseError(err.message || 'Failed to parse transcript');
+                } finally {
+                    setIsParsing(false);
+                }
+            };
+            reader.onerror = () => {
+                setParseError('Failed to read file');
+                setIsParsing(false);
+            };
+        } catch (e: any) {
+            setParseError(e.message || 'An unexpected error occurred');
+            setIsParsing(false);
+        }
+    }, [setTempTranscript, setShowVerification]);
 
     const handleVerificationSave = useCallback((verified: Transcript) => {
         setTranscript(verified);
@@ -205,7 +240,9 @@ export const useAcademicLogic = () => {
         setShowVerification,
         editingCourse,
         setEditingCourse,
-        handleUploadComplete,
+        handleFileUpload,
+        isParsing,
+        parseError,
         handleVerificationSave,
         handleCourseUpdate,
         handleCourseDelete,
@@ -216,7 +253,7 @@ export const useAcademicLogic = () => {
         deleteSemester,
         addCourse,
         programRequirements,
-        isAnalyzingRequirements,
+        isAnalyzingRequirements: isParsingRequirements,
         fetchRequirements
     };
 };

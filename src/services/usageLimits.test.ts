@@ -140,21 +140,25 @@ describe('getUsageStats', () => {
         vi.mocked(supabase.from).mockImplementation((table: string) => {
             if (table === 'profiles') return { select: mockSelectProfile } as any;
             if (table === 'jobs') return { select: mockSelectJobs } as any;
-            return {} as any;
+            const defaultChain = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), in: vi.fn().mockReturnThis(), gte: vi.fn().mockResolvedValue({ count: 0 }) };
+            return defaultChain as any;
         });
 
         const result = await getUsageStats(userId);
 
         expect(result).toEqual({
             tier: 'pro',
-            totalAnalyses: 50,
             todayAnalyses: 5,
             weekAnalyses: 5,
             todayEmails: 5,
+            monthInterviews: 0,
+            roleModelCount: 0,
             totalAICalls: 100,
-            analysisLimit: 100,
-            analysisPeriod: 'daily',
+            analysisLimit: 350,
+            analysisPeriod: 'weekly',
             emailLimit: 25,
+            roleModelLimit: 25,
+            interviewLimit: 5,
             inboundEmailToken: 'token-123'
         });
     });
@@ -184,7 +188,8 @@ describe('getUsageStats', () => {
         vi.mocked(supabase.from).mockImplementation((table: string) => {
             if (table === 'profiles') return { select: mockSelectProfile } as any;
             if (table === 'jobs') return { select: mockSelectJobs } as any;
-            return {} as any;
+            const defaultChain = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), in: vi.fn().mockReturnThis(), gte: vi.fn().mockResolvedValue({ count: 0 }) };
+            return defaultChain as any;
         });
 
         const result = await getUsageStats(userId);
@@ -219,7 +224,8 @@ describe('getUsageStats', () => {
         vi.mocked(supabase.from).mockImplementation((table: string) => {
             if (table === 'profiles') return { select: mockSelectProfile } as any;
             if (table === 'jobs') return { select: mockSelectJobs } as any;
-            return {} as any;
+            const defaultChain = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), in: vi.fn().mockReturnThis(), gte: vi.fn().mockResolvedValue({ count: 0 }) };
+            return defaultChain as any;
         });
 
         const result = await getUsageStats(userId);
@@ -240,14 +246,17 @@ describe('getUsageStats', () => {
 
         expect(result).toEqual({
             tier: 'free',
-            totalAnalyses: 0,
             todayAnalyses: 0,
             weekAnalyses: 0,
             todayEmails: 0,
+            monthInterviews: 0,
+            roleModelCount: 0,
             totalAICalls: 0,
             analysisLimit: 3,
             analysisPeriod: 'lifetime',
             emailLimit: 0,
+            roleModelLimit: 0,
+            interviewLimit: 0,
             inboundEmailToken: undefined
         });
         expect(consoleSpy).toHaveBeenCalledWith('Error fetching usage stats:', expect.any(Error));

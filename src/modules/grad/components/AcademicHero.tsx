@@ -1,11 +1,14 @@
 import React from 'react';
 
-import { TranscriptUpload } from '../TranscriptUpload';
 import { CourseVerificationModal } from '../../../components/edu/CourseVerificationModal';
 import type { Transcript } from '../../../types';
+import { UnifiedUploadHero } from '../../../components/common/UnifiedUploadHero';
+import { GraduationCap, Zap } from 'lucide-react';
 
 interface AcademicHeroProps {
-    handleUploadComplete: (parsed: Transcript) => void;
+    handleFileUpload: (files: File[]) => void;
+    isParsing: boolean;
+    parseError: string | null;
     tempTranscript: Transcript | null;
     showVerification: boolean;
     setShowVerification: (show: boolean) => void;
@@ -13,27 +16,38 @@ interface AcademicHeroProps {
 }
 
 export const AcademicHero: React.FC<AcademicHeroProps> = ({
-    handleUploadComplete,
+    handleFileUpload,
+    isParsing,
+    parseError,
     tempTranscript,
     showVerification,
     setShowVerification,
     handleVerificationSave
 }) => {
     return (
-        <div className="max-w-2xl mx-auto mt-12">
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-8 md:p-10 text-center">
-                <div className="mb-8 max-w-lg mx-auto">
-                    <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-3">Upload your Transcript</h2>
-                    <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed">
-                        Upload your PDF transcript to automatically import your academic history.
-                        We'll extract your courses, grades, and credits to help you track your progress.
-                    </p>
-                </div>
-
-                <div className="max-w-md mx-auto">
-                    <TranscriptUpload onUploadComplete={handleUploadComplete} />
-                </div>
-            </div>
+        <div className="max-w-5xl mx-auto mt-12 px-4">
+            <UnifiedUploadHero
+                title="Upload Transcript"
+                description="Drag & drop your PDF transcript here to automatically import your academic history"
+                onUpload={handleFileUpload}
+                isLoading={isParsing}
+                error={parseError}
+                themeColor="amber"
+                cards={{
+                    foundation: {
+                        title: "Academic Record",
+                        description: "We analyze your courses and calculate your 4.0 GPA automatically. Your privacy is our priority.",
+                        icon: GraduationCap,
+                        benefits: ['Smart Course Extraction', 'Grade Normalization', 'Privacy-First Parsing']
+                    },
+                    intelligence: {
+                        title: "Intelligence",
+                        description: "Experience a smart overview of your academic journey and discover your true potential.",
+                        icon: Zap,
+                        benefits: ['GPA Forecasting', 'Credit Tracking', 'Curated Program Discovery']
+                    }
+                }}
+            />
 
             {tempTranscript && (
                 <CourseVerificationModal
@@ -46,3 +60,4 @@ export const AcademicHero: React.FC<AcademicHeroProps> = ({
         </div>
     );
 };
+

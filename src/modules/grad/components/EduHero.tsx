@@ -1,14 +1,10 @@
 import React from 'react';
-import {
-    GraduationCap,
-    FileText
-} from 'lucide-react';
-import { TranscriptUpload } from '../TranscriptUpload';
+import { Zap, GraduationCap, FileText } from 'lucide-react';
 import type { Transcript } from '../../../types';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
-import { UnifiedUploadHero } from '../../common/UnifiedUploadHero';
-import { Zap } from 'lucide-react';
+import { UnifiedUploadHero } from '../../../components/common/UnifiedUploadHero';
+
 
 interface EduHeroProps {
     transcript: Transcript | null;
@@ -17,7 +13,9 @@ interface EduHeroProps {
     targetCredits: number;
     progressPercentage: number;
     onViewChange: (view: string) => void;
-    handleUploadComplete: (parsed: Transcript) => void;
+    handleFileUpload: (files: File[]) => void;
+    isParsing: boolean;
+    parseError: string | null;
 }
 
 export const EduHero: React.FC<EduHeroProps> = ({
@@ -27,7 +25,9 @@ export const EduHero: React.FC<EduHeroProps> = ({
     targetCredits,
     progressPercentage,
     onViewChange,
-    handleUploadComplete
+    handleFileUpload,
+    isParsing,
+    parseError
 }) => {
     return (
         <>
@@ -37,7 +37,9 @@ export const EduHero: React.FC<EduHeroProps> = ({
                         <UnifiedUploadHero
                             title="Upload Transcript"
                             description="Drag & drop your PDF transcript here to automatically import your academic history"
-                            onUpload={(files) => handleUploadComplete(files[0] as any)} // Cast just to satisfy old types for now if needed, but TranscriptUpload was using File[]
+                            onUpload={handleFileUpload}
+                            isLoading={isParsing}
+                            error={parseError}
                             themeColor="amber"
                             cards={{
                                 foundation: {

@@ -9,6 +9,7 @@ import { EduHero } from './components/EduHero';
 import { ProgramRequirements } from './components/ProgramRequirements';
 import { GradLaunchpad } from './components/GradLaunchpad';
 import { PortfolioProposer } from './components/PortfolioProposer';
+
 import { useAcademicLogic } from './hooks/useAcademicLogic';
 import { useHeadlines } from '../../hooks/useHeadlines';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -22,7 +23,9 @@ export const EducationDashboard: React.FC = () => {
         totalCredits,
         targetCredits,
         progressPercentage,
-        handleUploadComplete,
+        handleFileUpload,
+        isParsing,
+        parseError,
         tempTranscript,
         showVerification,
         setShowVerification,
@@ -60,7 +63,9 @@ export const EducationDashboard: React.FC = () => {
                     targetCredits={targetCredits}
                     progressPercentage={progressPercentage}
                     onViewChange={setView}
-                    handleUploadComplete={handleUploadComplete}
+                    handleFileUpload={handleFileUpload}
+                    isParsing={isParsing}
+                    parseError={parseError}
                 />
 
                 {transcript && (
@@ -73,7 +78,6 @@ export const EducationDashboard: React.FC = () => {
                         />
 
                         <GradLaunchpad />
-
                         <PortfolioProposer transcript={transcript} />
                     </div>
                 )}

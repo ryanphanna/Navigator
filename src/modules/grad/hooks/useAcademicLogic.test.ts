@@ -71,16 +71,7 @@ describe('useAcademicLogic', () => {
         expect(result.current.progressPercentage).toBe(0);
     });
 
-    it('handles upload completion', () => {
-        const { result } = renderHook(() => useAcademicLogic());
 
-        act(() => {
-            result.current.handleUploadComplete(mockTranscript);
-        });
-
-        expect(result.current.tempTranscript).toEqual(mockTranscript);
-        expect(result.current.showVerification).toBe(true);
-    });
 
     it('handles verification save', () => {
         const { result } = renderHook(() => useAcademicLogic());

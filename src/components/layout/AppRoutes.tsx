@@ -243,7 +243,7 @@ export const AppRoutes: React.FC = () => {
                             user={user}
                             usageStats={usageStats}
                             mode="apply"
-                            userTier={userTier}
+
                             onNavigate={handleViewChange}
                             onShowAuth={(feature) => openModal('AUTH', feature ? { feature } : undefined)}
                         />
