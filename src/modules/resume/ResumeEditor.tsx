@@ -80,6 +80,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
     };
 
     const addBlock = (type: SectionType) => {
+        if (type === 'summary' && blocks.some(b => b.type === 'summary')) return;
         const newBlock: ExperienceBlock = {
             id: crypto.randomUUID(),
             type: type,
@@ -413,12 +414,14 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                         )}
 
                                         {/* Add Block Button for Section */}
-                                        <button
-                                            onClick={() => addBlock(section.type)}
-                                            className="w-full py-2 flex items-center justify-center gap-2 text-sm font-medium text-neutral-400 hover:text-indigo-600 border border-transparent hover:border-indigo-100 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-lg transition-all border-dashed"
-                                        >
-                                            <Plus className="w-4 h-4" /> Add {section.label}
-                                        </button>
+                                        {!(section.type === 'summary' && sectionBlocks.length >= 1) && (
+                                            <button
+                                                onClick={() => addBlock(section.type)}
+                                                className="w-full py-2 flex items-center justify-center gap-2 text-sm font-medium text-neutral-400 hover:text-indigo-600 border border-transparent hover:border-indigo-100 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-lg transition-all border-dashed"
+                                            >
+                                                <Plus className="w-4 h-4" /> Add {section.label}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             );
