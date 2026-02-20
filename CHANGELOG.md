@@ -4,6 +4,44 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.16.0] - 2026-02-20
+
+### Added
+- **UI Architecture**:
+  - Introduced new global components: `StandardSearchBar` (glassmorphism input), `StandardFilterGroup` (unified filter layouts), and `DropZone` (drag-and-drop file utility).
+  - Implemented these components across **History**, **Skills**, **Resume Editor**, and **Transcripts** to ensure absolute design pattern consistency.
+- **Job Detail Enhancements**:
+  - Automatically extracts and displays the salary range next to the company name.
+  - Added graceful fallback empty states for specific data points, preventing "blank box" confusion if AI extraction is incomplete.
+
+### Changed
+- **Major UI Polish & Layout Refining**:
+  - Redesigned the **Interview Advisor** and **Job Detail** headers into a premium floating capsule design featuring the primary logo.
+  - Adjusted global spacing of all hero headers, raising the content block slightly (`1.5cm`) for a more proportional layout.
+  - Standardized marketing headlines into Title Case and resolved scrolling/padding issues globally across empty state modules.
+- **Skills & Resume Refinements**:
+  - Overhauled the **Skills** module with new vibrant Bento cards and a compact, flex-wrap "pill collection" for cleaner data visualization.
+  - Simplified the Resume Editor layout by consolidating control buttons and removing bulky section badges from experience entries.
+- **Onboarding & Error Handling**:
+  - Refined the unauthenticated home header to display clear, distinct **Sign In** and **Sign Up** prompts.
+  - Standardized diverse CTA labels across features into clearer, action-oriented verbs (e.g., "Enter Navigator", "Open Feed", "Quick Start").
+  - Implemented a "premium empathetic error UI" in Job Details that distinguishes between scraping failures and AI service errors.
+
+### Fixed
+- **Critical Stability & Storage**:
+  - Resolved a severe "destructive sync" race condition in `JobStorage` that could mistakenly clear local data before merging with the cloud.
+  - Optimized data contexts (`ResumeContext`, `useJobManager`) to instantly re-fetch cloud data upon login without requiring a page refresh.
+  - Patched persistent "Too many requests" AI limits by isolating the correct billing API keys in the environment setup.
+- **Job Analysis State Flow**:
+  - Fixed logic bugs preventing background job analysis from auto-starting and corrected manual-input errors trapping the system into fail-states.
+  - Cleaned up lingering "AI is busy" alerts, implementing automatic notification clearing during route navigation.
+- **UI Glitches & Alignment**:
+  - Corrected multiple visual discrepancies including clipped hero gradients, broken dark mode toggles in Tailwind v4, and invisible button text on stark glass backdrops.
+  - Corrected overlap issues with the fixed app headers across the History framework.
+
+### Removed
+- **Education**: Removed redundant "Back to Education" headers to streamline screen architecture.
+- **Privacy**: Removed outdated policy update badges from the home screen layout.
 ## [2.15.2] - 2026-02-19
 
 ### Fixed
