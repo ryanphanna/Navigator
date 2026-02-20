@@ -26,7 +26,8 @@ const sanitizeInput = (text: string): string => {
 };
 
 const extractJobInfo = async (
-    rawJobText: string
+    rawJobText: string,
+    onProgress?: RetryProgressCallback
 ): Promise<{ distilledJob: DistilledJob; cleanedDescription: string }> => {
     const extractionPrompt = `
     Extract key info from this job posting: ${rawJobText.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}...
@@ -55,7 +56,7 @@ const extractJobInfo = async (
         metadata.token_usage = response.response.usageMetadata;
         const result = JSON.parse(cleanJsonOutput(response.response.text()));
         return { distilledJob: result as DistilledJob, cleanedDescription: rawJobText };
-    }, { event_type: 'job_extraction', prompt: extractionPrompt, model: AI_MODELS.EXTRACTION, job_id: undefined }); // Extraction usually happens before job is fully saved, but could pass if available.
+    }, { event_type: 'job_extraction', prompt: extractionPrompt, model: AI_MODELS.EXTRACTION, job_id: undefined }, undefined, undefined, onProgress); // Extraction usually happens before job is fully saved, but could pass if available.
 };
 
 export const analyzeJobFit = async (
@@ -66,7 +67,7 @@ export const analyzeJobFit = async (
     jobId?: string
 ): Promise<JobAnalysis> => {
     if (onProgress) onProgress("Extracting job details...", 1, 2);
-    const { distilledJob: extractionInfo, cleanedDescription } = await extractJobInfo(jobDescription);
+    const { distilledJob: extractionInfo, cleanedDescription } = await extractJobInfo(jobDescription, onProgress);
     if (resumes.length === 0) return { distilledJob: extractionInfo, cleanedDescription } as JobAnalysis;
 
     if (onProgress) onProgress("Analyzing your fit (Pro model)...", 2, 2);
@@ -97,7 +98,7 @@ export const analyzeJobFit = async (
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: analysisPrompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         return JSON.parse(sanitizeInput(cleanJsonOutput(response.response.text())));
-    }, { event_type: 'analysis', prompt: analysisPrompt, model: 'dynamic', job_id: jobId });
+    }, { event_type: 'analysis', prompt: analysisPrompt, model: 'dynamic', job_id: jobId }, undefined, undefined, onProgress);
 
     // Deep merge the extraction info with the detailed analysis
     const mergedDistilledJob = {
