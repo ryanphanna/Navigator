@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface ViewTransitionProps {
     children: React.ReactNode;
@@ -16,14 +16,13 @@ export const ViewTransition: React.FC<ViewTransitionProps> = ({
     className = ''
 }) => {
     const [isVisible, setIsVisible] = useState(false);
-    const [currentKey, setCurrentKey] = useState(viewKey);
+    const currentKeyRef = useRef(viewKey);
 
     useEffect(() => {
-        // When viewKey changes, trigger re-animation
-        if (viewKey !== currentKey) {
+        if (viewKey !== currentKeyRef.current) {
+            // viewKey changed — trigger re-animation
             setIsVisible(false);
-            setCurrentKey(viewKey);
-            // Small delay before showing new content
+            currentKeyRef.current = viewKey;
             const timer = setTimeout(() => setIsVisible(true), 50);
             return () => clearTimeout(timer);
         } else {
@@ -31,8 +30,7 @@ export const ViewTransition: React.FC<ViewTransitionProps> = ({
             const timer = setTimeout(() => setIsVisible(true), 10);
             return () => clearTimeout(timer);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [viewKey, currentKey]);
+    }, [viewKey]);
 
     return (
         <div
