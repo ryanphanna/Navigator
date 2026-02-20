@@ -1,11 +1,17 @@
 import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import type { FeatureDefinition } from '../featureRegistry';
 
 export type ModalType = 'AUTH' | 'SETTINGS' | 'UPGRADE' | 'INTERVIEW' | null;
 
+export interface ModalData {
+    feature?: FeatureDefinition;
+    initialView?: 'upgrade' | 'compare';
+}
+
 interface ModalContextType {
     activeModal: ModalType;
-    modalData: any;
-    openModal: (type: ModalType, data?: any) => void;
+    modalData: ModalData | null;
+    openModal: (type: ModalType, data?: ModalData | null) => void;
     closeModal: () => void;
 }
 
@@ -21,9 +27,9 @@ export const useModal = () => {
 
 export const ModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [activeModal, setActiveModal] = useState<ModalType>(null);
-    const [modalData, setModalData] = useState<any>(null);
+    const [modalData, setModalData] = useState<ModalData | null>(null);
 
-    const openModal = useCallback((type: ModalType, data: any = null) => {
+    const openModal = useCallback((type: ModalType, data: ModalData | null = null) => {
         setActiveModal(type);
         setModalData(data);
     }, []);
