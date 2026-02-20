@@ -4,6 +4,7 @@ import { describe, it, expect } from 'vitest';
 // Simulate the fixed implementation
 const MAX_LOG_LENGTH = 200;
 const sanitizeLog = (val: unknown) => {
+    // eslint-disable-next-line no-control-regex
     const str = String(val).replace(/[\n\r\t\0\x08\x09\x1a\x1b]/g, ' ');
     return str.length > MAX_LOG_LENGTH ? str.substring(0, MAX_LOG_LENGTH) + '...' : str;
 };

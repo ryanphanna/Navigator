@@ -21,6 +21,7 @@ export const ViewTransition: React.FC<ViewTransitionProps> = ({
     useEffect(() => {
         if (viewKey !== currentKeyRef.current) {
             // viewKey changed — trigger re-animation
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsVisible(false);
             currentKeyRef.current = viewKey;
             const timer = setTimeout(() => setIsVisible(true), 50);

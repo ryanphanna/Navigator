@@ -22,6 +22,7 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
 
     useEffect(() => {
         if (isOpen) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setEditedCourse(course);
             setConfirmDelete(false);
         }

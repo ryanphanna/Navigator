@@ -49,6 +49,7 @@ export const FeaturesPage: React.FC = () => {
         if (!isLoading && !hasSetDefaultRef.current && user) {
             hasSetDefaultRef.current = true;
             if (userTier !== 'free' && userTier !== 'admin') {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setActiveTier(userTier as Tier);
             }
         }

@@ -17,7 +17,9 @@ export const useHeadlines = (type: HeadlineType) => {
 
     // Re-pick when type changes (avoids setState-in-effect)
     if (choices !== prevChoices) {
+        // eslint-disable-next-line react-hooks/purity
         setPrevChoices(choices);
+        // eslint-disable-next-line react-hooks/purity
         setActiveHeadline(choices[Math.floor(Math.random() * choices.length)]);
     }
 
