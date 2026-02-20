@@ -10,8 +10,8 @@ describe('areBlocksEqual', () => {
         });
     });
 
-    describe('work, education, project types', () => {
-        const types = ['work', 'education', 'project'];
+    describe('work, education, project, volunteer types', () => {
+        const types = ['work', 'education', 'project', 'volunteer'];
 
         types.forEach(type => {
             it(`should return true for ${type} if title and organization match exactly`, () => {
@@ -102,25 +102,25 @@ describe('areBlocksEqual', () => {
         });
 
         it('should handle explicitly null fields gracefully', () => {
-            // @ts-expect-error - testing runtime behavior
             const a = { type: 'work', title: null, organization: 'Tech Corp' };
             const b = { type: 'work', title: '', organization: 'Tech Corp' };
-            expect(areBlocksEqual(a, b)).toBe(true);
+            // @ts-expect-error - testing runtime behavior
+            expect(areBlocksEqual(a as any, b)).toBe(true);
         });
 
         it('should handle non-string title by converting to string', () => {
-            // @ts-expect-error - testing runtime behavior
             const a = { type: 'work', title: 123, organization: 'Tech Corp' };
             const b = { type: 'work', title: '123', organization: 'Tech Corp' };
-            expect(areBlocksEqual(a, b)).toBe(true);
+            // @ts-expect-error - testing runtime behavior
+            expect(areBlocksEqual(a as any, b)).toBe(true);
         });
 
         it('should handle non-string organization by converting to string', () => {
-            // @ts-expect-error - testing runtime behavior
             const a = { type: 'work', title: 'Dev', organization: { name: 'Corp' } };
             // Object.toString() is [object Object]
             const b = { type: 'work', title: 'Dev', organization: '[object Object]' };
-            expect(areBlocksEqual(a, b)).toBe(true);
+            // @ts-expect-error - testing runtime behavior
+            expect(areBlocksEqual(a as any, b)).toBe(true);
         });
 
         it('should handle undefined fields gracefully', () => {

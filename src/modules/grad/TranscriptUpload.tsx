@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { parseTranscript } from '../../services/geminiService';
 import type { Transcript } from '../../types';
-import { FileUploader } from '../../components/common/FileUploader';
+import { DropZone } from '../../components/common/DropZone';
 
 interface TranscriptUploadProps {
     onUploadComplete: (transcript: Transcript) => void;
@@ -15,7 +15,7 @@ export const TranscriptUpload: React.FC<TranscriptUploadProps> = ({ onUploadComp
         if (files.length === 0) return;
         const file = files[0];
 
-        // Basic validation (FileUploader also does some based on accept, but good to be safe)
+        // Basic validation
         if (!file.type.includes('pdf')) {
             setError('Please upload a PDF transcript.');
             return;
@@ -51,15 +51,16 @@ export const TranscriptUpload: React.FC<TranscriptUploadProps> = ({ onUploadComp
 
     return (
         <div className="w-full max-w-2xl mx-auto">
-            <FileUploader
+            <DropZone
                 onUpload={handleUpload}
                 accept=".pdf"
                 title="Upload Transcript"
-                description="Drag & drop your PDF here or click to browse"
+                description="Drag & drop your PDF transcript here to automatically import your academic history"
                 loadingText="Analyzing Transcript..."
                 isLoading={isParsing}
                 error={error}
-                variant="compact"
+                themeColor="amber"
+                variant="card"
             />
         </div>
     );

@@ -52,6 +52,7 @@ export const FeaturesPage: React.FC = () => {
                 setActiveTier(userTier as Tier);
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, userTier, isLoading, hasSetDefault]);
 
     // Get all features from registry (excluding admin-only for public features page)
@@ -214,7 +215,7 @@ export const FeaturesPage: React.FC = () => {
                 className="max-w-2xl mx-auto text-center mt-32 mb-12"
             >
                 <h2 className="text-2xl md:text-3xl font-extrabold text-neutral-900 dark:text-white tracking-tight mb-4">
-                    Ready to get started?
+                    Ready to unlock your advantage?
                 </h2>
                 <p className="text-sm text-neutral-400 dark:text-neutral-500 mb-8">
                     Start with 3 free analyses. No credit card required.

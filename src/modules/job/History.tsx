@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { SavedJob } from '../../types';
-import { Search, X, Trash2, ArrowRight, Sparkles, Building, Calendar, Filter, Clock } from 'lucide-react';
+import { Trash2, ArrowRight, Sparkles, Building, Calendar, Filter, Clock } from 'lucide-react';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
+import { StandardSearchBar } from '../../components/common/StandardSearchBar';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { ROUTES } from '../../constants';
+import { StandardFilterGroup } from '../../components/common/StandardFilterGroup';
 
 interface HistoryProps {
     jobs: SavedJob[];
@@ -14,35 +16,16 @@ interface HistoryProps {
     onDeleteJob: (id: string) => void;
 }
 
-type StatusFilter = 'all' | 'saved' | 'applied' | 'interview' | 'offer' | 'rejected';
+const FILTER_OPTIONS = [
+    { id: 'all', label: 'All' },
+    { id: 'saved', label: 'Saved' },
+    { id: 'applied', label: 'Applied' },
+    { id: 'interview', label: 'Interview' },
+    { id: 'offer', label: 'Offer' },
+    { id: 'rejected', label: 'Rejected' },
+] as const;
 
-interface StatusTabProps {
-    id: StatusFilter;
-    label: string;
-    count: number;
-    activeFilter: StatusFilter;
-    onSelect: (filter: StatusFilter) => void;
-}
-
-const StatusTab = ({ id, label, count, activeFilter, onSelect }: StatusTabProps) => (
-    <button
-        onClick={() => onSelect(id)}
-        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 whitespace-nowrap flex items-center gap-2 border active:scale-95 ${activeFilter === id
-            ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white shadow-lg shadow-neutral-900/10 dark:shadow-white/5'
-            : 'bg-white/50 backdrop-blur-md text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:bg-white dark:bg-neutral-900/50 dark:text-neutral-400 dark:border-neutral-800 dark:hover:border-neutral-700 dark:hover:bg-neutral-900'
-            }`}
-    >
-        {label}
-        {count > 0 && (
-            <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black tracking-tighter ${activeFilter === id
-                ? 'bg-white/20 text-white dark:bg-neutral-900/10 dark:text-neutral-900'
-                : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-500'
-                }`}>
-                {count}
-            </span>
-        )}
-    </button>
-);
+type StatusFilter = typeof FILTER_OPTIONS[number]['id'];
 
 export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps) {
     const navigate = useNavigate();
@@ -101,53 +84,31 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
     };
 
     return (
-        <SharedPageLayout className="theme-job" spacing="hero">
+        <SharedPageLayout className="theme-job" spacing="none">
             <PageHeader
-                title="Application"
-                highlight="History"
+                title="History"
+                highlight="Log"
                 subtitle="Track your applications, interviews, and offers in one place."
             />
 
-            {/* Filters Row */}
-            <div className="flex flex-col gap-6 mb-8">
-                {/* Search */}
-                <div className="relative group/search">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 group-focus-within/search:text-accent-primary-hex transition-colors" />
-                    <input
-                        type="text"
-                        placeholder="Search roles, companies, or keywords..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 rounded-2xl text-base focus:outline-none focus:ring-4 focus:ring-accent-primary/10 focus:border-accent-primary-hex transition-all placeholder:text-neutral-400 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07)] hover:shadow-lg hover:border-accent-primary/30"
-                    />
-                    {searchQuery && (
-                        <button
-                            onClick={() => setSearchQuery('')}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-neutral-300 hover:text-neutral-500 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    )}
-                </div>
-
-                {/* Status Tabs */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
-                    <StatusTab id="all" label="All" count={getCount('all')} activeFilter={statusFilter} onSelect={setStatusFilter} />
-                    {['saved', 'applied', 'interview', 'offer', 'rejected'].map((filterId) => {
-                        const count = getCount(filterId as StatusFilter);
-                        if (count === 0 && statusFilter !== filterId) return null;
-                        return (
-                            <StatusTab
-                                key={filterId}
-                                id={filterId as StatusFilter}
-                                label={filterId.charAt(0).toUpperCase() + filterId.slice(1)}
-                                count={count}
-                                activeFilter={statusFilter}
-                                onSelect={setStatusFilter}
-                            />
-                        );
-                    })}
-                </div>
+            {/* Filters & Search Row */}
+            <div className="flex flex-col md:flex-row items-center gap-4 mb-8">
+                <StandardSearchBar
+                    value={searchQuery}
+                    onChange={setSearchQuery}
+                    placeholder="Search roles, companies, or keywords..."
+                    themeColor="indigo"
+                    className="flex-1"
+                />
+                <StandardFilterGroup
+                    options={FILTER_OPTIONS.map(opt => ({
+                        ...opt,
+                        count: getCount(opt.id)
+                    }))}
+                    activeFilter={statusFilter}
+                    onSelect={(f) => setStatusFilter(f as StatusFilter)}
+                    themeColor="slate"
+                />
             </div>
 
             {/* Content */}

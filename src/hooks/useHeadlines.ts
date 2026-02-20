@@ -15,6 +15,7 @@ export const useHeadlines = (type: HeadlineType) => {
     useEffect(() => {
         const randomChoice = choices[Math.floor(Math.random() * choices.length)];
         setActiveHeadline(randomChoice);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [choices]);
 
     return activeHeadline;

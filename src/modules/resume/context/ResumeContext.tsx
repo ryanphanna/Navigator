@@ -3,6 +3,7 @@ import type { ResumeProfile } from '../../../types';
 import { Storage } from '../../../services/storageService';
 import { parseResumeFile } from '../../../services/geminiService';
 import { useToast } from '../../../contexts/ToastContext';
+import { useUser } from '../../../contexts/UserContext';
 
 interface ResumeContextType {
     resumes: ResumeProfile[];
@@ -16,6 +17,7 @@ interface ResumeContextType {
     handleUpdateResumes: (resumes: ResumeProfile[]) => Promise<void>;
     handleDeleteResume: (id: string) => Promise<void>;
     setImportError: (error: string | null) => void;
+    clearImportError: () => void;
 }
 
 const ResumeContext = createContext<ResumeContextType | undefined>(undefined);
@@ -30,6 +32,7 @@ export const useResumeContext = () => {
 
 export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { showSuccess, showError } = useToast();
+    const { user } = useUser();
     const [resumes, setResumes] = useState<ResumeProfile[]>([]);
     const [isParsingResume, setIsParsingResume] = useState(false);
     const [importError, setImportError] = useState<string | null>(null);
@@ -46,7 +49,7 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             }
         });
         return () => { mounted = false; };
-    }, []);
+    }, [user?.id]);
 
     const handleImportResume = useCallback(async (file: File) => {
         setIsParsingResume(true);
@@ -121,6 +124,10 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
     }, [resumes, showSuccess, showError]);
 
+    const clearImportError = useCallback(() => {
+        setImportError(null);
+    }, []);
+
     return (
         <ResumeContext.Provider value={{
             resumes,
@@ -131,7 +138,8 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             handleUpdateResume,
             handleUpdateResumes,
             handleDeleteResume,
-            setImportError
+            setImportError,
+            clearImportError
         }}>
             {children}
         </ResumeContext.Provider>

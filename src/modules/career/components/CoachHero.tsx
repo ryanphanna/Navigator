@@ -204,7 +204,7 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                 {roleModels.length === 0 && targetJobs.length === 0 && (
                     <div className="mt-14 max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 delay-700">
                         <div className="text-center mb-6">
-                            <div className="text-[10px] uppercase tracking-widest font-black text-neutral-400">Getting Started</div>
+                            <div className="text-[10px] uppercase tracking-widest font-black text-neutral-400">Quick Start</div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div

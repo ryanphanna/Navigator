@@ -11,7 +11,7 @@ export const ERROR_MESSAGES = {
 
   // Quota errors
   DAILY_QUOTA_EXCEEDED: "You've reached your daily API limit. Try again tomorrow, or upgrade to Navigator Pro for unlimited access.",
-  RATE_LIMIT_EXCEEDED: "Too many requests. The AI is busy right now - please wait a moment and try again.",
+  RATE_LIMIT_EXCEEDED: "The AI is working hard right now! Please take a quick break and try again in a moment.",
 
   // Network errors
   NETWORK_ERROR: "Connection issue. Check your internet and try again.",
@@ -111,5 +111,5 @@ export function getUserFriendlyError(error: Error | string): string {
  * Format retry message for display
  */
 export function getRetryMessage(attempt: number, maxAttempts: number, delaySeconds: number): string {
-  return `Too busy right now. Retrying (${attempt}/${maxAttempts}) in ${delaySeconds}s...`;
+  return `Hang tight! The AI is a bit busy. Retrying (${attempt}/${maxAttempts}) in ${delaySeconds}s...`;
 }

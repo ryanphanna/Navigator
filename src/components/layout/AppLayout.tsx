@@ -11,12 +11,21 @@ import { ROUTES } from '../../constants';
 
 
 import { Footer } from './Footer';
+import { useToast } from '../../contexts/ToastContext';
+import { useLocation } from 'react-router-dom';
 
-// import { useUser } from '../../contexts/UserContext'; // Removed unused import
+
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { currentView, setView } = useGlobalUI();
     const navigate = useNavigate();
+    const location = useLocation();
+    const { clearToasts } = useToast();
+
+    // Clear toasts on every route change
+    React.useEffect(() => {
+        clearToasts();
+    }, [location.pathname, clearToasts]);
 
     const isCoachMode = typeof currentView === 'string' && (currentView.startsWith('career') || currentView.startsWith('coach') || currentView === 'skills');
     const isEduMode = typeof currentView === 'string' && currentView.startsWith('edu');
@@ -74,7 +83,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
 
     return (
-        <div className={`min-h-screen bg-white dark:bg-[#000000] font-sans selection:bg-emerald-500/30 text-neutral-900 dark:text-neutral-100 transition-colors duration-500 ${isCoachMode ? 'theme-coach' : isEduMode ? 'theme-edu' : 'theme-job'}`}>
+        <div className={`min-h-screen flex flex-col bg-white dark:bg-[#000000] font-sans selection:bg-emerald-500/30 text-neutral-900 dark:text-neutral-100 transition-colors duration-500 ${isCoachMode ? 'theme-coach' : isEduMode ? 'theme-edu' : 'theme-job'}`}>
             <style>{`
                 @media (prefers-reduced-motion: reduce) {
                     *, *::before, *::after {
@@ -100,14 +109,16 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
             <GlobalModals />
 
-            <Header
-                currentView={currentView}
-                onViewChange={handleViewChange}
-                isCoachMode={isCoachMode}
-                isEduMode={isEduMode}
-            />
+            {!['job-detail'].includes(currentView as string) && (
+                <Header
+                    currentView={currentView}
+                    onViewChange={handleViewChange}
+                    isCoachMode={isCoachMode}
+                    isEduMode={isEduMode}
+                />
+            )}
 
-            <main className="w-full pb-16 sm:pb-8 min-h-[60vh]">
+            <main className="flex-1 w-full pt-16 pb-16 sm:pb-8">
                 {children}
             </main>
 

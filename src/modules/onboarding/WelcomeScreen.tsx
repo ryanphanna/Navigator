@@ -396,7 +396,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                                     {tailoredContent.headline}
                                 </h1>
                                 <p className="text-neutral-600 dark:text-neutral-400">
-                                    Upload your resume to get started
+                                    Upload your resume to build your profile
                                 </p>
                             </div>
 
@@ -576,7 +576,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                                 onClick={handleContinue}
                                 className="w-full py-4 rounded-xl font-semibold transition-all shadow-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white hover:shadow-xl flex items-center justify-center gap-2 text-lg"
                             >
-                                Get Started
+                                Enter Navigator
                                 <ArrowRight className="w-5 h-5" />
                             </button>
                         </div>

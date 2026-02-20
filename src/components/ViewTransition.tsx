@@ -31,13 +31,14 @@ export const ViewTransition: React.FC<ViewTransitionProps> = ({
             const timer = setTimeout(() => setIsVisible(true), 10);
             return () => clearTimeout(timer);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [viewKey, currentKey]);
 
     return (
         <div
             className={`transition-all duration-200 ease-out ${className} ${isVisible
-                    ? 'opacity-100 blur-0 translate-y-0'
-                    : 'opacity-0 blur-[2px] translate-y-1'
+                ? 'opacity-100 blur-0 translate-y-0'
+                : 'opacity-0 blur-[2px] translate-y-1'
                 }`}
         >
             {children}

@@ -87,7 +87,6 @@ export const STORAGE_KEYS = {
   CURRENT_VIEW: 'navigator_current_view',
   ACTIVE_TAB: 'navigator_active_tab',
   BOOKMARKLET_TIP_DISMISSED: 'navigator_bookmarklet_tip_dismissed',
-  PRIVACY_UPDATE_DISMISSED: 'navigator_privacy_update_dismissed_2026_02_17',
   SKILL_SUGGESTIONS: 'navigator_skill_suggestions',
   TRANSCRIPT_CACHE: 'NAVIGATOR_TRANSCRIPT_CACHE',
   FEED_CACHE: 'navigator_feed_cache',
@@ -275,35 +274,35 @@ export const FEATURES = {
 // Marketing Headlines
 export const HEADLINES = {
   all: [
-    { text: "Optimize your", highlight: "Career" },
-    { text: "Elevate your", highlight: "Potential" },
-    { text: "Design your", highlight: "Path" },
-    { text: "Scale your", highlight: "Ambition" }
+    { text: "Optimize Your", highlight: "Career" },
+    { text: "Elevate Your", highlight: "Potential" },
+    { text: "Design Your", highlight: "Path" },
+    { text: "Scale Your", highlight: "Ambition" }
   ],
   apply: [
-    { text: "Land your", highlight: "Opening" },
-    { text: "Ace the", highlight: "Application" },
-    { text: "Own your", highlight: "Narrative" },
-    { text: "Perfect your", highlight: "Match" }
+    { text: "Land Your", highlight: "Opening" },
+    { text: "Ace The", highlight: "Application" },
+    { text: "Own Your", highlight: "Narrative" },
+    { text: "Perfect Your", highlight: "Match" }
   ],
   goal: [
-    { text: "Chart your", highlight: "Course" },
-    { text: "Map your", highlight: "Growth" },
-    { text: "Build your", highlight: "Roadmap" },
-    { text: "Design your", highlight: "Future" },
-    { text: "Scale your", highlight: "Impact" }
+    { text: "Chart Your", highlight: "Course" },
+    { text: "Map Your", highlight: "Growth" },
+    { text: "Build Your", highlight: "Roadmap" },
+    { text: "Design Your", highlight: "Future" },
+    { text: "Scale Your", highlight: "Impact" }
   ],
   edu: [
-    { text: "Accelerate your", highlight: "Learning" },
-    { text: "Maximize your", highlight: "Potential" },
-    { text: "Scale your", highlight: "Education" },
-    { text: "Chart your", highlight: "Success" }
+    { text: "Accelerate Your", highlight: "Learning" },
+    { text: "Maximize Your", highlight: "Potential" },
+    { text: "Scale Your", highlight: "Education" },
+    { text: "Chart Your", highlight: "Success" }
   ],
   plans: [
-    { text: "Plans to match", highlight: "your ambition" },
-    { text: "Fuel your", highlight: "Next Move" },
-    { text: "Invest in", highlight: "your Career" },
-    { text: "Unlock your full", highlight: "Potential" },
-    { text: "Power up", highlight: "your Search" }
+    { text: "Plans To Match", highlight: "Your Ambition" },
+    { text: "Fuel Your", highlight: "Next Move" },
+    { text: "Invest In", highlight: "Your Career" },
+    { text: "Unlock Your Full", highlight: "Potential" },
+    { text: "Power Up", highlight: "Your Search" }
   ]
 } as const;

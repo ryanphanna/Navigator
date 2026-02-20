@@ -43,7 +43,7 @@ export const useJobManager = () => {
             }
         });
         return () => { mounted = false; };
-    }, []);
+    }, [user?.id]);
 
     // Sync Usage Stats
     useEffect(() => {
@@ -113,8 +113,8 @@ export const useJobManager = () => {
             await handleUpdateJob(completedJob);
             return completedJob;
         } catch (err) {
-            console.error("Analysis Failed:", err);
-            const failedJob = { ...job, status: 'error' as const, progress: 0, progressMessage: 'Failed' };
+            const errorMessage = err instanceof Error ? err.message : 'Analysis failed';
+            const failedJob = { ...job, status: 'error' as const, progress: 0, progressMessage: errorMessage };
             await Storage.updateJob(failedJob);
             await handleUpdateJob(failedJob);
             throw err;

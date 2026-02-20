@@ -1,14 +1,14 @@
-import React from 'react';
-import { Search, FileDown, Sparkles, Upload, ChevronRight, HelpCircle } from 'lucide-react';
+import { Search, FileDown, Sparkles, ChevronRight, HelpCircle } from 'lucide-react';
+import { DropZone } from '../../../components/common/DropZone';
 
 interface LinkedInExportGuideProps {
-    onUploadClick: () => void;
+    onUpload: (files: File[]) => void;
     onViewSteps: () => void;
     isUploading: boolean;
 }
 
 export const LinkedInExportGuide: React.FC<LinkedInExportGuideProps> = ({
-    onUploadClick,
+    onUpload,
     onViewSteps,
     isUploading
 }) => {
@@ -30,6 +30,7 @@ export const LinkedInExportGuide: React.FC<LinkedInExportGuideProps> = ({
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
                     {/* Card 1: Identify */}
+                    {/* ... (Identify Card content remains the same) ... */}
                     <div className="group relative flex flex-col p-8 md:p-10 rounded-[3rem] bg-white/40 dark:bg-neutral-900/40 backdrop-blur-xl border border-white dark:border-neutral-800 shadow-xl shadow-neutral-200/20 dark:shadow-black/50 transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-2">
                         <div className="absolute top-0 right-0 p-8 text-emerald-500/10 group-hover:text-emerald-500/20 transition-colors">
                             <Search className="w-24 h-24" />
@@ -56,6 +57,7 @@ export const LinkedInExportGuide: React.FC<LinkedInExportGuideProps> = ({
                     </div>
 
                     {/* Card 2: Distill */}
+                    {/* ... (Distill Card content remains the same) ... */}
                     <div className="group relative flex flex-col p-8 md:p-10 rounded-[3rem] bg-white/40 dark:bg-neutral-900/40 backdrop-blur-xl border border-white dark:border-neutral-800 shadow-xl shadow-neutral-200/20 dark:shadow-black/50 transition-all duration-500 hover:shadow-2xl hover:shadow-teal-500/10 hover:-translate-y-2">
                         <div className="absolute top-0 right-0 p-8 text-teal-500/10 group-hover:text-teal-500/20 transition-colors">
                             <FileDown className="w-24 h-24" />
@@ -81,39 +83,27 @@ export const LinkedInExportGuide: React.FC<LinkedInExportGuideProps> = ({
                         </div>
                     </div>
 
-                    {/* Card 3: Analyze */}
-                    <div className="group relative flex flex-col p-8 md:p-10 rounded-[3rem] bg-white/40 dark:bg-neutral-900/40 backdrop-blur-xl border border-white dark:border-neutral-800 shadow-xl shadow-neutral-200/20 dark:shadow-black/50 transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-2 overflow-hidden">
-                        <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-emerald-600/5 blur-[80px] group-hover:bg-emerald-600/20 transition-all duration-700" />
-
-                        <div className="relative z-10 flex flex-col h-full space-y-8">
-                            <div className="p-4 bg-emerald-600 text-white rounded-[1.5rem] w-fit shadow-xl shadow-emerald-500/30 group-hover:scale-110 transition-transform duration-500">
+                    {/* Card 3: Analyze (REPLACED WITH DROPZONE) */}
+                    <DropZone
+                        onUpload={onUpload}
+                        accept=".pdf"
+                        title="Analyze"
+                        description="Drop their LinkedIn PDF to begin analyzing their blueprint."
+                        loadingText="Distilling..."
+                        isLoading={isUploading}
+                        themeColor="emerald"
+                        variant="card"
+                        className="h-full"
+                    >
+                        <div className="flex flex-col items-center">
+                            <div className="p-4 bg-emerald-600 text-white rounded-[1.5rem] w-fit shadow-xl shadow-emerald-500/30 group-hover:scale-110 transition-transform duration-500 mb-6">
                                 <Sparkles className="w-6 h-6" />
                             </div>
-                            <h3 className="text-3xl font-black tracking-tight text-neutral-900 dark:text-white">Analyze</h3>
-
-                            <div className="space-y-4 pt-4">
-                                <button
-                                    onClick={onUploadClick}
-                                    disabled={isUploading}
-                                    className="w-full group/btn flex items-center justify-between p-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[2rem] transition-all shadow-xl shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50"
-                                >
-                                    <div className="text-left">
-                                        <div className="text-lg font-black leading-tight">
-                                            {isUploading ? 'Distilling...' : 'Drop PDF'}
-                                        </div>
-                                        <div className="text-[10px] font-black uppercase tracking-widest mt-1 text-emerald-200">LinkedIn PDF Required</div>
-                                    </div>
-                                    <Upload className={`w-6 h-6 group-hover/btn:-translate-y-1 transition-transform ${isUploading ? 'animate-spin' : ''}`} />
-                                </button>
-                            </div>
-
-                            <div className="mt-auto pt-8 border-t border-neutral-100 dark:border-neutral-800/50">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 text-center">
-                                    Safe & Anonymous Analysis
-                                </p>
-                            </div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 text-center">
+                                Safe & Anonymous Analysis
+                            </p>
                         </div>
-                    </div>
+                    </DropZone>
                 </div>
             </div>
         </div>

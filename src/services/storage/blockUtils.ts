@@ -5,7 +5,7 @@ export const areBlocksEqual = (a: { type: string; title?: string; organization?:
     const normOrgA = String(a.organization || "").toLowerCase().trim();
     const normOrgB = String(b.organization || "").toLowerCase().trim();
 
-    if (['work', 'education', 'project'].includes(a.type)) {
+    if (['work', 'education', 'project', 'volunteer'].includes(a.type)) {
         return normTitleA === normTitleB && normOrgA === normOrgB;
     }
     if (a.type === 'skill') return normTitleA === normTitleB;

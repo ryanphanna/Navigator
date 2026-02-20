@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import type { CustomSkill, ResumeProfile } from '../../types';
 import { Storage } from '../../services/storageService';
-import { Zap, Search } from 'lucide-react';
+import { Zap } from 'lucide-react';
+import { StandardSearchBar } from '../common/StandardSearchBar';
+import { StandardFilterGroup } from '../common/StandardFilterGroup';
 import { suggestSkillsFromResumes } from '../../services/geminiService';
 import { useToast } from '../../contexts/ToastContext';
 import { SkillCard } from './SkillCard';
@@ -60,7 +62,16 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
         showSuccess(`Removed ${name}`);
     };
 
-    const [filter, setFilter] = useState<'all' | 'learning' | 'comfortable' | 'expert'>('all');
+    const FILTER_OPTIONS = [
+        { id: 'all', label: 'All' },
+        { id: 'learning', label: 'Learning' },
+        { id: 'comfortable', label: 'Comfortable' },
+        { id: 'expert', label: 'Expert' },
+    ] as const;
+
+    type ProficiencyFilter = typeof FILTER_OPTIONS[number]['id'];
+
+    const [filter, setFilter] = useState<ProficiencyFilter>('all');
     const [visibleCount, setVisibleCount] = useState(12);
 
     const filteredSkills = skills.filter(s => {
@@ -127,38 +138,27 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
             />
 
             {/* Filter & Search */}
-            <div className="flex flex-col md:flex-row items-center gap-4 mb-8">
-                <div className="relative flex-1 group w-full">
-                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 group-focus-within:text-emerald-600 transition-colors" />
-                    <input
-                        type="text"
-                        placeholder="Search your skills..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 py-5 pl-14 pr-6 rounded-[2rem] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all shadow-sm"
-                    />
-                </div>
-
-                <div className="flex items-center gap-2 p-1.5 bg-neutral-100 dark:bg-neutral-800/50 rounded-2xl border border-neutral-200 dark:border-neutral-800 w-full md:w-auto overflow-x-auto whitespace-nowrap">
-                    {(['all', 'learning', 'comfortable', 'expert'] as const).map((p) => (
-                        <button
-                            key={p}
-                            onClick={() => setFilter(p)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all ${filter === p
-                                ? 'bg-white dark:bg-neutral-800 text-emerald-600 shadow-sm'
-                                : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
-                                }`}
-                        >
-                            {p.charAt(0).toUpperCase() + p.slice(1)}
-                        </button>
-                    ))}
-                </div>
+            <div className="mb-8">
+                <StandardSearchBar
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    placeholder="Search your skills..."
+                    themeColor="emerald"
+                    rightElement={
+                        <StandardFilterGroup
+                            options={FILTER_OPTIONS}
+                            activeFilter={filter}
+                            onSelect={(p) => setFilter(p as ProficiencyFilter)}
+                            themeColor="emerald"
+                        />
+                    }
+                />
             </div>
 
             {/* Skills Grid */}
             {filteredSkills.length > 0 ? (
                 <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
+                    <div className="flex flex-wrap gap-2 mb-12 px-1">
                         {visibleSkills.map((skill) => (
                             <SkillCard
                                 key={skill.id}

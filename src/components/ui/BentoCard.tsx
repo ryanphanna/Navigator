@@ -50,10 +50,11 @@ export const BentoCard: React.FC<BentoCardProps> = ({
     };
 
     // Use color-specific classes when available, fallback to accent defaults
-    const iconBgClass = color?.iconBg || 'bg-white/10 dark:bg-white/5';
-    const borderAccentClass = color?.accent || 'border-white/10';
+    const iconBgClass = color?.iconBg || 'bg-neutral-100 dark:bg-white/5';
+    const borderAccentClass = color?.accent || 'border-neutral-200 dark:border-white/10';
     const glowClass = color?.glow || 'bg-accent-primary/15';
     const actionTextClass = color?.text || 'text-accent-primary-hex';
+    const iconColorClass = color ? 'text-white' : 'text-neutral-700 dark:text-neutral-300';
 
     return (
         <div
@@ -66,7 +67,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
                     : `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-4px)`,
                 transition: tilt.x === 0 ? 'all 0.6s cubic-bezier(0.23, 1, 0.32, 1)' : 'transform 0.1s ease-out, box-shadow 0.3s ease-out'
             }}
-            className={`group relative bg-white dark:bg-neutral-900/40 backdrop-blur-2xl rounded-3xl p-4 border ${borderAccentClass} shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 text-left overflow-hidden h-full flex flex-col cursor-pointer ${className}`}
+            className={`group relative bg-white dark:bg-neutral-900/40 backdrop-blur-2xl rounded-3xl p-4 border ${borderAccentClass} h-full shadow-xl shadow-black/5 dark:shadow-none hover:shadow-2xl hover:shadow-indigo-500/10 text-left overflow-hidden flex flex-col cursor-pointer ${className}`}
             onClick={onAction}
         >
             {/* Dynamic Mouse Shimmer */}
@@ -81,7 +82,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
             <div className={`absolute top-0 right-0 w-48 h-48 ${glowClass} rounded-full blur-[80px] -mr-24 -mt-24 transition-all duration-1000 opacity-30 group-hover:opacity-60 group-hover:scale-125`} />
 
             <div className="flex items-start gap-3 relative z-10 mb-2 min-h-[2.5rem]">
-                <div className={`w-10 h-10 shrink-0 ${iconBgClass} text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/10 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out`}>
+                <div className={`w-10 h-10 shrink-0 ${iconBgClass} ${iconColorClass} rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/10 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out`}>
                     <Icon className="w-5 h-5" />
                 </div>
                 <h3 className="text-lg font-black text-neutral-900 dark:text-white tracking-tight leading-tight pt-0.5">
@@ -94,8 +95,8 @@ export const BentoCard: React.FC<BentoCardProps> = ({
             </p>
 
             {/* Preview Section */}
-            <div className="relative mt-auto pt-3 border-t border-neutral-100 dark:border-white/5">
-                <div className="relative z-10 flex items-center justify-center h-24 transform group-hover:scale-105 transition-transform duration-700 ease-out">
+            <div className="relative pt-4 border-t border-neutral-100 dark:border-white/5">
+                <div className="relative z-10 transform group-hover:scale-105 transition-transform duration-700 ease-out">
                     {previewContent}
                 </div>
 

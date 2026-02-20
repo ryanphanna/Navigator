@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ResumeProfile, ExperienceBlock, CustomSkill } from '../../types';
-import { Upload, Loader2, Plus, Trash2, Briefcase, GraduationCap, Code, Layers, Calendar, Building2, UserCircle, FileText, Zap, Sparkles } from 'lucide-react';
+import { Upload, Loader2, Plus, Trash2, Briefcase, GraduationCap, Code, Layers, Calendar, Building2, UserCircle, FileText, Zap, Sparkles, Heart } from 'lucide-react';
 import { TRACKING_EVENTS } from '../../constants';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { BentoCard } from '../../components/ui/BentoCard';
+import { DropZone } from '../../components/common/DropZone';
+import { Alert } from '../../components/ui/Alert';
+import { useResumeContext } from './context/ResumeContext';
 import { EventService } from '../../services/eventService';
 
 interface ResumeEditorProps {
@@ -25,6 +28,7 @@ const SECTIONS: { type: SectionType; label: string; icon: React.ReactNode }[] = 
     { type: 'summary', label: 'Professional Summary', icon: <UserCircle className="w-5 h-5" /> },
     { type: 'work', label: 'Work Experience', icon: <Briefcase className="w-5 h-5" /> },
     { type: 'education', label: 'Education', icon: <GraduationCap className="w-5 h-5" /> },
+    { type: 'volunteer', label: 'Volunteer', icon: <Heart className="w-5 h-5" /> },
     { type: 'project', label: 'Projects', icon: <Code className="w-5 h-5" /> },
     { type: 'other', label: 'Other', icon: <Layers className="w-5 h-5" /> },
 ];
@@ -43,11 +47,20 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
     const [hasStartedManually, setHasStartedManually] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const { clearImportError } = useResumeContext();
+
     useEffect(() => {
         if (resumes.length > 0) {
             setBlocks(resumes[0].blocks);
         }
     }, [importTrigger, resumes]);
+
+    // Clear error on unmount
+    useEffect(() => {
+        return () => {
+            clearImportError();
+        };
+    }, [clearImportError]);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -123,6 +136,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
             case 'summary': return 'text-purple-600 bg-purple-50 border-purple-200';
             case 'work': return 'text-indigo-600 bg-indigo-50 border-indigo-200';
             case 'education': return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+            case 'volunteer': return 'text-rose-600 bg-rose-50 border-rose-200';
             case 'project': return 'text-amber-600 bg-amber-50 border-amber-200';
             case 'other': return 'text-neutral-600 bg-neutral-50 border-neutral-200';
             default: return 'text-neutral-600 bg-neutral-50 border-neutral-200';
@@ -172,7 +186,14 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
     }
 
     return (
-        <SharedPageLayout>
+        <SharedPageLayout className="relative min-h-screen pb-32" spacing="compact">
+            {/* Contextual Ambient Background */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] rounded-full animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/5 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-purple-500/5 blur-[150px] rounded-full" />
+            </div>
+
             <input
                 type="file"
                 ref={fileInputRef}
@@ -183,111 +204,101 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
             <PageHeader
                 title="Resume Editor"
-                subtitle="Craft your professional story"
+                subtitle="High-fidelity career data management"
                 variant="simple"
                 actions={!showEmptyState ? headerActions : undefined}
+                className="mb-12"
             />
 
             {showEmptyState ? (
-                <div className="animate-in zoom-in-95 duration-500 overflow-hidden relative min-h-[calc(100vh-12rem)]">
-                    {/* Ambient Background Glows */}
-                    <div className="absolute top-1/4 -left-24 w-96 h-96 bg-indigo-500/10 blur-[150px] rounded-full" />
-                    <div className="absolute bottom-1/4 -right-24 w-96 h-96 bg-emerald-500/10 blur-[150px] rounded-full" />
-
-                    <div className="relative z-10 max-w-7xl mx-auto">
+                <div className="animate-in zoom-in-95 duration-700 overflow-hidden relative flex flex-col items-center justify-center py-12">
+                    <div className="relative z-10 w-full max-w-5xl mx-auto">
                         {importError && (
-                            <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 text-indigo-600 rounded-xl text-sm animate-in slide-in-from-top-2 font-medium">
-                                {importError}
+                            <div className="mb-8 max-w-2xl mx-auto">
+                                <Alert
+                                    variant="error"
+                                    title="Import Status"
+                                    message={importError}
+                                    onClose={clearImportError}
+                                />
                             </div>
                         )}
 
                         {/* 3-Card Layout: Process Flow */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-                            <BentoCard
-                                id="foundation"
-                                icon={FileText}
-                                title="Foundation"
-                                description="Start with your current resume. Our smart importer handles the heavy lifting, turning your history into a dynamic professional baseline."
-                                previewContent={
-                                    <ul className="space-y-3 pt-4">
-                                        {['Smart File Import', 'Automatic Cleanup', 'Privacy-First Engine'].map((item) => (
-                                            <li key={item} className="flex items-center gap-3 text-xs font-bold text-neutral-400">
-                                                <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                                                {item}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                }
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                            <div className="animate-in slide-in-from-bottom-8 fade-in duration-700 delay-100 fill-mode-both">
+                                <BentoCard
+                                    id="foundation"
+                                    icon={FileText}
+                                    title="Foundation"
+                                    description="We need your history to build a strong foundation. Upload your current resume to provide the essential data for your profile."
+                                    previewContent={
+                                        <ul className="space-y-3 pt-4">
+                                            {['Smart File Import', 'Automatic Cleanup', 'Privacy-First Engine'].map((item) => (
+                                                <li key={item} className="flex items-center gap-3 text-xs font-bold text-neutral-400">
+                                                    <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                                                    {item}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    }
+                                />
+                            </div>
 
-                            <BentoCard
-                                id="intelligence"
-                                icon={Zap}
-                                title="Intelligence"
-                                description="We go beyond keywords to understand your true impact. AI deconstructs your wins to highlight your potential for any role."
-                                previewContent={
-                                    <ul className="space-y-3 pt-4">
-                                        {['Achievement Analysis', 'Skill Discovery', 'Career Alignment'].map((item) => (
-                                            <li key={item} className="flex items-center gap-3 text-xs font-bold text-neutral-400">
-                                                <div className="w-1 h-1 rounded-full bg-indigo-500" />
-                                                {item}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                }
-                            />
+                            <div className="animate-in slide-in-from-bottom-8 fade-in duration-700 delay-200 fill-mode-both">
+                                <BentoCard
+                                    id="intelligence"
+                                    icon={Zap}
+                                    title="Intelligence"
+                                    description="Our AI processes your data to discover your unique strengths. We analyze your past experience to highlight your true impact and potential."
+                                    previewContent={
+                                        <ul className="space-y-3 pt-4">
+                                            {['Achievement Analysis', 'Skill Discovery', 'Career Alignment'].map((item) => (
+                                                <li key={item} className="flex items-center gap-3 text-xs font-bold text-neutral-400">
+                                                    <div className="w-1 h-1 rounded-full bg-indigo-500" />
+                                                    {item}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    }
+                                />
+                            </div>
 
-                            <Card variant="glass" className="flex flex-col p-8 md:p-10 h-full">
-                                <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-indigo-600/5 blur-[80px] group-hover:bg-indigo-600/20 transition-all duration-700" />
-                                <div className="relative z-10 flex flex-col h-full space-y-8">
-                                    <div className="p-4 bg-indigo-600 text-white rounded-[1.5rem] w-fit shadow-xl shadow-indigo-500/30 group-hover:scale-110 transition-transform duration-500">
-                                        <Sparkles className="w-6 h-6" />
-                                    </div>
-                                    <h3 className="text-3xl font-black tracking-tight text-neutral-900 dark:text-white">Upload</h3>
-
-                                    <div className="space-y-4 pt-4">
-                                        <Button
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="w-full justify-between"
-                                            size="lg"
-                                            variant="accent"
-                                            icon={<Upload className="w-6 h-6" />}
-                                        >
-                                            <div className="text-left">
-                                                <div className="text-lg font-black leading-tight">Drop Resume</div>
-                                                <div className="text-[10px] font-black uppercase tracking-widest mt-1 opacity-70">PDF / Image / TXT</div>
-                                            </div>
-                                        </Button>
-
-                                        <Button
-                                            onClick={() => setHasStartedManually(true)}
-                                            className="w-full justify-between"
-                                            size="lg"
-                                            variant="secondary"
-                                            icon={<Plus className="w-5 h-5" />}
-                                        >
-                                            <div className="text-left">
-                                                <div className="text-lg font-black leading-tight">Start Fresh</div>
-                                                <div className="text-[10px] font-black uppercase tracking-widest mt-1 opacity-70">Manual Entry</div>
-                                            </div>
-                                        </Button>
-                                    </div>
-
-                                    <div className="mt-8 pt-8 border-t border-neutral-100 dark:border-neutral-800/50">
-                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 text-center">
-                                            Privacy First: We never train on your data
-                                        </p>
-                                    </div>
-                                </div>
-                            </Card>
+                            <div className="animate-in slide-in-from-bottom-8 fade-in duration-700 delay-300 fill-mode-both">
+                                <DropZone
+                                    onUpload={(files) => onImport(files[0])}
+                                    accept=".pdf,.png,.jpg,.jpeg,.txt"
+                                    title="Upload"
+                                    description="Drop your resume to begin analysis"
+                                    variant="card"
+                                    themeColor="indigo"
+                                >
+                                    <Button
+                                        onClick={() => setHasStartedManually(true)}
+                                        className="w-full justify-between py-2.5 rounded-2xl"
+                                        variant="secondary"
+                                        icon={<Plus className="w-4 h-4" />}
+                                    >
+                                        <div className="text-left">
+                                            <div className="text-sm font-black leading-tight">Start Fresh</div>
+                                            <div className="text-[9px] font-black uppercase tracking-widest mt-0.5 opacity-70">Manual Entry</div>
+                                        </div>
+                                    </Button>
+                                </DropZone>
+                            </div>
                         </div>
                     </div>
                 </div>
             ) : (
                 <>
                     {importError && (
-                        <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 text-indigo-600 rounded-xl text-sm animate-in slide-in-from-top-2 font-medium">
-                            {importError}
+                        <div className="mb-10 max-w-3xl mx-auto">
+                            <Alert
+                                variant="error"
+                                title="Recent Issue"
+                                message={importError}
+                                onClose={clearImportError}
+                            />
                         </div>
                     )}
 
@@ -313,16 +324,12 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             <Card
                                                 key={block.id}
                                                 variant="glass"
-                                                className="group relative p-8 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300"
+                                                className="group relative p-8 md:p-10 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 border-neutral-100 dark:border-neutral-800 rounded-[2rem]"
                                             >
                                                 {/* Top Controls */}
                                                 <div className="flex flex-col gap-6 mb-6">
 
-                                                    <div className="flex justify-between items-start">
-                                                        <div className={`px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-[0.2em] border shadow-sm ${getTypeColor(block.type)} transform hover:scale-105 transition-transform cursor-default`}>
-                                                            {SECTIONS.find(s => s.type === block.type)?.label || block.type}
-                                                        </div>
-
+                                                    <div className="flex justify-end items-start gap-2">
                                                         <div className="flex gap-2">
                                                             {/* Type Switcher (Hidden but accessible) */}
                                                             <div className="relative group/type">

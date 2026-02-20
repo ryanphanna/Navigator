@@ -111,7 +111,7 @@ describe('constants', () => {
 
     it('should contain expected headlines', () => {
       const allTexts = HEADLINES.goal.map(h => `${h.text} ${h.highlight}`);
-      expect(allTexts).toContain("Scale your Impact");
+      expect(allTexts).toContain("Scale Your Impact");
     });
   });
 

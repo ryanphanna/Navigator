@@ -24,8 +24,8 @@ export const SharedPageLayout: React.FC<SharedPageLayoutProps> = ({
     }[maxWidth];
 
     const paddingTopClass = {
-        'hero': 'pt-24 md:pt-32',
-        'compact': 'pt-12',
+        'hero': 'pt-10 md:pt-16',
+        'compact': 'pt-8 md:pt-12',
         'none': 'pt-0'
     }[spacing];
 

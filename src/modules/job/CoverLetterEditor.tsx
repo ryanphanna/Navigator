@@ -225,7 +225,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Main Content Column */}
                 <div className="lg:col-span-8 space-y-6">
                     {/* Header / Controls */}

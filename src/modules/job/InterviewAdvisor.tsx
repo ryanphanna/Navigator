@@ -7,11 +7,10 @@ import {
     ChevronRight,
     Play,
     CheckCircle2,
-    ArrowLeft,
     Loader2,
     Send,
     Brain,
-    History as HistoryIcon
+    ArrowLeft
 } from 'lucide-react';
 import { useJobContext } from './context/JobContext';
 import { useResumeContext } from '../resume/context/ResumeContext';
@@ -19,7 +18,6 @@ import { useInterview } from './hooks/useInterview';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants';
 import { motion } from 'framer-motion';
-import { DetailHeader } from '../../components/common/DetailHeader';
 import { DetailLayout } from '../../components/common/DetailLayout';
 
 export const InterviewAdvisor: React.FC = () => {
@@ -105,7 +103,9 @@ export const InterviewAdvisor: React.FC = () => {
         const currentQ = questions[currentQuestionIndex];
 
         // Auto-scroll logic
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         const messagesEndRef = React.useRef<HTMLDivElement>(null);
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         React.useEffect(() => {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
         }, [responses, currentQuestionIndex, isLoading]);
@@ -273,172 +273,177 @@ export const InterviewAdvisor: React.FC = () => {
 
 
     return (
-        <div className="bg-neutral-50 dark:bg-[#000000] min-h-screen">
-            <DetailHeader
-                title="Interview Advisor"
-                subtitle="Master your narrative with AI-powered mock sessions"
-                onBack={() => navigate(ROUTES.HOME)}
-                actions={
-                    <button
-                        onClick={() => navigate(ROUTES.HISTORY)}
-                        className="p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
-                        title="View Analysis History"
+        <div className="bg-neutral-50 dark:bg-[#000000] min-h-screen pt-24 pb-12">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 mb-8 text-center md:text-left">
+                <h1 className="text-3xl font-black text-neutral-900 dark:text-white tracking-tight">Interview Advisor</h1>
+                <p className="text-neutral-500 dark:text-neutral-400 font-bold mt-1.5">Master your narrative with AI-powered mock sessions</p>
+            </div>
+
+            <DetailLayout maxWidth="max-w-6xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* General Session Card */}
+                    <motion.div
+                        whileHover={{ y: -2 }}
+                        className="bg-white dark:bg-neutral-800 rounded-3xl border border-neutral-200 dark:border-neutral-700 p-8 shadow-sm flex flex-col justify-between h-full"
                     >
-                        <HistoryIcon className="w-5 h-5" />
-                    </button>
-                }
-            />
-
-            <DetailLayout>
-                <div className="space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* General Session Card */}
-                        <motion.div
-                            whileHover={{ y: -2 }}
-                            className="bg-white dark:bg-neutral-800 rounded-3xl border border-neutral-200 dark:border-neutral-700 p-8 shadow-sm flex flex-col justify-between"
-                        >
-                            <div className="space-y-6">
-                                <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl flex items-center justify-center">
-                                    <MessageSquare className="w-6 h-6 text-indigo-500" />
-                                </div>
-                                <div className="space-y-2">
-                                    <h2 className="text-xl font-bold text-neutral-900 dark:text-white">General Prep</h2>
-                                    <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
-                                        Broad behavioral questions applicable across roles. Master the STAR method and build fundamental confidence.
-                                    </p>
-                                </div>
-
-                                <ul className="space-y-3 pt-2">
-                                    {[
-                                        'Common behavioral questions',
-                                        'STAR method training',
-                                        'Instant AI feedback'
-                                    ].map((feature, i) => (
-                                        <li key={i} className="flex items-center gap-3 text-[11px] font-bold text-neutral-600 dark:text-neutral-400">
-                                            <div className="w-4 h-4 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-                                                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" />
-                                            </div>
-                                            {feature}
-                                        </li>
-                                    ))}
-                                </ul>
+                        <div className="space-y-6">
+                            <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl flex items-center justify-center">
+                                <MessageSquare className="w-6 h-6 text-indigo-500" />
+                            </div>
+                            <div className="space-y-2">
+                                <h2 className="text-xl font-bold text-neutral-900 dark:text-white">General Prep</h2>
+                                <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                                    Broad behavioral questions applicable across roles. Master the STAR method and build fundamental confidence.
+                                </p>
                             </div>
 
-                            <button
-                                onClick={handleStartGeneral}
-                                disabled={isLoading}
-                                className="mt-8 w-full py-3.5 bg-neutral-900 dark:bg-white dark:text-neutral-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 group"
-                            >
-                                Start General Session
-                                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                        </motion.div>
-
-                        {/* Tailored Session Card */}
-                        <motion.div
-                            whileHover={{ y: -2 }}
-                            className="bg-white dark:bg-neutral-800 rounded-3xl border border-neutral-200 dark:border-neutral-700 p-8 shadow-sm flex flex-col"
-                        >
-                            <div className="space-y-6 flex-grow">
-                                <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                                    <Target className="w-6 h-6 text-white" />
-                                </div>
-                                <div className="space-y-2">
-                                    <h2 className="text-xl font-bold text-neutral-900 dark:text-white">Tailored Mock</h2>
-                                    <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
-                                        Generated based on a specific role you've analyzed. High-stakes precision for your target jobs.
-                                    </p>
-                                </div>
-
-                                {/* Job Selection */}
-                                <div className="space-y-3 pt-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
-                                        Select Target Job
-                                    </label>
-
-                                    {jobs.filter(j => j.status !== 'feed' && j.analysis).length > 0 ? (
-                                        <div className="grid grid-cols-1 gap-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
-                                            {jobs.filter(j => j.status !== 'feed' && j.analysis).map(job => (
-                                                <button
-                                                    key={job.id}
-                                                    onClick={() => setSelectedJobId(job.id)}
-                                                    className={`p-3 rounded-xl border transition-all text-left flex items-center justify-between group/item ${selectedJobId === job.id
-                                                        ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-500/10 dark:border-indigo-500/30'
-                                                        : 'bg-neutral-50 border-neutral-100 hover:border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800'
-                                                        }`}
-                                                >
-                                                    <div className="min-w-0">
-                                                        <p className={`font-bold text-xs truncate ${selectedJobId === job.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-neutral-700 dark:text-neutral-300'}`}>{job.position}</p>
-                                                        <p className="text-[10px] truncate text-neutral-400">
-                                                            {job.company}
-                                                        </p>
-                                                    </div>
-                                                    {selectedJobId === job.id && (
-                                                        <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />
-                                                    )}
-                                                </button>
-                                            ))}
+                            <ul className="space-y-3 pt-2">
+                                {[
+                                    'Common behavioral questions',
+                                    'STAR method training',
+                                    'Instant AI feedback'
+                                ].map((feature, i) => (
+                                    <li key={i} className="flex items-center gap-3 text-[11px] font-bold text-neutral-600 dark:text-neutral-400">
+                                        <div className="w-4 h-4 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                                            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" />
                                         </div>
-                                    ) : (
-                                        <div className="p-6 text-center bg-neutral-50 dark:bg-neutral-900 rounded-2xl border border-dashed border-neutral-200 dark:border-neutral-800 space-y-3">
-                                            <div className="w-10 h-10 bg-white dark:bg-neutral-800 rounded-xl flex items-center justify-center mx-auto shadow-sm">
-                                                <Sparkles className="w-5 h-5 text-neutral-300" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-[11px] font-bold text-neutral-500">No analyzed jobs</p>
-                                                <button
-                                                    onClick={() => navigate(ROUTES.HISTORY)}
-                                                    className="text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:underline"
-                                                >
-                                                    View History
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={handleStartTailored}
-                                disabled={!selectedJobId || isLoading}
-                                className="mt-8 w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50 disabled:grayscale transition-all flex items-center justify-center gap-2"
-                            >
-                                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-                                Start Tailored Session
-                            </button>
-                        </motion.div>
-                    </div>
-
-                    {/* Prep Tips */}
-                    <div className="bg-white dark:bg-neutral-800 rounded-[2rem] border border-neutral-200 dark:border-neutral-700 p-8 flex flex-col md:flex-row items-start gap-8 shadow-sm">
-                        <div className="space-y-2 flex-shrink-0">
-                            <h3 className="font-bold text-sm flex items-center gap-2 text-neutral-900 dark:text-white uppercase tracking-tight">
-                                <Brain className="w-4 h-4 text-indigo-500" />
-                                Preparation Tips
-                            </h3>
-                            <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-[200px]">Logic and strategy to differentiate your narrative.</p>
+                                        {feature}
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-                            <div className="flex gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
-                                    <Target className="w-5 h-5 text-emerald-500" />
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs font-bold text-neutral-900 dark:text-white">Master the 'Why'</p>
-                                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 leading-relaxed">Focus on the business impact of your actions, not just the technical steps.</p>
-                                </div>
+
+                        <button
+                            onClick={handleStartGeneral}
+                            disabled={isLoading}
+                            className="mt-8 w-full py-3.5 bg-neutral-900 dark:bg-white dark:text-neutral-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 group"
+                        >
+                            Start General Session
+                            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                    </motion.div>
+
+                    {/* Tailored Session Card */}
+                    <motion.div
+                        whileHover={{ y: -2 }}
+                        className="bg-white dark:bg-neutral-800 rounded-3xl border border-neutral-200 dark:border-neutral-700 p-8 shadow-sm flex flex-col h-full"
+                    >
+                        <div className="space-y-6 flex-grow flex flex-col">
+                            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                                <Target className="w-6 h-6 text-white" />
                             </div>
-                            <div className="flex gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
-                                    <Zap className="w-5 h-5 text-indigo-500" />
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs font-bold text-neutral-900 dark:text-white">Quantify Success</p>
-                                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 leading-relaxed">Use numbers. "Improved efficiency" → "Reduced latency by 40%."</p>
-                                </div>
+                            <div className="space-y-2">
+                                <h2 className="text-xl font-bold text-neutral-900 dark:text-white">Tailored Mock</h2>
+                                <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                                    Generated based on a specific role you've analyzed. High-stakes precision for your target jobs.
+                                </p>
+                            </div>
+
+                            {/* Job Selection */}
+                            <div className="space-y-3 pt-2 flex-grow flex flex-col">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                                    Select Target Job
+                                </label>
+
+                                {jobs.filter(j => j.status !== 'feed' && j.analysis).length > 0 ? (
+                                    <div className="grid grid-cols-1 gap-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar flex-grow">
+                                        {jobs.filter(j => j.status !== 'feed' && j.analysis).map(job => (
+                                            <button
+                                                key={job.id}
+                                                onClick={() => setSelectedJobId(job.id)}
+                                                className={`p-3 rounded-xl border transition-all text-left flex items-center justify-between group/item ${selectedJobId === job.id
+                                                    ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-500/10 dark:border-indigo-500/30'
+                                                    : 'bg-neutral-50 border-neutral-100 hover:border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800'
+                                                    }`}
+                                            >
+                                                <div className="min-w-0">
+                                                    <p className={`font-bold text-xs truncate ${selectedJobId === job.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-neutral-700 dark:text-neutral-300'}`}>{job.position}</p>
+                                                    <p className="text-[10px] truncate text-neutral-400">
+                                                        {job.company}
+                                                    </p>
+                                                </div>
+                                                {selectedJobId === job.id && (
+                                                    <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="p-6 text-center bg-neutral-50 dark:bg-neutral-900 rounded-2xl border border-dashed border-neutral-200 dark:border-neutral-800 space-y-3 flex-grow flex flex-col justify-center">
+                                        <div className="w-10 h-10 bg-white dark:bg-neutral-800 rounded-xl flex items-center justify-center mx-auto shadow-sm">
+                                            <Sparkles className="w-5 h-5 text-neutral-300" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[11px] font-bold text-neutral-500">No analyzed jobs</p>
+                                            <button
+                                                onClick={() => navigate(ROUTES.HISTORY)}
+                                                className="text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:underline"
+                                            >
+                                                View History
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    </div>
+
+                        <button
+                            onClick={handleStartTailored}
+                            disabled={!selectedJobId || isLoading}
+                            className="mt-8 w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50 disabled:grayscale transition-all flex items-center justify-center gap-2"
+                        >
+                            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+                            Start Tailored Session
+                        </button>
+                    </motion.div>
+
+                    {/* Prep Tips Card */}
+                    <motion.div
+                        whileHover={{ y: -2 }}
+                        className="bg-white dark:bg-neutral-800 rounded-3xl border border-neutral-200 dark:border-neutral-700 p-8 shadow-sm flex flex-col h-full"
+                    >
+                        <div className="space-y-6 flex-grow">
+                            <div className="w-12 h-12 bg-neutral-50 dark:bg-neutral-500/10 rounded-2xl flex items-center justify-center">
+                                <Zap className="w-6 h-6 text-amber-500" />
+                            </div>
+                            <div className="space-y-2">
+                                <h2 className="text-xl font-bold text-neutral-900 dark:text-white">Preparation Tips</h2>
+                                <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                                    Logic and strategy to differentiate your narrative and maximize impact.
+                                </p>
+                            </div>
+
+                            <div className="space-y-6 pt-2">
+                                <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
+                                        <Target className="w-5 h-5 text-emerald-500" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-bold text-neutral-900 dark:text-white">Master the 'Why'</p>
+                                        <p className="text-[10px] text-neutral-500 dark:text-neutral-400 leading-relaxed">Focus on business impact, not just the technical steps.</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
+                                        <Zap className="w-5 h-5 text-indigo-500" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-bold text-neutral-900 dark:text-white">Quantify Success</p>
+                                        <p className="text-[10px] text-neutral-500 dark:text-neutral-400 leading-relaxed">Use numbers. "Improved efficiency" → "Reduced latency by 40%."</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center shrink-0">
+                                        <Sparkles className="w-5 h-5 text-amber-500" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-bold text-neutral-900 dark:text-white">STAR+ Method</p>
+                                        <p className="text-[10px] text-neutral-500 dark:text-neutral-400 leading-relaxed">Situation, Task, Action, Result + Learning/Impact.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
                 </div>
             </DetailLayout>
         </div>

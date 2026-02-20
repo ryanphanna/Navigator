@@ -18,8 +18,8 @@ export const Card: React.FC<CardProps> = ({
     const baseStyles = "relative rounded-[2.5rem] transition-all duration-500 overflow-hidden";
 
     const variants = {
-        premium: "card-premium backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl shadow-accent-primary/5",
-        glass: "bg-white/40 dark:bg-neutral-900/40 backdrop-blur-2xl border border-white/20 dark:border-white/5 shadow-xl shadow-black/5",
+        premium: "card-premium backdrop-blur-xl border border-neutral-200 dark:border-white/10 shadow-2xl shadow-accent-primary/5",
+        glass: "bg-white/80 dark:bg-neutral-900/40 backdrop-blur-2xl border border-neutral-200 dark:border-white/5 shadow-xl shadow-black/5",
         flat: "bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800"
     };
 

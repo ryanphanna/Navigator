@@ -54,6 +54,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setActualTier(data.is_admin ? 'admin' : tier);
                     setIsAdmin(data.is_admin || false);
                     setIsTester(data.is_tester || false);
+
+                    // If they have an account, they've implicitly accepted privacy/terms
+                    // Sync this to localStorage to prevent redundant redirects
+                    localStorage.setItem('navigator_privacy_accepted', 'true');
+
                     if ((data as any).journey) {
                         setJourney((data as any).journey);
                         localStorage.setItem('navigator_user_journey', (data as any).journey);
@@ -63,7 +68,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     getDeviceFingerprint().then(fingerprint => {
                         if (data && (data as any).device_id !== fingerprint) {
                             supabase.from('profiles').update({ device_id: fingerprint }).eq('id', currentUser.id).then(({ error: syncError }) => {
-                                if (syncError) console.error("Failed to sync device fingerprint", syncError);
+                                if (syncError) {
+                                    // Handle missing column gracefully - don't log as error if it's just a missing column
+                                    if (syncError.code === 'PGRST204' || syncError.message?.includes('device_id')) {
+                                        console.warn("Device fingerprinting skipped: 'device_id' column not found in profiles Table.");
+                                    } else {
+                                        console.error("Failed to sync device fingerprint", syncError);
+                                    }
+                                }
                             });
                         }
                     });
@@ -123,7 +135,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
         if (error) {
-            console.error("Failed to update profile context", error);
+            // Handle missing column gracefully in manual updates too
+            if (error.code === 'PGRST204' || error.message?.includes('device_id')) {
+                console.warn("Profile update partially skipped: some columns (like 'device_id') might be missing in DB.");
+            } else {
+                console.error("Failed to update profile context", error);
+            }
         } else {
             if (updates.journey) {
                 setJourney(updates.journey);

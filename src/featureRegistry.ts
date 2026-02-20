@@ -326,7 +326,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
             full: 'A live feed of pre-scored job matches, automatically triaged from the alerts you forward. Your best opportunities, ranked and ready.',
             plan: 'Live feed of ranked job matches',
         },
-        action: { short: 'View feed', full: 'Get Started' },
+        action: { short: 'View feed', full: 'Open Feed' },
         iconName: 'Zap',
         colorKey: 'indigo-dark',
         category: 'JOB',

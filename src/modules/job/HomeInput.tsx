@@ -9,9 +9,8 @@ import {
     ArrowRight,
     TrendingUp,
     Sparkles,
-    Shield,
 } from 'lucide-react';
-import { FileUploader } from '../../components/common/FileUploader';
+import { DropZone } from '../../components/common/DropZone';
 import { NotificationBanner } from '../../components/common/NotificationBanner';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { FeatureGrid } from './FeatureGrid';
@@ -33,6 +32,7 @@ interface HomeInputProps {
     onJobCreated: (job: SavedJob) => void;
     onTargetJobCreated: (url: string) => void;
     onImportResume: (file: File) => Promise<void>;
+    onClearError?: () => void;
     isParsing: boolean;
     importError: string | null;
     isAdmin?: boolean;
@@ -51,6 +51,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
     onJobCreated,
     onTargetJobCreated,
     onImportResume,
+    onClearError,
     isParsing,
     importError,
     isAdmin = false,
@@ -89,9 +90,6 @@ const HomeInput: React.FC<HomeInputProps> = ({
         return !localStorage.getItem(STORAGE_KEYS.BOOKMARKLET_TIP_DISMISSED);
     });
 
-    const [showPrivacyUpdate, setShowPrivacyUpdate] = useState(() => {
-        return !localStorage.getItem(STORAGE_KEYS.PRIVACY_UPDATE_DISMISSED);
-    });
 
     // Bookmarklet Ref to bypass React security check for javascript: URLs
     const bookmarkletRef = React.useRef<HTMLAnchorElement>(null);
@@ -111,7 +109,11 @@ const HomeInput: React.FC<HomeInputProps> = ({
         setManualText('');
         setIsScrapingUrl(false);
         setIsAnalyzing(false);
-    }, []);
+
+        return () => {
+            if (onClearError) onClearError();
+        };
+    }, [onClearError]);
 
     // Bookmarklet Handler: Check for ?job= URL param
     useEffect(() => {
@@ -188,14 +190,12 @@ const HomeInput: React.FC<HomeInputProps> = ({
     };
 
     const handleJobSubmission = (input: { type: 'url' | 'text', content: string }) => {
-        // Privacy Check
-        if (!localStorage.getItem(STORAGE_KEYS.PRIVACY_ACCEPTED)) {
-            onNavigate?.('welcome'); // Use the onNavigate prop or direct navigate
-            // onNavigate is passed from AppRoutes which handles the mapping, but it might be safer to use useNavigate directly if we are inside Router context. 
-            // HomeInput IS inside Router context.
-            // But let's check if onNavigate handles 'welcome'. AppRoutes handleViewChange DOES NOT handle 'welcome' yet.
-            // I should probably just use useNavigate directly or update AppRoutes.
-            // HomeInput doesn't have useNavigate hooked up? It receives onNavigate.
+        // Privacy Check: Only redirect brand new guest users
+        const hasAcceptedPrivacy = localStorage.getItem(STORAGE_KEYS.PRIVACY_ACCEPTED);
+        const isExistingUser = !!user || resumes.length > 0;
+
+        if (!hasAcceptedPrivacy && !isExistingUser) {
+            onNavigate?.('welcome');
             return;
         }
 
@@ -270,7 +270,7 @@ const HomeInput: React.FC<HomeInputProps> = ({
     return (
         <SharedPageLayout
             maxWidth={(mode === 'all' || mode === 'home') ? 'full' : '4xl'}
-            className="relative theme-job overflow-hidden"
+            className="relative theme-job"
             spacing="hero"
         >
             {/* Hero Background Elements */}
@@ -293,48 +293,6 @@ const HomeInput: React.FC<HomeInputProps> = ({
                 }
             />
 
-            {showPrivacyUpdate && (
-                <div className="w-full max-w-xl mx-auto mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <div className="group relative bg-white/50 dark:bg-emerald-500/5 border border-emerald-500/20 dark:border-emerald-500/30 rounded-3xl p-8 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-1 overflow-hidden">
-                        {/* Ambient Glow */}
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/20 blur-[100px] rounded-full -mr-24 -mt-24 pointer-events-none group-hover:scale-150 transition-transform duration-700" />
-                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                        <div className="flex flex-col md:flex-row items-center md:items-start gap-6 relative z-10">
-                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shrink-0">
-                                <Shield className="w-8 h-8" />
-                            </div>
-
-                            <div className="flex-1 text-center md:text-left">
-                                <h3 className="text-xl font-black text-emerald-600 dark:text-emerald-400 mb-2">
-                                    Privacy Policy Update
-                                </h3>
-                                <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6">
-                                    We've updated our privacy policy to better reflect our commitment to your data security. effective February 17, 2026.
-                                </p>
-
-                                <div className="flex flex-col sm:flex-row items-center gap-4">
-                                    <button
-                                        onClick={() => onNavigate?.('privacy')}
-                                        className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-lg shadow-emerald-600/20 transition-all hover:scale-105"
-                                    >
-                                        Review Policy
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setShowPrivacyUpdate(false);
-                                            localStorage.setItem(STORAGE_KEYS.PRIVACY_UPDATE_DISMISSED, 'true');
-                                        }}
-                                        className="w-full sm:w-auto px-6 py-2.5 bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700 rounded-xl font-bold hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-all"
-                                    >
-                                        Dismiss
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {!isManualMode ? (
                 <>
@@ -529,21 +487,21 @@ const HomeInput: React.FC<HomeInputProps> = ({
                                 To tailor your application for this job, we need your resume.
                             </p>
 
-                            <FileUploader
-                                title="Upload PDF or Text"
-                                description="We'll extract your experience blocks locally."
+                            <DropZone
+                                title="Upload Resume"
+                                description="Upload your PDF or Text resume to tailor your application."
                                 onUpload={async (files) => {
                                     if (files[0]) {
                                         await onImportResume(files[0]);
                                     }
                                 }}
                                 accept=".pdf,.txt"
-                                variant="modal"
                                 isLoading={isParsing}
                                 loadingText="Analyzing Resume..."
-                                icon={<FileText className="w-8 h-8 text-neutral-400 group-hover:text-indigo-500 transition-colors" />}
                                 error={importError}
+                                themeColor="indigo"
                                 className="w-full"
+                                variant="card"
                             />
                         </div>
                     </div>

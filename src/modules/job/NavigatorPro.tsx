@@ -9,6 +9,7 @@ import { analyzeJobFit } from '../../services/geminiService';
 import type { JobFeedItem } from '../../types';
 import { PageLayout } from '../../components/common/PageLayout';
 import { STORAGE_KEYS } from '../../constants';
+import { StandardSearchBar } from '../../components/common/StandardSearchBar';
 
 interface NavigatorProProps {
     onDraftApplication: (url: string) => void;
@@ -22,6 +23,7 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
     const [analyzingId, setAnalyzingId] = useState<string | null>(null);
     const [filterHighMatch, setFilterHighMatch] = useState(false);
     const [filterClosingSoon, setFilterClosingSoon] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const [sort, setSort] = useState<'date' | 'match'>('date');
 
 
@@ -192,6 +194,16 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
             processed = processed.filter(job => (job.matchScore || 0) >= 85);
         }
 
+        // Apply Search filter
+        if (searchTerm.trim()) {
+            const query = searchTerm.toLowerCase();
+            processed = processed.filter(job =>
+                job.title.toLowerCase().includes(query) ||
+                job.company.toLowerCase().includes(query) ||
+                (job.location || '').toLowerCase().includes(query)
+            );
+        }
+
         // Apply Closing Soon filter (within 7 days)
         if (filterClosingSoon) {
             const sevenDaysFromNow = new Date();
@@ -221,61 +233,69 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
             themeColor="indigo"
         >
             {/* Filters Row */}
-            <div className="flex items-center gap-3 mb-10 overflow-x-auto pb-2 scrollbar-hide">
-                <div className="flex items-center gap-1.5 bg-neutral-100 dark:bg-neutral-800/50 p-1 rounded-[1.5rem] border border-neutral-200 dark:border-neutral-700">
+            <div className="flex flex-col md:flex-row items-center gap-4 mb-10">
+                <StandardSearchBar
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    placeholder="Search feed..."
+                    themeColor="indigo"
+                    className="flex-1"
+                />
+
+                <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide w-full md:w-auto">
+                    <div className="flex items-center gap-1.5 bg-neutral-100 dark:bg-neutral-800/50 p-1 rounded-[1.5rem] border border-neutral-200 dark:border-neutral-700 forced-colors:border-current">
+                        <button
+                            onClick={() => setSort('date')}
+                            className={`px-5 py-2 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 ${sort === 'date'
+                                ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm'
+                                : 'text-neutral-400 hover:text-neutral-500'
+                                }`}
+                        >
+                            Newest
+                        </button>
+                        <button
+                            onClick={() => setSort('match')}
+                            className={`px-5 py-2 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 ${sort === 'match'
+                                ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm'
+                                : 'text-neutral-400 hover:text-neutral-500'
+                                }`}
+                        >
+                            Best Fit
+                        </button>
+                    </div>
+
+                    <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-800 mx-1 shrink-0" />
+
                     <button
-                        onClick={() => setSort('date')}
-                        className={`px-5 py-2 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 ${sort === 'date'
-                            ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm'
-                            : 'text-neutral-400 hover:text-neutral-500'
+                        onClick={() => setFilterHighMatch(!filterHighMatch)}
+                        className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 border whitespace-nowrap ${filterHighMatch
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/20'
+                            : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:border-indigo-300 dark:hover:border-indigo-700'
                             }`}
                     >
-                        Newest
+                        <Sparkles className={`w-4 h-4 ${filterHighMatch ? 'text-indigo-200' : 'text-neutral-400'}`} />
+                        High Match
                     </button>
                     <button
-                        onClick={() => setSort('match')}
-                        className={`px-5 py-2 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 ${sort === 'match'
-                            ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm'
-                            : 'text-neutral-400 hover:text-neutral-500'
+                        onClick={() => setFilterClosingSoon(!filterClosingSoon)}
+                        className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 border whitespace-nowrap ${filterClosingSoon
+                            ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20'
+                            : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:border-orange-300 dark:hover:border-orange-700'
                             }`}
                     >
-                        Best Fit
+                        <Zap className={`w-4 h-4 ${filterClosingSoon ? 'text-orange-200' : 'text-neutral-400'}`} />
+                        Closing Soon
+                    </button>
+
+                    <button
+                        onClick={loadFeed}
+                        disabled={loading}
+                        className="p-2.5 bg-white dark:bg-neutral-800 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm transition-all disabled:opacity-50 shrink-0"
+                        title="Refresh Feed"
+                    >
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     </button>
                 </div>
-
-                <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-800 mx-1" />
-
-                <button
-                    onClick={() => setFilterHighMatch(!filterHighMatch)}
-                    className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 border whitespace-nowrap ${filterHighMatch
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/20'
-                        : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:border-indigo-300 dark:hover:border-indigo-700'
-                        }`}
-                >
-                    <Sparkles className={`w-4 h-4 ${filterHighMatch ? 'text-indigo-200' : 'text-neutral-400'}`} />
-                    High Match
-                </button>
-                <button
-                    onClick={() => setFilterClosingSoon(!filterClosingSoon)}
-                    className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 border whitespace-nowrap ${filterClosingSoon
-                        ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20'
-                        : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:border-orange-300 dark:hover:border-orange-700'
-                        }`}
-                >
-                    <Zap className={`w-4 h-4 ${filterClosingSoon ? 'text-orange-200' : 'text-neutral-400'}`} />
-                    Closing Soon
-                </button>
-
-                <div className="flex-1" />
-
-                <button
-                    onClick={loadFeed}
-                    disabled={loading}
-                    className="p-2.5 bg-white dark:bg-neutral-800 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm transition-all disabled:opacity-50 shrink-0"
-                    title="Refresh Feed"
-                >
-                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                </button>
             </div>
 
             {/* Feed */}

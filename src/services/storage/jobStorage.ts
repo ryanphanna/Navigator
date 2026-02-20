@@ -20,9 +20,9 @@ export const JobStorage = {
                 const cloudJobs: SavedJob[] = data.map(row => ({
                     id: row.id,
                     company: row.company,
-                    position: row.position,
+                    position: row.job_title || row.position,
                     location: row.location,
-                    description: row.description,
+                    description: row.original_text || row.description,
                     fitScore: row.fit_score,
                     status: row.status as SavedJob['status'],
                     dateAdded: new Date(row.date_added || row.created_at).getTime(),
@@ -32,27 +32,37 @@ export const JobStorage = {
                     analysis: row.analysis
                 }));
 
-                jobs = cloudJobs.map(cloudJob => {
+                // Non-destructive merge: 
+                // 1. Process cloud jobs (with self-healing from local matches)
+                const processedCloudJobs = cloudJobs.map(cloudJob => {
                     const localMatch = localJobs.find(l => l.id === cloudJob.id);
                     let needsRepair = false;
                     let finalJob = cloudJob;
 
-                    if (!cloudJob.analysis && localMatch?.analysis) {
-                        finalJob = { ...finalJob, analysis: localMatch.analysis, status: localMatch.status };
-                        needsRepair = true;
-                    }
+                    if (localMatch) {
+                        if (!cloudJob.analysis && localMatch.analysis) {
+                            finalJob = { ...finalJob, analysis: localMatch.analysis, status: localMatch.status };
+                            needsRepair = true;
+                        }
 
-                    if ((!cloudJob.description || cloudJob.description.length < 50) && localMatch?.description && localMatch.description.length > 50) {
-                        finalJob = { ...finalJob, description: localMatch.description };
-                        needsRepair = true;
-                    }
+                        if ((!cloudJob.description || cloudJob.description.length < 50) && localMatch.description && localMatch.description.length > 50) {
+                            finalJob = { ...finalJob, description: localMatch.description };
+                            needsRepair = true;
+                        }
 
-                    if (needsRepair) {
-                        this.updateJob(finalJob).catch(err => console.error("Self-healing failed:", err));
+                        if (needsRepair) {
+                            this.updateJob(finalJob).catch(err => console.error("Self-healing failed:", err));
+                        }
                     }
 
                     return finalJob;
                 });
+
+                // 2. Keep local jobs that haven't synced to cloud yet
+                const cloudIds = new Set(cloudJobs.map(j => j.id));
+                const unsyncedLocalJobs = localJobs.filter(l => !cloudIds.has(l.id));
+
+                jobs = [...processedCloudJobs, ...unsyncedLocalJobs].sort((a, b) => b.dateAdded - a.dateAdded);
 
                 await Vault.setSecure(STORAGE_KEYS.JOBS_HISTORY, jobs);
             }

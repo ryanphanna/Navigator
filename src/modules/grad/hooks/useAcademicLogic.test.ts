@@ -1,7 +1,38 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { useState } from 'react';
 import { useAcademicLogic } from './useAcademicLogic';
 import type { Transcript } from '../types';
+
+vi.mock('../../../contexts/ToastContext', () => ({
+    useToast: () => ({
+        showError: vi.fn(),
+        showSuccess: vi.fn(),
+        showInfo: vi.fn(),
+    })
+}));
+
+const mockStorage: Record<string, any> = {
+    'NAVIGATOR_TARGET_CREDITS': 20.0
+};
+
+vi.mock('../../../hooks/useLocalStorage', () => ({
+    useLocalStorage: vi.fn((key: string, initialValue: any) => {
+        if (!(key in mockStorage)) {
+            mockStorage[key] = initialValue;
+        }
+
+        // Wrap with useState so state updates trigger re-renders in the hook
+        const [state, setState] = useState(mockStorage[key]);
+
+        const setValue = (newValue: any) => {
+            mockStorage[key] = newValue;
+            setState(newValue);
+        };
+
+        return [state, setValue];
+    })
+}));
 
 // Mock transcript data
 const mockTranscript: Transcript = {
@@ -24,6 +55,14 @@ const mockTranscript: Transcript = {
 };
 
 describe('useAcademicLogic', () => {
+    beforeEach(() => {
+        // Reset the mock storage explicitly before every test
+        for (const key in mockStorage) {
+            delete mockStorage[key];
+        }
+        mockStorage['NAVIGATOR_TARGET_CREDITS'] = 20.0;
+    });
+
     it('initializes with default values', () => {
         const { result } = renderHook(() => useAcademicLogic());
         expect(result.current.transcript).toBeNull();

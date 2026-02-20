@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { analyzeJobFit, tailorExperienceBlock, generateTailoredSummary } from '../../../services/geminiService';
 import { Storage } from '../../../services/storageService';
 import { RESUME_TAILORING } from '../../../constants';
@@ -56,7 +56,21 @@ export const useJobDetailLogic = ({
             setAnalysisProgress(null);
             showError("Analysis failed: " + (err as Error).message);
         }
-    }, [job, onAnalyzeJob, resumes, userSkills, onUpdateJob, showError]);
+    }, [job.id, job.description, onAnalyzeJob, resumes, userSkills, onUpdateJob, showError]);
+
+    const hasStartedAnalysis = useRef(false);
+
+    useEffect(() => {
+        if (job.status !== 'analyzing') {
+            hasStartedAnalysis.current = false;
+            return;
+        }
+
+        if (job.status === 'analyzing' && !analysis && !hasStartedAnalysis.current) {
+            hasStartedAnalysis.current = true;
+            performAnalysis();
+        }
+    }, [job.status, analysis, performAnalysis]);
 
     const handleHyperTailor = useCallback(async (block: ExperienceBlock) => {
         if (!analysis || tailoringBlockId) return;

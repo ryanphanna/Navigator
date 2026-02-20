@@ -1,9 +1,9 @@
 @import "tailwindcss";
-@custom-variant dark (@media (prefers-color-scheme: dark) or .dark &);
+@custom-variant dark (&:is(.dark, .dark *));
 
 @theme {
   --font-inter: "Inter",
-  sans-serif;
+    sans-serif;
 
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -11,11 +11,15 @@
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
 
-  --accent-primary: 79, 70, 229;
-  --accent-glow: 79, 70, 229;
+  --accent-primary: 79,
+    70,
+    229;
+  --accent-glow: 79,
+    70,
+    229;
   --accent-primary-hex: #4f46e5;
   --accent-secondary-hex: #7c3aed;
-  --accent-gradient: linear-gradient(135deg, var(--accent-primary-hex) 0%, var(--accent-secondary-hex) 100%);
+  --background-image-accent-gradient: linear-gradient(135deg, var(--accent-primary-hex) 0%, var(--accent-secondary-hex) 100%);
 
   @keyframes blob {
     0% {
@@ -165,6 +169,7 @@
 @layer base {
   body {
     font-family: var(--font-inter);
+    overflow-x: hidden;
   }
 }
 
@@ -174,7 +179,7 @@
     --accent-glow: 79, 70, 229;
     --accent-primary-hex: #4f46e5;
     --accent-secondary-hex: #7c3aed;
-    --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    --background-image-accent-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
   }
 
   .theme-coach {
@@ -182,7 +187,7 @@
     --accent-glow: 16, 185, 129;
     --accent-primary-hex: #10b981;
     --accent-secondary-hex: #14b8a6;
-    --accent-gradient: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+    --background-image-accent-gradient: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
   }
 
   .theme-edu {
@@ -190,7 +195,7 @@
     --accent-glow: 245, 158, 11;
     --accent-primary-hex: #f59e0b;
     --accent-secondary-hex: #f97316;
-    --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    --background-image-accent-gradient: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
   }
 }
 
@@ -224,7 +229,7 @@
 .btn-premium::after {
   content: '';
   @apply absolute inset-0 opacity-0 transition-opacity duration-300;
-  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
 .btn-premium:hover::after {

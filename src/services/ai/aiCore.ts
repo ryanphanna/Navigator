@@ -6,7 +6,7 @@ import { API_CONFIG } from "../../constants";
 export type RetryProgressCallback = (message: string, attempt: number, maxAttempts: number) => void;
 
 export const getApiKey = async (): Promise<string | null> => {
-    return import.meta.env.VITE_API_KEY || null;
+    return import.meta.env.VITE_GEMINI_API_KEY || null;
 };
 
 export interface ModelParams {

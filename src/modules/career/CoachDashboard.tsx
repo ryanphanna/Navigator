@@ -172,6 +172,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
                         isUploading={isUploading}
                         onDeleteRoleModel={onDeleteRoleModel}
                         handleEmulateRoleModel={handleEmulateRoleModel}
+                        onUpload={handleFiles}
                     />
                 )
             }

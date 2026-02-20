@@ -13,7 +13,7 @@ export const SkillSuggestions: React.FC<SkillSuggestionsProps> = ({ suggestions,
     return (
         <div className="mb-10 animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="flex items-center gap-3 mb-4 px-1">
-                <h2 className="text-xs font-bold text-neutral-400 tracking-wide">Recommended additions</h2>
+                <h2 className="text-xs font-bold text-neutral-400 tracking-wide">Recommended</h2>
                 <span className="bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full">New</span>
             </div>
             <div className="flex flex-wrap gap-2">

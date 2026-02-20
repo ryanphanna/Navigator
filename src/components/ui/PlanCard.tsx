@@ -26,7 +26,7 @@ export const PlanCard = ({
     price,
     features,
     isPopular = false,
-    buttonText = 'Get Started',
+    buttonText = 'Select Plan',
     accentColor = 'indigo',
     limits,
     subText,

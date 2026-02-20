@@ -304,8 +304,8 @@ describe('History', () => {
     // View Analysis button should not be present
     expect(screen.queryByText('View Analysis')).not.toBeInTheDocument();
 
-    // Delete button should be disabled
-    const deleteBtn = screen.getByTitle('Delete');
-    expect(deleteBtn).toBeDisabled();
+    // Delete button should be hidden (not disabled, as it only renders when !isAnalyzing conditionally or isn't assigned a title)
+    const deleteBtn = screen.queryByTitle('Delete');
+    expect(deleteBtn).not.toBeInTheDocument();
   });
 });

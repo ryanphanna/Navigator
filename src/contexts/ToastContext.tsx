@@ -14,6 +14,7 @@ interface ToastContextType {
     showError: (message: string) => void;
     showInfo: (message: string) => void;
     removeToast: (id: string) => void;
+    clearToasts: () => void;
     toasts: Toast[];
 }
 
@@ -26,14 +27,26 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setToasts(prev => prev.filter(toast => toast.id !== id));
     }, []);
 
-    const showToast = useCallback((message: string, type: ToastType) => {
-        const id = `toast-${Date.now()}-${Math.random()}`;
-        setToasts(prev => [...prev, { id, message, type }]);
+    const clearToasts = useCallback(() => {
+        setToasts([]);
+    }, []);
 
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            removeToast(id);
-        }, 5000);
+    const showToast = useCallback((message: string, type: ToastType) => {
+        // Prevent duplicate toasts of same message and type
+        setToasts(prev => {
+            const isDuplicate = prev.some(t => t.message === message && t.type === type);
+            if (isDuplicate) return prev;
+
+            const id = `toast-${Date.now()}-${Math.random()}`;
+            const newToasts = [...prev, { id, message, type }];
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                removeToast(id);
+            }, 5000);
+
+            return newToasts;
+        });
     }, [removeToast]);
 
     const showSuccess = useCallback((message: string) => {
@@ -49,7 +62,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, [showToast]);
 
     return (
-        <ToastContext.Provider value={{ showToast, showSuccess, showError, showInfo, removeToast, toasts }}>
+        <ToastContext.Provider value={{ showToast, showSuccess, showError, showInfo, removeToast, clearToasts, toasts }}>
             {children}
         </ToastContext.Provider>
     );

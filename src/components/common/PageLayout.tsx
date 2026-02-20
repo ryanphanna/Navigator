@@ -38,7 +38,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
     }[spacing];
 
     return (
-        <div className={`bg-neutral-50 dark:bg-neutral-900 min-h-screen animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 ${spacingClass}`}>
+        <div className={`bg-neutral-50 dark:bg-neutral-900 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 ${spacingClass}`}>
             <div className={`${fullWidth ? 'w-full px-4 sm:px-6' : 'max-w-5xl mx-auto px-6'} py-8 sm:py-12`}>
                 {/* Premium Header */}
                 {hasHeader && (

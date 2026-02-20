@@ -100,7 +100,7 @@ export const analyzeRoleModelGap = async (
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: analysisPrompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         return JSON.parse(cleanJsonOutput(response.response.text()));
-    }, { event_type: 'role_model_emulation', prompt: analysisPrompt, model: 'dynamic' });
+    }, { event_type: 'role_model_emulation', prompt: analysisPrompt, model: 'dynamic' }, undefined, undefined, onProgress);
 };
 
 export const parseTranscript = async (

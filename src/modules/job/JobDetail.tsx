@@ -8,7 +8,7 @@ import {
     Loader2, Sparkles, CheckCircle, XCircle,
     FileText, Copy, PenTool, ExternalLink,
     BookOpen, AlertCircle, ArrowLeft, Link as LinkIcon,
-    Undo2, Wand2, Building, Target
+    Undo2, Wand2, Building, Target, TrendingUp
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -145,7 +145,10 @@ export const JobDetail: React.FC<JobDetailProps> = ({
         );
     }
 
-    if (!analysis || job.status === 'error') {
+    if (job.status === 'error') {
+        const isExtractionError = !job.description || (job.progressMessage && (job.progressMessage.includes("blocked") || job.progressMessage.includes("extraction") || job.progressMessage.includes("Manual Input")));
+        const isAiError = job.progressMessage && (job.progressMessage.includes("AI") || job.progressMessage.includes("quota") || job.progressMessage.includes("Too many"));
+
         const handleManualRetry = async () => {
             if (!manualText.trim()) return;
             setRetrying(true);
@@ -180,20 +183,24 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
                 <div className="max-w-5xl mx-auto space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
-                        <Card variant="glass" className="bg-gradient-to-br from-orange-50/50 to-red-50/50 dark:from-orange-950/10 dark:to-red-950/10 border-orange-200 dark:border-orange-800/30 p-6 flex flex-col justify-center">
+                        <Card variant="glass" className={`${isAiError ? 'bg-gradient-to-br from-indigo-50/50 to-violet-50/50 dark:from-indigo-950/10 dark:to-violet-950/10 border-indigo-200 dark:border-indigo-800/30' : 'bg-gradient-to-br from-orange-50/50 to-red-50/50 dark:from-orange-950/10 dark:to-red-950/10 border-orange-200 dark:border-orange-800/30'} p-6 flex flex-col justify-center`}>
                             <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 rounded-xl flex items-center justify-center">
-                                    <AlertCircle className="w-5 h-5" />
+                                <div className={`w-10 h-10 ${isAiError ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400'} rounded-xl flex items-center justify-center`}>
+                                    {isAiError ? <Sparkles className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                                 </div>
                                 <div className="flex-1">
-                                    <h2 className="text-lg font-black text-neutral-900 dark:text-white mb-1 tracking-tight">Manual Input Required</h2>
-                                    <p className="text-neutral-700 dark:text-neutral-300 text-sm font-medium leading-relaxed">The website blocked extraction. Please paste the job description below.</p>
+                                    <h2 className="text-lg font-black text-neutral-900 dark:text-white mb-1 tracking-tight">
+                                        {isAiError ? 'AI Service Delay' : 'Manual Input Required'}
+                                    </h2>
+                                    <p className="text-neutral-700 dark:text-neutral-300 text-sm font-medium leading-relaxed">
+                                        {job.progressMessage || (isExtractionError ? "The website blocked extraction. Please paste the job description below." : "Something went wrong. Please try again or paste details manually.")}
+                                    </p>
                                 </div>
                             </div>
                         </Card>
 
                         <Card variant="glass" className="p-6 flex flex-col justify-center">
-                            <h3 className="text-sm font-black uppercase tracking-widest text-neutral-400 mb-3">Job Posting URL</h3>
+                            <h3 className="text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-3">Job Posting URL</h3>
                             <div className="relative">
                                 <input
                                     type="text"
@@ -208,7 +215,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                     </div>
 
                     <Card variant="glass" className="p-8">
-                        <label className="block text-sm font-black uppercase tracking-widest text-neutral-400 mb-4">Job Description</label>
+                        <label className="block text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-4">Job Description</label>
                         <textarea
                             className="w-full h-64 p-5 bg-neutral-50 dark:bg-neutral-800 border-2 border-neutral-200 dark:border-neutral-700 rounded-2xl focus:ring-4 focus:ring-accent-primary/10 focus:border-accent-primary-hex text-sm leading-relaxed transition-all resize-none text-neutral-900 dark:text-white font-medium"
                             value={manualText}
@@ -223,6 +230,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                 <Button
                                     variant="accent"
                                     onClick={handleManualRetry}
+                                    className="bg-indigo-600 text-white hover:bg-indigo-500"
                                     disabled={!manualText.trim() || manualText.length < 100 || retrying}
                                     icon={retrying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                                 >
@@ -247,7 +255,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
     const tabs: TabItem[] = [
         { id: 'analysis', label: 'Analysis', icon: Sparkles },
-        { id: 'resume', label: 'Tailored Resume', icon: FileText },
+        { id: 'resume', label: 'Resume', icon: FileText },
         { id: 'cover-letter', label: 'Cover Letter', icon: PenTool },
         { id: 'job-post', label: 'Job Posting', icon: BookOpen },
     ];
@@ -391,8 +399,33 @@ export const JobDetail: React.FC<JobDetailProps> = ({
     return (
         <div className="theme-job bg-white dark:bg-neutral-900 h-full flex flex-col">
             <DetailHeader
-                title={analysis?.distilledJob?.roleTitle || job.position || 'Job Detail'}
-                subtitle={`${analysis?.distilledJob?.companyName || job.company || 'Unknown Company'}`}
+                title={
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 cursor-pointer group" onClick={onBack}>
+                            <div className="p-1 rounded-lg bg-indigo-600 text-white shadow-md shadow-indigo-600/20 group-hover:scale-105 transition-transform">
+                                <TrendingUp className="w-4 h-4" />
+                            </div>
+                            <span className="text-base font-black tracking-tighter text-neutral-900 dark:text-white leading-none">
+                                Navigator
+                            </span>
+                        </div>
+                        <div className="w-px h-4 bg-neutral-200 dark:border-neutral-800" />
+                        <span className="text-neutral-500 dark:text-neutral-400 font-bold text-sm truncate max-w-[200px] md:max-w-md">
+                            {analysis?.distilledJob?.roleTitle || job.position || 'Job Detail'}
+                        </span>
+                    </div>
+                }
+                subtitle={
+                    <div className="flex items-center gap-2">
+                        <span>{analysis?.distilledJob?.companyName || job.company || 'Unknown Company'}</span>
+                        {analysis?.distilledJob?.salaryRange && (
+                            <>
+                                <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-600" />
+                                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{analysis.distilledJob.salaryRange}</span>
+                            </>
+                        )}
+                    </div>
+                }
                 onBack={onBack}
                 actions={actionsMenu}
                 icon={Building}
@@ -445,6 +478,9 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                                 {skill}
                                             </span>
                                         ))}
+                                        {(!analysis?.distilledJob?.keySkills || analysis.distilledJob.keySkills.length === 0) && (
+                                            <span className="text-sm font-medium text-neutral-400 italic">No specific competencies extracted.</span>
+                                        )}
                                     </div>
                                 </>
                             )}
@@ -496,6 +532,9 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                         {resp}
                                     </li>
                                 ))}
+                                {job.status !== 'analyzing' && (!analysis?.distilledJob?.coreResponsibilities || analysis.distilledJob.coreResponsibilities.length === 0) && (
+                                    <li className="text-sm font-medium text-neutral-400 italic">No core responsibilities extracted.</li>
+                                )}
                                 {job.status === 'analyzing' && (
                                     <li className="animate-pulse flex gap-4">
                                         <div className="w-1.5 h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700 mt-2 shrink-0" />

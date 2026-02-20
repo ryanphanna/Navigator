@@ -6,7 +6,7 @@ import { SkillExtractor } from './SkillExtractor';
 import { useCoachContext } from '../career/context/CoachContext';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../constants';
-import { ArrowLeft } from 'lucide-react';
+
 import { useSkillContext } from '../skills/context/SkillContext';
 import { Storage } from '../../services/storageService';
 import { useToast } from '../../contexts/ToastContext';
@@ -44,10 +44,7 @@ export const ProgramExplorerPage: React.FC = () => {
         <SharedPageLayout maxWidth="full" className="relative">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-8">
-                    <Link to={ROUTES.EDUCATION_HOME} className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors mb-4">
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Education
-                    </Link>
+
                     <SharedHeader
                         title="Program"
                         highlight="Explorer"

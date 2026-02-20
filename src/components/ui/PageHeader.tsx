@@ -27,7 +27,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             <div className={`text-center mb-16 ${className}`}>
                 <h1 className="text-5xl md:text-7xl font-black text-neutral-900 dark:text-white tracking-tight mb-8 leading-tight">
                     {title} {highlight && (
-                        <span className="text-transparent bg-clip-text animate-gradient-x" style={{ backgroundImage: 'var(--accent-gradient)', backgroundSize: '200% auto' }}>
+                        <span className="text-transparent bg-clip-text animate-gradient-x" style={{ backgroundImage: 'var(--background-image-accent-gradient)', backgroundSize: '200% auto' }}>
                             {highlight}
                         </span>
                     )}

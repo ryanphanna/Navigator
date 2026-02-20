@@ -53,7 +53,7 @@ export const AppRoutes: React.FC = () => {
     } = useJobContext();
 
     const {
-        resumes, isParsingResume, importError, handleImportResume, handleUpdateResumes
+        resumes, isParsingResume, importError, handleImportResume, handleUpdateResumes, clearImportError
     } = useResumeContext();
 
     const {
@@ -214,6 +214,7 @@ export const AppRoutes: React.FC = () => {
                                 onJobCreated={handleJobCreated}
                                 onTargetJobCreated={handleTargetJobCreated}
                                 onImportResume={handleImportResume}
+                                onClearError={clearImportError}
                                 isParsing={isParsingResume}
                                 importError={importError}
                                 isAdmin={isAdmin}
@@ -243,6 +244,7 @@ export const AppRoutes: React.FC = () => {
                             onJobCreated={handleJobCreated}
                             onTargetJobCreated={handleTargetJobCreated}
                             onImportResume={handleImportResume}
+                            onClearError={clearImportError}
                             isParsing={isParsingResume}
                             importError={importError}
                             isAdmin={isAdmin}

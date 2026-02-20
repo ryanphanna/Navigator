@@ -13,6 +13,7 @@ interface RoleModelSectionProps {
     isUploading: boolean;
     onDeleteRoleModel: (id: string) => Promise<void>;
     handleEmulateRoleModel: (id: string) => void;
+    onUpload: (files: File[]) => void;
 }
 
 export const RoleModelSection: React.FC<RoleModelSectionProps> = ({
@@ -21,7 +22,8 @@ export const RoleModelSection: React.FC<RoleModelSectionProps> = ({
     setSelectedRoleModelId,
     isUploading,
     onDeleteRoleModel,
-    handleEmulateRoleModel
+    handleEmulateRoleModel,
+    onUpload
 }) => {
     const [showSteps, setShowSteps] = useState(false);
 
@@ -72,7 +74,7 @@ export const RoleModelSection: React.FC<RoleModelSectionProps> = ({
 
             {roleModels.length === 0 ? (
                 <LinkedInExportGuide
-                    onUploadClick={triggerUpload}
+                    onUpload={onUpload}
                     onViewSteps={() => setShowSteps(true)}
                     isUploading={isUploading}
                 />

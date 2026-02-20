@@ -488,7 +488,7 @@ export const OnboardingPage: React.FC = () => {
                                             {tailoredContent.headline}
                                         </h1>
                                         <p className="text-neutral-500 dark:text-neutral-400 text-lg font-medium">
-                                            Upload your resume to get started
+                                            Upload your resume to build your profile
                                         </p>
                                     </div>
 

@@ -21,6 +21,13 @@ export const Header: React.FC<HeaderProps> = ({
     const { user, isLoading, isAdmin, isTester, signOut } = useUser();
     const { openModal } = useModal();
     const { isDark, toggleDarkMode } = useGlobalUI();
+    const [scrolled, setScrolled] = React.useState(false);
+
+    React.useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 10);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     // Navigation Groups
     const navGroups = [
@@ -77,7 +84,10 @@ export const Header: React.FC<HeaderProps> = ({
 
 
     return (
-        <header className={`fixed top-0 left-0 right-0 z-50 h-16 pointer-events-none transition-all duration-700 ease-in-out`}>
+        <header className={`fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-500 ease-in-out ${scrolled
+            ? 'bg-white dark:bg-neutral-900 backdrop-blur-xl'
+            : 'bg-transparent'
+            }`}>
             {/* Background Background blur/border (Conditional on scroll if needed, but keeping it elegant) */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between relative pointer-events-auto">
                 {/* Brand Logo */}
@@ -137,12 +147,12 @@ export const Header: React.FC<HeaderProps> = ({
 
                                     {/* Inline Sub-items (Expand Right of the Active Category) */}
                                     <AnimatePresence mode="popLayout" initial={false}>
-                                        {group.isActive && group.items.length > 0 && (
+                                        {group.isActive && group.items && group.items.length > 0 && (
                                             <motion.div
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                exit={{ opacity: 0, x: -10 }}
-                                                className="flex items-center gap-0.5 pr-1.5 ml-0.5 border-l border-neutral-100 dark:border-neutral-700/50 pl-2"
+                                                initial={{ opacity: 0, x: -10, width: 0 }}
+                                                animate={{ opacity: 1, x: 0, width: "auto" }}
+                                                exit={{ opacity: 0, x: -10, width: 0 }}
+                                                className="flex items-center gap-0.5 pr-1.5 ml-0.5 border-l border-neutral-100 dark:border-neutral-700/50 pl-2 overflow-hidden"
                                             >
                                                 {group.items.map((item) => (
                                                     <button
@@ -168,12 +178,20 @@ export const Header: React.FC<HeaderProps> = ({
                 {/* Right Actions */}
                 <div className="flex items-center gap-1.5">
                     {!isLoading && !user ? (
-                        <button
-                            onClick={() => openModal('AUTH')}
-                            className="px-4 py-2 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
-                        >
-                            Get Started
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => openModal('AUTH')}
+                                className="px-4 py-2 text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100 transition-all active:scale-95"
+                            >
+                                Sign In
+                            </button>
+                            <button
+                                onClick={() => openModal('AUTH')}
+                                className="px-4 py-2 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
+                            >
+                                Sign Up
+                            </button>
+                        </div>
                     ) : (
                         <button
                             onClick={signOut}
