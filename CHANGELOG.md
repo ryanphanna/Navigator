@@ -5,7 +5,40 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- **Settings**: Added a "Current Focus" dropdown allowing users to change their targeted role (Job Hunter, Career Planner, Student) at any time.
+- **Skill Interview "Professional Audit" Model**:
+  - Increased interview depth to **10-12 cross-cutting questions** (approx. 24 interactions) for a more comprehensive assessment.
+  - Implemented **Atomic Persistence**: Progress is banked "live" after every question, ensuring no work is lost if a session is interrupted.
+  - Added **Historical Awareness**: The AI now recognizes previously verified skills and previous verification evidence to ask more advanced/targeted follow-ups.
+  - Added subtle **Credit Transparency** labels to interview buttons to ensure users are aware of resource consumption without high-friction popups.
+- **Compact Header System**:
+  - Introduced a `compact` variant to `SharedHeader` to optimize vertical space on functional sub-pages.
+  - Applied the compact header to **LinkedIn Export Guide**, **Program Explorer**, **GPA Calculator**, and **Growth Roadmap**.
+  - Refactored custom header implementations in Career and Education modules into the unified `SharedHeader` component for absolute design parity.
+- **Tone & Decision Logic**:
+  - Introduced a **Professional Decision Spectrum** (`Reject`, `Weak`, `Average`, `Strong`, `Exceptional`) across all AI feedback modules (Interviews & Cover Letters).
+  - Updated terminology across Skills to be more neutral and professional (e.g., "Verified & Banked" and "In Development").
+
+### Changed
+- **Resume Editor**: Updated the subtitle to be clearer and more literal: "Manage your professional history and accomplishments".
+- **Plans & Monetization**:
+  - Standardized usage limits to high-value reset cycles: **Weekly** for Job Analyses and **Monthly** for Skills Interviews.
+  - Adjusted Skills Interview credits to reflect their increased depth and rarity: **2 / month** for Plus and **5 / month** for Pro.
+  - Standardized Job Analysis limits to **100/week** (Plus) and **350/week** (Pro).
+  - Removed redundant daily tracking for analyses to simplify user usage perception.
+- **UI Architecture**:
+  - Restored homepage card width by increasing the main content container from `max-w-4xl` to `max-w-6xl`, resolving issues where cards appeared too skinny in the 5-column grid.
+  - Refactored the monolithic `HomeInput` component into two dedicated components: `HomePage` (focused landing experience) and `JobMatchInput` (focused job analysis tool).
+  - Implemented a global **Header Strategy** that differentiates between "Explanatory" pages (Hero variant) and "Functional" pages (Simple variant).
+- **Secure Storage**:
+  - Upgraded encryption key management to use **IndexedDB** for master key storage instead of `localStorage`.
+  - Implemented **non-extractable keys** using the Web Crypto API, ensuring raw key material cannot be accessed by JavaScript.
+  - Removed browser fingerprinting dependencies for key derivation to improve entropy and resolve security findings.
+- **Security & Safety**:
+  - **Improved Log Sanitization**: Hardened the `gemini-proxy` log sanitization to strip a broader range of control characters (tabs, null bytes, backspaces) and fixed missing sanitization in error/warning paths to prevent potential log injection.
+### Fixed
+- **Storage**:
+  - Fixed a critical bug where a new user's initial resume upload would fail to persist to the cloud due to a missing `insert` clause in `resumeStorage`.
+  - Added robust stringified JSON parsing for incoming cloud resume payloads to prevent data drops caused by schema type mismatches.
 
 ## [2.16.0] - 2026-02-20
 

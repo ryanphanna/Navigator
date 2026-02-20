@@ -19,7 +19,15 @@ export const ResumeStorage = {
                 .maybeSingle();
 
             if (data?.content) {
-                const cloudProfiles = data.content as ResumeProfile[];
+                let cloudProfiles = data.content;
+                if (typeof cloudProfiles === 'string') {
+                    try {
+                        cloudProfiles = JSON.parse(cloudProfiles);
+                    } catch (e) {
+                        console.error('Failed to parse resumes content string:', e);
+                    }
+                }
+
                 if (Array.isArray(cloudProfiles) && cloudProfiles.length > 0) {
                     profiles = cloudProfiles;
                     await Vault.setSecure(STORAGE_KEYS.RESUMES, profiles);
@@ -34,11 +42,17 @@ export const ResumeStorage = {
 
         const userId = await getUserId();
         if (userId) {
-            const { data } = await supabase.from('resumes').select('id').eq('user_id', userId).maybeSingle();
+            const { data, error: selectError } = await supabase.from('resumes').select('id').eq('user_id', userId).maybeSingle();
+            if (selectError && selectError.code !== 'PGRST116') {
+                console.error("Supabase select error in saveResumes:", selectError);
+            }
+
             if (data) {
-                await supabase.from('resumes').update({ content: resumes, name: 'Default Profile' }).eq('id', data.id);
+                const { error: updateError } = await supabase.from('resumes').update({ content: resumes, name: 'Default Profile' }).eq('id', data.id);
+                if (updateError) console.error("Supabase update error:", updateError);
             } else {
-                await supabase.from('resumes').insert({ user_id: userId, name: 'Default Profile', content: resumes });
+                const { error: insertError } = await supabase.from('resumes').insert({ user_id: userId, name: 'Default Profile', content: resumes });
+                if (insertError) console.error("Supabase insert error:", insertError);
             }
         }
     },
@@ -75,7 +89,18 @@ export const ResumeStorage = {
         await Vault.setSecure(STORAGE_KEYS.RESUMES, updated);
         const userId = await getUserId();
         if (userId) {
-            await supabase.from('resumes').update({ content: updated }).eq('user_id', userId);
+            const { data, error: selectError } = await supabase.from('resumes').select('id').eq('user_id', userId).maybeSingle();
+            if (selectError && selectError.code !== 'PGRST116') {
+                console.error("Supabase select error in addResume:", selectError);
+            }
+
+            if (data) {
+                const { error: updateError } = await supabase.from('resumes').update({ content: updated }).eq('id', data.id);
+                if (updateError) console.error("Supabase update error:", updateError);
+            } else {
+                const { error: insertError } = await supabase.from('resumes').insert({ user_id: userId, name: 'Default Profile', content: updated });
+                if (insertError) console.error("Supabase insert error:", insertError);
+            }
         }
         return updated;
     }
