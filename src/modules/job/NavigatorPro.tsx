@@ -164,7 +164,7 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
                 company: job.company,
                 url: job.url,
                 analysis: analysis, // Store full analysis JSON
-                status: 'analyzed'
+                status: 'saved'
             }, { onConflict: 'url' });
 
         } catch (error) {

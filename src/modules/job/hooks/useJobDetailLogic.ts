@@ -61,12 +61,14 @@ export const useJobDetailLogic = ({
     const hasStartedAnalysis = useRef(false);
 
     useEffect(() => {
-        if (job.status !== 'analyzing') {
+        const isHollow = job.status === 'saved' && (!analysis || !analysis.compatibilityScore);
+
+        if (job.status !== 'analyzing' && !isHollow) {
             hasStartedAnalysis.current = false;
             return;
         }
 
-        if (job.status === 'analyzing' && !analysis && !hasStartedAnalysis.current) {
+        if ((job.status === 'analyzing' || isHollow) && !hasStartedAnalysis.current) {
             hasStartedAnalysis.current = true;
             performAnalysis();
         }

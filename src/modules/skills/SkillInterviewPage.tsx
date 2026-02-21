@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import type { CustomSkill } from '../../types';
 import { generateUnifiedQuestions, analyzeUnifiedResponse } from '../../services/ai/interviewAiService';
 import { useSkillContext } from './context/SkillContext';
-import { checkInterviewLimit } from '../../services/usageLimits';
+import { checkInterviewLimit, getUsageStats } from '../../services/usageLimits';
 import { supabase } from '../../services/supabase';
 import {
     ShieldCheck, CheckCircle2, X,
@@ -45,6 +45,7 @@ export const SkillInterviewPage: React.FC = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [messages, setMessages] = useState<InterviewMessage[]>([]);
     const [limitError, setLimitError] = useState<string | null>(null);
+    const [usageInfo, setUsageInfo] = useState<{ used: number; total: number } | null>(null);
 
     // Track which skills have been demonstrated across all answers
     const [skillScores, setSkillScores] = useState<Record<string, { demonstrated: number; total: number }>>({});
@@ -52,7 +53,22 @@ export const SkillInterviewPage: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const fetchUsage = async () => {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
+                const stats = await getUsageStats(user.id);
+                setUsageInfo({ used: stats.monthInterviews, total: stats.interviewLimit });
+            } catch (err) {
+                console.error('Failed to fetch usage:', err);
+            }
+        };
+        fetchUsage();
+    }, []);
+
+    useEffect(() => {
         if (skills.length === 0) {
+
             navigate('/career/skills');
         }
     }, [skills.length, navigate]);
@@ -338,8 +354,12 @@ export const SkillInterviewPage: React.FC = () => {
                                         )}
                                         <span>{isLoading ? 'Preparing questions...' : 'Begin assessment'}</span>
                                     </div>
-                                    {!isLoading && !limitError && (
-                                        <span className="text-[10px] opacity-70 uppercase tracking-widest">Uses 1 credit</span>
+                                    {!isLoading && !limitError && usageInfo && (
+                                        <span className="text-[10px] opacity-70 uppercase tracking-widest">
+                                            {usageInfo.total === Infinity
+                                                ? 'Unlimited credits'
+                                                : `${usageInfo.used} / ${usageInfo.total} credits used`}
+                                        </span>
                                     )}
                                 </button>
                             </motion.div>

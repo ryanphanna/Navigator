@@ -109,14 +109,12 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
             <GlobalModals />
 
-            {!['job-detail'].includes(currentView as string) && (
-                <Header
-                    currentView={currentView}
-                    onViewChange={handleViewChange}
-                    isCoachMode={isCoachMode}
-                    isEduMode={isEduMode}
-                />
-            )}
+            <Header
+                currentView={currentView}
+                onViewChange={handleViewChange}
+                isCoachMode={isCoachMode}
+                isEduMode={isEduMode}
+            />
 
             <main className="flex-1 w-full pt-16 pb-16 sm:pb-8">
                 {children}

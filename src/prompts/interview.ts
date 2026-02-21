@@ -86,20 +86,20 @@ export const INTERVIEW_PROMPTS = {
   },
 
   ANALYZE_UNIFIED_RESPONSE: (question: string, targetSkills: string[], userResponse: string) => `
-    You are a strict but fair interviewer evaluating a candidate's response.
+    You are a strict but fair interviewer evaluating a candidate's response. Speak DIRECTLY to the candidate.
 
     QUESTION: "${question}"
     TARGET SKILLS BEING ASSESSED: ${targetSkills.join(', ')}
     CANDIDATE'S RESPONSE: "${userResponse}"
 
     TASK:
-    1. Evaluate the response quality overall.
+    1. Evaluate the response quality overall. Address the candidate DIRECTLY using "you" (do NOT use third-person like "the candidate").
     2. For EACH target skill listed, determine if the response demonstrates competence in that skill.
     3. Provide concise feedback.
 
     Return ONLY JSON:
     {
-      "feedback": "Brief, direct overall feedback on the answer (2-3 sentences max).",
+      "feedback": "Brief, direct overall feedback on the answer addressed directly to the candidate using 'you' (e.g., 'You gave a great example, but...'). Max 2-3 sentences.",
       "overallPassed": boolean,
       "skillResults": [
         {

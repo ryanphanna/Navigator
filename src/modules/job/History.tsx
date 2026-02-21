@@ -224,7 +224,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                                                     <div className="text-[10px] font-black uppercase tracking-widest text-rose-500 flex items-center gap-2">
                                                         <Trash2 className="w-3.5 h-3.5" /> Extraction failed
                                                     </div>
-                                                ) : score ? (
+                                                ) : (score !== undefined && score !== null) ? (
                                                     <div className={`px-4 py-2 rounded-2xl text-xs font-black border flex items-center gap-2 ${score >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
                                                         score >= 60 ? 'bg-amber-50 text-amber-700 border-amber-100' :
                                                             'bg-rose-50 text-rose-700 border-rose-100'

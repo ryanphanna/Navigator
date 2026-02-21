@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- 
+
+## [2.17.0] - 2026-02-20
+
+### Added
+- **Job Detail UI Overhaul**:
+  - Redesigned the "Analyzing" state with a high-fidelity "Scanning" animation, featuring dynamic beams, ambient glows, and interactive security badges.
+  - Upgraded all analysis and result cards to the `premium` variant, utilizing glassmorphism and refined drop-shadows.
+  - Implemented smooth entry animations for Experience Blocks with indigo pulse indicators.
+  - Added a "Copy Full Resume" action with immediate visual feedback.
+
+### Changed
+- **UI Architecture**: 
+  - Restored main header navigation to the Job Match page for better site-wide consistency.
+  - Standardized `JobDetail` layout using `SharedPageLayout`, resolving inconsistent padding and width issues.
+  - Refined the `JobDetail` layout to use the `premium` design system consistently across all tabs (Analysis, Job Post, Resume).
+
+### Fixed
+- **AI Analysis Robustness**:
+  - Improved skill and responsibility extraction logic to prioritize high-fidelity analysis over basic extraction.
+  - Refined AI prompts to intelligently infer competencies for brief job descriptions, preventing "empty" result states.
+- **Build & Stability**:
+  - Fixed corrupted JSX structure and missing `SharedPageLayout` imports in `JobDetail.tsx`.
+  - Resolved implicit `any` type and missing `SavedJob` import in `AppRoutes.tsx`.
+  - Implemented a `process.env` shim in `vite.config.ts` to resolve the "process is not defined" error encountered during Vercel deployments.
+  - Fixed corrupted JSX structure in the Job Detail module to ensure stable rendering across all application states.
+  - Resolved missing icon imports for `Search` and `ShieldCheck` in `JobDetail.tsx`.
+
+### Added (Previous)
 - **Education Module: Grad School Discovery**:
   - Introduced **Program Explorer** to search and filter curated Master's programs with seamless integration into the Program Fit Analyzer.
   - Added **Application Launchpad**, providing a structured, interactive roadmap for core admission requirements (GRE/GMAT, SOP, LORs).
@@ -13,7 +42,7 @@ All notable changes to this project will be documented in this file.
   - Increased interview depth to **10-12 cross-cutting questions** (approx. 24 interactions) for a more comprehensive assessment.
   - Implemented **Atomic Persistence**: Progress is banked "live" after every question, ensuring no work is lost if a session is interrupted.
   - Added **Historical Awareness**: The AI now recognizes previously verified skills and previous verification evidence to ask more advanced/targeted follow-ups.
-  - Added subtle **Credit Transparency** labels to interview buttons to ensure users are aware of resource consumption without high-friction popups.
+  - Improved **Credit Transparency** labels on interview buttons to dynamically display real-time usage (e.g., "1 / 2 credits used" or "Unlimited credits") based on user subscription tiers.
 - **Compact Header System**:
   - Introduced a `compact` variant to `SharedHeader` to optimize vertical space on functional sub-pages.
   - Applied the compact header to **LinkedIn Export Guide**, **Program Explorer**, **GPA Calculator**, and **Growth Roadmap**.
@@ -21,6 +50,10 @@ All notable changes to this project will be documented in this file.
 - **Tone & Decision Logic**:
   - Introduced a **Professional Decision Spectrum** (`Reject`, `Weak`, `Average`, `Strong`, `Exceptional`) across all AI feedback modules (Interviews & Cover Letters).
   - Updated terminology across Skills to be more neutral and professional (e.g., "Verified & Banked" and "In Development").
+- **Job Analysis & Stability**:
+  - Implemented **Auto-Reanalysis**: Jobs with missing or "hollow" data are now automatically refreshed in the background when viewed, ensuring data integrity without user effort.
+  - Hardened **AI Extraction**: Enforced a strict JSON schema and mandatory validation for all job analysis results, preventing incomplete or malformed data from being saved.
+  - Improved **Background Feedback**: Updated `JobDetail` UI to robustly handle auto-refresh states with skeleton loaders and synchronized progress messages.
 
 ### Changed
 - **UI Consistency**:
@@ -42,13 +75,17 @@ All notable changes to this project will be documented in this file.
   - Upgraded encryption key management to use **IndexedDB** for master key storage instead of `localStorage`.
   - Implemented **non-extractable keys** using the Web Crypto API, ensuring raw key material cannot be accessed by JavaScript.
   - Removed browser fingerprinting dependencies for key derivation to improve entropy and resolve security findings.
+- **Job Flow Integration**: Unified job status terminology to `saved` across the **Pro Feed** and **Application History**, resolving inconsistencies where some jobs appeared as "analyzed" but were filtered out of core views.
 - **Security & Safety**:
   - **Improved Log Sanitization**: Hardened the `gemini-proxy` log sanitization to strip a broader range of control characters (tabs, null bytes, backspaces) and fixed missing sanitization in error/warning paths to prevent potential log injection.
   - **Sensitive Data Exposure**: Prevented accidental exposure of sensitive user profile data (subscription tier, admin/tester status) in client-side debug logs.
 ### Fixed
+- **AI Feedback**:
+  - Fixed an issue in the Skills Assessment where the AI interviewer referred to the candidate in the third person instead of addressing them directly ("you").
 - **Storage**:
   - Fixed a critical bug where a new user's initial resume upload would fail to persist to the cloud due to a missing `insert` clause in `resumeStorage`.
   - Added robust stringified JSON parsing for incoming cloud resume payloads to prevent data drops caused by schema type mismatches.
+- **Match Calculations**: Fixed a UI bug where a literal **0% Match Score** was treated as "missing data", causing jobs to display "Analysis Needed" instead of their correct score.
 
 ## [2.16.0] - 2026-02-20
 

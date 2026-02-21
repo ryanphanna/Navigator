@@ -26,7 +26,28 @@ export const ANALYSIS_PROMPTS = {
     4. MATCH BREAKDOWN: Identify key strengths and HONEST gaps.
     5. SCORE: Rate compatibility (0-100) based on hard evidence.
 
-    Return ONLY JSON.
+    OUTPUT SCHEMA:
+    Return ONLY valid JSON matching this structure.
+    CRITICAL: You MUST populate 'keySkills' and 'coreResponsibilities' even for brief job descriptions. Use your expertise to infer them if not explicitly stated.
+    {
+      "compatibilityScore": number (0-100),
+      "reasoning": "High-level professional insight (2-3 sentences)",
+      "strengths": ["list of 3-4 specific match points"],
+      "weaknesses": ["list of 2-3 specific gaps or missing qualifications"],
+      "distilledJob": {
+        "roleTitle": "Official title",
+        "companyName": "Company name",
+        "location": "City, State or Remote",
+        "keySkills": ["List of 5-8 priority skills found in the job post"],
+        "requiredSkills": [
+          { "name": "Skill Name", "level": "learning" | "comfortable" | "expert" }
+        ],
+        "coreResponsibilities": ["List of 4-6 primary duties"]
+      },
+      "resumeTailoringInstructions": ["3-4 bullet points on how to adjust the resume"],
+      "coverLetterTailoringInstructions": ["3-4 bullet points for the cover letter strategy"],
+      "recommendedBlockIds": ["List of IDs from the candidate resume blocks that are most relevant to this job"]
+    }
   `
   },
 

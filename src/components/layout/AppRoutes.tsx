@@ -1,5 +1,6 @@
 import React, { Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import type { SavedJob } from '../../modules/job/types';
 import { LoadingState } from '../common/LoadingState';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 import { ROUTES } from '../../constants';
@@ -358,17 +359,15 @@ export const AppRoutes: React.FC = () => {
                     <Route path={ROUTES.JOB_DETAIL} element={
                         <Suspense fallback={<LoadingState message="Analyzing Job..." />}>
                             {activeJob ? (
-                                <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-24 animate-in slide-in-from-right-4 duration-500">
-                                    <JobDetail
-                                        job={activeJob}
-                                        resumes={resumes}
-                                        onBack={() => handleViewChange('history')}
-                                        onUpdateJob={handleUpdateJob}
-                                        onAnalyzeJob={(j) => handleAnalyzeJob(j, { resumes, skills })}
-                                        userTier={userTier}
-                                        userSkills={skills}
-                                    />
-                                </div>
+                                <JobDetail
+                                    job={activeJob}
+                                    resumes={resumes}
+                                    onBack={() => handleViewChange('history')}
+                                    onUpdateJob={handleUpdateJob}
+                                    onAnalyzeJob={(j: SavedJob) => handleAnalyzeJob(j, { resumes, skills })}
+                                    userTier={userTier}
+                                    userSkills={skills}
+                                />
                             ) : (
                                 <div className="text-center">
                                     <LoadingState message="Loading Job..." />

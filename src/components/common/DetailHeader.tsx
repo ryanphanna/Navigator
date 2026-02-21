@@ -56,7 +56,7 @@ export const DetailHeader: React.FC<DetailHeaderProps> = ({
                     </div>
                 )}
 
-                <div className="flex items-center justify-end gap-3 relative z-10">
+                <div className="flex items-center justify-end gap-3 relative z-10 p-1 bg-neutral-100/50 dark:bg-white/5 rounded-2xl border border-neutral-200/50 dark:border-white/5">
                     {actions}
                 </div>
             </div>

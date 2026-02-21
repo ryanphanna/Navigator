@@ -93,16 +93,31 @@ export const analyzeJobFit = async (
     }, { event_type: 'analysis', prompt: analysisPrompt, model: 'dynamic', job_id: jobId }, undefined, undefined, onProgress);
 
     // Deep merge the extraction info with the detailed analysis
-    const mergedDistilledJob = {
-        ...(analysis.distilledJob || {}),
+    const mergedDistilledJob: DistilledJob = {
+        // Start with basic extraction info as the base
         ...extractionInfo,
-        // Ensure extraction info (like AI bans) takes precedence, but don't lose detailed fields from analysis
-        keySkills: extractionInfo.keySkills || analysis.distilledJob?.keySkills || [],
+        // Overlay anything the detailed analysis found
+        ...(analysis.distilledJob || {}),
+        // Ensure critical extraction info (safety/bans) takes ultimate precedence
+        isAiBanned: extractionInfo.isAiBanned ?? analysis.distilledJob?.isAiBanned,
+        aiBanReason: extractionInfo.aiBanReason || analysis.distilledJob?.aiBanReason,
+        // Detailed analysis is the primary source for these fields
+        keySkills: analysis.distilledJob?.keySkills?.length ? analysis.distilledJob.keySkills : (extractionInfo.keySkills || []),
         requiredSkills: analysis.distilledJob?.requiredSkills || [],
-        coreResponsibilities: extractionInfo.coreResponsibilities || analysis.distilledJob?.coreResponsibilities || [],
+        coreResponsibilities: analysis.distilledJob?.coreResponsibilities?.length ? analysis.distilledJob.coreResponsibilities : (extractionInfo.coreResponsibilities || []),
     };
 
-    return { ...analysis, distilledJob: mergedDistilledJob, cleanedDescription };
+    // Validation: If we have no score and no skills, something went wrong with the AI output
+    if (!analysis.compatibilityScore && (!mergedDistilledJob.keySkills.length)) {
+        throw new Error("Analysis failed to generate meaningful insights. Please try again.");
+    }
+
+    return {
+        ...analysis,
+        distilledJob: mergedDistilledJob,
+        cleanedDescription,
+        bestResumeProfileId: analysis.bestResumeProfileId || resumes[0]?.id
+    };
 };
 
 export const generateCoverLetter = async (
