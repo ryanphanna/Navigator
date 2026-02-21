@@ -23,25 +23,25 @@ export const SkillsStats: React.FC<SkillsStatsProps> = ({
 }) => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-            {/* Stat: Skill Analytics */}
+            {/* Stat: Skill Analytics (Adjusted) */}
             <BentoCard
                 id="skill-stats"
                 icon={TrendingUp}
-                title="Skill Analytics"
+                title="Your Skills"
                 description="Overview of your current technical proficiency."
                 color={FEATURE_COLORS.indigo}
                 previewContent={
                     <div className="flex items-end gap-6 h-full pb-2 px-2">
                         <div className="flex flex-col items-center">
-                            <div className="text-5xl font-black text-white tracking-tighter leading-none hover:scale-110 transition-transform duration-500 drop-shadow-2xl">{skills.length}</div>
-                            <div className="text-[9px] uppercase tracking-[0.2em] font-black text-white/40 mt-3">Active</div>
+                            <div className="text-5xl font-black text-indigo-600 dark:text-indigo-400 tracking-tighter leading-none hover:scale-110 transition-transform duration-500 drop-shadow-2xl">{skills.length}</div>
+                            <div className="text-[9px] uppercase tracking-[0.2em] font-black text-neutral-400 dark:text-white/40 mt-3">Active</div>
                         </div>
                         <div className="w-px h-10 bg-gradient-to-b from-white/0 via-white/20 to-white/0" />
                         <div className="flex flex-col items-center">
-                            <div className="text-5xl font-black text-amber-400 tracking-tighter leading-none hover:scale-110 transition-transform duration-500 drop-shadow-2xl">
+                            <div className="text-5xl font-black text-amber-500 tracking-tighter leading-none hover:scale-110 transition-transform duration-500 drop-shadow-2xl">
                                 {skills.filter(s => s.proficiency === 'expert').length}
                             </div>
-                            <div className="text-[9px] uppercase tracking-[0.2em] font-black text-white/40 mt-3">Expert</div>
+                            <div className="text-[9px] uppercase tracking-[0.2em] font-black text-neutral-400 dark:text-white/40 mt-3">Expert</div>
                         </div>
                     </div>
                 }
@@ -70,7 +70,7 @@ export const SkillsStats: React.FC<SkillsStatsProps> = ({
             <BentoCard
                 id="verify-skills"
                 icon={ShieldCheck}
-                title="Verify Skills"
+                title="Verify Skill"
                 description={unverifiedCount > 0 ? `Prove expertise for ${unverifiedCount} skills.` : "All skills verified by AI coach."}
                 onAction={onVerifySkills}
                 actionLabel={unverifiedCount > 0 ? "Start Proof" : undefined}
@@ -89,7 +89,7 @@ export const SkillsStats: React.FC<SkillsStatsProps> = ({
             <BentoCard
                 id="skill-discovery"
                 icon={Sparkles}
-                title="Skill Discovery"
+                title="Discover Skill"
                 description="Extract latent skills from your resumes."
                 onAction={onSuggestSkills}
                 actionLabel={isSuggesting ? "Finding..." : "Discover"}

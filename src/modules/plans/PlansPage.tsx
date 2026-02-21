@@ -158,7 +158,8 @@ export const PlansPage: React.FC = () => {
                         analyses: String(PLAN_LIMITS[USER_TIERS.FREE].TOTAL_ANALYSES),
                         analysesPeriod: 'total',
                         emails: PLAN_LIMITS[USER_TIERS.FREE].DAILY_EMAILS,
-                        mentors: PLAN_LIMITS[USER_TIERS.FREE].ROLE_MODELS
+                        mentors: PLAN_LIMITS[USER_TIERS.FREE].ROLE_MODELS,
+                        interviews: PLAN_LIMITS[USER_TIERS.FREE].SKILLS_INTERVIEWS
                     }}
                 />
 
@@ -176,7 +177,8 @@ export const PlansPage: React.FC = () => {
                         analyses: String(PLAN_LIMITS[USER_TIERS.PLUS].WEEKLY_ANALYSES),
                         analysesPeriod: 'week',
                         emails: PLAN_LIMITS[USER_TIERS.PLUS].DAILY_EMAILS,
-                        mentors: PLAN_LIMITS[USER_TIERS.PLUS].ROLE_MODELS
+                        mentors: PLAN_LIMITS[USER_TIERS.PLUS].ROLE_MODELS,
+                        interviews: PLAN_LIMITS[USER_TIERS.PLUS].SKILLS_INTERVIEWS
                     }}
                 />
 
@@ -192,10 +194,11 @@ export const PlansPage: React.FC = () => {
                     isLoading={loadingTier === USER_TIERS.PRO}
                     features={getFeaturesForPlan('pro').map(f => ({ name: f.name, desc: f.description.plan, isComingSoon: f.isComingSoon }))}
                     limits={{
-                        analyses: 'Unlimited',
-                        analysesPeriod: '',
+                        analyses: '50',
+                        analysesPeriod: 'day',
                         emails: PLAN_LIMITS[USER_TIERS.PRO].DAILY_EMAILS,
-                        mentors: PLAN_LIMITS[USER_TIERS.PRO].ROLE_MODELS
+                        mentors: PLAN_LIMITS[USER_TIERS.PRO].ROLE_MODELS,
+                        interviews: PLAN_LIMITS[USER_TIERS.PRO].SKILLS_INTERVIEWS
                     }}
                 />
             </div>

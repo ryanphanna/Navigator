@@ -96,7 +96,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                 <StandardSearchBar
                     value={searchQuery}
                     onChange={setSearchQuery}
-                    placeholder="Search roles, companies, or keywords..."
+                    placeholder="Search"
                     themeColor="indigo"
                     className="flex-1"
                 />

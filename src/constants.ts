@@ -5,6 +5,7 @@
 import { version } from '../package.json';
 
 export const APP_VERSION = version;
+export const LATEST_TOS_VERSION = 20240221; // Match implementation date
 
 // API & Retry Configuration
 export const API_CONFIG = {
@@ -135,8 +136,8 @@ export const EXTERNAL_LINKS = {
 export const ROUTES = {
   HOME: '/',
   WELCOME: '/welcome',
-  PLANS: '/plans',
-  PLANS_COMPARE: '/plans/compare',
+  PLANS: '/upgrade',
+  PLANS_COMPARE: '/upgrade/compare',
   FEATURES: '/features',
 
   // Jobs Section

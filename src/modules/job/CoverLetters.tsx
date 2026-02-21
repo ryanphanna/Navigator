@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
-import { PenTool, Search, ArrowRight, Copy, Building, Calendar, X } from 'lucide-react';
-import { PageLayout } from '../../components/common/PageLayout';
+import { PenTool, ArrowRight, Copy, Building, Calendar } from 'lucide-react';
+import { SharedPageLayout } from '../../components/common/SharedPageLayout';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { StandardSearchBar } from '../../components/common/StandardSearchBar';
 import type { SavedJob } from '../../types';
 
 interface CoverLettersProps {
@@ -31,27 +33,21 @@ export const CoverLetters: React.FC<CoverLettersProps> = ({ jobs, onSelectJob })
     };
 
     return (
-        <PageLayout
-            themeColor="indigo"
-        >
+        <SharedPageLayout className="theme-job" spacing="compact">
+            <PageHeader
+                title="Cover Letters"
+                subtitle="Your AI-generated narratives optimized for selection."
+                icon={PenTool}
+            />
+
             {/* Search */}
-            <div className="relative group/search mb-10">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 group-focus-within/search:text-indigo-500 transition-colors" />
-                <input
-                    type="text"
-                    placeholder="Search by role or company..."
+            <div className="mb-10">
+                <StandardSearchBar
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 rounded-2xl text-base focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder:text-neutral-400 shadow-sm"
+                    onChange={setSearchQuery}
+                    placeholder="Search"
+                    themeColor="indigo"
                 />
-                {searchQuery && (
-                    <button
-                        onClick={() => setSearchQuery('')}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-neutral-300 hover:text-neutral-500 rounded-full hover:bg-neutral-100 transition-colors"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
-                )}
             </div>
 
             {/* List */}
@@ -126,6 +122,6 @@ export const CoverLetters: React.FC<CoverLettersProps> = ({ jobs, onSelectJob })
                     ))
                 )}
             </div>
-        </PageLayout>
+        </SharedPageLayout>
     );
 };

@@ -147,9 +147,9 @@ export const ANALYSIS_PROMPTS = {
     MY EXPERIENCE:
     ${resumeText}
  
-    ${trajectoryContext ? `MY LONG-TERM CAREER GOAL & PROGRESS:
+    ${trajectoryContext ? `MY CAREER CONTEXT (Goals & Patterns):
     ${trajectoryContext}
-    (Context: Mention how this current role fits into your 12-month trajectory if it makes for a stronger narrative.)` : ''}
+    (Context: This includes my 12-month goals and established application patterns. Use this to ensure the letter aligns with my professional identity.)` : ''}
 
     STRATEGY:
     ${tailoringInstructions.join("\n")}

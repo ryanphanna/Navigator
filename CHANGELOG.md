@@ -7,6 +7,35 @@ All notable changes to this project will be documented in this file.
 ### Added
 - 
 
+### Changed
+- 
+
+### Fixed
+- 
+
+## [2.18.0] - 2026-02-21
+
+### Added
+- **Career Archetypes**: Launched an AI-powered professional persona system that analyzes application patterns to identify professional archetypes (Technologist, Leader, etc.) with premium interactive badges.
+- **System Update Cards**: Implemented a sophisticated notification system with persistent dismissal, snooze logic, and priority-aware filtering for policy and product updates.
+- **Resume Export**: Added "Download PDF" functionality with optimized print styles for clean document generation.
+
+### Changed
+- **Resume Redesign (Phase 2)**: Major overhaul of the Resume module with a focused centered layout, premium high-fidelity experience cards, real-time sync feedback, and a sticky action sidebar.
+- **Premium UI Standardization**:
+  - Unified **Skills**, **Job Feed**, and **Cover Letters** under the modern `SharedPageLayout` and `PageHeader` architecture.
+  - Standardized all module search and filter components for absolute design parity.
+  - Refined the **Settings Modal** with a high-density 3-column layout and improved visual hierarchy.
+  - Optimized **UnifiedUploadHero** for better proportions across Education and Career modules.
+- **Plans & Upgrade Flow**: Migrated plans to a focused `/upgrade` path with refined aesthetic cards and standardized usage limits.
+- **Skills Dashboard**: Refined "Your Skills" dashboard with alphabetical sorting, improved metadata contrast, and streamlined action flows.
+
+### Fixed
+- **Stability**: Resolved critical crashes on the `/features` page and standardized `BentoCard` icons.
+- **Navigation**: Finalized "Back" button patterns and standardized transition effects across listing pages.
+
+
+
 ## [2.17.0] - 2026-02-20
 
 ### Added

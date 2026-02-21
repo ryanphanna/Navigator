@@ -10,6 +10,7 @@ export const ComparisonTable = () => {
         { name: 'Daily Job Alerts', nav: true, jobscan: true, teal: true, rezi: false },
         { name: 'Career Coach AI', nav: true, jobscan: false, teal: true, rezi: false },
         { name: 'Skills Audit & Gap Analysis', nav: true, jobscan: true, teal: true, rezi: true },
+        { name: 'Skill Verification Interviews', nav: true, jobscan: false, teal: false, rezi: false },
     ];
 
     return (

@@ -14,6 +14,7 @@ interface PlanCardProps {
         analysesPeriod: string;
         emails: number;
         mentors: number | string;
+        interviews: number | string;
     };
     subText?: string;
     onSelect: () => void;
@@ -54,8 +55,8 @@ export const PlanCard = ({
             className={`relative flex flex-col rounded-[2.5rem] border transition-all duration-500 bg-white dark:bg-neutral-900/60 backdrop-blur-3xl h-full group
                 ${isCompact ? 'p-6' : 'p-8'}
                 ${isPopular
-                    ? 'border-emerald-500/30 dark:border-emerald-500/20 shadow-[0_20px_50px_-15px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/10'
-                    : 'border-neutral-200 dark:border-neutral-800 shadow-xl shadow-neutral-900/5'
+                    ? 'border-emerald-500/30 dark:border-emerald-500/20 shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500/10'
+                    : 'border-neutral-200 dark:border-neutral-800'
                 } `}
         >
             {isPopular && (
@@ -121,10 +122,10 @@ export const PlanCard = ({
 
                 {/* Usage Limits Section (Only in Default variant) */}
                 {!isCompact && limits && (
-                    <div className="p-4 rounded-3xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-100 dark:border-neutral-800/50 space-y-3 mb-6 shadow-inner">
+                    <div className="p-4 rounded-3xl bg-neutral-50/50 dark:bg-neutral-800/20 border border-neutral-100/50 dark:border-neutral-800/30 space-y-3 mb-6">
                         <div className="flex justify-between items-center text-[10px]">
                             <div className="flex items-center gap-1.5">
-                                <span className="font-black text-neutral-400 uppercase tracking-widest">Jobs</span>
+                                <span className="font-bold text-neutral-400 capitalize tracking-wide">Jobs</span>
                                 <SimpleTooltip content="How many jobs you can save and have analyzed. Each job gets a detailed compatibility breakdown.">
                                     <Info className="w-3 h-3 text-neutral-300" />
                                 </SimpleTooltip>
@@ -142,16 +143,25 @@ export const PlanCard = ({
                         </div>
                         <div className="flex justify-between items-center text-[10px]">
                             <div className="flex items-center gap-1.5">
-                                <span className="font-black text-neutral-400 uppercase tracking-widest">Alerts</span>
+                                <span className="font-bold text-neutral-400 capitalize tracking-wide">Alerts</span>
                             </div>
                             <span className="font-black text-neutral-900 dark:text-white">{limits.emails === 0 ? '—' : limits.emails}</span>
                         </div>
                         <div className="flex justify-between items-center text-[10px]">
                             <div className="flex items-center gap-1.5">
-                                <span className="font-black text-neutral-400 uppercase tracking-widest">Mentors</span>
+                                <span className="font-bold text-neutral-400 capitalize tracking-wide">Mentors</span>
                             </div>
                             <span className="font-black text-neutral-900 dark:text-white">
                                 {limits.mentors === Infinity || limits.mentors === 'Unlimited' ? 'Unlimited' : limits.mentors === 0 ? '—' : limits.mentors}
+                            </span>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px]">
+                            <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-neutral-400 capitalize tracking-wide">Interviews</span>
+                            </div>
+                            <span className="font-black text-neutral-900 dark:text-white">
+                                {limits.interviews === 0 ? '—' : limits.interviews}
+                                {limits.interviews !== 0 && typeof limits.interviews === 'number' && <span className="text-neutral-300 font-bold ml-0.5">/ mo</span>}
                             </span>
                         </div>
                     </div>

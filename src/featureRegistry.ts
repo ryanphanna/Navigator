@@ -537,6 +537,47 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         link: '/education/gpa',
         rank: 12,
     },
+    // ─── System Notices (Pseudo-features) ──────────────────────────────
+    _NOTICE_ARCHETYPE: {
+        id: '_notice_archetype',
+        key: '_NOTICE_ARCHETYPE',
+        name: 'Current Focus Update',
+        shortName: 'Update Focus',
+        description: {
+            short: 'Recommendations work best when your focus is current.',
+            full: 'It has been a few months since you updated your career focus. Review your trajectory to keep Navigator sharp.',
+            plan: '',
+        },
+        action: { short: 'Update Now', full: 'Update' },
+        iconName: 'Activity',
+        colorKey: 'indigo',
+        category: 'JOB',
+        tier: 'explorer',
+        targetView: 'settings', // Trigger settings modal
+        link: '#',
+        rank: 999,
+        showOnHomepage: false,
+    },
+    _NOTICE_TOS: {
+        id: '_notice_tos',
+        key: '_NOTICE_TOS',
+        name: 'Policy Update',
+        shortName: 'Policy Update',
+        description: {
+            short: 'We have updated our Terms & Privacy policy.',
+            full: 'Please review the latest changes to our Terms of Service and Privacy Policy to continue using Navigator.',
+            plan: '',
+        },
+        action: { short: 'Review', full: 'Review' },
+        iconName: 'Shield',
+        colorKey: 'rose',
+        category: 'JOB',
+        tier: 'explorer',
+        targetView: 'terms',
+        link: '/terms',
+        rank: 999,
+        showOnHomepage: false,
+    },
 } as const;
 
 // ─── Categories ────────────────────────────────────────────────────────

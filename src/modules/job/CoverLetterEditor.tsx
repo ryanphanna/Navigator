@@ -4,6 +4,7 @@ import { Storage } from '../../services/storageService';
 import type { UserTier } from '../../types/app';
 import { generateCoverLetter, generateCoverLetterWithQuality, critiqueCoverLetter } from '../../services/geminiService';
 import { ANALYSIS_PROMPTS } from '../../prompts/analysis';
+import { ArchetypeUtils } from '../../utils/archetypeUtils';
 import {
     Loader2, Sparkles, AlertCircle, PenTool, ThumbsUp, ThumbsDown,
     Copy, Check, CheckCircle, Users
@@ -12,11 +13,12 @@ import ReactMarkdown from 'react-markdown';
 import { TRACKING_EVENTS } from '../../constants';
 import { useToast } from '../../contexts/ToastContext';
 import { EventService } from '../../services/eventService';
+import { JobStorage } from '../../services/storage/jobStorage';
 
 interface CoverLetterEditorProps {
     job: SavedJob;
     analysis: JobAnalysis;
-    bestResume: ResumeProfile;
+    bestResume: ResumeProfile | undefined;
     userTier: UserTier;
     targetJobs: TargetJob[];
     onJobUpdate: (job: SavedJob) => void;
@@ -61,6 +63,11 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
     };
 
     const handleGenerateCoverLetter = async (critiqueContext?: string) => {
+        if (!bestResume) {
+            showError("Please upload a resume first.");
+            return;
+        }
+
         setGenerating(true);
         setAnalysisProgress("Generating cover letter...");
         try {
@@ -85,8 +92,16 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
 
                 trajectoryContext = `I am currently pursuing a career pivot / growth path towards: ${mainGoal.title}.`;
                 if (totalCount > 0) {
-                    trajectoryContext += `I have completed ${completedCount} out of ${totalCount} milestones in my 12 - month professional roadmap, including ${mainGoal.roadmap?.filter(m => m.status === 'completed').map(m => m.title).join(', ')}.`;
+                    trajectoryContext += ` I have completed ${completedCount} out of ${totalCount} milestones in my 12 - month professional roadmap, including ${mainGoal.roadmap?.filter(m => m.status === 'completed').map(m => m.title).join(', ')}.`;
                 }
+            }
+
+            // Historical Application Pattern (Archetypes)
+            const allJobs = await JobStorage.getJobs();
+            const archetypes = ArchetypeUtils.calculateArchetypes(allJobs);
+            if (archetypes.length > 0) {
+                const archetypesContext = `My established application pattern shows I am primarily targeting: ${archetypes.map(a => a.name).join(', ')}.`;
+                trajectoryContext = trajectoryContext ? `${trajectoryContext} ${archetypesContext}` : archetypesContext;
             }
 
             // Check eligibility for Agent Loop
@@ -220,11 +235,31 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
 
     // Auto-Generate on Mount if no letter exists
     React.useEffect(() => {
-        if (!localJob.coverLetter && !generating && !localJob.coverLetterCritique) {
+        if (!localJob.coverLetter && !generating && !localJob.coverLetterCritique && bestResume) {
             handleGenerateCoverLetter();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Run once on mount
+
+    if (!bestResume) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 bg-neutral-50 dark:bg-neutral-800/20 rounded-[2.5rem] border-2 border-dashed border-neutral-200 dark:border-neutral-800 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="w-20 h-20 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-6">
+                    <AlertCircle className="w-10 h-10 text-neutral-300" />
+                </div>
+                <h3 className="text-xl font-black text-neutral-900 dark:text-white mb-2 tracking-tight">Resume Required</h3>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm text-center mb-10 font-medium leading-relaxed">
+                    We need your resume to analyze your experience and tailor a high-impact cover letter for this specific role.
+                </p>
+                <button
+                    onClick={() => window.location.href = '/resume'}
+                    className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
+                >
+                    Upload My Resume
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
@@ -334,7 +369,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                         )}
 
                         {/* Editor / Content Area */}
-                        <div className="p-8 min-h-[500px] flex flex-col">
+                        <div className="p-6 min-h-[500px] flex flex-col">
                             {comparisonVersions ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
                                     {comparisonVersions.map((v, i) => (
@@ -462,10 +497,10 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                 {showContextInput || !localJob.coverLetter ? (
                                     <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                         <div>
-                                            <div className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2 flex justify-between">
-                                                <span>Personal Context</span>
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-xs font-bold text-neutral-400">Personal Context</span>
                                                 {localJob.coverLetter && (
-                                                    <button onClick={() => setShowContextInput(false)} className="text-indigo-600 hover:text-indigo-700">Cancel</button>
+                                                    <button onClick={() => setShowContextInput(false)} className="text-indigo-600 hover:text-indigo-700 text-xs">Cancel</button>
                                                 )}
                                             </div>
                                             <textarea
@@ -493,7 +528,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                 ) : (
                                     <div className="space-y-6">
                                         <div>
-                                            <div className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-3">AI Comparison Logic</div>
+                                            <div className="text-xs font-bold text-neutral-400 mb-3">AI Comparison Logic</div>
                                             <div className="space-y-3">
                                                 {(analysis.coverLetterTailoringInstructions || analysis.tailoringInstructions || [])
                                                     .slice(0, 3)
@@ -538,10 +573,10 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                             ) : (
                                                 <div className="space-y-6">
                                                     <div className="flex items-center justify-between">
-                                                        <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Decision Profile</span>
+                                                        <span className="text-xs font-bold text-neutral-400">Decision Profile</span>
                                                         <div className="flex items-baseline gap-1">
-                                                            <span className={`text-2xl font-black ${(localJob.coverLetterCritique.decision === 'Exceptional' || localJob.coverLetterCritique.decision === 'Strong') ? 'text-emerald-600' :
-                                                                localJob.coverLetterCritique.decision === 'Average' ? 'text-indigo-600' :
+                                                            <span className={`text-lg font-black ${(localJob.coverLetterCritique.decision === 'Exceptional' || localJob.coverLetterCritique.decision === 'Strong') ? 'text-emerald-600' :
+                                                                localJob.coverLetterCritique.decision === 'Average' ? 'text-blue-600' :
                                                                     'text-rose-600'
                                                                 }`}>
                                                                 {localJob.coverLetterCritique.decision}
@@ -550,7 +585,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                                                     </div>
 
                                                     <div className="space-y-3">
-                                                        <div className="text-[10px] font-black text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <div className="text-xs font-bold text-neutral-400 flex items-center gap-2">
                                                             <Sparkles className="w-3 h-3 text-indigo-500" /> Improvement Tips
                                                         </div>
                                                         <ul className="space-y-2">
@@ -601,6 +636,6 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
             <div className="lg:hidden space-y-6">
                 {/* Add Mobile-specific versions if needed, or simply render standard cards without sticky */}
             </div>
-        </div>
+        </div >
     );
 };

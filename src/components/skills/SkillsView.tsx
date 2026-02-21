@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { CustomSkill, ResumeProfile } from '../../types';
 import { Storage } from '../../services/storageService';
+import { SharedPageLayout } from '../common/SharedPageLayout';
+import { PageHeader } from '../ui/PageHeader';
 import { Zap } from 'lucide-react';
 import { StandardSearchBar } from '../common/StandardSearchBar';
 import { StandardFilterGroup } from '../common/StandardFilterGroup';
@@ -10,7 +12,6 @@ import { SkillCard } from './SkillCard';
 import { SkillsStats } from './SkillsStats';
 import { AddSkillModal } from './AddSkillModal';
 import { SkillSuggestions } from './SkillSuggestions';
-import { PageLayout } from '../common/PageLayout';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { STORAGE_KEYS } from '../../constants';
 
@@ -72,16 +73,17 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
     type ProficiencyFilter = typeof FILTER_OPTIONS[number]['id'];
 
     const [filter, setFilter] = useState<ProficiencyFilter>('all');
-    const [visibleCount, setVisibleCount] = useState(12);
 
-    const filteredSkills = skills.filter(s => {
-        const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter = filter === 'all' || s.proficiency === filter;
-        return matchesSearch && matchesFilter;
-    });
+    const filteredSkills = useMemo(() => {
+        return skills
+            .filter(s => {
+                const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesFilter = filter === 'all' || s.proficiency === filter;
+                return matchesSearch && matchesFilter;
+            })
+            .sort((a, b) => a.name.localeCompare(b.name));
+    }, [skills, searchTerm, filter]);
 
-    const visibleSkills = filteredSkills.slice(0, visibleCount);
-    const hasMore = filteredSkills.length > visibleCount;
 
     const handleSuggestSkills = async () => {
         setIsSuggesting(true);
@@ -117,9 +119,12 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
     };
 
     return (
-        <PageLayout
-            themeColor="emerald"
-        >
+        <SharedPageLayout className="theme-emerald" spacing="compact">
+            <PageHeader
+                title="Your Skills"
+                subtitle="Track and verify your professional technical proficiency."
+                icon={Zap}
+            />
             {/* Quick Stats */}
             <SkillsStats
                 skills={skills}
@@ -142,7 +147,7 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
                 <StandardSearchBar
                     value={searchTerm}
                     onChange={setSearchTerm}
-                    placeholder="Search your skills..."
+                    placeholder="Search"
                     themeColor="emerald"
                     rightElement={
                         <StandardFilterGroup
@@ -156,30 +161,7 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
             </div>
 
             {/* Skills Grid */}
-            {filteredSkills.length > 0 ? (
-                <>
-                    <div className="flex flex-wrap gap-2 mb-12 px-1">
-                        {visibleSkills.map((skill) => (
-                            <SkillCard
-                                key={skill.id}
-                                skill={skill}
-                                onDelete={handleDeleteSkill}
-                            />
-                        ))}
-                    </div>
-
-                    {hasMore && (
-                        <div className="flex justify-center pb-20">
-                            <button
-                                onClick={() => setVisibleCount(prev => prev + 12)}
-                                className="px-8 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl text-neutral-600 dark:text-neutral-300 font-bold text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-all shadow-sm active:scale-95"
-                            >
-                                Show More Skills ({filteredSkills.length - visibleCount} remaining)
-                            </button>
-                        </div>
-                    )}
-                </>
-            ) : (
+            {skills.length === 0 ? (
                 <div className="text-center py-32 bg-neutral-50 dark:bg-neutral-900/50 rounded-[3rem] border-2 border-dashed border-neutral-200 dark:border-neutral-800">
                     <div className="w-20 h-20 bg-white dark:bg-neutral-800 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
                         <Zap className="w-10 h-10 text-neutral-200" />
@@ -193,6 +175,30 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
                         Add your first skill
                     </button>
                 </div>
+            ) : filteredSkills.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mb-12 px-1">
+                    {filteredSkills.map((skill: CustomSkill) => (
+                        <SkillCard
+                            key={skill.id}
+                            skill={skill}
+                            onDelete={handleDeleteSkill}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-32 bg-neutral-50 dark:bg-neutral-900/50 rounded-[3rem] border-2 border-dashed border-neutral-200 dark:border-neutral-800">
+                    <div className="w-20 h-20 bg-white dark:bg-neutral-800 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                        <Zap className="w-10 h-10 text-neutral-200 opacity-50" />
+                    </div>
+                    <h3 className="text-xl font-bold text-neutral-900 dark:text-white tracking-tight">No skills match your search</h3>
+                    <p className="text-sm text-neutral-400 mt-2 font-medium">Try adjusting your filters or search term</p>
+                    <button
+                        onClick={() => { setSearchTerm(''); setFilter('all'); }}
+                        className="mt-8 text-emerald-600 font-bold hover:underline"
+                    >
+                        Clear all filters
+                    </button>
+                </div>
             )}
 
             {/* Add Skill Modal Overlay */}
@@ -201,6 +207,6 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
                 onAdd={handleAddSkill}
                 onClose={() => setIsAdding(false)}
             />
-        </PageLayout>
+        </SharedPageLayout>
     );
 };

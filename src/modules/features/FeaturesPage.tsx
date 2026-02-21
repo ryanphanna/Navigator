@@ -5,6 +5,7 @@ import {
     Sparkles, PenTool, RefreshCw, Zap, Shield, Bookmark,
     TrendingUp, Users, FileText, Mail, Rss, Globe,
     GraduationCap, Search, Calculator, MessageSquare,
+    Activity, School,
     type LucideIcon,
 } from 'lucide-react';
 import { BentoCard } from '../../components/ui/BentoCard';
@@ -22,7 +23,7 @@ type Tier = 'all' | 'explorer' | 'plus' | 'pro';
 const ICON_MAP: Record<string, LucideIcon> = {
     Sparkles, TrendingUp, Zap, FileText, GraduationCap, Bookmark,
     PenTool, Mail, RefreshCw, Shield, Users, Globe,
-    Search, Calculator, MessageSquare, Rss, School: Search, // School fallback
+    Search, Calculator, MessageSquare, Rss, Activity, School,
 };
 
 // ─── Filter Tabs ──────────────────────────────────────────────────────
@@ -58,6 +59,7 @@ export const FeaturesPage: React.FC = () => {
     // Get all features from registry (excluding admin-only for public features page)
     const allFeatures = useMemo(() => {
         return getAllFeatures()
+            .filter(f => !f.id.startsWith('_notice_')) // Filter system notices
             .filter(f => !f.requiresAdmin || f.isComingSoon)
             .sort((a, b) => a.rank - b.rank);
     }, []);

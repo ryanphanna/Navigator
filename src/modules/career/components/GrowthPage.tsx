@@ -6,7 +6,7 @@ import {
     TrendingUp,
     Sparkles
 } from 'lucide-react';
-import { SharedHeader } from '../../../components/common/SharedHeader';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import type { TargetJob } from '../../../types';
 import type { CoachViewType } from '../types';
 
@@ -33,12 +33,10 @@ export const GrowthPage: React.FC<GrowthPageProps> = ({
     if (jobsWithRoadmaps.length === 0) {
         return (
             <>
-                <SharedHeader
-                    title="Your Growth"
-                    highlight="Roadmap"
+                <PageHeader
+                    variant="hero"
+                    title="Your Growth Roadmap"
                     subtitle="Track your career milestones in one place."
-                    theme="coach"
-                    variant="compact"
                 />
 
                 <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -88,12 +86,10 @@ export const GrowthPage: React.FC<GrowthPageProps> = ({
     // Active state: roadmaps exist
     return (
         <>
-            <SharedHeader
-                title="Your Growth"
-                highlight="Roadmap"
+            <PageHeader
+                variant="hero"
+                title="Your Growth Roadmap"
                 subtitle="Track your career milestones in one place."
-                theme="coach"
-                variant="compact"
             />
 
             <div className="max-w-4xl mx-auto px-6 space-y-10 animate-in fade-in duration-500">

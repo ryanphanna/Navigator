@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowRight, type LucideIcon } from 'lucide-react';
+import { ArrowRight, X, type LucideIcon } from 'lucide-react';
 import type { FeatureColor } from '../../featureRegistry';
 
 export interface BentoCardProps {
@@ -11,6 +11,7 @@ export interface BentoCardProps {
     previewContent?: React.ReactNode;
     actionLabel?: string;
     onAction?: () => void;
+    onDismiss?: (e: React.MouseEvent) => void;
     isComingSoon?: boolean;
     className?: string;
 }
@@ -23,6 +24,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
     previewContent,
     actionLabel,
     onAction,
+    onDismiss,
     isComingSoon = false,
     className = "",
 }) => {
@@ -83,11 +85,24 @@ export const BentoCard: React.FC<BentoCardProps> = ({
             {/* Ambient Background Glow */}
             <div className={`absolute top-0 right-0 w-48 h-48 ${glowClass} rounded-full blur-[80px] -mr-24 -mt-24 transition-all duration-1000 opacity-30 group-hover:opacity-60 group-hover:scale-125`} />
 
+            {/* Dismiss Button */}
+            {onDismiss && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDismiss(e);
+                    }}
+                    className="absolute top-3 right-3 p-1.5 rounded-full bg-neutral-100/50 dark:bg-white/5 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-white/10 transition-all z-20"
+                >
+                    <X className="w-3 h-3" />
+                </button>
+            )}
+
             <div className="flex items-start gap-3 relative z-10 mb-2 min-h-[2.5rem]">
                 <div className={`w-10 h-10 shrink-0 ${iconBgClass} ${iconColorClass} rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/10 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out`}>
                     <Icon className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-black text-neutral-900 dark:text-white tracking-tight leading-tight pt-0.5 flex items-center gap-2">
+                <h3 className="text-lg font-black text-neutral-900 dark:text-white tracking-tight leading-tight pt-0.5 flex items-center gap-2 pr-6">
                     {title}
                     {isComingSoon && (
                         <span className="px-1.5 py-0.5 bg-neutral-100 dark:bg-white/5 text-[8px] font-black uppercase tracking-wider text-neutral-400 dark:text-neutral-500 rounded-md border border-neutral-200/50 dark:border-white/5">

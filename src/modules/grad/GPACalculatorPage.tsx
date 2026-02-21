@@ -1,31 +1,25 @@
 import React from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
-import { SharedHeader } from '../../components/common/SharedHeader';
+import { ROUTES } from '../../constants';
+import { PageHeader } from '../../components/ui/PageHeader';
 import { GPACalculator } from './GPACalculator';
 import { useCoachContext } from '../career/context/CoachContext';
-import { Link } from 'react-router-dom';
-import { ROUTES } from '../../constants';
-import { ArrowLeft } from 'lucide-react';
 
 export const GPACalculatorPage: React.FC = () => {
+    const navigate = useNavigate();
     const { transcript } = useCoachContext();
 
     return (
-        <SharedPageLayout maxWidth="full" className="relative">
+        <SharedPageLayout maxWidth="full" className="relative theme-edu" spacing="compact">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="mb-8">
-                    <Link to={ROUTES.EDUCATION_HOME} className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors mb-4">
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Education
-                    </Link>
-                    <SharedHeader
-                        title="GPA"
-                        highlight="Calculator"
-                        subtitle="Calculate your current GPA and forecast future performance scenarios."
-                        theme="edu"
-                        variant="compact"
-                    />
-                </div>
+                <PageHeader
+                    variant="hero"
+                    title="GPA Calculator"
+                    subtitle="Calculate your current GPA and forecast future performance scenarios."
+                    onBack={() => navigate(ROUTES.EDUCATION_HOME)}
+                    className="mb-8"
+                />
 
                 {transcript ? (
                     <GPACalculator transcript={transcript} />

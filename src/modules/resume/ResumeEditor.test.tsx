@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ResumeEditor from './ResumeEditor';
 import { STORAGE_KEYS, TRACKING_EVENTS } from '../../constants';
@@ -19,9 +20,9 @@ vi.mock('./context/ResumeContext', () => ({
     }),
 }));
 
-// Mock PageLayout to simplify DOM
-vi.mock('../../components/common/PageLayout', () => ({
-    PageLayout: ({ children }: { children: React.ReactNode }) => <div data-testid="page-layout">{children}</div>,
+// Mock SharedPageLayout to simplify DOM
+vi.mock('../../components/common/SharedPageLayout', () => ({
+    SharedPageLayout: ({ children }: { children: React.ReactNode }) => <div data-testid="shared-page-layout">{children}</div>,
 }));
 
 describe('ResumeEditor', () => {

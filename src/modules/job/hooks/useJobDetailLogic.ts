@@ -103,7 +103,6 @@ export const useJobDetailLogic = ({
 
             await Storage.updateJob(updatedJob);
             onUpdateJob(updatedJob);
-            showSuccess("Experience block hyper-tailored!");
         } catch (err) {
             showError("Tailoring failed: " + (err as Error).message);
         } finally {
@@ -153,7 +152,6 @@ export const useJobDetailLogic = ({
 
             await Storage.updateJob(currentJob);
             onUpdateJob(currentJob);
-            showSuccess(`${untailored.length} blocks tailored!`);
         } catch (err) {
             // Save partial progress
             await Storage.updateJob(currentJob);
@@ -176,8 +174,7 @@ export const useJobDetailLogic = ({
 
         await Storage.updateJob(updatedJob);
         onUpdateJob(updatedJob);
-        showSuccess("Reset to original");
-    }, [job, onUpdateJob, showSuccess]);
+    }, [job, onUpdateJob]);
 
     const handleGenerateSummary = useCallback(async () => {
         if (!analysis || generatingSummary) return;
@@ -190,7 +187,6 @@ export const useJobDetailLogic = ({
             const updatedJob: SavedJob = { ...job, tailoredSummary: summary };
             await Storage.updateJob(updatedJob);
             onUpdateJob(updatedJob);
-            showSuccess("Professional summary generated!");
         } catch (err) {
             showError("Summary generation failed: " + (err as Error).message);
         } finally {

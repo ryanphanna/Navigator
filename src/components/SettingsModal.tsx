@@ -26,7 +26,8 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, user, userTier, isTester, isAdmin, simulatedTier, usageStats }) => {
     const { openModal } = useModal();
     const { showInfo, showError } = useToast();
-    const { updateProfile, journey } = useUser();
+    const { journey } = useUser();
+
     const [isCopyingToken, setIsCopyingToken] = React.useState(false);
     const [isCopyingEmail, setIsCopyingEmail] = React.useState(false);
 
@@ -102,12 +103,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                 </div>
 
                 <div className="flex-1 overflow-hidden relative z-10 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-neutral-100 dark:divide-neutral-800">
-
                     {/* Column 1: Account */}
-                    <div className="flex flex-col p-8 pb-12 md:pb-8 bg-neutral-50/30 dark:bg-neutral-900/10 overflow-y-auto custom-scrollbar">
+                    <div className="flex flex-col p-8 overflow-y-auto custom-scrollbar">
                         <div className="space-y-8">
-                            <div>
-                                <h4 className="font-bold text-[11px] text-neutral-400 uppercase tracking-widest mb-6">Account</h4>
+                            {/* Row 1: Identity */}
+                            <div className="min-h-[110px]">
+                                <h4 className="font-bold text-xs text-neutral-400 capitalize mb-6">Account</h4>
                                 <div className="flex flex-col gap-1 mb-4">
                                     <div className="text-sm font-bold text-neutral-900 dark:text-white truncate">{user?.email || 'Not Signed In'}</div>
                                     <div className="flex gap-2 mt-2">
@@ -134,56 +135,46 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                     >
                                         Change Password
                                     </Button>
+                                </div>
+                            </div>
 
-                                    <div className="w-full mt-4 space-y-2">
-                                        <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest block">
-                                            Current Focus
-                                        </label>
-                                        <select
-                                            value={journey}
-                                            onChange={(e) => updateProfile({ journey: e.target.value })}
-                                            className="w-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none cursor-pointer"
-                                            style={{
-                                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='currentColor' class='w-4 h-4 text-neutral-500'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9' /%3E%3C/svg%3E")`,
-                                                backgroundRepeat: 'no-repeat',
-                                                backgroundPosition: 'right 0.75rem center',
-                                                backgroundSize: '1rem',
-                                                paddingRight: '2.5rem'
-                                            }}
-                                        >
-                                            <option value="job-hunter">Job Hunting</option>
-                                            <option value="employed">Planning Career</option>
-                                            <option value="student">Focusing on Grad School</option>
-                                        </select>
-                                        <p className="text-[10px] text-neutral-500 dark:text-neutral-400 leading-snug">
-                                            Customizes the resources and recommendations on your home screen.
-                                        </p>
-                                    </div>
+                            {/* Row 2: Focus */}
+                            <div className="min-h-[110px]">
+                                <h4 className="font-bold text-xs text-neutral-400 capitalize mb-6">Current Focus</h4>
+                                <div className="flex items-center gap-2">
+                                    <Activity className="w-3 h-3 text-indigo-500" />
+                                    <span className="text-sm font-bold text-neutral-900 dark:text-white capitalize">
+                                        {journey.replace('-', ' ')}
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Column 2: Plan & Usage */}
-                    <div className="flex flex-col p-8 pb-12 md:pb-8 bg-white dark:bg-[#0a0a0a]">
-                        <div className="flex-1 space-y-8">
-                            <div>
-                                <h4 className="font-bold text-[11px] text-neutral-400 uppercase tracking-widest mb-6">Plan & Usage</h4>
+                    <div className="flex flex-col p-8 overflow-y-auto custom-scrollbar">
+                        <div className="space-y-8">
+                            {/* Row 1: Plan */}
+                            <div className="min-h-[110px]">
+                                <h4 className="font-bold text-xs text-neutral-400 capitalize mb-6">Plan</h4>
 
-                                <div className="flex items-center justify-between mb-8">
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <Star className="w-3 h-3 text-amber-500" />
-                                            <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Current Plan</span>
-                                        </div>
-                                        <span className="text-sm font-bold text-neutral-900 dark:text-white capitalize">
-                                            {simulatedTier ?
-                                                (simulatedTier === 'free' ? 'Explorer' : (simulatedTier === 'plus' ? 'Plus' : 'Pro')) :
-                                                (userTier === 'free' ? 'Explorer' : (userTier === 'plus' ? 'Plus' : 'Pro'))
-                                            }
-                                        </span>
+                                <div className="flex flex-col">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Star className="w-3 h-3 text-amber-500" />
+                                        <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Current Plan</span>
                                     </div>
+                                    <span className="text-sm font-bold text-neutral-900 dark:text-white capitalize">
+                                        {simulatedTier ?
+                                            (simulatedTier === 'free' ? 'Explorer' : (simulatedTier === 'plus' ? 'Plus' : 'Pro')) :
+                                            (userTier === 'free' ? 'Explorer' : (userTier === 'plus' ? 'Plus' : 'Pro'))
+                                        }
+                                    </span>
                                 </div>
+                            </div>
+
+                            {/* Row 2: Usage */}
+                            <div className="min-h-[110px] space-y-6">
+                                <h4 className="font-bold text-xs text-neutral-400 capitalize mb-6">Usage</h4>
 
                                 <div className="space-y-4">
                                     {/* Jobs Analyzed */}
@@ -191,7 +182,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                         <div className="flex justify-between items-end">
                                             <div className="flex items-center gap-2">
                                                 <Activity className="w-3 h-3 text-emerald-500" />
-                                                <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                                                <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
                                                     Jobs Analyzed {usageStats?.analysisPeriod === 'weekly' ? '(this week)' : usageStats?.analysisPeriod === 'lifetime' ? '(total)' : '(today)'}
                                                 </span>
                                             </div>
@@ -208,13 +199,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                         </div>
                                     </div>
 
-                                    {/* Inbound Emails (Gate 1) */}
+                                    {/* Inbound Emails */}
                                     {usageStats?.emailLimit > 0 && (
                                         <div className="space-y-2">
                                             <div className="flex justify-between items-end">
                                                 <div className="flex items-center gap-2">
                                                     <Mail className="w-3 h-3 text-indigo-500" />
-                                                    <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Inbound Emails</span>
+                                                    <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Inbound Emails</span>
                                                 </div>
                                                 <span className="text-sm font-bold text-neutral-900 dark:text-white">
                                                     {usageStats?.todayEmails || 0} <span className="text-neutral-300 dark:text-neutral-600 font-normal">/ {(isAdmin || isTester) && !simulatedTier ? '∞' : usageStats?.emailLimit}</span>
@@ -228,9 +219,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                                             </div>
                                         </div>
                                     )}
-
-
-
                                 </div>
                             </div>
                         </div>
@@ -253,47 +241,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, u
                     </div>
 
                     {/* Column 3: Integrations */}
-                    <div className="flex flex-col p-8 pb-12 md:pb-8 bg-neutral-50/30 dark:bg-neutral-900/10 overflow-y-auto custom-scrollbar">
-                        <h4 className="font-bold text-[11px] text-neutral-400 uppercase tracking-widest mb-6">Integrations</h4>
-
+                    <div className="flex flex-col p-8 overflow-y-auto custom-scrollbar">
                         <div className="space-y-8">
-                            {/* Browser Extension */}
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <Puzzle className="w-3 h-3 text-blue-500" />
-                                    <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Browser Extension</span>
-                                </div>
-                                <p className="text-[10px] text-neutral-500 leading-relaxed">
-                                    Save jobs from anywhere using our browser extension.
-                                </p>
+                            {/* Row 1: Extension */}
+                            <div className="min-h-[110px]">
+                                <h4 className="font-bold text-xs text-neutral-400 capitalize mb-6">Integrations</h4>
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Puzzle className="w-3 h-3 text-blue-500" />
+                                        <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Browser Extension</span>
+                                    </div>
 
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleCopyToken}
-                                    icon={isCopyingToken ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                                    className="!px-0 !justify-start !text-neutral-900 dark:!text-white hover:!text-neutral-600 dark:hover:!text-neutral-300"
-                                >
-                                    {isCopyingToken ? 'Copied Token!' : 'Copy Access Token'}
-                                </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleCopyToken}
+                                        icon={isCopyingToken ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                                        className="!px-0 !justify-start !text-neutral-900 dark:!text-white hover:!text-neutral-600 dark:hover:!text-neutral-300"
+                                    >
+                                        {isCopyingToken ? 'Copied Token!' : 'Copy Access Token'}
+                                    </Button>
+                                </div>
                             </div>
 
-                            <div className="h-px bg-neutral-100 dark:bg-neutral-800/50 w-full" />
-
-                            {/* Email Alerts */}
-                            <div className="space-y-3">
+                            {/* Row 2: Alerts */}
+                            <div className="min-h-[110px] space-y-3">
                                 <div className="flex items-center gap-2 mb-1">
                                     <Mail className="w-3 h-3 text-indigo-500" />
-                                    <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Email Alerts</span>
+                                    <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Email Alerts</span>
                                     {(!isAdmin && !isTester) && (
                                         <span className="px-1.5 py-0.5 bg-neutral-100 dark:bg-white/5 text-[8px] font-black uppercase tracking-wider text-neutral-400 dark:text-neutral-500 rounded-md border border-neutral-200/50 dark:border-white/5 ml-1">
                                             Soon
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-[10px] text-neutral-500 leading-relaxed">
-                                    Email jobs to your unique address and we'll process them automatically.
-                                </p>
 
                                 {(usageStats?.inboundEmailToken || isAdmin || isTester) ? (
                                     <Button

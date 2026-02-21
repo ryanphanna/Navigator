@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Upload, FileText, AlertCircle, Loader2 } from 'lucide-react';
+import { FEATURE_COLORS } from '../../featureRegistry';
 
 interface DropZoneProps {
     onUpload: (files: File[]) => Promise<void> | void;
@@ -88,14 +89,18 @@ export const DropZone: React.FC<DropZoneProps> = ({
 
             <div className={`
                 relative transition-all duration-500 cursor-pointer overflow-hidden flex flex-col flex-1 h-full
-                ${variant === 'hero' ? 'p-12 rounded-[3.5rem]' : 'p-8 rounded-[2.5rem]'}
+                ${variant === 'hero' ? 'p-12 rounded-[3.5rem]' : 'p-4 rounded-3xl'}
                 ${variant === 'compact' ? 'p-6 rounded-[2rem]' : ''}
-                border-2 border-dashed
+                border
                 ${isDragging
                     ? themes[themeColor]
-                    : 'border-neutral-200 dark:border-neutral-800 bg-white/40 dark:bg-neutral-900/40 backdrop-blur-xl hover:border-neutral-300 dark:hover:border-neutral-700 shadow-sm hover:shadow-xl hover:shadow-neutral-200/20 dark:hover:shadow-black/20'
+                    : 'bg-white dark:bg-neutral-900/40 backdrop-blur-2xl border-neutral-200 dark:border-white/10 shadow-xl shadow-black/5 dark:shadow-none hover:shadow-2xl hover:shadow-indigo-500/10'
                 }
             `}>
+                {/* Ambient Background Glow for Card Variant */}
+                {variant === 'card' && !isDragging && (
+                    <div className={`absolute top-0 right-0 w-48 h-48 ${FEATURE_COLORS[themeColor]?.glow || 'bg-accent-primary/10'} rounded-full blur-[80px] -mr-24 -mt-24 transition-all duration-1000 opacity-30 group-hover:opacity-60 group-hover:scale-125`} />
+                )}
                 <div className={`flex flex-col items-center text-center flex-1 h-full w-full`}>
                     <div className={`flex-1 flex flex-col items-center justify-center w-full ${isCompact ? 'space-y-4' : 'space-y-6'} mb-6`}>
                         {isLoading ? (
@@ -108,7 +113,9 @@ export const DropZone: React.FC<DropZoneProps> = ({
                                 transition-all duration-500 flex items-center justify-center 
                                 ${isDragging
                                     ? iconColors[themeColor]
-                                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 group-hover:scale-110 group-hover:rotate-3 group-hover:bg-white dark:group-hover:bg-neutral-700 shadow-sm'
+                                    : variant === 'card'
+                                        ? `${FEATURE_COLORS[themeColor]?.iconBg || 'bg-neutral-100 dark:bg-white/5'} ${FEATURE_COLORS[themeColor] ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'} shadow-lg shadow-indigo-500/10 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out`
+                                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 group-hover:scale-110 group-hover:rotate-3 group-hover:bg-white dark:group-hover:bg-neutral-700 shadow-sm'
                                 }
                             `}>
                                 <Upload className={isCompact ? 'w-6 h-6' : 'w-10 h-10'} />
@@ -116,7 +123,7 @@ export const DropZone: React.FC<DropZoneProps> = ({
                         )}
 
                         <div className="space-y-2">
-                            <h3 className={`font-black tracking-tight text-neutral-900 dark:text-white ${isHero ? 'text-2xl' : 'text-xl'} ${isCompact ? 'text-lg' : ''}`}>
+                            <h3 className={`font-black tracking-tight text-neutral-900 dark:text-white ${isHero ? 'text-2xl' : variant === 'card' ? 'text-lg' : 'text-xl'} ${isCompact ? 'text-lg' : ''} leading-tight`}>
                                 {isLoading ? loadingText : title}
                             </h3>
                             {description && (
@@ -128,16 +135,16 @@ export const DropZone: React.FC<DropZoneProps> = ({
 
                         {!isLoading && !isCompact && (
                             <div className="flex items-center gap-3 pt-2">
-                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-[10px] font-black uppercase tracking-widest text-neutral-500 group-hover:bg-white dark:group-hover:bg-neutral-700 transition-colors">
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-[10px] font-black text-neutral-500 group-hover:bg-white dark:group-hover:bg-neutral-700 transition-colors">
                                     <FileText className="w-3.5 h-3.5" />
-                                    {accept.replace(/\./g, '').split(',')[0].toUpperCase()}
+                                    {accept.replace(/\./g, '').split(',')[0]}
                                 </div>
                             </div>
                         )}
                     </div>
 
                     {children && (
-                        <div className="w-full mt-auto pt-4 border-t border-neutral-100 dark:border-neutral-800/50" onClick={(e) => e.stopPropagation()}>
+                        <div className="w-full mt-auto pt-4 border-t border-neutral-100 dark:border-white/5" onClick={(e) => e.stopPropagation()}>
                             {children}
                         </div>
                     )}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
-import { SharedHeader } from '../../components/common/SharedHeader';
+import { PageHeader } from '../../components/ui/PageHeader';
 import { MAEligibility } from './MAEligibility';
 import { SkillExtractor } from './SkillExtractor';
 import { ProgramExplorer } from './components/ProgramExplorer';
@@ -43,16 +43,14 @@ export const ProgramExplorerPage: React.FC = () => {
     };
 
     return (
-        <SharedPageLayout maxWidth="full" className="relative">
+        <SharedPageLayout maxWidth="full" className="relative theme-edu" spacing="compact">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-8">
 
-                    <SharedHeader
-                        title="Program"
-                        highlight="Explorer"
+                    <PageHeader
+                        variant="hero"
+                        title="Program Explorer"
                         subtitle="Explore master's degrees and check your eligibility for top programs."
-                        theme="edu"
-                        variant="compact"
                     />
                 </div>
 

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
     Sparkles, Zap, Bookmark,
-    Loader2, ExternalLink, RefreshCw
+    Loader2, ExternalLink
 } from 'lucide-react';
 import { ScraperService } from '../../services/scraperService';
 import { supabase } from '../../services/supabase';
 import { analyzeJobFit } from '../../services/geminiService';
 import type { JobFeedItem, ResumeRow } from '../../types';
-import { PageLayout } from '../../components/common/PageLayout';
+import { SharedPageLayout } from '../../components/common/SharedPageLayout';
+import { PageHeader } from '../../components/ui/PageHeader';
 import { STORAGE_KEYS } from '../../constants';
 import { StandardSearchBar } from '../../components/common/StandardSearchBar';
 
@@ -224,42 +225,41 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
 
 
     return (
-        <PageLayout
-            themeColor="indigo"
-        >
+        <SharedPageLayout className="theme-job" spacing="compact">
+            <PageHeader
+                title="Job Feed"
+                subtitle="Your personalized stream of high-match professional opportunities."
+                icon={Sparkles}
+            />
             {/* Filters Row */}
             <div className="flex flex-col md:flex-row items-center gap-4 mb-10">
                 <StandardSearchBar
                     value={searchTerm}
                     onChange={setSearchTerm}
-                    placeholder="Search feed..."
+                    placeholder="Search"
                     themeColor="indigo"
                     className="flex-1"
                 />
 
                 <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide w-full md:w-auto">
-                    <div className="flex items-center gap-1.5 bg-neutral-100 dark:bg-neutral-800/50 p-1 rounded-[1.5rem] border border-neutral-200 dark:border-neutral-700 forced-colors:border-current">
-                        <button
-                            onClick={() => setSort('date')}
-                            className={`px-5 py-2 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 ${sort === 'date'
-                                ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm'
-                                : 'text-neutral-400 hover:text-neutral-500'
-                                }`}
-                        >
-                            Newest
-                        </button>
-                        <button
-                            onClick={() => setSort('match')}
-                            className={`px-5 py-2 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 ${sort === 'match'
-                                ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm'
-                                : 'text-neutral-400 hover:text-neutral-500'
-                                }`}
-                        >
-                            Best Fit
-                        </button>
-                    </div>
-
-                    <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-800 mx-1 shrink-0" />
+                    <button
+                        onClick={() => setSort('date')}
+                        className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 border whitespace-nowrap ${sort === 'date'
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/20'
+                            : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:border-indigo-300 dark:hover:border-indigo-700'
+                            }`}
+                    >
+                        Newest
+                    </button>
+                    <button
+                        onClick={() => setSort('match')}
+                        className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 border whitespace-nowrap ${sort === 'match'
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/20'
+                            : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:border-indigo-300 dark:hover:border-indigo-700'
+                            }`}
+                    >
+                        Best Fit
+                    </button>
 
                     <button
                         onClick={() => setFilterHighMatch(!filterHighMatch)}
@@ -282,14 +282,6 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
                         Closing Soon
                     </button>
 
-                    <button
-                        onClick={loadFeed}
-                        disabled={loading}
-                        className="p-2.5 bg-white dark:bg-neutral-800 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm transition-all disabled:opacity-50 shrink-0"
-                        title="Refresh Feed"
-                    >
-                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                    </button>
                 </div>
             </div>
 
@@ -392,6 +384,6 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
                     ))}
                 </div>
             )}
-        </PageLayout>
+        </SharedPageLayout>
     );
 };

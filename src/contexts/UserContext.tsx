@@ -16,8 +16,12 @@ interface UserContextType {
     signOut: () => Promise<void>;
     setSimulatedTier: (tier: UserTier | null) => void; // Admin-only: simulate viewing as different tier
     simulatedTier: UserTier | null;
-    updateProfile: (updates: Partial<{ first_name: string; last_name: string; device_id: string; journey: string }>) => Promise<void>;
+    updateProfile: (updates: Partial<{ first_name: string; last_name: string; device_id: string; journey: string; last_archetype_update: number; accepted_tos_version: number }>) => Promise<void>;
     journey: string; // User's onboarding journey stage (student, job-hunter, etc.)
+    lastArchetypeUpdate: number;
+    acceptedTosVersion: number;
+    dismissedNotices: Record<string, number>;
+    dismissNotice: (id: string, snoozeDays?: number) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -33,6 +37,28 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return localStorage.getItem('navigator_user_journey') || 'job-hunter';
         }
         return 'job-hunter';
+    });
+    const [lastArchetypeUpdate, setLastArchetypeUpdate] = useState<number>(() => {
+        if (typeof window !== 'undefined') {
+            return parseInt(localStorage.getItem('navigator_last_archetype_update') || '0');
+        }
+        return 0;
+    });
+    const [acceptedTosVersion, setAcceptedTosVersion] = useState<number>(() => {
+        if (typeof window !== 'undefined') {
+            return parseInt(localStorage.getItem('navigator_accepted_tos_version') || '0');
+        }
+        return 0;
+    });
+    const [dismissedNotices, setDismissedNotices] = useState<Record<string, number>>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                return JSON.parse(localStorage.getItem('navigator_dismissed_notices') || '{}');
+            } catch {
+                return {};
+            }
+        }
+        return {};
     });
     const [isLoading, setIsLoading] = useState(true);
 
@@ -101,12 +127,26 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         // Initial Session Check
         supabase.auth.getSession().then(({ data: { session } }) => {
-            processUser(session?.user ?? null);
+            if (session?.user) {
+                processUser(session.user);
+            } else if (typeof window !== 'undefined' && localStorage.getItem('navigator_test_user')) {
+                // Mock user for E2E tests
+                processUser({ id: 'test-user', email: 'test@example.com' } as any);
+                setActualTier((localStorage.getItem('navigator_user_tier') as any) || 'free');
+            } else {
+                processUser(null);
+            }
         });
 
         // Auth Change Listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            processUser(session?.user ?? null);
+            if (session?.user) {
+                processUser(session.user);
+            } else if (typeof window !== 'undefined' && localStorage.getItem('navigator_test_user')) {
+                processUser({ id: 'test-user', email: 'test@example.com' } as any);
+            } else {
+                processUser(null);
+            }
         });
 
         return () => subscription.unsubscribe();
@@ -123,30 +163,63 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         window.location.href = '/';
     };
 
-    const updateProfile = async (updates: Partial<{ first_name: string; last_name: string; device_id: string; journey: string }>) => {
+    const updateProfile = async (updates: Partial<{ first_name: string; last_name: string; device_id: string; journey: string; last_archetype_update: number; accepted_tos_version: number }>) => {
         if (!user) {
             // If not logged in, just update local state/storage
             if (updates.journey) {
                 setJourney(updates.journey);
                 localStorage.setItem('navigator_user_journey', updates.journey);
             }
+            if (updates.last_archetype_update) {
+                setLastArchetypeUpdate(updates.last_archetype_update);
+                localStorage.setItem('navigator_last_archetype_update', updates.last_archetype_update.toString());
+            }
+            if (updates.accepted_tos_version) {
+                setAcceptedTosVersion(updates.accepted_tos_version);
+                localStorage.setItem('navigator_accepted_tos_version', updates.accepted_tos_version.toString());
+            }
             return;
         }
 
         const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
+
+        // Optimistically update local state for better UX, even if DB update fails 
+        // (common if schema is out of sync in local dev)
+        if (updates.journey) {
+            setJourney(updates.journey);
+            localStorage.setItem('navigator_user_journey', updates.journey);
+
+            // Auto-update archetype timestamp when journey is changed
+            const now = Date.now();
+            setLastArchetypeUpdate(now);
+            localStorage.setItem('navigator_last_archetype_update', now.toString());
+        }
+
+        if (updates.last_archetype_update) {
+            setLastArchetypeUpdate(updates.last_archetype_update);
+            localStorage.setItem('navigator_last_archetype_update', updates.last_archetype_update.toString());
+        }
+
+        if (updates.accepted_tos_version) {
+            setAcceptedTosVersion(updates.accepted_tos_version);
+            localStorage.setItem('navigator_accepted_tos_version', updates.accepted_tos_version.toString());
+        }
+
         if (error) {
             // Handle missing column gracefully in manual updates too
-            if (error.code === 'PGRST204' || error.message?.includes('device_id')) {
-                console.warn("Profile update partially skipped: some columns (like 'device_id') might be missing in DB.");
+            if (error.code === 'PGRST204' || error.message?.includes('device_id') || error.message?.includes('journey') || error.message?.includes('last_archetype_update') || error.message?.includes('accepted_tos_version')) {
+                console.warn("Profile update partially skipped: some columns might be missing in DB.");
             } else {
                 console.error("Failed to update profile context", error);
             }
-        } else {
-            if (updates.journey) {
-                setJourney(updates.journey);
-                localStorage.setItem('navigator_user_journey', updates.journey);
-            }
         }
+    };
+
+    const dismissNotice = (id: string, snoozeDays: number = 0) => {
+        const expiration = snoozeDays > 0 ? Date.now() + snoozeDays * 24 * 60 * 60 * 1000 : Infinity;
+        const updated = { ...dismissedNotices, [id]: expiration };
+        setDismissedNotices(updated);
+        localStorage.setItem('navigator_dismissed_notices', JSON.stringify(updated));
     };
 
     return (
@@ -161,7 +234,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             simulatedTier,
             setSimulatedTier,
             updateProfile,
-            journey
+            journey,
+            lastArchetypeUpdate,
+            acceptedTosVersion,
+            dismissedNotices,
+            dismissNotice
         }}>
             {children}
         </UserContext.Provider>

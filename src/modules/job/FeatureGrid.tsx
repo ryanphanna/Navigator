@@ -1,10 +1,13 @@
 import React, { useMemo } from 'react';
 import { FEATURE_REGISTRY, FEATURE_RANKINGS, getFeatureColor, type FeatureDefinition } from '../../featureRegistry';
 import { getPreviewComponent } from '../../components/common/FeaturePreviews';
-import { Mail, TrendingUp, PenTool, Sparkles, FileText, GraduationCap, Bookmark, Zap, RefreshCw, Shield, Users, Globe, Search, Calculator, MessageSquare, Rss, type LucideIcon } from 'lucide-react';
+import { Mail, TrendingUp, PenTool, Sparkles, FileText, GraduationCap, Bookmark, Zap, RefreshCw, Shield, Users, Globe, Search, Calculator, MessageSquare, Rss, Activity, type LucideIcon } from 'lucide-react';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { EventService } from '../../services/eventService';
-import type { User } from '@supabase/supabase-js';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { useUser } from '../../contexts/UserContext';
+import { LATEST_TOS_VERSION } from '../../constants';
+import { useModal } from '../../contexts/ModalContext';
 
 // Icon Map — resolves string icon names to Lucide components
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -24,10 +27,11 @@ const ICON_MAP: Record<string, LucideIcon> = {
     Calculator,
     MessageSquare,
     Rss,
+    Activity,
 } as const;
 
 interface FeatureGridProps {
-    user: User | null;
+    user: SupabaseUser | null;
     onNavigate?: (view: string) => void;
     onShowAuth?: (feature?: FeatureDefinition) => void;
     isAdmin?: boolean;
@@ -38,7 +42,7 @@ interface FeatureGridProps {
 }
 
 export const FeatureGrid: React.FC<FeatureGridProps> = ({
-    user,
+    user: propUser,
     onNavigate,
     onShowAuth,
     isAdmin: propIsAdmin,
@@ -47,6 +51,10 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
     userTier = 'free',
     className = ""
 }) => {
+    const { lastArchetypeUpdate, acceptedTosVersion, user: contextUser, dismissedNotices, dismissNotice } = useUser();
+    const { openModal } = useModal();
+
+    const user = propUser || contextUser;
 
     // Prioritize props
     const isAdmin = propIsAdmin;
@@ -101,15 +109,41 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
         }
 
         // Final sort of selected keys to maintain ranking order for display
-        return selectedKeys.sort((a, b) => getEffectiveRank(a) - getEffectiveRank(b));
-    }, [isAdmin, isTester, journey, userTier]);
+        const finalKeys = selectedKeys.sort((a, b) => getEffectiveRank(a) - getEffectiveRank(b));
+
+        // 4. System Notice Injection (Swap least ranked card)
+        if (user) {
+            const SIX_MONTHS_MS = 180 * 24 * 60 * 60 * 1000;
+            // eslint-disable-next-line react-hooks/purity
+            const isArchetypeStale = !lastArchetypeUpdate || (Date.now() - lastArchetypeUpdate > SIX_MONTHS_MS);
+            const isTosUpdateNeeded = acceptedTosVersion < LATEST_TOS_VERSION;
+
+            // Check if notices are dismissed/snoozed
+            // eslint-disable-next-line react-hooks/purity
+            const now = Date.now();
+            const isArchetypeDismissed = dismissedNotices['_NOTICE_ARCHETYPE'] > now;
+            const isTosDismissed = dismissedNotices['_NOTICE_TOS'] > now;
+
+            if (isTosUpdateNeeded && !isTosDismissed) {
+                finalKeys[finalKeys.length - 1] = '_NOTICE_TOS';
+            } else if (isArchetypeStale && !isArchetypeDismissed) {
+                finalKeys[finalKeys.length - 1] = '_NOTICE_ARCHETYPE';
+            }
+        }
+
+        return finalKeys;
+    }, [isAdmin, isTester, journey, userTier, user, lastArchetypeUpdate, acceptedTosVersion, dismissedNotices]);
 
     const handleAction = (feature: FeatureDefinition) => {
         // Track curiosity (Interest)
         EventService.trackInterest(feature.id);
 
         if (user) {
-            onNavigate?.(feature.targetView);
+            if (feature.targetView === 'settings') {
+                openModal('SETTINGS');
+            } else {
+                onNavigate?.(feature.targetView);
+            }
         } else {
             // Logged out behavior
             if (onShowAuth) {
@@ -130,6 +164,7 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
 
                     const color = getFeatureColor(config);
                     const Icon = ICON_MAP[config.iconName];
+                    const isSystemNotice = key.startsWith('_NOTICE_');
 
                     return (
                         <BentoCard
@@ -142,6 +177,11 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
                             actionLabel={config.action[actionKey]}
                             previewContent={getPreviewComponent(config.id, color)}
                             onAction={() => handleAction(config)}
+                            onDismiss={isSystemNotice ? () => {
+                                // TOS notices snooze for 1 day, Archetype for 7 days
+                                const snoozeDays = key === '_NOTICE_TOS' ? 1 : 7;
+                                dismissNotice(key, snoozeDays);
+                            } : undefined}
                         />
                     );
                 })}

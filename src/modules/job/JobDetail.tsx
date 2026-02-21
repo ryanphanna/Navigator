@@ -8,7 +8,7 @@ import {
     Loader2, Sparkles, XCircle,
     FileText, Copy, PenTool, ExternalLink,
     BookOpen, AlertCircle, ArrowLeft, Link as LinkIcon,
-    Undo2, Wand2, Building, Target, TrendingUp,
+    Undo2, Wand2, Building, Target,
     Search, ShieldCheck
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
@@ -124,7 +124,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
                 <div className="relative w-full max-w-lg">
                     {/* Main Scanning Card Container */}
-                    <Card variant="premium" className="p-12 text-center border-accent-primary/20 backdrop-blur-3xl">
+                    <Card variant="premium" className="p-8 text-center border-accent-primary/20 backdrop-blur-3xl">
                         {/* Scanning Animation Body */}
                         <div className="relative mx-auto w-32 h-40 mb-10 group">
                             {/* Document Icon Placeholder */}
@@ -161,7 +161,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                         </p>
 
                         <div className="space-y-4">
-                            <div className="flex justify-between items-end text-[10px] font-black uppercase tracking-widest">
+                            <div className="flex justify-between items-end text-[10px] font-bold text-neutral-400">
                                 <span className="text-accent-primary-hex animate-pulse">{job.progressMessage || analysisProgress || "Initializing engines..."}</span>
                                 <span className="text-neutral-900 dark:text-white">{job.progress || 0}%</span>
                             </div>
@@ -183,10 +183,10 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                         <motion.div
                             animate={{ y: [0, -10, 0] }}
                             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                            className="bg-emerald-500 text-white text-[10px] font-black px-4 py-2 rounded-2xl shadow-xl shadow-emerald-500/20 flex items-center gap-2 border border-emerald-400/30"
+                            className="bg-emerald-500 text-white text-[10px] font-bold px-4 py-2 rounded-2xl shadow-xl shadow-emerald-500/20 flex items-center gap-2 border border-emerald-400/30"
                         >
                             <ShieldCheck className="w-3.5 h-3.5" />
-                            SECURE VAULT ACTIVE
+                            Secure Vault Active
                         </motion.div>
                     </div>
                 </div>
@@ -196,7 +196,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                         Cancel analysis and go back
                     </Button>
                 </div>
-            </div>
+            </div >
         );
     }
 
@@ -279,7 +279,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                             placeholder="Paste the full job description here..."
                         />
                         <div className="flex justify-between items-center pt-6">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{manualText.length} characters</span>
+                            <span className="text-[10px] font-bold text-neutral-400">{manualText.length} characters</span>
                             <div className="flex gap-3">
                                 <Button variant="secondary" onClick={onBack}>Cancel</Button>
                                 <Button
@@ -360,7 +360,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
             ) : (
                 <>
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Match Analysis</h3>
+                        <h3 className="text-xs font-bold text-neutral-400">Match Analysis</h3>
                         <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${(analysis?.compatibilityScore ?? -1) >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 shadow-emerald-500/5' :
                             (analysis?.compatibilityScore ?? -1) >= 60 ? 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 shadow-amber-500/5' :
                                 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 shadow-rose-500/5'
@@ -369,7 +369,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                         </div>
                     </div>
 
-                    <div className="relative h-4 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full p-1 border border-neutral-200/50 dark:border-white/5 mb-8">
+                    <div className="relative h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full p-0.5 border border-neutral-200/50 dark:border-white/5 mb-8">
                         <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${analysis?.compatibilityScore || 0}%` }}
@@ -381,7 +381,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                     </div>
 
                     <div className="pt-8 border-t border-neutral-100 dark:border-neutral-800/50">
-                        <h3 className="font-black text-neutral-900 dark:text-white mb-4 flex items-center gap-2 text-[10px] uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
+                        <h3 className="font-bold text-neutral-900 dark:text-white mb-4 flex items-center gap-2 text-sm text-indigo-500 dark:text-indigo-400">
                             <Sparkles className="w-3.5 h-3.5" /> Professional Insight
                         </h3>
                         <div className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed font-bold bg-neutral-50 dark:bg-neutral-800/50 p-6 rounded-[2rem] border border-neutral-100 dark:border-white/5 shadow-inner">
@@ -405,8 +405,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                 </div>
             ) : (
                 <>
-                    <h4 className="font-black text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-[10px] uppercase tracking-widest">
-                        <Sparkles className="w-3.5 h-3.5" /> STRATEGIC ALIGNMENT
+                    <h4 className="font-bold text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm">
+                        <Sparkles className="w-3.5 h-3.5" /> Strategic Alignment
                     </h4>
                     <div className="space-y-4">
                         {(analysis?.resumeTailoringInstructions || analysis?.tailoringInstructions || [])
@@ -469,15 +469,6 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                 <DetailHeader
                     title={
                         <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 cursor-pointer group" onClick={onBack}>
-                                <div className="p-1 rounded-lg bg-indigo-600 text-white shadow-md shadow-indigo-600/20 group-hover:scale-105 transition-transform">
-                                    <TrendingUp className="w-4 h-4" />
-                                </div>
-                                <span className="text-base font-black tracking-tighter text-neutral-900 dark:text-white leading-none">
-                                    Navigator
-                                </span>
-                            </div>
-                            <div className="w-px h-4 bg-neutral-200 dark:border-neutral-800" />
                             <span className="text-neutral-500 dark:text-neutral-400 font-bold text-sm truncate max-w-[200px] md:max-w-md">
                                 {analysis?.distilledJob?.roleTitle || job.position || 'Job Detail'}
                             </span>
@@ -494,7 +485,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                             )}
                         </div>
                     }
-                    onBack={onBack}
+                    onBack={() => { }} // Remove back arrow functionality from header
+                    hideBack // We will need to update DetailHeader to support this
                     actions={actionsMenu}
                     icon={Building}
                 />
@@ -511,44 +503,31 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
                     {activeTab === 'analysis' && (
                         <div className="space-y-8">
-                            <Card variant="premium" className="p-10 border-accent-primary/10 shadow-indigo-500/5">
-                                {job.status === 'analyzing' || analysisProgress ? (
-                                    <div className="animate-pulse space-y-8">
-                                        <div className="h-6 bg-neutral-100 dark:bg-neutral-800 rounded-full w-1/4"></div>
-                                        <div className="flex gap-3">
-                                            <div className="h-10 bg-neutral-50 dark:bg-neutral-800 rounded-2xl w-32"></div>
-                                            <div className="h-10 bg-neutral-50 dark:bg-neutral-800 rounded-2xl w-40"></div>
-                                            <div className="h-10 bg-neutral-50 dark:bg-neutral-800 rounded-2xl w-24"></div>
-                                        </div>
-                                        <div className="h-32 bg-neutral-50 dark:bg-neutral-900/50 rounded-[2.5rem]"></div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-500 dark:text-indigo-400 mb-8 flex items-center gap-2">
-                                            <Sparkles className="w-4 h-4" /> Principal Competencies
-                                        </h4>
-                                        <div className="flex flex-wrap gap-3">
-                                            {(analysis?.distilledJob?.keySkills || []).map((skill: string, i: number) => (
-                                                <motion.span
-                                                    key={i}
-                                                    initial={{ opacity: 0, scale: 0.9 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    transition={{ delay: i * 0.05 }}
-                                                    className="text-[11px] font-black uppercase tracking-widest text-neutral-700 dark:text-neutral-300 bg-neutral-50 dark:bg-neutral-800/80 px-6 py-3 rounded-2xl border border-neutral-100 dark:border-white/5 shadow-sm hover:border-accent-primary/50 transition-colors cursor-default"
-                                                >
-                                                    {skill}
-                                                </motion.span>
-                                            ))}
-                                            {(!analysis?.distilledJob?.keySkills || analysis.distilledJob.keySkills.length === 0) && (
-                                                <span className="text-sm font-medium text-neutral-400 italic">No specific competencies extracted.</span>
-                                            )}
-                                        </div>
-                                    </>
-                                )}
-                            </Card>
+                            <div className="pb-8 border-b border-neutral-100 dark:border-white/5">
+                                <h4 className="text-[11px] font-bold text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4" /> Principal Competencies
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {(analysis?.distilledJob?.keySkills || []).map((skill: string, i: number) => (
+                                        <motion.span
+                                            key={i}
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ delay: i * 0.05 }}
+                                            className="text-[11px] font-bold text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm hover:border-accent-primary/30 transition-all cursor-default flex items-center gap-2"
+                                        >
+                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/50" />
+                                            {skill}
+                                        </motion.span>
+                                    ))}
+                                    {(!analysis?.distilledJob?.keySkills || analysis.distilledJob.keySkills.length === 0) && (
+                                        <span className="text-sm font-medium text-neutral-400 italic">No specific competencies extracted.</span>
+                                    )}
+                                </div>
+                            </div>
 
                             {job.status === 'analyzing' || analysisProgress ? (
-                                <Card variant="premium" className="p-10 animate-pulse border-accent-primary/10">
+                                <Card variant="premium" className="p-6 animate-pulse border-accent-primary/10">
                                     <div className="h-6 bg-neutral-100 dark:bg-neutral-800 rounded-full w-1/4 mb-10"></div>
                                     <div className="grid sm:grid-cols-2 gap-6">
                                         <div className="h-20 bg-neutral-50 dark:bg-neutral-800 rounded-[1.5rem]"></div>
@@ -557,8 +536,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                 </Card>
                             ) : (
                                 analysis?.distilledJob?.requiredSkills && analysis.distilledJob.requiredSkills.length > 0 && (
-                                    <Card variant="premium" className="p-10 border-indigo-500/10 shadow-indigo-500/5">
-                                        <h4 className="font-black text-indigo-500 dark:text-indigo-400 mb-8 flex items-center gap-2 text-[10px] uppercase tracking-widest">
+                                    <Card variant="premium" className="p-6 border-indigo-500/10 shadow-indigo-500/5">
+                                        <h4 className="font-bold text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm">
                                             <Target className="w-4 h-4" /> Priority Skill Alignment
                                         </h4>
                                         <div className="grid sm:grid-cols-2 gap-6">
@@ -580,11 +559,11 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                                             </div>
                                                             <div>
                                                                 <span className="text-sm font-black text-neutral-900 dark:text-white block">{req.name}</span>
-                                                                <span className="text-[9px] font-black uppercase text-neutral-400 tracking-wider">Required: {req.level}</span>
+                                                                <span className="text-[9px] font-bold text-neutral-400">Required: {req.level}</span>
                                                             </div>
                                                         </div>
                                                         {mySkill && (
-                                                            <span className="text-[9px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+                                                            <span className="text-[9px] font-bold text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
                                                                 My Level: {mySkill.proficiency}
                                                             </span>
                                                         )}
@@ -595,8 +574,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                     </Card>
                                 ))}
 
-                            <Card variant="glass" className="p-10 border-neutral-200/50 dark:border-white/5">
-                                <h4 className="font-black text-indigo-500 dark:text-indigo-400 mb-8 flex items-center gap-2 text-[10px] uppercase tracking-widest">
+                            <Card variant="glass" className="p-6 border-neutral-200/50 dark:border-white/5">
+                                <h4 className="font-bold text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm">
                                     <BookOpen className="w-4 h-4" /> Strategic Responsibilities
                                 </h4>
                                 <div className="grid gap-4">
@@ -626,7 +605,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                         <Card variant="premium" className="p-8 border-accent-primary/10 shadow-indigo-500/5">
                             <h4 className="flex items-center gap-2 font-black text-accent-primary-hex mb-8 uppercase text-[10px] tracking-widest">
                                 <FileText className="w-4 h-4" />
-                                {analysis?.cleanedDescription ? 'Job Description (AI Cleaned)' : 'Original Job Post'}
+                                {'Job Description'}
                             </h4>
                             <div className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap font-sans font-medium bg-neutral-50 dark:bg-neutral-800/50 p-6 rounded-2xl border border-neutral-100 dark:border-neutral-700">
                                 {analysis?.cleanedDescription || job.description}

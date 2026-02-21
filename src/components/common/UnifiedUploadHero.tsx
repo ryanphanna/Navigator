@@ -2,6 +2,7 @@ import React from 'react';
 import { FileText, Zap, Plus } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { BentoCard } from '../ui/BentoCard';
+import { FEATURE_COLORS } from '../../featureRegistry';
 import { DropZone } from './DropZone';
 import { Button } from '../ui/Button';
 
@@ -21,12 +22,16 @@ export interface UnifiedUploadHeroProps {
             description: string;
             icon: LucideIcon;
             benefits: string[];
+            actionLabel?: string;
+            onAction?: () => void;
         };
         intelligence: {
             title: string;
             description: string;
             icon: LucideIcon;
             benefits: string[];
+            actionLabel?: string;
+            onAction?: () => void;
         };
     };
     manualEntryLabel?: string;
@@ -65,7 +70,7 @@ export const UnifiedUploadHero: React.FC<UnifiedUploadHeroProps> = ({
 
     return (
         <div className="animate-in zoom-in-95 duration-700 overflow-hidden relative flex flex-col items-center justify-center py-12">
-            <div className="relative z-10 w-full max-w-5xl mx-auto">
+            <div className="relative z-10 w-full max-w-4xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                     {/* Card 1: Foundation */}
                     <div className="animate-in slide-in-from-bottom-8 fade-in duration-700 delay-100 fill-mode-both">
@@ -74,6 +79,9 @@ export const UnifiedUploadHero: React.FC<UnifiedUploadHeroProps> = ({
                             icon={activeCards.foundation.icon}
                             title={activeCards.foundation.title}
                             description={activeCards.foundation.description}
+                            color={themeColor === 'amber' ? FEATURE_COLORS.amber : FEATURE_COLORS.emerald}
+                            actionLabel={(activeCards.foundation as any).actionLabel}
+                            onAction={(activeCards.foundation as any).onAction}
                             previewContent={
                                 <ul className="space-y-3 pt-4">
                                     {activeCards.foundation.benefits.map((item) => (
@@ -94,6 +102,9 @@ export const UnifiedUploadHero: React.FC<UnifiedUploadHeroProps> = ({
                             icon={activeCards.intelligence.icon}
                             title={activeCards.intelligence.title}
                             description={activeCards.intelligence.description}
+                            color={themeColor === 'amber' ? FEATURE_COLORS.sky : FEATURE_COLORS.indigo}
+                            actionLabel={(activeCards.intelligence as any).actionLabel}
+                            onAction={(activeCards.intelligence as any).onAction}
                             previewContent={
                                 <ul className="space-y-3 pt-4">
                                     {activeCards.intelligence.benefits.map((item) => (
@@ -129,7 +140,7 @@ export const UnifiedUploadHero: React.FC<UnifiedUploadHeroProps> = ({
                                 >
                                     <div className="text-left">
                                         <div className="text-sm font-black leading-tight">{manualEntryLabel}</div>
-                                        <div className="text-[9px] font-black uppercase tracking-widest mt-0.5 opacity-70">Manual Entry</div>
+                                        <div className="text-[9px] font-black mt-0.5 opacity-70">Manual Entry</div>
                                     </div>
                                 </Button>
                             )}
