@@ -1,6 +1,6 @@
 import React from 'react';
 import { Target, User, TrendingUp, Zap } from 'lucide-react';
-import type { CareerArchetype } from '../utils/archetypeUtils';
+import type { CareerArchetype } from '../../utils/archetypeUtils';
 
 interface ArchetypeBadgeProps {
     archetype: CareerArchetype;

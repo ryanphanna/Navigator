@@ -45,9 +45,9 @@ describe('PDF Extraction Performance', () => {
     // Setup mocks
     if (typeof window === 'undefined') {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (global as any).window = { pdfjsLib: mockPdfjsLib };
+        (globalThis as any).window = { pdfjsLib: mockPdfjsLib };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (global as any).atob = (s: string) => s;
+        (globalThis as any).atob = (s: string) => s;
     } else {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).pdfjsLib = mockPdfjsLib;
