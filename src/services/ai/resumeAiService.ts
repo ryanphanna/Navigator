@@ -11,7 +11,7 @@ const stringifyProfile = (profile: ResumeProfile): string => {
     return JSON.stringify(profile, null, 2);
 };
 
-const extractPdfText = async (base64: string): Promise<string> => {
+export const extractPdfText = async (base64: string): Promise<string> => {
     try {
         const pdfjsLib = (window as unknown as { pdfjsLib: { getDocument: (opts: { data: string }) => { promise: Promise<{ numPages: number; getPage: (i: number) => Promise<{ getTextContent: () => Promise<{ items: { str: string }[] }> }> }> } } }).pdfjsLib;
         if (!pdfjsLib) return "";
