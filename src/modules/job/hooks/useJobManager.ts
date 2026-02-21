@@ -112,13 +112,11 @@ export const useJobManager = () => {
                 progressMessage: 'Analysis complete!'
             };
 
-            await Storage.updateJob(completedJob);
             await handleUpdateJob(completedJob);
             return completedJob;
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Analysis failed';
             const failedJob = { ...job, status: 'error' as const, progress: 0, progressMessage: errorMessage };
-            await Storage.updateJob(failedJob);
             await handleUpdateJob(failedJob);
             throw err;
         }
