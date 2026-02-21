@@ -104,16 +104,16 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
         return selectedKeys.sort((a, b) => getEffectiveRank(a) - getEffectiveRank(b));
     }, [isAdmin, isTester, journey, userTier]);
 
-    const handleAction = (config: FeatureDefinition) => {
+    const handleAction = (feature: FeatureDefinition) => {
         // Track curiosity (Interest)
-        EventService.trackInterest(config.id);
+        EventService.trackInterest(feature.id);
 
         if (user) {
-            onNavigate?.(config.targetView);
+            onNavigate?.(feature.targetView);
         } else {
             // Logged out behavior
             if (onShowAuth) {
-                onShowAuth(config);
+                onShowAuth(feature);
             } else {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 setTimeout(() => document.querySelector('input')?.focus(), 500);
