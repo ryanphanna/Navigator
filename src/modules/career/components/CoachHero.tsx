@@ -14,6 +14,7 @@ import {
 import type { CustomSkill, RoleModelProfile, TargetJob } from '../../../types';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
+import type { CoachViewType } from '../types';
 
 interface CoachHeroProps {
     isTargetMode: boolean;
@@ -29,7 +30,7 @@ interface CoachHeroProps {
     roleModels: RoleModelProfile[];
     targetJobs: TargetJob[];
     userSkills: CustomSkill[];
-    onViewChange: (view: string) => void;
+    onViewChange: (view: CoachViewType) => void;
 }
 
 export const CoachHero: React.FC<CoachHeroProps> = ({
@@ -160,7 +161,7 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                     <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-800" />
 
                     <div
-                        onClick={() => onViewChange('skills' as any)}
+                        onClick={() => onViewChange('skills')}
                         className="flex items-center gap-3 cursor-pointer group transition-all hover:scale-105"
                     >
                         <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm group-hover:border-accent-primary/50 group-hover:text-accent-primary-hex transition-colors">
