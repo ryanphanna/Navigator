@@ -55,14 +55,49 @@ describe('secureStorage', () => {
       expect(localStorage.getItem('jobfit_secure_test_key')).not.toBe(value);
     });
 
-    it('should migrate legacy key from localStorage to IndexedDB', async () => {
-      const legacyKey = 'dGhpcyBpcyBhIDMyIGJ5dGUgcmFuZG9tIGtleS4uLg=='; // base64
-      localStorage.setItem('jobfit_master_key_v1', legacyKey);
+    it('should migrate legacy key and re-encrypt data', async () => {
+      // 1. Setup legacy key
+      const legacyKeyBytes = new Uint8Array(32).fill(1); // Simple key
+      const legacyKeyBase64 = btoa(String.fromCharCode(...legacyKeyBytes));
+      localStorage.setItem('jobfit_master_key_v1', legacyKeyBase64);
 
+      const legacyKey = await crypto.subtle.importKey(
+        'raw',
+        legacyKeyBytes,
+        { name: 'AES-GCM' },
+        false,
+        ['encrypt']
+      );
+
+      // 2. Encrypt data with legacy key
+      const plaintext = 'legacy_secret';
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const encryptedBuffer = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        legacyKey,
+        new TextEncoder().encode(plaintext)
+      );
+      const combined = new Uint8Array(iv.length + encryptedBuffer.byteLength);
+      combined.set(iv, 0);
+      combined.set(new Uint8Array(encryptedBuffer), iv.length);
+      const encryptedBase64 = btoa(String.fromCharCode(...combined));
+
+      localStorage.setItem('jobfit_secure_test_legacy', encryptedBase64);
+
+      // 3. Trigger migration
       await getMasterKey();
 
-      // Should be removed from localStorage
+      // 4. Verify legacy key is gone
       expect(localStorage.getItem('jobfit_master_key_v1')).toBeNull();
+
+      // 5. Verify data is re-encrypted and accessible
+      const retrieved = await getSecureItem('test_legacy');
+      expect(retrieved).toBe(plaintext);
+
+      // Verify that the stored value is DIFFERENT (re-encrypted with new key)
+      const newEncrypted = localStorage.getItem('jobfit_secure_test_legacy');
+      expect(newEncrypted).not.toBe(encryptedBase64);
+
       // Should have opened IndexedDB
       expect(window.indexedDB.open).toHaveBeenCalled();
     });

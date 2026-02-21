@@ -77,17 +77,31 @@ export async function getMasterKey(): Promise<CryptoKey> {
   if (legacyKeyBase64) {
     try {
       const binaryKey = Uint8Array.from(atob(legacyKeyBase64), c => c.charCodeAt(0));
-      key = await crypto.subtle.importKey(
+      const legacyKey = await crypto.subtle.importKey(
         'raw',
         binaryKey,
         { name: ENCRYPTION_ALGORITHM },
-        false, // Make it non-extractable in memory too
+        false,
         ['encrypt', 'decrypt']
       );
 
-      // Store in IndexedDB for future use
+      // Generate new secure key
+      key = await crypto.subtle.generateKey(
+        {
+          name: ENCRYPTION_ALGORITHM,
+          length: 256
+        },
+        false,
+        ['encrypt', 'decrypt']
+      );
+
+      // Re-encrypt existing data with new key
+      await migrateLegacyData(legacyKey, key);
+
+      // Store new key in IndexedDB
       await storeKey(db, key);
-      // Remove from insecure localStorage
+
+      // Remove legacy key from localStorage
       localStorage.removeItem('jobfit_master_key_v1');
 
       return key;
@@ -113,9 +127,9 @@ export async function getMasterKey(): Promise<CryptoKey> {
 /**
  * Encrypts a string value using AES-GCM
  */
-async function encrypt(plaintext: string): Promise<string> {
+async function encrypt(plaintext: string, key?: CryptoKey): Promise<string> {
   try {
-    const key = await getMasterKey();
+    const encryptionKey = key || await getMasterKey();
     const encoder = new TextEncoder();
     const data = encoder.encode(plaintext);
 
@@ -126,7 +140,7 @@ async function encrypt(plaintext: string): Promise<string> {
         name: ENCRYPTION_ALGORITHM,
         iv: iv
       },
-      key,
+      encryptionKey,
       data
     );
 
@@ -144,9 +158,9 @@ async function encrypt(plaintext: string): Promise<string> {
 /**
  * Decrypts an encrypted string value
  */
-async function decrypt(encryptedData: string): Promise<string> {
+async function decrypt(encryptedData: string, key?: CryptoKey): Promise<string> {
   try {
-    const key = await getMasterKey();
+    const decryptionKey = key || await getMasterKey();
     const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
 
     const iv = combined.slice(0, 12);
@@ -157,7 +171,7 @@ async function decrypt(encryptedData: string): Promise<string> {
         name: ENCRYPTION_ALGORITHM,
         iv: iv
       },
-      key,
+      decryptionKey,
       data
     );
 
@@ -165,6 +179,33 @@ async function decrypt(encryptedData: string): Promise<string> {
     return decoder.decode(decryptedBuffer);
   } catch {
     throw new Error('Failed to decrypt data');
+  }
+}
+
+/**
+ * Re-encrypts all data with a new key
+ */
+async function migrateLegacyData(oldKey: CryptoKey, newKey: CryptoKey): Promise<void> {
+  // Use standard loop for better compatibility (especially with mocks)
+  const keys: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith(STORAGE_PREFIX)) {
+      keys.push(k);
+    }
+  }
+
+  for (const k of keys) {
+    const value = localStorage.getItem(k);
+    if (value) {
+      try {
+        const decrypted = await decrypt(value, oldKey);
+        const encrypted = await encrypt(decrypted, newKey);
+        localStorage.setItem(k, encrypted);
+      } catch (e) {
+        console.error(`Failed to migrate item ${k}:`, e);
+      }
+    }
   }
 }
 
