@@ -151,7 +151,7 @@ export const defaultDnsResolver: DnsResolver = async (hostname) => {
     }
 };
 
-export async function validateUrl(url: string, resolver: DnsResolver = defaultDnsResolver): Promise<void> {
+export async function validateUrl(url: string, resolver: DnsResolver = defaultDnsResolver): Promise<string[]> {
     let parsed: URL;
     try {
         parsed = new URL(url);
@@ -171,7 +171,7 @@ export async function validateUrl(url: string, resolver: DnsResolver = defaultDn
         if (isPrivateIP(ip)) {
             throw new Error(`Access to private IP ${ip} is denied`);
         }
-        return;
+        return [ip];
     }
 
     // Check if hostname is a STRICT IPv4 address
@@ -182,7 +182,7 @@ export async function validateUrl(url: string, resolver: DnsResolver = defaultDn
         if (isPrivateIP(hostname)) {
             throw new Error(`Access to private IP ${hostname} is denied`);
         }
-        return;
+        return [hostname];
     }
 
     // Resolve hostname
@@ -202,6 +202,8 @@ export async function validateUrl(url: string, resolver: DnsResolver = defaultDn
             throw new Error(`Access to private IP ${ip} is denied`);
         }
     }
+
+    return ips;
 }
 
 export async function fetchSafe(inputUrl: string, options: RequestInit = {}): Promise<Response> {
@@ -211,8 +213,29 @@ export async function fetchSafe(inputUrl: string, options: RequestInit = {}): Pr
     const timeout = 15000; // 15 second timeout for scraping
 
     for (let i = 0; i < maxRedirects; i++) {
-        // Validate URL (SSRF Prevention)
-        await validateUrl(currentUrl);
+        // Validate URL (SSRF Prevention) and get resolved IPs
+        const ips = await validateUrl(currentUrl);
+        const resolvedIp = ips[0];
+
+        // Prepare request options
+        let fetchUrl = currentUrl;
+        const fetchOptions: RequestInit = { ...options };
+
+        // For HTTP requests, rewrite the URL to use the resolved IP address to prevent DNS rebinding attacks (TOCTOU).
+        // For HTTPS, we cannot rewrite to IP easily because of certificate validation (hostname mismatch).
+        // Deno/Browser fetch APIs do not support pinning IP for HTTPS.
+        // We rely on the initial DNS resolution validation for HTTPS, accepting the small risk of DNS rebinding if strict HTTPS is not enforced or if using non-browser runtime tricks.
+        const parsedUrl = new URL(currentUrl);
+        if (parsedUrl.protocol === 'http:' && !isStrictIPv4(parsedUrl.hostname) && !parsedUrl.hostname.startsWith('[')) {
+            const u = new URL(currentUrl);
+            u.hostname = resolvedIp;
+            fetchUrl = u.toString();
+
+            // Set Host header to original hostname
+            const headers = new Headers(fetchOptions.headers);
+            headers.set('Host', parsedUrl.hostname);
+            fetchOptions.headers = headers;
+        }
 
         // Setup timeout controller
         const controller = new AbortController();
@@ -221,8 +244,8 @@ export async function fetchSafe(inputUrl: string, options: RequestInit = {}): Pr
         try {
             // Fetch with manual redirect
             // Note: We use 'manual' to intercept 3xx responses and validate the new location
-            response = await fetch(currentUrl, {
-                ...options,
+            response = await fetch(fetchUrl, {
+                ...fetchOptions,
                 redirect: 'manual',
                 signal: controller.signal
             });
@@ -240,6 +263,7 @@ export async function fetchSafe(inputUrl: string, options: RequestInit = {}): Pr
 
             // Resolve relative URLs
             try {
+                // Use currentUrl (with hostname) as base for correct relative resolution
                 currentUrl = new URL(location, currentUrl).toString();
             } catch {
                 throw new Error(`Invalid redirect URL: ${location}`);
