@@ -71,9 +71,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 if (syncError) {
                                     // Handle missing column gracefully - don't log as error if it's just a missing column
                                     if (syncError.code === 'PGRST204' || syncError.message?.includes('device_id')) {
-                                        console.warn("Device fingerprinting skipped: 'device_id' column not found in profiles Table.");
+                                        if (import.meta.env.DEV) {
+                                            console.warn("Device fingerprinting skipped: 'device_id' column not found in profiles Table.");
+                                        }
                                     } else {
-                                        console.error("Failed to sync device fingerprint", syncError);
+                                        if (import.meta.env.DEV) {
+                                            console.error("Failed to sync device fingerprint", syncError);
+                                        }
                                     }
                                 }
                             });
