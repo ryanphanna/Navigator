@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Save, Trash2, AlertCircle } from 'lucide-react';
 import type { Course } from '../../types';
 
@@ -19,14 +19,17 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
 }) => {
     const [editedCourse, setEditedCourse] = useState<Course>(course);
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const [prevCourse, setPrevCourse] = useState(course);
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
 
-    useEffect(() => {
+    if (prevIsOpen !== isOpen || prevCourse.code !== course.code) {
+        setPrevIsOpen(isOpen);
+        setPrevCourse(course);
         if (isOpen) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setEditedCourse(course);
             setConfirmDelete(false);
         }
-    }, [course, isOpen]);
+    }
 
     if (!isOpen) return null;
 

@@ -16,21 +16,19 @@ export const ViewTransition: React.FC<ViewTransitionProps> = ({
     className = ''
 }) => {
     const [isVisible, setIsVisible] = useState(false);
-    const currentKeyRef = useRef(viewKey);
+    const [prevViewKey, setPrevViewKey] = useState(viewKey);
+    const isMountedRef = useRef(false);
+
+    if (viewKey !== prevViewKey) {
+        setPrevViewKey(viewKey);
+        setIsVisible(false);
+    }
 
     useEffect(() => {
-        if (viewKey !== currentKeyRef.current) {
-            // viewKey changed — trigger re-animation
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setIsVisible(false);
-            currentKeyRef.current = viewKey;
-            const timer = setTimeout(() => setIsVisible(true), 50);
-            return () => clearTimeout(timer);
-        } else {
-            // Initial mount
-            const timer = setTimeout(() => setIsVisible(true), 10);
-            return () => clearTimeout(timer);
-        }
+        const delay = isMountedRef.current ? 50 : 10;
+        isMountedRef.current = true;
+        const timer = setTimeout(() => setIsVisible(true), delay);
+        return () => clearTimeout(timer);
     }, [viewKey]);
 
     return (
