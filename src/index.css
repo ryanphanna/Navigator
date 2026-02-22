@@ -111,6 +111,19 @@
     }
   }
 
+  @keyframes toast-slide-in {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  --animate-toast-slide-in: toast-slide-in 0.3s ease-out;
   --animate-blob: blob 7s infinite;
   --animate-gradient-x: gradient-x 15s ease infinite;
   --animate-scan-line: scan-line 3s linear infinite;

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import type { FeatureDefinition } from '../featureRegistry';
 
-export type ModalType = 'AUTH' | 'SETTINGS' | 'UPGRADE' | 'INTERVIEW' | null;
+export type ModalType = 'AUTH' | 'UPGRADE' | 'INTERVIEW' | null;
 
 export interface ModalData {
     feature?: FeatureDefinition;

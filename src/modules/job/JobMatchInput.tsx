@@ -83,10 +83,47 @@ const JobMatchInput: React.FC<JobMatchInputProps> = ({
         setIsScrapingUrl(false);
         setIsAnalyzing(false);
 
+        // Handle bookmarklet or external job URL params
+        const params = new URLSearchParams(window.location.search);
+        const jobUrl = params.get('job') || params.get('url');
+
+        if (jobUrl) {
+            // Clean up the URL (remove params once read)
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+
+            setUrl(jobUrl);
+
+            // If user is logged in, start scraping automatically
+            if (user) {
+                // Short delay to allow UI to settle
+                setTimeout(() => {
+                    const event = new Event('submit', { cancelable: true, bubbles: true });
+                    document.querySelector('form')?.dispatchEvent(event);
+                    // trigger internal handleUrlSubmit logic directly
+                    const trimmedUrl = jobUrl.trim();
+                    if (trimmedUrl) {
+                        lastUrlRef.current = trimmedUrl;
+                        setIsScrapingUrl(true);
+                        import('../../services/scraperService').then(({ ScraperService }) => {
+                            return ScraperService.scrapeJobContent(trimmedUrl);
+                        }).then(text => {
+                            handleJobSubmission({ type: 'text', content: text });
+                        }).catch(err => {
+                            const msg = err instanceof Error ? err.message : String(err);
+                            setError(msg.includes("403") ? "This site blocks automated access. Please paste the job description below:" : "Error reaching URL. Please paste content below:");
+                        }).finally(() => {
+                            setIsScrapingUrl(false);
+                        });
+                    }
+                }, 500);
+            }
+        }
+
         return () => {
             if (onClearError) onClearError();
         };
-    }, [onClearError]);
+    }, [onClearError, user]);
 
     const processJobInBackground = async (input: { type: 'url' | 'text', content: string }) => {
         const jobId = crypto.randomUUID();
@@ -305,8 +342,7 @@ const JobMatchInput: React.FC<JobMatchInputProps> = ({
                     action={{
                         label: 'Save to Navigator',
                         icon: Plus,
-                        href: `javascript:(function(){window.open('${window.location.origin}/?job='+encodeURIComponent(window.location.href),'_blank');})();`,
-                        onClick: (e: any) => e.preventDefault(),
+                        href: `javascript:(function(){window.open('${window.location.origin}/jobs?job='+encodeURIComponent(window.location.href));})();`,
                     }}
                     onDismiss={() => {
                         setShowBookmarkletTip(false);

@@ -12,6 +12,7 @@ export interface DistilledJob {
     canonicalTitle?: string; // New: Standardized title for farming
     isAiBanned?: boolean; // New: Safety flag
     aiBanReason?: string; // New: Context for the ban
+    referenceCode?: string | null; // New: Capture job ID/reference number
 }
 
 export interface CoverLetterCritique {
@@ -109,4 +110,9 @@ export interface InterviewResponseAnalysis {
     strengths: string[];
     improvements: string[];
     betterVersion: string;
+    resumeSuggestions?: {
+        type: 'add' | 'update' | 'remove';
+        suggestion: string;
+        impact: string;
+    }[];
 }

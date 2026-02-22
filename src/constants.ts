@@ -172,6 +172,7 @@ export const ROUTES = {
   PRIVACY: '/privacy',
   TERMS: '/terms',
   CONTACT: '/contact',
+  SETTINGS: '/settings',
 } as const;
 
 // User Tiers

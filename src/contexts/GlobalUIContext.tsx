@@ -5,11 +5,13 @@ interface GlobalUIContextType {
     currentView: string;
     showSettings: boolean;
     isDark: boolean;
+    isFocusedMode: boolean;
 
     // Actions
     setView: (view: string) => void;
     setShowSettings: (show: boolean) => void;
     toggleDarkMode: () => void;
+    setFocusedMode: (focused: boolean) => void;
 }
 
 const GlobalUIContext = createContext<GlobalUIContextType | undefined>(undefined);
@@ -25,6 +27,7 @@ export const useGlobalUI = () => {
 export const GlobalUIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [currentView, setView] = useState('home');
     const [showSettings, setShowSettings] = useState(false);
+    const [isFocusedMode, setFocusedMode] = useState(false);
     const [isDark, setIsDark] = useState(() => {
         if (typeof window !== 'undefined') {
             const saved = localStorage.getItem(STORAGE_KEYS.THEME);
@@ -52,9 +55,11 @@ export const GlobalUIProvider: React.FC<{ children: ReactNode }> = ({ children }
             currentView,
             showSettings,
             isDark,
+            isFocusedMode,
             setView,
             setShowSettings,
-            toggleDarkMode
+            toggleDarkMode,
+            setFocusedMode
         }}>
             {children}
         </GlobalUIContext.Provider>

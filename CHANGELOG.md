@@ -5,13 +5,139 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- 
+- **Focused Session Mode**: Introduced a distraction-free "Focused Mode" for high-stakes assessments.
+- **Interview Feedback Banking**: Enhanced the Interview Advisor with a new "Bank Suggestion" feature. Users can now persistently save AI-generated bullet points to their professional profile, bridging the gap between verbal narrative and their written resume.
+- **Discovery Bank**: Integrated a persistent "Discovery Bank" sidebar in the Resume Editor that displays AI-captured suggestions from interview performance, featuring one-click "Apply" and "Dismiss" functionality.
+- **Academic Contextual Analysis**: Integrated the user's academic transcript into the core Job Match engine. The AI now cross-references specific courses and grades to strengthen fit analysis, particularly beneficial for entry-level and transitional roles.
+- **Cross-Module Communication**: Established a communication bridge between the Resume and Education modules. Transcripts are automatically fetched from local storage to provide deeper context during job analysis without manual input.
+- **Academic Grounding Rules**: Updated the Job Fit prompt to leverage academic background as a substitute for or supplement to work experience when analyzing candidate-role alignment.
+- **Skills module UI Polish**: Overhauled the "Your Skills" dashboard with a more compact, premium "Tag" design. Indicators (verified checkmark and proficiency dot) are now right-aligned to match the Job Analysis style and improve information density.
+- **Design Parity (Skills)**: Aligned skill proficiency colors and "glow" effects with the main Job Match results, ensuring a cohesive visual language across both modules.
+- **AI Discoveries Refresh**: Redesigned the Skill Suggestions section to use the new compact tag architecture and updated terminology ("Discoveries" / "AI Found") for better consistency with the platform's AI identity.
+- **Prompt Architecture Refactor**: Decentralized the monolithic `analysis.ts` into a modular structure (`jobAnalysis.ts`, `coverLetter.ts`, `career.ts`, `education.ts`) for better maintainability and faster iteration.
+- **High-Fidelity Cover Letters**: Overhauled the Cover Letter generation prompts to produce organic, narrative-driven documents that prioritize strategic alignment and professional depth over rigid word counts.
 
 ### Changed
-- 
+- **Bento Grid UI Consistency**:
+  - Standardized feature preview heights to a fixed 96px (`h-24`) to ensure perfect vertical alignment across all feature cards in the grid.
+  - Resolved a layout discrepancy in the **Job Alerts** and **Feed** previews that previously caused neighboring cards to stretch and create excessive white space.
+  - Refined vertical centering and hover scaling logic for system notice previews to maintain absolute design parity across the platform.
+- **Premium Admin Dashboard**:
+  - Rebranded "Admin Console" to a more professional **Admin** portal with a dedicated "Management Portal" identity.
+  - Implemented **Consumption Efficiency** tracking, enabling real-time monitoring of average tokens consumed per network call.
+  - Introduced a **System Health** command center with pulse indicators for live infrastructure monitoring.
+  - Overhauled the usage table with high-fidelity behavioral flags (Extreme vs. High deviation) and premium typography.
+  - Executed a dashboard-wide "Casing Polish," removing all-caps styling from labels, stats, and headers for a modern feel.
+  - Standardized the dashboard layout using a premium 4-column grid with glassmorphism cards and responsive scaling.
+- **Search & Filter Standardization**:
+  - Enforced a consistent **60/40 split** between the search bar and filter controls across the application to ensure professional visual balance.
+  - Standardized the layout logic in `StandardSearchBar`, using the `rightElement` prop to host filter groups in `Feed`, `History`, and `Skills` modules for absolute design parity.
+  - Improved responsiveness by maintaining horizontal scrolling for filters within their allocated 40% space on desktop.
+- **Program Explorer Premium Uplift**:
+  - Overhauled the empty state for the Program Explorer with a high-fidelity `AcademicHero` interface, featuring Bento-style benefit cards and interactive glassmorphism design.
+  - Integrated the `useAcademicLogic` hook directly into the Program Explorer, enabling users to upload and verify transcripts without navigating away from the discovery flow.
+  - Enhanced the `AcademicHero` component with customizable title and description support.
+- **Settings UI Optimization**:
+  - Upgraded the "Current Focus" selection from a button grid to a premium, styled dropdown for a cleaner interface.
+  - Implemented custom `ChevronDown` iconography and refined hover/focus states to align with the application's high-fidelity design language.
+- **Header Premium Refinement**:
+  - Centralized session branding into a sleek floating island that dynamically displays the active session name and icon.
+  - Eliminated redundant branding from the left section of the header during focused sessions to prioritize content clarity.
+  - Standardized the "Exit" button with exact horizontal alignment to the "Sign Out" position, featuring a smooth 180-degree rotation animation.
+  - Implemented spatial preservation for right-side action icons (Admin, Theme, Settings) to maintain pixel-perfect layout consistency.
+- **Skill Assessment & Interview Advisor**: Integrated the "Focused Mode" architecture across assessment modules, removing internal redundant headers for a more immersive experience.
+- **Skill Verification Quality Focus**:
+  - Implemented a standard cap of 8 skills per interview session to ensure high-fidelity, focused AI scenarios and prevent candidate fatigue.
+  - Added a "Quality Focus" badge to the interview setup to clearly communicate the scope adjustment logic.
+- **Homepage Bento Grid Optimization**:
+  - Normalized card heights across the homepage spotlight grid by standardizing system notice previews to a fixed height.
+  - Compacted BentoCard layouts by reducing minimum description heights and optimizing vertical spacing.
+- **Global UI State**: Expanded global state management to support application-wide session awareness and synchronized UI focus transitions.
+- **Resume Editor UI & Mechanics**:
+  - Aligned the sticky sidebar with the top of the Professional Summary section for a balanced, premium layout.
+  - Enhanced the sidebar with new interactive modules: **Resume Strength Meter**, **Top Skills Extracted**, and **AI Pro Tips**.
+  - Standardized status badges with sentence-case styling for better readability.
+- **Inclusive Career Journeys**: Overhauled onboarding journey selection to be more exhaustive and inclusive (Renamed "Grad School" to **Education**, "Career Planning" to **Career Growth**, and introduced **Just Exploring**).
+- **Onboarding Personalization**: Refined journey descriptions and tailored headlines across the Welcome Screen and Onboarding flow.
+- **Header Minimalist Refresh**: Streamlined header architecture by removing descriptive icons from functional page headers (`PageHeader` and `DetailHeader`).
+- **Settings Synchronization**: Updated Account Settings to maintain absolute parity with the new onboarding journey categories and terminology.
+- **Card Layout Consistency**: Implemented `mt-auto` alignment for action buttons across all homepage Bento cards, ensuring a uniform visual baseline.
+- **Interactive Career Focus**: Upgraded the "Current Focus" setting to be fully interactive within the Account Settings page.
+- **Aesthetic Refinement**: Executed a site-wide "Casing Polish," removing all-caps styling from feature previews, headers, and badges.
+- **Feed Renaming**: Rebranded "Pro Feed" to simply **"Feed"** throughout the application for a more concise professional tone.
+- **Search & Filter Synchronization**: Standardized the height of `StandardSearchBar` and `StandardFilterGroup` (44px / h-11) for perfect horizontal alignment across History, Feed, and Skills.
+- **Resume Editor UI**: Redesigned experience blocks for better clarity and consolidated block controls next to the "Add Achievement" button.
+- **Resume Editor Aesthetics**: Refined date badges with a full-rounded pill design, improved typography, and removed textured inner shadows.
+- **UI Minimalism**: Streamlined the Resume Editor and Interview Advisor by removing redundant decorative icons and simplifying sidebar layouts.
+- **Resume Automatic Sorting**: Implemented automatic chronological sorting (newest to oldest) for resume items within each section.
+- **Resume Section Migration**: Added a "Move" dropdown to resume blocks, allowing users to transfer items between different sections.
+- **Contextual Resume Entry**: Replaced the "Quick Add" sidebar list with contextual "Add" buttons in each section header.
+- **Resume Editor Sidebar**: Overhauled sidebar architecture for absolute alignment, centering the "Experience Synced" status badge and refining typography.
+- **BentoCard UI Refinement**: Standardized header and title container heights. Increased description line-clamp to 4 lines and optimized spacing.
+- **Improved Coming Soon UX**: Relocated "Coming Soon" indicators to a prominent top-right badge and reserved action bar space globally for layout consistency.
+- **Casing & Naming Standards**: Standardized feature display names in the registry (e.g., "Role Modeling", "Quality Loop") for better layout fit.
+- **Usage Limit Transparency**: Refined the Plans page with explicit usage periods (e.g., "/ day", "/ week") for all limits.
+- **Conversion Flow Optimization**: Upgraded the "Try it free" feature on the Features page to trigger authentication for guest users.
+- **Vertical Alignment**: Resolved vertical positioning of the sticky sidebar to ensure absolute parity with the main editor header.
+- **Footer Architecture**: Redesigned the global footer to centralize system metadata and reposition branding taglines.
+- **Settings Clean-up**: Removed redundant Navigator branding and system version info from the Account Settings page.
+- **Plans Page UX**: Moved the "Explore all features" link to be beside the monthly/annual switcher for better visibility.
+- **Interview Advisor UI**: Standardized typography for buttons, labels, and status messages to align with the global design system.
+- **Resume Editor UI**: Optimized the sticky sidebar layout with increased top offset (`top-24`) and standardized button variants.
+- **Improved Focus**: Removed secondary placeholder states from the Resume Editor to prioritize a document-first writing experience.
+- **Terminology Refinement**: Simplified technical terminology in Job Detail: "Key Skills", "Skill Match", and "Core Responsibilities".
+- **Job Detail UI Aesthetics**: Switched headers from All-Caps to Title Case and increased font weights/sizes for a more premium look.
+- **Layout Expansion**: Expanded the `JobDetail` container to `max-w-6xl` to better accommodate high-density analysis.
+- **Programmatic Casing**: Implemented a global `stringUtils` utility to automatically handle Title Case and Sentence Case for AI-extracted data.
+- **Balanced Cover Letter Critique**: Implemented a dual-gate critique system enforcing both technical fidelity and high-quality professional narrative.
+- **Evidence Benchmarking**: Refined evidence requirements to prioritize "impactful relevance" over strict achievement tallies.
+- **Job Detail Header UX**: Consolidated application status and external link actions into the primary Tab navigation row.
+- **Reference Code Extraction**: Updated the AI analysis engine to specifically extract job reference numbers and IDs.
+- **Location Context Polish**: Switched the location indicator to a map pin and improved geographical data extraction prompts.
+- **Job Detail Header**: Expanded header to include extracted location and reference code with clear dedicated visual indicators.
+- **Job Detail UI**: Standardized the Job Description header by removing "(AI CLEANED)" and all-caps styling.
+- **UI Architecture**: Enhanced `DetailTabs` with a right-aligned `actions` slot and sticky glassmorphism support.
+- **Cover Letter Sidebar**: Re-architected `JobDetail` layout to support a unified floating sidebar across Analysis, Resume, and Cover Letter tabs.
+- **Simplified Cover Letter Editor**: Removed redundant internal grids and sidebars to fit parent layout architecture.
+- **Module-Wide UI Polish**: Standardized typography and layout patterns across Grad Launchpad, GPA Calculator, Role Model Detail, and Onboarding.
+- **Pricing & Plans**: Refined the plan comparison table with improved visual hierarchy and clearer value propositions.
+- **Terminology Alignment**: Standardized "Browser Extension" to "Bookmarklet" across the feature registry and UI.
+- **Premium Toast Notifications**: Redesigned notification system with a compact glassmorphism aesthetic and reduced dismissal timeout.
+- **Bookmarklet UI**: Integrated persistent installation tips into Application History and Job Match pages.
 
 ### Fixed
-- 
+- **Navigation Consistency**: Resolved a long-standing navigation bug where the "Jobs" menu item remained active while viewing the Admin page.
+- **Resume Export Reliability**: Fixed the "Download PDF" feature by implementing a dedicated high-fidelity printable preview component.
+- **Navigation**: Resolved a critical issue where the Settings button in the header failed to navigate to the Settings page.
+- **Resume Editor**: Resolved a bug in the "Quick Add" functionality where secondary experience blocks failed to instantiate correctly.
+- **Pro Feed Branding**: Renamed "Job Feed" to "Pro Feed" across the application and updated its primary icon to `Zap` for better consistency.
+- **Match Breakdown (Strengths & Weaknesses)**: Restored the detailed Strengths and Weaknesses section to the Job Analysis view.
+- **Concise Career Insights**: Optimized the Professional Insight prompt to deliver concise, high-impact reasoning (max 2 sentences).
+- **Bookmarklet Integration**: Added support for direct job analysis via the 'Save to Navigator' bookmarklet from any external site.
+- **Automatic Job Analysis**: Implemented automatic URL detection for the bookmarklet to pre-fill and trigger analysis instantly.
+- **Unified Filter UI**: Compacted filter and search components and refactored the **Job Feed** to use the unified architecture.
+- **UI Design Parity (Interviews & Career)**: Unified entry pages for Interview Advisor and Career Models with a consistent "Bento" architecture.
+- **Bento Advisor UI**: Standardized Interview Advisor selection screen with compact Bento cards and refined typography.
+- **Header Standardization**: Implemented consistent H1/Subtitle hierarchies and standard grid widths across all major modules.
+- **Unified Page Architecture**: Standardized vertical alignment and title positioning across all modules using a consistent layout strategy.
+- **Interview Advisor Refactor**: Redesigned entry page to use the global `SharedPageLayout` and `PageHeader` architecture.
+- **Settings Page**: Replaced the Settings Modal with a dedicated, high-fidelity full-page experience.
+- **Job Detail UX**: Refined alignment sections by removing sequential numbering and standardizing title casing.
+- **Job Detail UX**: Prevented "blank" skeleton states during analysis by ensuring scanning animations persist until results are ready.
+- **Resume UX**: Overhauled the "Resume" tab in Job Detail with a clean, document-inspired aesthetic.
+- **Resume UX**: Resolved a layout conflict where floating action controls overlapped date range inputs.
+- **Resume UX**: Refined Professional Summary section by removing redundant block counts and hiding duplicate delete icons.
+- **Resume Editor**: Fixed a critical text wrapping bug where long professional summaries and achievement bullets were being cut off.
+- **Resume Editor Labeling**: Restored descriptive section labels across the editor for better clarity.
+- **Improved Sync Feedback**: Refined the "Synced" status indicator by removing the unnecessary timestamp.
+
+### Removed
+- **Settings Modal**: Removed the legacy modal-based settings interface to provide more breathing room for account management.
+- **Resume Editor Empty States**: Removed redundant "No items found" placeholders and "Initialize Section" buttons.
+- **History Page Bookmarklet Tip**: Removed the "Save from anywhere" banner from the Application History page.
+- **All-Caps UI Transformation**: Removed `uppercase` text transformation across the entire application for a cleaner aesthetic.
+- **Visual High-Intensity Styling**: Softened the visual profile of technical labels to improve readability and user empathy.
+- **Resume Editor Pro Tip**: Removed the "Pro Tip" sidebar card to reduce visual noise and documentation clutter.
 
 ## [2.18.0] - 2026-02-21
 

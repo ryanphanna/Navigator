@@ -13,6 +13,7 @@ export interface BentoCardProps {
     onAction?: () => void;
     onDismiss?: (e: React.MouseEvent) => void;
     isComingSoon?: boolean;
+    badge?: string;
     className?: string;
 }
 
@@ -26,6 +27,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
     onAction,
     onDismiss,
     isComingSoon = false,
+    badge,
     className = "",
 }) => {
     const cardRef = useRef<HTMLDivElement>(null);
@@ -98,43 +100,58 @@ export const BentoCard: React.FC<BentoCardProps> = ({
                 </button>
             )}
 
-            <div className="flex items-start gap-3 relative z-10 mb-2 min-h-[2.5rem]">
+            <div className="flex items-start justify-between relative z-10 mb-2">
                 <div className={`w-10 h-10 shrink-0 ${iconBgClass} ${iconColorClass} rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/10 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out`}>
                     <Icon className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-black text-neutral-900 dark:text-white tracking-tight leading-tight pt-0.5 flex items-center gap-2 pr-6">
-                    {title}
+
+                <div className="flex gap-1 pt-1.5">
+                    {badge && (
+                        <span className="px-1.5 py-0.5 bg-emerald-500/10 text-[8px] font-black tracking-widest text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-500/10 uppercase">
+                            {badge}
+                        </span>
+                    )}
                     {isComingSoon && (
-                        <span className="px-1.5 py-0.5 bg-neutral-100 dark:bg-white/5 text-[8px] font-black uppercase tracking-wider text-neutral-400 dark:text-neutral-500 rounded-md border border-neutral-200/50 dark:border-white/5">
+                        <span className="px-1.5 py-0.5 bg-neutral-100 dark:bg-white/5 text-[8px] font-black tracking-widest text-neutral-400 dark:text-neutral-500 rounded-md border border-neutral-200/50 dark:border-white/5 uppercase">
                             Soon
                         </span>
                     )}
+                </div>
+            </div>
+
+            <div className="relative z-10 mb-1.5 h-[2.75rem] flex flex-col justify-start">
+                <h3 className="text-lg font-black text-neutral-900 dark:text-white tracking-tight leading-tight line-clamp-2">
+                    {title}
                 </h3>
             </div>
 
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed mb-2 relative z-10 font-medium">
-                {description}
-            </p>
+            <div className="min-h-[3rem] mb-4">
+                <p className="text-[12px] text-neutral-500 dark:text-neutral-400 leading-relaxed relative z-10 font-medium line-clamp-3">
+                    {description}
+                </p>
+            </div>
 
             {/* Preview Section */}
-            <div className="relative pt-4 border-t border-neutral-100 dark:border-white/5">
+            <div className="relative mt-auto pt-4 border-t border-neutral-100 dark:border-white/5">
                 <div className="relative z-10 transform group-hover:scale-105 transition-transform duration-700 ease-out">
                     {previewContent}
                 </div>
 
-                {/* Action Bar */}
-                {actionLabel && (
-                    <div
-                        className={`mt-3 flex items-center justify-end gap-2 ${actionTextClass} font-black text-[10px] tracking-[0.15em] uppercase transition-all relative z-10 cursor-pointer group/btn`}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onAction?.();
-                        }}
-                    >
-                        <span>{actionLabel}</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
-                    </div>
-                )}
+                {/* Action Bar Area - Reserved space for alignment */}
+                <div className="mt-4 h-6 flex items-center justify-end relative z-10">
+                    {actionLabel && !isComingSoon && (
+                        <div
+                            className={`flex items-center gap-2 ${actionTextClass} font-black text-[10px] tracking-[0.15em] transition-all cursor-pointer group/btn`}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAction?.();
+                            }}
+                        >
+                            <span>{actionLabel}</span>
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

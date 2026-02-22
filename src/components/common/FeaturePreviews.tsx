@@ -26,7 +26,7 @@ const JobfitPreview: React.FC<{ color: FeatureColor }> = ({ color }) => (
             </svg>
             <div className="absolute flex flex-col items-center">
                 <span className={`text-xl font-black ${color.text}`}>92%</span>
-                <span className="text-[10px] font-bold text-neutral-400 -mt-1 uppercase tracking-tighter">Match</span>
+                <span className="text-[10px] font-bold text-neutral-400 -mt-1">Match</span>
             </div>
         </div>
         {/* Floating elements */}
@@ -55,7 +55,7 @@ const AiSafetyPreview: React.FC<{ color: FeatureColor }> = ({ color }) => (
             </div>
             <div className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                <span className="text-[7px] font-black text-red-400 uppercase tracking-wider">AI Banned</span>
+                <span className="text-[7px] font-black text-red-400">AI Banned</span>
             </div>
         </div>
     </div>
@@ -171,7 +171,7 @@ const HistoryPreview: React.FC<{ color: FeatureColor }> = ({ color }) => (
             <div key={i} className={`flex items-center gap-3 transition-all duration-700 ${i > 0 ? 'opacity-30 group-hover:opacity-60' : ''}`} style={{ transitionDelay: `${i * 100}ms` }}>
                 <div className="text-[10px] w-4">{item.icon}</div>
                 <div className="flex-grow flex flex-col gap-1">
-                    <div className="flex justify-between items-center text-[7px] font-black uppercase tracking-widest text-neutral-400">
+                    <div className="flex justify-between items-center text-[7px] font-black text-neutral-400">
                         <span>{item.name}</span>
                         <span className={color.text}>{item.score}%</span>
                     </div>
@@ -188,7 +188,7 @@ const HistoryPreview: React.FC<{ color: FeatureColor }> = ({ color }) => (
 );
 
 const FeedPreview: React.FC<{ color: FeatureColor }> = ({ color }) => (
-    <div className="relative w-full h-full p-4 flex flex-col justify-center gap-2 group-hover:scale-[1.02] transition-transform duration-500">
+    <div className="relative w-full h-24 flex flex-col justify-center gap-2 group-hover:scale-105 transition-transform duration-500">
         {[1, 2].map(i => (
             <div key={i} className="flex items-center gap-3 bg-white dark:bg-neutral-800 p-2.5 rounded-xl border border-neutral-100 dark:border-neutral-700 shadow-sm opacity-60 group-hover:opacity-100 transition-opacity">
                 <div className={`w-8 h-8 rounded-lg ${color.iconBg} flex items-center justify-center shrink-0`}>
@@ -207,7 +207,7 @@ const FeedPreview: React.FC<{ color: FeatureColor }> = ({ color }) => (
 );
 
 const MailInPreview: React.FC<{ color: FeatureColor }> = ({ color }) => (
-    <div className="relative w-full h-full flex items-center justify-center group-hover:scale-110 transition-transform duration-700">
+    <div className="relative w-full h-24 flex items-center justify-center group-hover:scale-110 transition-transform duration-700">
         <div className={`absolute inset-0 ${color.glow} blur-3xl opacity-30`} />
         <div className="relative bg-white dark:bg-neutral-800 p-4 rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-700 z-10 flex flex-col items-center gap-2">
             <div className={`w-12 h-12 rounded-xl ${color.iconBg} flex items-center justify-center text-white shadow-lg`}>
@@ -401,7 +401,7 @@ const BookmarkletPreview: React.FC<{ color: FeatureColor }> = ({ color }) => (
 
 export const ArchetypeUpdatePreview: React.FC = () => {
     return (
-        <div className="w-full flex flex-col gap-4 animate-in fade-in duration-700">
+        <div className="w-full flex flex-col h-24 justify-center gap-4 animate-in fade-in duration-700 overflow-hidden">
             <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-500">
                     <UserCircle className="w-4 h-4" />
@@ -420,7 +420,7 @@ export const ArchetypeUpdatePreview: React.FC = () => {
                 </div>
             </div>
 
-            <div className="mt-2 flex items-center gap-2 text-[10px] font-bold text-indigo-500 uppercase tracking-widest leading-none">
+            <div className="mt-auto flex items-center gap-2 text-[10px] font-bold text-indigo-500 leading-none">
                 <Target className="w-3 h-3" />
                 Refine trajectory
             </div>
@@ -430,7 +430,7 @@ export const ArchetypeUpdatePreview: React.FC = () => {
 
 export const PolicyUpdatePreview: React.FC = () => {
     return (
-        <div className="w-full flex flex-col gap-3 animate-in fade-in duration-700">
+        <div className="w-full h-24 flex flex-col justify-center gap-3 animate-in fade-in duration-700 overflow-hidden">
             <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500">
                     <ShieldCheck className="w-5 h-5" />

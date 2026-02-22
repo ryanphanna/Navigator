@@ -17,7 +17,6 @@ import { Button } from '../../../components/ui/Button';
 import type { CoachViewType } from '../types';
 
 interface CoachHeroProps {
-    isTargetMode: boolean;
     isUploading: boolean;
     uploadProgress: { current: number; total: number };
     triggerUpload: () => void;
@@ -34,7 +33,6 @@ interface CoachHeroProps {
 }
 
 export const CoachHero: React.FC<CoachHeroProps> = ({
-    isTargetMode,
     isUploading,
     uploadProgress,
     triggerUpload,
@@ -49,6 +47,8 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
     userSkills,
     onViewChange
 }) => {
+    const isTargetMode = false;
+
     return (
         <>
 

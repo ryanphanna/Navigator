@@ -13,6 +13,7 @@ import { getAllFeatures, getFeatureColor } from '../../featureRegistry';
 import { getPreviewComponent } from '../../components/common/FeaturePreviews';
 import { useUser } from '../../contexts/UserContext';
 import { useModal } from '../../contexts/ModalContext';
+import { ROUTES } from '../../constants';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -184,6 +185,7 @@ export const FeaturesPage: React.FC = () => {
                                         color={color}
                                         actionLabel={feature.isComingSoon ? "Coming Soon" : actionLabel}
                                         isComingSoon={feature.isComingSoon}
+                                        badge={feature.badge}
                                         previewContent={getPreviewComponent(feature.id, color)}
                                         onAction={() => {
                                             if (feature.isComingSoon && !isAdmin) {
@@ -228,18 +230,28 @@ export const FeaturesPage: React.FC = () => {
                     Start with 3 free analyses. No credit card required.
                 </p>
                 <div className="flex items-center justify-center gap-4">
-                    <a
-                        href="/plans"
-                        className="px-6 py-3 bg-neutral-900 dark:bg-white text-white dark:text-black text-sm font-bold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-lg shadow-neutral-500/10 active:scale-95"
+                    <button
+                        onClick={() => navigate(ROUTES.PLANS)}
+                        className="px-6 py-3 bg-neutral-900 dark:bg-white text-white dark:text-black text-sm font-bold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-lg shadow-neutral-500/10 active:scale-95 cursor-pointer"
                     >
                         View Plans
-                    </a>
-                    <a
-                        href="/"
-                        className="px-6 py-3 text-sm font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (!user) {
+                                openModal('AUTH');
+                            } else {
+                                navigate(ROUTES.HOME);
+                                // Give a small delay for navigation to complete before focusing
+                                setTimeout(() => {
+                                    document.querySelector('input')?.focus();
+                                }, 100);
+                            }
+                        }}
+                        className="px-6 py-3 text-sm font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
                     >
                         Try it free →
-                    </a>
+                    </button>
                 </div>
             </motion.div>
         </div >

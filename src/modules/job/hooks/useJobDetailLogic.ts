@@ -1,10 +1,11 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { analyzeJobFit, tailorExperienceBlock, generateTailoredSummary } from '../../../services/geminiService';
 import { Storage } from '../../../services/storageService';
-import { RESUME_TAILORING } from '../../../constants';
+import { RESUME_TAILORING, STORAGE_KEYS } from '../../../constants';
 import type { SavedJob } from '../types';
 import type { ExperienceBlock, ResumeProfile } from '../../resume/types';
 import type { CustomSkill } from '../../skills/types';
+import type { Transcript } from '../../grad/types';
 
 export const useJobDetailLogic = ({
     job,
@@ -46,7 +47,25 @@ export const useJobDetailLogic = ({
             if (onAnalyzeJob) {
                 await onAnalyzeJob(job);
             } else {
-                const result = await analyzeJobFit(job.description || '', resumes, userSkills, (msg) => setAnalysisProgress(msg), job.id);
+                // Fetch transcript if exists
+                let transcript: Transcript | null = null;
+                const savedTranscript = localStorage.getItem(STORAGE_KEYS.TRANSCRIPT_CACHE);
+                if (savedTranscript) {
+                    try {
+                        transcript = JSON.parse(savedTranscript);
+                    } catch (e) {
+                        console.error("Failed to parse transcript for analysis:", e);
+                    }
+                }
+
+                const result = await analyzeJobFit(
+                    job.description || '',
+                    resumes,
+                    userSkills,
+                    (msg) => setAnalysisProgress(msg),
+                    job.id,
+                    transcript
+                );
                 const finalJob: SavedJob = { ...job, analysis: result, status: 'saved' as const };
                 await Storage.updateJob(finalJob);
                 onUpdateJob(finalJob);

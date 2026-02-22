@@ -4,17 +4,26 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { MAEligibility } from './MAEligibility';
 import { SkillExtractor } from './SkillExtractor';
 import { ProgramExplorer } from './components/ProgramExplorer';
-import { useCoachContext } from '../career/context/CoachContext';
-import { Link } from 'react-router-dom';
-import { ROUTES } from '../../constants';
+
 
 import { useSkillContext } from '../skills/context/SkillContext';
 import { Storage } from '../../services/storageService';
 import { useToast } from '../../contexts/ToastContext';
+import { AcademicHero } from './components/AcademicHero';
+import { useAcademicLogic } from './hooks/useAcademicLogic';
 
 export const ProgramExplorerPage: React.FC = () => {
-    const { transcript } = useCoachContext();
     const { updateSkills } = useSkillContext();
+    const {
+        transcript,
+        handleFileUpload,
+        isParsing,
+        parseError,
+        tempTranscript,
+        showVerification,
+        setShowVerification,
+        handleVerificationSave
+    } = useAcademicLogic();
     const [selectedProgram, setSelectedProgram] = React.useState<string | undefined>();
     useToast();
 
@@ -72,15 +81,18 @@ export const ProgramExplorerPage: React.FC = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="text-center py-12 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl border border-neutral-200 dark:border-neutral-800">
-                        <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">No Transcript Found</h3>
-                        <p className="text-neutral-500 dark:text-neutral-400 mb-6">Please upload your transcript to explore programs.</p>
-                        <Link
-                            to={ROUTES.TRANSCRIPT}
-                            className="inline-flex items-center justify-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                            Upload Transcript
-                        </Link>
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <AcademicHero
+                            title="Ready to Explore?"
+                            description="Upload your transcript to see which top programs you're eligible for."
+                            handleFileUpload={handleFileUpload}
+                            isParsing={isParsing}
+                            parseError={parseError}
+                            tempTranscript={tempTranscript}
+                            showVerification={showVerification}
+                            setShowVerification={setShowVerification}
+                            handleVerificationSave={handleVerificationSave}
+                        />
                     </div>
                 )}
             </div>

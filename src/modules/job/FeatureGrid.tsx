@@ -7,7 +7,6 @@ import { EventService } from '../../services/eventService';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { useUser } from '../../contexts/UserContext';
 import { LATEST_TOS_VERSION } from '../../constants';
-import { useModal } from '../../contexts/ModalContext';
 
 // Icon Map — resolves string icon names to Lucide components
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -52,7 +51,6 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
     className = ""
 }) => {
     const { lastArchetypeUpdate, acceptedTosVersion, user: contextUser, dismissedNotices, dismissNotice } = useUser();
-    const { openModal } = useModal();
 
     const user = propUser || contextUser;
 
@@ -139,11 +137,7 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
         EventService.trackInterest(feature.id);
 
         if (user) {
-            if (feature.targetView === 'settings') {
-                openModal('SETTINGS');
-            } else {
-                onNavigate?.(feature.targetView);
-            }
+            onNavigate?.(feature.targetView);
         } else {
             // Logged out behavior
             if (onShowAuth) {
@@ -175,6 +169,8 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
                             description={config.description[descriptionKey]}
                             color={color}
                             actionLabel={config.action[actionKey]}
+                            badge={config.badge}
+                            isComingSoon={config.isComingSoon}
                             previewContent={getPreviewComponent(config.id, color)}
                             onAction={() => handleAction(config)}
                             onDismiss={isSystemNotice ? () => {

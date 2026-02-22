@@ -142,14 +142,22 @@ export const INTERVIEW_PROMPTS = {
     1. GRADE: Does this answer demonstrate the required competence?
     2. DECISION: "Reject" | "Weak" | "Average" | "Strong" | "Exceptional"
     3. FEEDBACK: Explain *why* you made this decision.
-    
+    4. RESUME SUGGESTIONS: If the candidate mentioned a strong achievement, metric, or skill that is NOT typically highlighted well in a basic resume, or if they showed a gap that needs addressing, provide specific resume bullet suggestions.
+
     Return ONLY JSON:
     {
       "decision": "Reject" | "Weak" | "Average" | "Strong" | "Exceptional",
       "feedback": "Direct feedback. 'You missed the key concept of X...'",
       "strengths": ["string"],
       "improvements": ["string"],
-      "betterVersion": "A more senior/correct version of the answer."
+      "betterVersion": "A more senior/correct version of the answer.",
+      "resumeSuggestions": [
+        {
+          "type": "add" | "update" | "remove",
+          "suggestion": "The proposed resume bullet or action.",
+          "impact": "Why this change helps (e.g., 'Quantifies your impact on team velocity')."
+        }
+      ]
     }
     `,
 

@@ -10,7 +10,6 @@ import { RoleModelSection } from './components/RoleModelSection';
 import { GapAnalysisSection } from './components/GapAnalysisSection';
 import { RoleModelComparison } from './components/RoleModelComparison';
 import { GrowthPage } from './components/GrowthPage';
-import { Target, Users } from 'lucide-react';
 import { useHeadlines } from '../../hooks/useHeadlines';
 import { PageHeader } from '../../components/ui/PageHeader';
 import type { ResumeProfile } from '../resume/types';
@@ -58,7 +57,6 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
     const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
     const [selectedRoleModelId, setSelectedRoleModelId] = useState<string | null>(null);
     const [comparisonRoleModelId, setComparisonRoleModelId] = useState<string | null>(null);
-    const [isTargetMode, setIsTargetMode] = useState(false);
     const [url, setUrl] = useState('');
     const [isScrapingUrl, setIsScrapingUrl] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -141,35 +139,11 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
                     title={activeHeadline.text}
                     highlight={activeHeadline.highlight}
                     subtitle="Distill career paths into your personalized growth roadmap."
-                    actions={
-                        <div className="relative bg-neutral-100/50 dark:bg-neutral-900/40 p-1 rounded-xl flex items-center border border-neutral-200/50 dark:border-neutral-800/50 backdrop-blur-xl shadow-inner-sm">
-                            <div
-                                className={`absolute h-[calc(100%-8px)] w-[calc(50%-4px)] bg-white dark:bg-neutral-800 rounded-lg shadow-sm transition-all duration-300 ease-out z-0 ${isTargetMode ? 'translate-x-[calc(100%)]' : 'translate-x-0'}`}
-                            />
-
-                            <button
-                                onClick={() => setIsTargetMode(false)}
-                                className={`relative z-10 px-6 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${!isTargetMode ? 'text-accent-primary-hex' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}
-                            >
-                                <Users className={`w-3.5 h-3.5 transition-transform duration-300 ${!isTargetMode ? 'scale-110' : 'scale-100'}`} />
-                                <span>Emulate</span>
-                            </button>
-
-                            <button
-                                onClick={() => setIsTargetMode(true)}
-                                className={`relative z-10 px-6 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${isTargetMode ? 'text-accent-primary-hex' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}
-                            >
-                                <Target className={`w-3.5 h-3.5 transition-transform duration-300 ${isTargetMode ? 'scale-110' : 'scale-100'}`} />
-                                <span>Destination</span>
-                            </button>
-                        </div>
-                    }
                 />
             )}
 
             {view === 'coach-home' && (
                 <CoachHero
-                    isTargetMode={isTargetMode}
                     isUploading={isUploading}
                     uploadProgress={uploadProgress}
                     triggerUpload={triggerUpload}

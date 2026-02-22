@@ -68,6 +68,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             'terms': ROUTES.TERMS,
             'contact': ROUTES.CONTACT,
             'features': ROUTES.FEATURES,
+            'settings': ROUTES.SETTINGS,
         };
 
         const path = viewToPath[viewId];

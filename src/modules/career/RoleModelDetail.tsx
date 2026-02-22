@@ -82,7 +82,6 @@ export const RoleModelDetail: React.FC<RoleModelDetailProps> = ({
                 subtitle={roleModel.headline}
                 onBack={onBack}
                 icon={Briefcase}
-                actions={actions}
                 themeColor="accent"
             />
 
@@ -91,6 +90,7 @@ export const RoleModelDetail: React.FC<RoleModelDetailProps> = ({
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
                 themeColor="accent"
+                actions={actions}
             />
 
             <DetailLayout

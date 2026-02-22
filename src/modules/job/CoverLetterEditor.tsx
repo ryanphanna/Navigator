@@ -6,14 +6,16 @@ import { generateCoverLetter, generateCoverLetterWithQuality, critiqueCoverLette
 import { ANALYSIS_PROMPTS } from '../../prompts/analysis';
 import { ArchetypeUtils } from '../../utils/archetypeUtils';
 import {
-    Loader2, Sparkles, AlertCircle, PenTool, ThumbsUp, ThumbsDown,
-    Copy, Check, CheckCircle, Users
+    Loader2, Sparkles, AlertCircle, PenTool,
+    Copy, Check, Users
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { TRACKING_EVENTS } from '../../constants';
 import { useToast } from '../../contexts/ToastContext';
 import { EventService } from '../../services/eventService';
 import { JobStorage } from '../../services/storage/jobStorage';
+import { Card } from '../../components/ui/Card';
+import { toTitleCase } from '../../utils/stringUtils';
 
 interface CoverLetterEditorProps {
     job: SavedJob;
@@ -36,13 +38,10 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
     const [showContextInput, setShowContextInput] = React.useState(false);
 
     const [copiedState, setCopiedState] = React.useState<'cl' | null>(null);
-    const [rated, setRated] = React.useState<1 | -1 | null>(null);
     const [analysisProgress, setAnalysisProgress] = React.useState<string | null>(null);
     const [comparisonVersions, setComparisonVersions] = React.useState<{ text: string; promptVersion: string }[] | null>(null);
     const [localJob, setLocalJob] = React.useState(job);
-    const [showFeedbackInput, setShowFeedbackInput] = React.useState(false);
-    const [feedbackText, setFeedbackText] = React.useState('');
-    const { showError, showSuccess } = useToast();
+    const { showError } = useToast();
 
     // Sync with parent when job prop changes
     React.useEffect(() => {
@@ -71,7 +70,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
         setGenerating(true);
         setAnalysisProgress("Generating cover letter...");
         try {
-            const textToUse = analysis.cleanedDescription || localJob.description || `Role: ${analysis.distilledJob.roleTitle} at ${analysis.distilledJob.companyName} `;
+            const textToUse = analysis.cleanedDescription || localJob.description || `Role: ${toTitleCase(analysis.distilledJob.roleTitle)} at ${toTitleCase(analysis.distilledJob.companyName)} `;
 
             let finalContext = localJob.contextNotes;
             let instructions = analysis.coverLetterTailoringInstructions || analysis.tailoringInstructions || [];
@@ -210,7 +209,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
     const handleRunCritique = async () => {
         setGenerating(true);
         try {
-            const textToUse = analysis.cleanedDescription || localJob.description || `Role: ${analysis.distilledJob.roleTitle} at ${analysis.distilledJob.companyName}`;
+            const textToUse = analysis.cleanedDescription || localJob.description || `Role: ${toTitleCase(analysis.distilledJob.roleTitle)} at ${toTitleCase(analysis.distilledJob.companyName)}`;
             const critique = await critiqueCoverLetter(textToUse, localJob.coverLetter!, localJob.id);
 
             const updated = { ...localJob, coverLetterCritique: critique };
@@ -262,380 +261,246 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
     }
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                {/* Main Content Column */}
-                <div className="lg:col-span-8 space-y-6">
-                    {/* Header / Controls */}
-                    <div className="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden">
-                        <div className="px-6 py-4 border-b border-neutral-100 flex justify-between items-center bg-white">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-indigo-50 rounded-lg">
-                                    <PenTool className="w-4 h-4 text-indigo-600" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-neutral-900">Cover Letter Draft</h3>
-                                    <p className="text-xs text-neutral-500">AI-tailored to this specific role</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {localJob.coverLetter && (
-                                    <button
-                                        onClick={() => handleCopy(localJob.coverLetter!)}
-                                        className="text-xs font-medium px-4 py-2 bg-white border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors flex items-center gap-2 shadow-sm active:scale-95"
-                                    >
-                                        {copiedState === 'cl' ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
-                                        {copiedState === 'cl' ? 'Copied' : 'Copy Text'}
-                                    </button>
-                                )}
-                                {(!localJob.coverLetter || userTier !== 'free') && (
-                                    <button
-                                        onClick={() => {
-                                            if (localJob.coverLetter) {
-                                                setShowContextInput(true);
-                                            } else {
-                                                handleGenerateCoverLetter();
-                                            }
-                                        }}
-                                        disabled={generating}
-                                        className="text-xs font-medium px-4 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors flex items-center gap-2 shadow-sm active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-                                    >
-                                        {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                                        {generating ? (analysisProgress || 'Writing...') : localJob.coverLetter ? 'Refine Draft' : 'Generate Draft'}
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Safety Warning (Phase 9) */}
-                            {analysis.distilledJob.isAiBanned && (
-                                <div className="px-6 py-4 bg-red-50 border-b border-red-100 flex items-start gap-4 animate-in fade-in slide-in-from-top-2">
-                                    <div className="p-2 bg-red-100 rounded-full shrink-0">
-                                        <AlertCircle className="w-5 h-5 text-red-700" />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-bold text-red-900">AI Warning: Employer Prohibition Detected</h4>
-                                        <p className="text-xs text-red-700 mt-1 leading-relaxed">
-                                            This job posting explicitly discourages or bans the use of AI/LLMs.
-                                            {analysis.distilledJob.aiBanReason && (
-                                                <span className="block mt-1 font-medium italic opacity-90">
-                                                    Context: "{analysis.distilledJob.aiBanReason}"
-                                                </span>
-                                            )}
-                                        </p>
-                                        <p className="text-[10px] text-red-600 mt-2 font-bold uppercase tracking-wider flex items-center gap-1">
-                                            <span>RECOMMENDATION:</span>
-                                            <span className="font-normal opacity-80">Write this manually. Use our draft ONLY as a rough reference.</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
+        <div className="space-y-6">
+            {/* Header / Controls */}
+            <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+                <div className="px-6 py-6 border-b border-neutral-100 dark:border-white/5 flex justify-between items-center bg-white dark:bg-neutral-900/50">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl">
+                            <PenTool className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                         </div>
+                        <div>
+                            <h3 className="font-black text-neutral-900 dark:text-white tracking-tight">Cover Letter Draft</h3>
+                            <p className="text-xs text-neutral-500 dark:text-neutral-400 font-bold uppercase tracking-widest mt-0.5">AI-tailored to this specific role</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        {localJob.coverLetter && (
+                            <button
+                                onClick={() => handleCopy(localJob.coverLetter!)}
+                                className="text-[10px] font-black uppercase tracking-widest px-5 py-2.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-all flex items-center gap-2 shadow-sm active:scale-95"
+                            >
+                                {copiedState === 'cl' ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                                {copiedState === 'cl' ? 'Copied' : 'Copy Text'}
+                            </button>
+                        )}
+                        {(!localJob.coverLetter || userTier !== 'free') && (
+                            <button
+                                onClick={() => {
+                                    if (localJob.coverLetter) {
+                                        setShowContextInput(true);
+                                    } else {
+                                        handleGenerateCoverLetter();
+                                    }
+                                }}
+                                disabled={generating}
+                                className="text-[10px] font-black uppercase tracking-widest px-5 py-2.5 bg-neutral-900 dark:bg-indigo-600 text-white rounded-xl hover:bg-neutral-800 dark:hover:bg-indigo-500 transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                                {generating ? (analysisProgress || 'Writing...') : localJob.coverLetter ? 'Refine Draft' : 'Generate Draft'}
+                            </button>
+                        )}
+                    </div>
+                </div>
 
-                        {/* Quality Badge (Pro Feature) */}
-                        {localJob.coverLetter && typeof localJob.coverLetterCritique === 'object' && localJob.coverLetterCritique?.decision && (
-                            <div className={`px-6 py-3 border-b ${(localJob.coverLetterCritique.decision === 'Exceptional' || localJob.coverLetterCritique.decision === 'Strong') ? 'bg-green-50/50 border-green-100' :
-                                localJob.coverLetterCritique.decision === 'Average' ? 'bg-blue-50/50 border-blue-100' :
-                                    'bg-amber-50/50 border-amber-100'
-                                }`}>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        {(localJob.coverLetterCritique.decision === 'Exceptional' || localJob.coverLetterCritique.decision === 'Strong') ? (
-                                            <>
-                                                <CheckCircle className="w-4 h-4 text-green-600" />
-                                                <span className="text-sm font-medium text-green-900">
-                                                    {localJob.coverLetterCritique.decision === 'Exceptional' ? 'Exceptional Fit' : 'Strong Candidate'}
-                                                </span>
-                                            </>
-                                        ) : localJob.coverLetterCritique.decision === 'Average' ? (
-                                            <>
-                                                <CheckCircle className="w-4 h-4 text-blue-600" />
-                                                <span className="text-sm font-medium text-blue-900">Competitive</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <AlertCircle className="w-4 h-4 text-amber-600" />
-                                                <span className="text-sm font-medium text-amber-900">Needs Review</span>
-                                            </>
-                                        )}
+                {/* Safety Warning */}
+                {analysis.distilledJob.isAiBanned && (
+                    <div className="px-8 py-6 bg-amber-50 dark:bg-amber-950/20 border-b border-amber-100 dark:border-amber-900/30 flex items-start gap-4 animate-in fade-in slide-in-from-top-2">
+                        <div className="p-2.5 bg-amber-100 dark:bg-amber-900/40 rounded-xl shrink-0">
+                            <AlertCircle className="w-6 h-6 text-amber-700 dark:text-amber-400" />
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-black text-amber-900 dark:text-amber-200 mb-1">Employer AI Prohibition Detected</h4>
+                            <p className="text-xs text-amber-800 dark:text-amber-300 font-medium leading-relaxed">
+                                This job posting explicitly discourages or bans the use of AI/LLMs. Use this draft ONLY as a reference.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Quality Badge */}
+                {localJob.coverLetter && typeof localJob.coverLetterCritique === 'object' && localJob.coverLetterCritique?.decision && (
+                    <div className={`px-8 py-4 border-b dark:border-white/5 ${(localJob.coverLetterCritique.decision === 'Exceptional' || localJob.coverLetterCritique.decision === 'Strong') ? 'bg-emerald-50/50 dark:bg-emerald-500/5' :
+                        localJob.coverLetterCritique.decision === 'Average' ? 'bg-blue-50/50 dark:bg-blue-500/5' :
+                            'bg-amber-50/50 dark:bg-amber-500/5'
+                        }`}>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                {(localJob.coverLetterCritique.decision === 'Exceptional' || localJob.coverLetterCritique.decision === 'Strong') ? (
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                ) : (
+                                    <div className="w-2 h-2 rounded-full bg-amber-500" />
+                                )}
+                                <span className="text-xs font-black uppercase tracking-widest text-neutral-900 dark:text-white">
+                                    Candidate Match: {localJob.coverLetterCritique.decision}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Editor Area */}
+                <div className="p-8 min-h-[600px] flex flex-col bg-white dark:bg-neutral-900">
+                    {comparisonVersions ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 h-full">
+                            {comparisonVersions.map((v, i) => (
+                                <div key={i} className="flex flex-col space-y-6 p-8 bg-neutral-50 dark:bg-neutral-800/50 rounded-3xl border-2 border-dashed border-neutral-200 dark:border-neutral-700 hover:border-indigo-300 dark:hover:border-indigo-500 transition-all group relative">
+                                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full text-[10px] font-black uppercase tracking-widest text-neutral-400 shadow-sm">
+                                        Style Option {i + 1}
                                     </div>
-                                    {['Reject', 'Weak'].includes(localJob.coverLetterCritique.decision) && (
-                                        <span className="text-xs text-amber-700 flex items-center gap-1">
-                                            <AlertCircle className="w-3 h-3" />
-                                            Consider reviewing carefully before sending
-                                        </span>
-                                    )}
+                                    <div className="flex-1 text-sm text-neutral-700 dark:text-neutral-300 font-serif leading-relaxed line-clamp-[18]">
+                                        {v.text}
+                                    </div>
+                                    <button
+                                        onClick={() => handleSelectVariant(v)}
+                                        className="w-full py-3.5 bg-neutral-900 dark:bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neutral-800 dark:hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/10 flex items-center justify-center gap-2 group-hover:scale-[1.02]"
+                                    >
+                                        <Sparkles className="w-3.5 h-3.5" />
+                                        Use This Style
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    ) : localJob.coverLetter ? (
+                        <>
+                            <div
+                                className="flex-1 text-neutral-800 dark:text-neutral-200 leading-relaxed font-serif text-base whitespace-pre-wrap selection:bg-indigo-100 dark:selection:bg-indigo-500/30 outline-none transition-colors border-none p-2"
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => handleEditCoverLetter(e.currentTarget.innerText)}
+                                role="textbox"
+                                aria-label="Cover Letter Content"
+                                spellCheck={false}
+                            >
+                                {localJob.coverLetter}
+                            </div>
+                            <div className="mt-12 pt-8 border-t border-neutral-100 dark:border-white/5 flex justify-between items-center">
+                                <div className="text-[10px] text-neutral-400 font-black uppercase tracking-widest">
+                                    Tailored by Navigator AI
                                 </div>
                             </div>
-                        )}
+                        </>
+                    ) : (
+                        <div className="flex-1 flex flex-col items-center justify-center text-center space-y-8 py-20">
+                            <div className="w-24 h-24 bg-neutral-50 dark:bg-neutral-800 rounded-full flex items-center justify-center animate-pulse">
+                                <PenTool className="w-10 h-10 text-neutral-300" />
+                            </div>
+                            <div className="max-w-md">
+                                <h3 className="text-xl font-black text-neutral-900 dark:text-white mb-3 tracking-tight">Ready to Draft</h3>
+                                <p className="text-neutral-500 dark:text-neutral-400 font-bold text-sm leading-relaxed">
+                                    Generate an organic, narrative-driven cover letter meticulously tailored to this specific role and company.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
 
-                        {/* Editor / Content Area */}
-                        <div className="p-6 min-h-[500px] flex flex-col">
-                            {comparisonVersions ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
-                                    {comparisonVersions.map((v, i) => (
-                                        <div key={i} className="flex flex-col space-y-4 p-6 bg-neutral-50/50 rounded-xl border border-dashed border-neutral-300 hover:border-indigo-300 transition-all group relative">
-                                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-white border border-neutral-200 rounded-full text-xs font-bold text-neutral-400 shadow-sm">
-                                                Style Option {i + 1}
-                                            </div>
-                                            <div className="flex-1 text-sm text-neutral-700 font-serif leading-relaxed line-clamp-[15]">
-                                                {v.text}
-                                            </div>
-                                            <button
-                                                onClick={() => handleSelectVariant(v)}
-                                                className="w-full py-2.5 bg-white border border-neutral-200 text-neutral-900 rounded-lg text-xs font-bold hover:bg-neutral-900 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2 group-hover:scale-[1.02]"
-                                            >
-                                                <Sparkles className="w-3.5 h-3.5" />
-                                                Use This Style
-                                            </button>
+            {/* Personal Context Section (Moved below editor) */}
+            {showContextInput && (
+                <Card variant="premium" className="p-8 border-indigo-500/10 animate-in slide-in-from-bottom-4">
+                    <div className="flex justify-between items-center mb-6">
+                        <h4 className="font-black text-neutral-900 dark:text-white flex items-center gap-2 text-sm tracking-tight uppercase tracking-widest">
+                            <Sparkles className="w-4 h-4 text-indigo-500" />
+                            Add Personal Context
+                        </h4>
+                        <button onClick={() => setShowContextInput(false)} className="text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-indigo-500">Close</button>
+                    </div>
+                    <div className="space-y-6">
+                        <textarea
+                            className="w-full text-sm p-6 bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-white/5 rounded-3xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder:text-neutral-400 resize-none font-medium leading-relaxed"
+                            rows={4}
+                            placeholder="Add specific details (e.g. 'I used their product in 2022...', 'I'm a big fan of their mission...')"
+                            value={localJob.contextNotes || ''}
+                            onChange={(e) => handleUpdateContext(e.target.value)}
+                            autoFocus
+                        />
+                        <button
+                            onClick={() => {
+                                handleGenerateCoverLetter();
+                                setShowContextInput(false);
+                            }}
+                            disabled={generating}
+                            className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl shadow-indigo-600/20 active:scale-95"
+                        >
+                            {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                            {localJob.coverLetter ? 'Refine Draft with Context' : 'Generate Draft'}
+                        </button>
+                    </div>
+                </Card>
+            )}
+
+            {/* Blind Review Section (Moved below context) */}
+            {localJob.coverLetter && (
+                <Card variant="glass" className="p-8 border-neutral-200 dark:border-white/5">
+                    <div className="flex justify-between items-center mb-8">
+                        <h4 className="font-black text-neutral-900 dark:text-white flex items-center gap-3 text-sm tracking-tight">
+                            <Users className="w-5 h-5 text-indigo-500" />
+                            Blind AI Review
+                        </h4>
+                        {localJob.coverLetterCritique && (
+                            <button
+                                onClick={handleRunCritique}
+                                disabled={generating}
+                                className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:underline"
+                            >
+                                Rerun Review
+                            </button>
+                        )}
+                    </div>
+
+                    {localJob.coverLetterCritique && typeof localJob.coverLetterCritique !== 'string' ? (
+                        <div className="space-y-8">
+                            <div className="grid sm:grid-cols-2 gap-8">
+                                <div className="p-6 bg-white dark:bg-neutral-800 rounded-3xl border border-neutral-100 dark:border-white/5 shadow-sm">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-2">Hiring Decision</span>
+                                    <span className={`text-2xl font-black ${((localJob.coverLetterCritique as any).decision === 'Exceptional' || (localJob.coverLetterCritique as any).decision === 'Strong') ? 'text-emerald-600 dark:text-emerald-400' :
+                                        (localJob.coverLetterCritique as any).decision === 'Average' ? 'text-blue-600 dark:text-blue-400' :
+                                            'text-rose-600 dark:text-rose-400'
+                                        }`}>
+                                        {(localJob.coverLetterCritique as any).decision}
+                                    </span>
+                                </div>
+                                <div className="p-6 bg-white dark:bg-neutral-800 rounded-3xl border border-neutral-100 dark:border-white/5 shadow-sm">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-2">Professionalism</span>
+                                    <span className="text-2xl font-black text-neutral-900 dark:text-white">High Quality</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <span className="text-[11px] font-black uppercase tracking-widest text-neutral-400 flex items-center gap-2">
+                                    <Sparkles className="w-3.5 h-3.5" /> Performance Analysis
+                                </span>
+                                <div className="grid gap-3">
+                                    {(localJob.coverLetterCritique as any).feedback.map((f: string, i: number) => (
+                                        <div key={i} className="text-xs font-bold leading-relaxed text-neutral-700 dark:text-neutral-300 bg-neutral-50 dark:bg-neutral-800/50 p-4 rounded-2xl border border-neutral-100 dark:border-white/5 flex gap-4">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/30 mt-1.5 shrink-0" />
+                                            {f}
                                         </div>
                                     ))}
-                                    <div className="md:col-span-2 text-center pt-4">
-                                        <p className="text-xs text-neutral-400 font-medium italic">
-                                            Choose the draft that best fits your personal voice.
-                                        </p>
-                                    </div>
                                 </div>
-                            ) : localJob.coverLetter ? (
-                                <>
-                                    <div
-                                        className="flex-1 text-neutral-800 leading-relaxed font-serif whitespace-pre-wrap selection:bg-indigo-100 selection:text-indigo-900 outline-none focus:bg-neutral-50 transition-colors rounded p-4 border border-transparent focus:border-indigo-100"
-                                        contentEditable
-                                        suppressContentEditableWarning
-                                        onBlur={(e) => handleEditCoverLetter(e.currentTarget.innerText)}
-                                        role="textbox"
-                                        aria-label="Cover Letter Content"
-                                        spellCheck={false}
-                                    >
-                                        {localJob.coverLetter}
-                                    </div>
-                                    <div className="mt-8 pt-4 border-t border-neutral-100 flex justify-between items-center">
-                                        <div className="text-[10px] text-neutral-400 font-mono">
-                                            Tailored by Navigator AI
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs text-neutral-400 mr-2">Rate this output:</span>
-                                            <button
-                                                onClick={() => {
-                                                    Storage.submitFeedback(localJob.id, 1, 'cover_letter');
-                                                    setRated(1);
-                                                    showSuccess("Thanks for the feedback!");
-                                                }}
-                                                className={`p-1.5 rounded hover:bg-neutral-100 transition-colors ${rated === 1 ? 'text-green-600 bg-green-50' : 'text-neutral-400'}`}
-                                                disabled={!!rated}
-                                            >
-                                                <ThumbsUp className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    setRated(-1);
-                                                    setShowFeedbackInput(true);
-                                                }}
-                                                className={`p-1.5 rounded hover:bg-neutral-100 transition-colors ${rated === -1 ? 'text-red-600 bg-red-50' : 'text-neutral-400'}`}
-                                                disabled={!!rated}
-                                            >
-                                                <ThumbsDown className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {showFeedbackInput && (
-                                        <div className="mt-4 p-4 bg-rose-50 rounded-xl border border-rose-100 animate-in slide-in-from-top-2">
-                                            <p className="text-xs font-bold text-rose-900 mb-2">How can we improve this?</p>
-                                            <div className="flex gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={feedbackText}
-                                                    onChange={(e) => setFeedbackText(e.target.value)}
-                                                    placeholder="e.g. Too formal, missed my React experience..."
-                                                    className="flex-1 text-xs p-2 bg-white border border-rose-200 rounded-lg focus:ring-2 focus:ring-rose-200 focus:outline-none"
-                                                    autoFocus
-                                                />
-                                                <button
-                                                    onClick={() => {
-                                                        Storage.submitFeedback(localJob.id, -1, `cover_letter: ${feedbackText}`);
-                                                        setShowFeedbackInput(false);
-                                                        showSuccess("Feedback received. We'll use this to improve!");
-                                                    }}
-                                                    className="px-4 py-2 bg-rose-600 text-white text-xs font-bold rounded-lg hover:bg-rose-700 transition-colors"
-                                                >
-                                                    Send
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 opacity-60">
-                                    <div className="w-20 h-20 bg-neutral-100 rounded-full flex items-center justify-center">
-                                        {generating ? <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" /> : <PenTool className="w-10 h-10 text-neutral-300" />}
-                                    </div>
-                                    <div className="max-w-md">
-                                        <h3 className="text-lg font-medium text-neutral-900 mb-2">{generating ? 'Writing your first draft...' : 'No Draft Yet'}</h3>
-                                        <p className="text-neutral-500 mb-6">
-                                            {generating ? 'Analyzing requirements and matching to your experience.' : `Generate a tailored cover letter customized for ${analysis.distilledJob.companyName}.`}
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Sidebar Column */}
-                <div className="lg:col-span-4 space-y-6">
-                    <div className="sticky top-20 space-y-6">
-                        {/* Context Card */}
-                        <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm">
-                            <div className="px-6 py-4 border-b border-neutral-100 flex justify-between items-center bg-neutral-50/50">
-                                <h4 className="font-bold text-neutral-900 flex items-center gap-2 text-sm">
-                                    <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                                    Refinement Strategy
-                                </h4>
-                            </div>
-
-                            <div className="p-6 space-y-6">
-                                {showContextInput || !localJob.coverLetter ? (
-                                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                        <div>
-                                            <div className="flex justify-between items-center mb-2">
-                                                <span className="text-xs font-bold text-neutral-400">Personal Context</span>
-                                                {localJob.coverLetter && (
-                                                    <button onClick={() => setShowContextInput(false)} className="text-indigo-600 hover:text-indigo-700 text-xs">Cancel</button>
-                                                )}
-                                            </div>
-                                            <textarea
-                                                className="w-full text-xs p-3 bg-neutral-50 border border-neutral-200 rounded-lg focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all placeholder:text-neutral-400 resize-none font-sans leading-relaxed"
-                                                rows={4}
-                                                placeholder="Add specific details (e.g. 'I used their product in 2022...')"
-                                                value={localJob.contextNotes || ''}
-                                                onChange={(e) => handleUpdateContext(e.target.value)}
-                                                autoFocus={showContextInput}
-                                            />
-                                        </div>
-
-                                        <button
-                                            onClick={() => {
-                                                handleGenerateCoverLetter();
-                                                setShowContextInput(false);
-                                            }}
-                                            disabled={generating}
-                                            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 active:scale-95"
-                                        >
-                                            {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                                            {localJob.coverLetter ? 'Regenerate Draft' : 'Generate Draft'}
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-6">
-                                        <div>
-                                            <div className="text-xs font-bold text-neutral-400 mb-3">AI Comparison Logic</div>
-                                            <div className="space-y-3">
-                                                {(analysis.coverLetterTailoringInstructions || analysis.tailoringInstructions || [])
-                                                    .slice(0, 3)
-                                                    .map((instruction: string, idx: number) => (
-                                                        <div key={idx} className="flex gap-3 text-xs text-neutral-600 bg-neutral-50 p-3 rounded-lg border border-neutral-100 italic leading-relaxed">
-                                                            <span className="font-bold text-neutral-300">•</span>
-                                                            <span>{instruction.replace(/\[Block ID: .*?\]/g, '').trim()}</span>
-                                                        </div>
-                                                    ))}
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            onClick={() => setShowContextInput(true)}
-                                            className="w-full py-2.5 bg-white border border-neutral-200 text-neutral-600 rounded-xl text-xs font-bold hover:bg-neutral-50 transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <PenTool className="w-3.5 h-3.5" />
-                                            Add Personal Context
-                                        </button>
-                                    </div>
-                                )}
                             </div>
                         </div>
-
-                        {/* Blind Review Card (Only visible if letter exists) */}
-                        {localJob.coverLetter && (
-                            <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm">
-                                <div className="p-4 border-b border-neutral-100 flex justify-between items-center bg-neutral-50/50">
-                                    <h4 className="font-bold text-neutral-900 flex items-center gap-2 text-sm">
-                                        <Users className="w-3.5 h-3.5 text-indigo-500" />
-                                        Blind Review
-                                    </h4>
-                                </div>
-
-                                <div className="p-6">
-                                    {localJob.coverLetterCritique ? (
-                                        <div className="text-sm">
-                                            {typeof localJob.coverLetterCritique === 'string' ? (
-                                                <div className="text-neutral-600 text-xs leading-relaxed">
-                                                    <ReactMarkdown>{localJob.coverLetterCritique}</ReactMarkdown>
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-6">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-xs font-bold text-neutral-400">Decision Profile</span>
-                                                        <div className="flex items-baseline gap-1">
-                                                            <span className={`text-lg font-black ${(localJob.coverLetterCritique.decision === 'Exceptional' || localJob.coverLetterCritique.decision === 'Strong') ? 'text-emerald-600' :
-                                                                localJob.coverLetterCritique.decision === 'Average' ? 'text-blue-600' :
-                                                                    'text-rose-600'
-                                                                }`}>
-                                                                {localJob.coverLetterCritique.decision}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="space-y-3">
-                                                        <div className="text-xs font-bold text-neutral-400 flex items-center gap-2">
-                                                            <Sparkles className="w-3 h-3 text-indigo-500" /> Improvement Tips
-                                                        </div>
-                                                        <ul className="space-y-2">
-                                                            {localJob.coverLetterCritique.feedback.slice(0, 3).map((f: string, i: number) => (
-                                                                <li key={i} className="text-[11px] leading-relaxed text-neutral-600 bg-amber-50/50 p-2.5 rounded-lg border border-amber-100/30 flex gap-2">
-                                                                    <span className="text-amber-500 font-bold">•</span> {f}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-
-                                                    <button
-                                                        onClick={handleRunCritique}
-                                                        disabled={generating}
-                                                        className="w-full py-2 text-[10px] font-bold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors"
-                                                    >
-                                                        {generating ? 'Reviewing...' : 'Re-run Blind Review'}
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-4">
-                                            <div className="w-12 h-12 bg-neutral-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-neutral-100">
-                                                <Users className="w-6 h-6 text-neutral-300" />
-                                            </div>
-                                            <p className="text-[11px] text-neutral-500 mb-6 leading-relaxed px-2">
-                                                Get an honest critique from our AI hiring persona to verify this letter before sending.
-                                            </p>
-                                            <button
-                                                onClick={handleRunCritique}
-                                                // disabled check removed since card is hidden if no letter
-                                                disabled={generating}
-                                                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50 shadow-lg shadow-indigo-500/20 active:scale-95"
-                                            >
-                                                {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" /> : 'Run Blind Review'}
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* Mobile/Small Sidebar (Mobile Only) */}
-            <div className="lg:hidden space-y-6">
-                {/* Add Mobile-specific versions if needed, or simply render standard cards without sticky */}
-            </div>
-        </div >
+                    ) : localJob.coverLetterCritique && typeof localJob.coverLetterCritique === 'string' ? (
+                        <div className="text-neutral-600 dark:text-neutral-400 text-xs leading-relaxed p-8 bg-neutral-50 dark:bg-neutral-800/50 rounded-3xl">
+                            <ReactMarkdown>{localJob.coverLetterCritique}</ReactMarkdown>
+                        </div>
+                    ) : (
+                        <div className="text-center py-10">
+                            <p className="text-sm font-bold text-neutral-500 dark:text-neutral-400 mb-8 max-w-sm mx-auto leading-relaxed">
+                                Get an honest critique from our AI hiring persona to verify this letter before sending.
+                            </p>
+                            <button
+                                onClick={handleRunCritique}
+                                disabled={generating}
+                                className="px-8 py-3.5 bg-neutral-900 dark:bg-neutral-800 text-white dark:text-neutral-200 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neutral-800 dark:hover:bg-neutral-700 transition-all shadow-lg active:scale-95"
+                            >
+                                {generating ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Run Performance Review'}
+                            </button>
+                        </div>
+                    )}
+                </Card>
+            )}
+        </div>
     );
 };

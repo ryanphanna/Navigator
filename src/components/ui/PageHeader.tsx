@@ -1,12 +1,11 @@
 import React from 'react';
-import { ArrowLeft, type LucideIcon } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 interface PageHeaderProps {
     variant?: 'hero' | 'detail' | 'simple';
     title: string;
     highlight?: string;
     subtitle?: string | React.ReactNode;
-    icon?: LucideIcon;
     onBack?: () => void;
     actions?: React.ReactNode;
     className?: string;
@@ -17,7 +16,6 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
     title,
     highlight,
     subtitle,
-    icon: Icon,
     onBack,
     actions,
     className = ""
@@ -61,17 +59,13 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                         )}
                         <div>
                             <div className="flex items-center gap-3">
-                                {Icon && (
-                                    <div className="w-8 h-8 rounded-lg bg-accent-primary/10 dark:bg-accent-primary/20 flex items-center justify-center">
-                                        <Icon className="w-4.5 h-4.5 text-accent-primary-hex" />
-                                    </div>
-                                )}
+
                                 <h2 className="text-xl font-black text-neutral-900 dark:text-white tracking-tight truncate max-w-md">
                                     {title}
                                 </h2>
                             </div>
                             {subtitle && (
-                                <div className="text-sm font-bold text-neutral-400 uppercase tracking-widest mt-0.5">
+                                <div className="text-sm font-bold text-neutral-400 tracking-widest mt-0.5">
                                     {subtitle}
                                 </div>
                             )}
@@ -91,11 +85,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
     return (
         <div className={`flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 ${className}`}>
             <div className="flex items-center gap-5">
-                {Icon && (
-                    <div className="w-14 h-14 bg-accent-primary/10 dark:bg-accent-primary/20 text-accent-primary-hex rounded-2xl flex items-center justify-center border-2 border-accent-primary/20 shrink-0">
-                        <Icon className="w-7 h-7" />
-                    </div>
-                )}
+
                 <div>
                     <h1 className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
                         {title}

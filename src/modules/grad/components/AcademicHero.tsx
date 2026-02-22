@@ -13,6 +13,8 @@ interface AcademicHeroProps {
     showVerification: boolean;
     setShowVerification: (show: boolean) => void;
     handleVerificationSave: (verified: Transcript) => void;
+    title?: string;
+    description?: string;
 }
 
 export const AcademicHero: React.FC<AcademicHeroProps> = ({
@@ -22,13 +24,15 @@ export const AcademicHero: React.FC<AcademicHeroProps> = ({
     tempTranscript,
     showVerification,
     setShowVerification,
-    handleVerificationSave
+    handleVerificationSave,
+    title = "Upload Transcript",
+    description = "Drag & drop your PDF transcript here to automatically import your academic history"
 }) => {
     return (
         <div className="max-w-5xl mx-auto mt-12 px-4">
             <UnifiedUploadHero
-                title="Upload Transcript"
-                description="Drag & drop your PDF transcript here to automatically import your academic history"
+                title={title}
+                description={description}
                 onUpload={handleFileUpload}
                 isLoading={isParsing}
                 error={parseError}

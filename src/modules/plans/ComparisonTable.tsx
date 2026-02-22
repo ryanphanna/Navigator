@@ -29,11 +29,11 @@ export const ComparisonTable = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/20">
-                                <th className="p-6 text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em]">Feature</th>
-                                <th className="p-6 text-[10px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/10 uppercase tracking-[0.2em]">Navigator Plus</th>
-                                <th className="p-6 text-[10px] font-black text-neutral-900 dark:text-white uppercase tracking-[0.2em]">Jobscan</th>
-                                <th className="p-6 text-[10px] font-black text-neutral-900 dark:text-white uppercase tracking-[0.2em]">Teal</th>
-                                <th className="p-6 text-[10px] font-black text-neutral-900 dark:text-white uppercase tracking-[0.2em]">Rezi</th>
+                                <th className="p-6 text-[10px] font-black text-neutral-400 tracking-[0.2em]">Feature</th>
+                                <th className="p-6 text-[10px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/10 tracking-[0.2em]">Navigator Plus</th>
+                                <th className="p-6 text-[10px] font-black text-neutral-900 dark:text-white tracking-[0.2em]">Jobscan</th>
+                                <th className="p-6 text-[10px] font-black text-neutral-900 dark:text-white tracking-[0.2em]">Teal</th>
+                                <th className="p-6 text-[10px] font-black text-neutral-900 dark:text-white tracking-[0.2em]">Rezi</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">

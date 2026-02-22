@@ -84,7 +84,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({ transcript }) => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
                 {/* Scale Selector */}
                 <div className="p-6 bg-neutral-900 dark:bg-neutral-950 rounded-2xl md:col-span-2 shadow-inner">
-                    <label className="text-[10px] font-black text-violet-400 uppercase tracking-[0.2em] block mb-3">Grading Scale</label>
+                    <label className="text-[10px] font-black text-violet-400 tracking-[0.2em] block mb-3">Grading Scale</label>
                     <div className="relative">
                         <select
                             value={selectedScale}
@@ -104,7 +104,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({ transcript }) => {
                 {/* Current Stats */}
                 <div className="p-6 bg-gradient-to-br from-violet-500 to-violet-600 rounded-2xl shadow-lg shadow-violet-500/20 text-white flex flex-col justify-between">
                     <div>
-                        <div className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">cGPA</div>
+                        <div className="text-[10px] font-black tracking-widest opacity-80 mb-1">cGPA</div>
                         <div className="text-4xl font-black">{stats.cGPA.toFixed(2)}</div>
                     </div>
                     <div className="text-[10px] font-bold opacity-70 mt-4 bg-white/20 px-2 py-1 rounded w-fit">{stats.totalCredits} Credits</div>
@@ -112,7 +112,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({ transcript }) => {
 
                 <div className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl shadow-lg shadow-emerald-500/20 text-white flex flex-col justify-between">
                     <div>
-                        <div className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">Last 2 Years (L2)</div>
+                        <div className="text-[10px] font-black tracking-widest opacity-80 mb-1">Last 2 Years (L2)</div>
                         <div className="text-4xl font-black">{stats.l2GPA ? stats.l2GPA.toFixed(2) : stats.cGPA.toFixed(2)}</div>
                     </div>
                     <div className="text-[10px] font-bold opacity-70 mt-4 bg-white/20 px-2 py-1 rounded w-fit">Last 10 Credits</div>
@@ -124,7 +124,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({ transcript }) => {
                 <div className="space-y-6 md:col-span-2 bg-white/50 dark:bg-neutral-900/30 p-6 rounded-2xl border border-white dark:border-neutral-800">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-[11px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">
+                            <label className="block text-[11px] font-black text-neutral-500 dark:text-neutral-400 tracking-wider mb-2">
                                 Target Cumulative GPA
                             </label>
                             <div className="relative group/input">
@@ -139,7 +139,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({ transcript }) => {
                             </div>
                         </div>
                         <div>
-                            <label className="block text-[11px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">
+                            <label className="block text-[11px] font-black text-neutral-500 dark:text-neutral-400 tracking-wider mb-2">
                                 Remaining Credits
                             </label>
                             <div className="relative group/input">
@@ -163,7 +163,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({ transcript }) => {
                         ? 'bg-amber-500 text-white shadow-xl shadow-amber-500/30'
                         : 'bg-violet-600 text-white shadow-xl shadow-violet-500/30'
                     }`}>
-                    <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mb-2 flex items-center gap-2">
+                    <div className="text-[10px] font-black tracking-[0.2em] opacity-80 mb-2 flex items-center gap-2">
                         Target Performance
                         {requiredGPA && requiredGPA > 4.0 && <AlertCircle className="w-4 h-4 animate-bounce" />}
                     </div>
@@ -172,11 +172,11 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({ transcript }) => {
                     </div>
                     <div className="text-xs font-bold opacity-90 leading-tight">
                         {requiredGPA && requiredGPA > 4.0
-                            ? "IMPOSSIBLE MATHEMATICALLY"
-                            : "AVG NEEDED IN REMAINING COURSES"}
+                            ? "Impossible mathematically"
+                            : "Avg needed in remaining courses"}
                     </div>
                     {requiredGPA && requiredGPA <= 4.0 && (
-                        <div className="mt-4 px-3 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-wider">
+                        <div className="mt-4 px-3 py-1 bg-white/20 rounded-full text-[10px] font-black tracking-wider">
                             Realistic Path
                         </div>
                     )}

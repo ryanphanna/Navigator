@@ -21,7 +21,10 @@ export const LinkedInExportGuide: React.FC<LinkedInExportGuideProps> = ({
 
             <div className="relative z-10 max-w-7xl mx-auto">
                 <div className="max-w-2xl mx-auto text-center mb-8">
-                    <p className="text-lg md:text-xl text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed">
+                    <h1 className="text-3xl md:text-4xl font-black text-neutral-900 dark:text-white tracking-tight mb-2">
+                        Career Models
+                    </h1>
+                    <p className="text-lg text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed">
                         Follow these steps to ingest a mentor's profile.
                     </p>
                 </div>

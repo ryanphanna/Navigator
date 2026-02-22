@@ -7,7 +7,7 @@ import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useUser } from '../../contexts/UserContext';
 import { useModal } from '../../contexts/ModalContext';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { paymentService } from '../../services/paymentService';
 import { PlanCard } from '../../components/ui/PlanCard';
 
@@ -111,31 +111,41 @@ export const PlansPage: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="flex items-center justify-center gap-3"
+                        className="flex items-center justify-center gap-8"
                     >
-                        <div className="relative inline-flex p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800">
-                            {/* Sliding highlight */}
-                            <div
-                                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-white dark:bg-neutral-800 shadow-sm transition-transform duration-300 ease-out ${isAnnual ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'}`}
-                            />
-                            <button
-                                onClick={() => setIsAnnual(false)}
-                                className={`relative z-10 px-5 py-1.5 text-sm font-semibold rounded-full transition-colors duration-200 ${!isAnnual ? 'text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'}`}
-                            >
-                                Monthly
-                            </button>
-                            <button
-                                onClick={() => setIsAnnual(true)}
-                                className={`relative z-10 px-5 py-1.5 text-sm font-semibold rounded-full transition-colors duration-200 ${isAnnual ? 'text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'}`}
-                            >
-                                Annual
-                            </button>
+                        <div className="flex items-center gap-3">
+                            <div className="relative inline-flex p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800">
+                                {/* Sliding highlight */}
+                                <div
+                                    className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-white dark:bg-neutral-800 shadow-sm transition-transform duration-300 ease-out ${isAnnual ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'}`}
+                                />
+                                <button
+                                    onClick={() => setIsAnnual(false)}
+                                    className={`relative z-10 px-5 py-1.5 text-sm font-semibold rounded-full transition-colors duration-200 ${!isAnnual ? 'text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'}`}
+                                >
+                                    Monthly
+                                </button>
+                                <button
+                                    onClick={() => setIsAnnual(true)}
+                                    className={`relative z-10 px-5 py-1.5 text-sm font-semibold rounded-full transition-colors duration-200 ${isAnnual ? 'text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'}`}
+                                >
+                                    Annual
+                                </button>
+                            </div>
+                            {isAnnual && (
+                                <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider rounded-full animate-in fade-in zoom-in-95 duration-200">
+                                    Save up to 21%
+                                </span>
+                            )}
                         </div>
-                        {isAnnual && (
-                            <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider rounded-full animate-in fade-in zoom-in-95 duration-200">
-                                Save up to 21%
-                            </span>
-                        )}
+
+                        <Link
+                            to={ROUTES.FEATURES}
+                            className="group flex items-center gap-2 text-sm font-bold text-neutral-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
+                        >
+                            Explore all features
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </Link>
                     </motion.div>
                 </div>
             </div>
@@ -156,9 +166,11 @@ export const PlansPage: React.FC = () => {
                     features={getFeaturesForPlan('explorer').map(f => ({ name: f.name, desc: f.description.plan, isComingSoon: f.isComingSoon }))}
                     limits={{
                         analyses: String(PLAN_LIMITS[USER_TIERS.FREE].TOTAL_ANALYSES),
-                        analysesPeriod: 'total',
+                        analysesPeriod: 'lifetime',
                         emails: PLAN_LIMITS[USER_TIERS.FREE].DAILY_EMAILS,
+                        emailPeriod: 'day',
                         mentors: PLAN_LIMITS[USER_TIERS.FREE].ROLE_MODELS,
+                        mentorPeriod: 'total',
                         interviews: PLAN_LIMITS[USER_TIERS.FREE].SKILLS_INTERVIEWS
                     }}
                 />
@@ -177,7 +189,9 @@ export const PlansPage: React.FC = () => {
                         analyses: String(PLAN_LIMITS[USER_TIERS.PLUS].WEEKLY_ANALYSES),
                         analysesPeriod: 'week',
                         emails: PLAN_LIMITS[USER_TIERS.PLUS].DAILY_EMAILS,
+                        emailPeriod: 'day',
                         mentors: PLAN_LIMITS[USER_TIERS.PLUS].ROLE_MODELS,
+                        mentorPeriod: 'total',
                         interviews: PLAN_LIMITS[USER_TIERS.PLUS].SKILLS_INTERVIEWS
                     }}
                 />
@@ -194,29 +208,24 @@ export const PlansPage: React.FC = () => {
                     isLoading={loadingTier === USER_TIERS.PRO}
                     features={getFeaturesForPlan('pro').map(f => ({ name: f.name, desc: f.description.plan, isComingSoon: f.isComingSoon }))}
                     limits={{
-                        analyses: '50',
-                        analysesPeriod: 'day',
+                        analyses: String(PLAN_LIMITS[USER_TIERS.PRO].WEEKLY_ANALYSES),
+                        analysesPeriod: 'week',
                         emails: PLAN_LIMITS[USER_TIERS.PRO].DAILY_EMAILS,
+                        emailPeriod: 'day',
                         mentors: PLAN_LIMITS[USER_TIERS.PRO].ROLE_MODELS,
+                        mentorPeriod: 'total',
                         interviews: PLAN_LIMITS[USER_TIERS.PRO].SKILLS_INTERVIEWS
                     }}
                 />
             </div>
 
-            {/* Features Link */}
+            {/* Promo Code Link */}
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
                 className="flex flex-col items-center mt-12"
             >
-                <a
-                    href="/features"
-                    className="group flex items-center gap-2 text-sm font-bold text-neutral-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
-                >
-                    Explore all features
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </a>
                 <span className="text-[10px] text-neutral-300 dark:text-neutral-600 font-medium mt-3 block text-center">
                     Have a promo code? You can apply it at checkout.
                 </span>

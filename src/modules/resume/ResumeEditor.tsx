@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ResumeProfile, ExperienceBlock, CustomSkill } from '../../types';
-import { Upload, Loader2, Plus, Trash2, Briefcase, GraduationCap, Code, Layers, Calendar, Building2, UserCircle, FileText, Zap, Sparkles, Heart, ChevronUp, ChevronDown, Download } from 'lucide-react';
+import { Upload, Loader2, Plus, Trash2, Briefcase, GraduationCap, Code, Layers, Calendar, UserCircle, FileText, Zap, Sparkles, Heart, Download, ArrowRightLeft } from 'lucide-react';
 import { TRACKING_EVENTS } from '../../constants';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -10,6 +10,7 @@ import { Alert } from '../../components/ui/Alert';
 import { useResumeContext } from './context/ResumeContext';
 import { EventService } from '../../services/eventService';
 import { UnifiedUploadHero } from '../../components/common/UnifiedUploadHero';
+import { ResumePreview } from './components/ResumePreview';
 
 interface ResumeEditorProps {
     resumes: ResumeProfile[];
@@ -24,13 +25,27 @@ interface ResumeEditorProps {
 type SectionType = ExperienceBlock['type'];
 
 const SECTIONS: { type: SectionType; label: string; icon: React.ReactNode }[] = [
-    { type: 'summary', label: 'Professional Summary', icon: <UserCircle className="w-5 h-5" /> },
-    { type: 'work', label: 'Work Experience', icon: <Briefcase className="w-5 h-5" /> },
-    { type: 'education', label: 'Education', icon: <GraduationCap className="w-5 h-5" /> },
-    { type: 'volunteer', label: 'Volunteer', icon: <Heart className="w-5 h-5" /> },
-    { type: 'project', label: 'Projects', icon: <Code className="w-5 h-5" /> },
-    { type: 'other', label: 'Other', icon: <Layers className="w-5 h-5" /> },
+    { type: 'summary', label: 'Professional Summary', icon: <UserCircle className="w-4 h-4" /> },
+    { type: 'work', label: 'Work Experience', icon: <Briefcase className="w-4 h-4" /> },
+    { type: 'education', label: 'Education', icon: <GraduationCap className="w-4 h-4" /> },
+    { type: 'volunteer', label: 'Volunteer', icon: <Heart className="w-4 h-4" /> },
+    { type: 'project', label: 'Projects', icon: <Code className="w-4 h-4" /> },
+    { type: 'other', label: 'Other', icon: <Layers className="w-4 h-4" /> },
 ];
+
+const getSortDate = (dateRange: string) => {
+    if (!dateRange) return 0;
+    const parts = dateRange.split(/[-–—]| to /).map(p => p.trim());
+    const end = parts[parts.length - 1] || parts[0];
+    if (!end) return 0;
+    const lowerEnd = end.toLowerCase();
+    if (lowerEnd.includes('present') || lowerEnd.includes('current')) return Date.now() + 1000000;
+    const date = new Date(end);
+    if (!isNaN(date.getTime())) return date.getTime();
+    const yearMatch = end.match(/\d{4}/);
+    if (yearMatch) return new Date(`${yearMatch[0]}-12-31`).getTime();
+    return 0;
+};
 
 const ResumeEditor: React.FC<ResumeEditorProps> = ({
     resumes,
@@ -43,9 +58,9 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
     const initialResume = resumes.length > 0 ? resumes[0] : { id: 'primary', name: 'Primary Experience', blocks: [] };
 
     const [blocks, setBlocks] = useState<ExperienceBlock[]>(initialResume.blocks || []);
+    const [movingBlockId, setMovingBlockId] = useState<string | null>(null);
     const [hasStartedManually, setHasStartedManually] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [lastSaved, setLastSaved] = useState<Date | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { clearImportError } = useResumeContext();
@@ -69,7 +84,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
             const updatedProfile = { ...initialResume, blocks };
             onSave([updatedProfile]);
             setIsSaving(false);
-            setLastSaved(new Date());
             // Track usage of resume builder
             EventService.trackUsage(TRACKING_EVENTS.RESUMES);
         }, 800);
@@ -106,18 +120,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         setBlocks(blocks.map(b => b.id === id ? { ...b, [field]: value } : b));
     };
 
-    const moveBlock = (id: string, direction: 'up' | 'down') => {
-        const index = blocks.findIndex(b => b.id === id);
-        if (index === -1) return;
-        if (direction === 'up' && index === 0) return;
-        if (direction === 'down' && index === blocks.length - 1) return;
-
-        const newBlocks = [...blocks];
-        const targetIndex = direction === 'up' ? index - 1 : index + 1;
-        [newBlocks[index], newBlocks[targetIndex]] = [newBlocks[targetIndex], newBlocks[index]];
-        setBlocks(newBlocks);
-    };
-
     const updateBullet = (blockId: string, index: number, value: string) => {
         setBlocks(blocks.map(b => {
             if (b.id !== blockId) return b;
@@ -148,6 +150,36 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         }));
     };
 
+    const handleApplySuggestion = (suggestion: any) => {
+        if (suggestion.type === 'add' || suggestion.type === 'update') {
+            // Find summary block or add one
+            const summaryBlock = blocks.find(b => b.type === 'summary');
+            if (summaryBlock) {
+                addBullet(summaryBlock.id, suggestion.suggestion);
+            } else {
+                const newBlock: ExperienceBlock = {
+                    id: crypto.randomUUID(),
+                    type: 'summary',
+                    title: 'Professional Summary',
+                    organization: '',
+                    dateRange: '',
+                    bullets: [suggestion.suggestion],
+                    isVisible: true
+                };
+                setBlocks([newBlock, ...blocks]);
+            }
+        }
+        handleDismissSuggestion(suggestion.id);
+    };
+
+    const handleDismissSuggestion = (suggestionId: string) => {
+        const updatedProfile = {
+            ...initialResume,
+            suggestedUpdates: (initialResume.suggestedUpdates || []).filter(s => s.id !== suggestionId)
+        };
+        onSave([updatedProfile]);
+    };
+
     const handlePrint = () => {
         window.print();
     };
@@ -166,16 +198,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
     const showEmptyState = blocks.length === 0 && !hasStartedManually && !isParsing;
 
-    const headerActions = (
-        <Button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isParsing}
-            variant="accent"
-            icon={isParsing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
-        >
-            {isParsing ? 'Parsing...' : 'Import Resume'}
-        </Button>
-    );
+
 
     if (isParsing) {
         return (
@@ -230,32 +253,13 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                             margin: 0 !important;
                             padding: 0 !important;
                         }
-                        /* Remove cards/shadown for a paper-clean look */
-                        .print-card {
-                            border: none !important;
-                            box-shadow: none !important;
-                            padding: 0 !important;
-                            margin-bottom: 2rem !important;
-                            background: transparent !important;
-                            backdrop-filter: none !important;
-                        }
-                        .print-card > div {
-                            padding: 0 !important;
-                        }
-                        /* Ensure text is black/readable */
-                        .print-text-main {
-                            color: #111 !important;
-                        }
-                        .print-text-muted {
-                            color: #555 !important;
-                        }
-                        /* Hide interaction elements */
-                        .print-hide {
-                            display: none !important;
-                        }
                     }
                 `}
             </style>
+
+            <div id="resume-preview" className="hidden print-only">
+                <ResumePreview blocks={blocks} />
+            </div>
             {/* Contextual Ambient Background */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] rounded-full animate-pulse" />
@@ -334,7 +338,9 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                         {/* Sections */}
                         <div className="space-y-12">
                             {SECTIONS.map((section) => {
-                                const sectionBlocks = blocks.filter(b => b.type === section.type);
+                                const sectionBlocks = blocks
+                                    .filter(b => b.type === section.type)
+                                    .sort((a, b) => getSortDate(b.dateRange) - getSortDate(a.dateRange));
 
                                 return (
                                     <div key={section.type} className="scroll-mt-20 print-card">
@@ -342,16 +348,25 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             <div className={`p-2 rounded-xl ${getTypeColor(section.type)} bg-opacity-10 border shadow-sm`}>
                                                 {section.icon}
                                             </div>
-                                            <div className="flex flex-col">
+                                            <div className="flex flex-col flex-1">
                                                 <h2 className="text-lg font-black text-neutral-900 dark:text-white items-center flex gap-2">
                                                     {section.label}
-                                                    {sectionBlocks.length > 0 && (
+                                                    {sectionBlocks.length > 0 && section.type !== 'summary' && (
                                                         <span className="text-[10px] font-black text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded-md">
                                                             {sectionBlocks.length}
                                                         </span>
                                                     )}
                                                 </h2>
                                             </div>
+                                            {(section.type !== 'summary' || sectionBlocks.length === 0) && (
+                                                <button
+                                                    onClick={() => addBlock(section.type)}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-indigo-200 dark:hover:border-indigo-800 text-neutral-500 hover:text-indigo-600 rounded-xl transition-all group/add shadow-sm hover:shadow-md"
+                                                >
+                                                    <Plus className="w-3.5 h-3.5 group-hover/add:rotate-90 transition-transform duration-300" />
+                                                    <span className="text-[10px] font-black uppercase tracking-tight">Add {section.label === 'Professional Summary' ? 'Summary' : 'Entry'}</span>
+                                                </button>
+                                            )}
                                         </div>
 
                                         <div className="space-y-6">
@@ -362,31 +377,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                     className={`group relative transition-all duration-300 border-neutral-200 dark:border-neutral-800 hover:border-indigo-200 dark:hover:border-indigo-900/50 shadow-sm hover:shadow-xl print-card ${!block.isVisible ? 'opacity-50 no-print' : ''}`}
                                                 >
                                                     <div className="p-6 md:p-8">
-                                                        {/* Floating Controls (Right Side) */}
-                                                        <div className="absolute top-4 right-4 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 no-print">
-                                                            <button
-                                                                onClick={() => moveBlock(block.id, 'up')}
-                                                                className="p-1.5 text-neutral-300 hover:text-indigo-500 hover:bg-white dark:hover:bg-neutral-800 rounded-lg shadow-sm border border-transparent hover:border-neutral-100 dark:hover:border-neutral-700 transition-all"
-                                                                title="Move Up"
-                                                            >
-                                                                <ChevronUp className="w-4 h-4" />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => moveBlock(block.id, 'down')}
-                                                                className="p-1.5 text-neutral-300 hover:text-indigo-500 hover:bg-white dark:hover:bg-neutral-800 rounded-lg shadow-sm border border-transparent hover:border-neutral-100 dark:hover:border-neutral-700 transition-all"
-                                                                title="Move Down"
-                                                            >
-                                                                <ChevronDown className="w-4 h-4" />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => removeBlock(block.id)}
-                                                                className="p-1.5 text-neutral-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg shadow-sm border border-transparent hover:border-rose-100 dark:hover:border-rose-900/50 transition-all"
-                                                                title="Delete Block"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-
                                                         <div className="space-y-6">
                                                             {/* Title Area */}
                                                             {block.type !== 'summary' && (
@@ -394,9 +384,15 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                                     <textarea
                                                                         value={block.title}
                                                                         onChange={(e) => updateBlock(block.id, 'title', e.target.value)}
-                                                                        className="w-full text-2xl font-black text-neutral-900 dark:text-white bg-transparent border-none placeholder:text-neutral-200 focus:ring-0 p-0 resize-none overflow-hidden leading-tight"
+                                                                        className="w-full text-2xl font-black text-neutral-900 dark:text-white bg-transparent border-none placeholder:text-neutral-200 focus:ring-0 p-0 resize-none overflow-hidden leading-tight whitespace-pre-wrap break-words"
                                                                         placeholder={block.type === 'skill' ? "Technical Skills" : "Role / Title"}
                                                                         rows={1}
+                                                                        ref={(el) => {
+                                                                            if (el) {
+                                                                                el.style.height = 'auto';
+                                                                                el.style.height = el.scrollHeight + 'px';
+                                                                            }
+                                                                        }}
                                                                         onInput={(e) => {
                                                                             const target = e.target as HTMLTextAreaElement;
                                                                             target.style.height = 'auto';
@@ -408,17 +404,21 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
                                                             {/* Organization & Date Row */}
                                                             {block.type !== 'summary' && block.type !== 'skill' && (
-                                                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pr-12">
                                                                     <div className="flex items-center gap-2 flex-1">
-                                                                        <div className="p-1.5 rounded-lg bg-neutral-50 dark:bg-neutral-800 text-neutral-400">
-                                                                            <Building2 className="w-4 h-4 shrink-0" />
-                                                                        </div>
+
                                                                         <textarea
                                                                             value={block.organization}
                                                                             onChange={(e) => updateBlock(block.id, 'organization', e.target.value)}
-                                                                            className="w-full text-lg font-bold text-neutral-700 dark:text-neutral-300 bg-transparent border-none placeholder:text-neutral-200 focus:ring-0 p-0 resize-none overflow-hidden"
+                                                                            className="w-full text-lg font-bold text-neutral-700 dark:text-neutral-300 bg-transparent border-none placeholder:text-neutral-200 focus:ring-0 p-0 resize-none overflow-hidden whitespace-pre-wrap break-words"
                                                                             placeholder="Organization / Company"
                                                                             rows={1}
+                                                                            ref={(el) => {
+                                                                                if (el) {
+                                                                                    el.style.height = 'auto';
+                                                                                    el.style.height = el.scrollHeight + 'px';
+                                                                                }
+                                                                            }}
                                                                             onInput={(e) => {
                                                                                 const target = e.target as HTMLTextAreaElement;
                                                                                 target.style.height = 'auto';
@@ -427,12 +427,12 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                                         />
                                                                     </div>
 
-                                                                    <div className="flex items-center gap-2 text-neutral-400 bg-neutral-50 dark:bg-neutral-800/50 px-3 py-1.5 rounded-xl border border-neutral-100 dark:border-neutral-800 shadow-inner">
-                                                                        <Calendar className="w-3.5 h-3.5" />
+                                                                    <div className="flex items-center gap-2 text-neutral-400 bg-neutral-50/50 dark:bg-neutral-800/50 px-3 py-1 rounded-full border border-neutral-100 dark:border-neutral-800 transition-all focus-within:border-indigo-200/50 focus-within:bg-white dark:focus-within:bg-neutral-800">
+                                                                        <Calendar className="w-3.5 h-3.5 opacity-50" />
                                                                         <input
                                                                             value={block.dateRange}
                                                                             onChange={(e) => updateBlock(block.id, 'dateRange', e.target.value)}
-                                                                            className="bg-transparent text-[10px] font-black text-neutral-500 w-32 focus:outline-none text-right"
+                                                                            className="bg-transparent text-[11px] font-bold text-neutral-500 w-32 focus:outline-none text-right"
                                                                             placeholder="Jan 2023 - Present"
                                                                         />
                                                                     </div>
@@ -460,33 +460,89 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                                                         removeBullet(block.id, idx);
                                                                                     }
                                                                                 }}
-                                                                                className={`w-full text-neutral-700 dark:text-neutral-300 leading-relaxed bg-transparent border-none focus:ring-0 p-0 resize-none overflow-hidden focus:outline-none transition-all placeholder:text-neutral-300 ${block.type === 'summary' ? 'text-lg font-medium' : 'text-sm'}`}
+                                                                                className={`flex-1 min-w-0 text-neutral-700 dark:text-neutral-300 leading-relaxed bg-transparent border-none focus:ring-0 p-0 resize-none overflow-hidden focus:outline-none transition-all placeholder:text-neutral-300 pr-12 text-sm whitespace-pre-wrap break-words`}
                                                                                 placeholder={block.type === 'summary' ? "Write a brief, high-impact professional overview..." : "Detail your accomplishments here..."}
                                                                                 rows={1}
+                                                                                ref={(el) => {
+                                                                                    if (el) {
+                                                                                        el.style.height = 'auto';
+                                                                                        el.style.height = el.scrollHeight + 'px';
+                                                                                    }
+                                                                                }}
                                                                                 onInput={(e) => {
                                                                                     const target = e.target as HTMLTextAreaElement;
                                                                                     target.style.height = 'auto';
                                                                                     target.style.height = target.scrollHeight + 'px';
                                                                                 }}
                                                                             />
-                                                                            <button
-                                                                                onClick={() => removeBullet(block.id, idx)}
-                                                                                className="opacity-0 group-hover/line:opacity-100 p-1 text-neutral-200 hover:text-rose-400 transition-opacity"
-                                                                                tabIndex={-1}
-                                                                            >
-                                                                                <Trash2 className="w-3.5 h-3.5" />
-                                                                            </button>
+                                                                            {block.type !== 'summary' && (
+                                                                                <button
+                                                                                    onClick={() => removeBullet(block.id, idx)}
+                                                                                    className="opacity-0 group-hover/line:opacity-100 p-1 text-neutral-200 hover:text-rose-400 transition-opacity"
+                                                                                    tabIndex={-1}
+                                                                                >
+                                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                            )}
                                                                         </div>
                                                                     ))}
                                                                 </div>
 
                                                                 {block.type !== 'summary' && (
-                                                                    <button
-                                                                        onClick={() => addBullet(block.id)}
-                                                                        className="mt-2 ml-4 px-3 py-1.5 rounded-lg border border-dashed border-neutral-100 dark:border-neutral-800 text-[10px] font-black text-neutral-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 flex items-center gap-1.5 transition-all no-print"
-                                                                    >
-                                                                        <Plus className="w-3 h-3" /> Add Achievement
-                                                                    </button>
+                                                                    <div className="mt-4 flex items-center gap-1 no-print">
+                                                                        <button
+                                                                            onClick={() => addBullet(block.id)}
+                                                                            className="px-3 py-1.5 rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800 text-[10px] font-black text-neutral-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 flex items-center gap-1.5 transition-all"
+                                                                        >
+                                                                            <Plus className="w-3 h-3" /> Add Achievement
+                                                                        </button>
+                                                                        <div className="w-px h-4 bg-neutral-100 dark:bg-neutral-800 mx-1" />
+                                                                        <div className="relative">
+                                                                            <button
+                                                                                onClick={() => setMovingBlockId(movingBlockId === block.id ? null : block.id)}
+                                                                                className={`px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 border ${movingBlockId === block.id ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg scale-105' : 'text-neutral-400 border-transparent hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'}`}
+                                                                                title="Move to Section"
+                                                                            >
+                                                                                <ArrowRightLeft className="w-3.5 h-3.5" />
+                                                                                <span className="text-[10px] font-black">Move</span>
+                                                                            </button>
+
+                                                                            {movingBlockId === block.id && (
+                                                                                <>
+                                                                                    <div className="fixed inset-0 z-40" onClick={() => setMovingBlockId(null)} />
+                                                                                    <div className="absolute bottom-full mb-3 left-0 z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl overflow-hidden min-w-[200px] animate-in slide-in-from-bottom-2 duration-200">
+                                                                                        <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/50">
+                                                                                            <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Move to Section</p>
+                                                                                        </div>
+                                                                                        <div className="p-1.5">
+                                                                                            {SECTIONS.map(s => (
+                                                                                                <button
+                                                                                                    key={s.type}
+                                                                                                    onClick={() => {
+                                                                                                        updateBlock(block.id, 'type', s.type);
+                                                                                                        setMovingBlockId(null);
+                                                                                                    }}
+                                                                                                    className={`w-full px-3 py-2.5 text-left text-xs font-bold rounded-xl transition-all flex items-center gap-3 ${block.type === s.type ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white'}`}
+                                                                                                >
+                                                                                                    <div className={`p-1.5 rounded-lg ${getTypeColor(s.type)} bg-opacity-10 border border-current border-opacity-10 shadow-sm`}>
+                                                                                                        {s.icon}
+                                                                                                    </div>
+                                                                                                    {s.label}
+                                                                                                </button>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </>
+                                                                            )}
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={() => removeBlock(block.id)}
+                                                                            className="p-1.5 text-neutral-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all"
+                                                                            title="Delete Block"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -494,18 +550,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                 </Card>
                                             ))}
 
-                                            {/* Empty State for Section */}
-                                            {sectionBlocks.length === 0 && (
-                                                <div className="text-center py-10 border-2 border-dashed border-neutral-100 dark:border-neutral-800/50 rounded-[2rem] bg-neutral-50/50 dark:bg-neutral-900/20 no-print">
-                                                    <p className="text-xs font-bold text-neutral-400">No {section.label.toLowerCase()} items found</p>
-                                                    <button
-                                                        onClick={() => addBlock(section.type)}
-                                                        className="mt-4 text-[10px] font-black text-indigo-500 hover:underline"
-                                                    >
-                                                        Initialize Section
-                                                    </button>
-                                                </div>
-                                            )}
+
                                         </div>
                                     </div>
                                 );
@@ -514,66 +559,141 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                     </div>
 
                     {/* Right Column: Sticky Sidebar */}
-                    <aside className="hidden lg:block sticky top-8 w-72 shrink-0 space-y-8 animate-in slide-in-from-right-4 duration-700 no-print">
+                    <aside className="hidden lg:block sticky top-32 w-80 shrink-0 space-y-6 animate-in slide-in-from-right-8 duration-1000 no-print pt-14">
+                        {/* Discovery Bank / Suggestions */}
+                        {initialResume.suggestedUpdates && initialResume.suggestedUpdates.length > 0 && (
+                            <Card variant="premium" className="p-5 border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/10 dark:bg-indigo-950/5">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="flex flex-col">
+                                        <h3 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest leading-none mb-1">Discovery Bank</h3>
+                                        <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">AI Captured Suggestions</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {initialResume.suggestedUpdates.map((suggestion) => (
+                                        <div key={suggestion.id} className="p-3 bg-white dark:bg-neutral-900 rounded-xl border border-indigo-100 dark:border-indigo-500/10 space-y-2 group/sug">
+                                            <div className="text-[11px] font-bold text-neutral-900 dark:text-neutral-100 leading-tight">
+                                                {suggestion.suggestion}
+                                            </div>
+                                            {suggestion.impact && (
+                                                <p className="text-[9px] text-neutral-500 leading-relaxed italic">{suggestion.impact}</p>
+                                            )}
+                                            <div className="flex items-center gap-2 pt-1 border-t border-neutral-50 dark:border-neutral-800">
+                                                <button
+                                                    onClick={() => handleApplySuggestion(suggestion)}
+                                                    className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[9px] font-black uppercase tracking-tight transition-all"
+                                                >
+                                                    Apply
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDismissSuggestion(suggestion.id)}
+                                                    className="px-2 py-1 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg text-[9px] font-black uppercase tracking-tight transition-all"
+                                                >
+                                                    Dismiss
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+                        )}
+
+                        {/* Resume Strength */}
+                        <Card variant="premium" className="p-5 border-neutral-100 dark:border-neutral-800">
+                            <div className="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest leading-none mb-1">Resume Strength</h3>
+                                    <p className="text-xl font-black text-neutral-900 dark:text-white">
+                                        {Math.min(100, (blocks.reduce((acc, b) => acc + b.bullets.filter(bul => bul.trim()).length, 0) * 10) + (blocks.length * 5))}%
+                                    </p>
+                                </div>
+                                <div className="relative w-12 h-12">
+                                    <svg className="w-12 h-12 -rotate-90">
+                                        <circle cx="24" cy="24" r="20" fill="transparent" stroke="currentColor" strokeWidth="4" className="text-neutral-100 dark:text-neutral-800" />
+                                        <circle
+                                            cx="24" cy="24" r="20" fill="transparent" stroke="currentColor" strokeWidth="4"
+                                            strokeDasharray={125.6}
+                                            strokeDashoffset={125.6 - (125.6 * Math.min(100, (blocks.reduce((acc, b) => acc + b.bullets.filter(bul => bul.trim()).length, 0) * 10) + (blocks.length * 5))) / 100}
+                                            className="text-indigo-600 transition-all duration-1000 ease-out"
+                                        />
+                                    </svg>
+                                </div>
+                            </div>
+                            <p className="text-[10px] text-neutral-500 font-medium leading-relaxed">
+                                {blocks.length < 3 ? 'Add more sections to improve your visibility.' : 'Great start! Focus on quantifying your achievements.'}
+                            </p>
+                        </Card>
+
+                        {/* Top Skills Tag Wall */}
+                        <Card variant="premium" className="p-5 border-neutral-100 dark:border-neutral-800">
+                            <h3 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest leading-none mb-4">Top Skills Extracted</h3>
+                            <div className="flex flex-wrap gap-1.5">
+                                {blocks.flatMap(b => b.bullets)
+                                    .join(' ')
+                                    .match(/[A-Z][a-z]+(?:\s[A-Z][a-z]+)*/g) // Very basic skill extraction for demo
+                                    ?.filter((v, i, a) => a.indexOf(v) === i && v.length > 3)
+                                    .slice(0, 12)
+                                    .map(skill => (
+                                        <span key={skill} className="px-2 py-1 bg-neutral-50 dark:bg-neutral-800 text-[10px] font-bold text-neutral-600 dark:text-neutral-400 rounded-lg border border-neutral-100 dark:border-neutral-700">
+                                            {skill}
+                                        </span>
+                                    )) || <p className="text-[10px] text-neutral-400 italic">No skills identified yet.</p>
+                                }
+                            </div>
+                        </Card>
+
+                        {/* Pro Tip */}
+                        <div className="px-5 py-4 bg-amber-50/50 dark:bg-amber-900/10 rounded-[2rem] border border-amber-100/50 dark:border-amber-900/20 relative overflow-hidden group">
+                            <Sparkles className="absolute -right-2 -top-2 w-12 h-12 text-amber-200/20 rotate-12 group-hover:scale-110 transition-transform duration-700" />
+                            <h4 className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest mb-1">Pro Tip</h4>
+                            <p className="text-[11px] text-amber-800/80 dark:text-amber-400 leading-relaxed font-medium">
+                                Use action verbs like "Spearheaded", "Architected", or "Negotiated" to make your achievements stand out.
+                            </p>
+                        </div>
+
                         {/* Status Card */}
-                        <Card variant="premium" className="p-6 border-indigo-100 dark:border-indigo-900/30">
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-2 h-2 rounded-full ${isSaving ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'} shadow-[0_0_8px_rgba(16,185,129,0.3)]`} />
-                                    <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
-                                        {isSaving ? 'Syncing...' : 'Saved'}
+                        <Card variant="premium" className="p-6 border-indigo-100/50 dark:border-indigo-500/10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-none relative group overflow-visible">
+                            {/* Decorative Glow */}
+                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/10 blur-[50px] rounded-full group-hover:bg-indigo-500/20 transition-all duration-700" />
+
+                            <div className="flex items-center justify-center mb-6">
+                                <div className="flex items-center gap-2.5 px-4 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 rounded-full border border-emerald-100 dark:border-emerald-500/20 shadow-sm shadow-emerald-500/5">
+                                    <div className={`w-2 h-2 rounded-full ${isSaving ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'} shadow-[0_0_8px_rgba(16,185,129,0.4)] shrink-0`} />
+                                    <span className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 tracking-tight leading-tight">
+                                        {isSaving ? 'Updating...' : 'Experience synced'}
                                     </span>
                                 </div>
-                                {lastSaved && !isSaving && (
-                                    <span className="text-[9px] font-bold text-neutral-300">
-                                        {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                )}
                             </div>
 
                             <div className="space-y-4">
-                                {headerActions}
-                                <Button
-                                    onClick={handlePrint}
-                                    variant="secondary"
-                                    className="w-full"
-                                    icon={<Download className="w-4 h-4" />}
-                                >
-                                    Download PDF
-                                </Button>
-                                <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
-                                <div className="space-y-2">
-                                    <p className="text-[10px] font-black text-neutral-400 mb-3">Quick Add</p>
-                                    <div className="grid grid-cols-1 gap-2">
-                                        {SECTIONS.filter(s => s.type !== 'summary' || !blocks.some(b => b.type === 'summary')).map(section => (
-                                            <button
-                                                key={section.type}
-                                                onClick={() => addBlock(section.type)}
-                                                className="w-full py-2.5 px-4 flex items-center gap-3 text-xs font-bold text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-all border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800 text-left group"
-                                            >
-                                                <div className={`p-1.5 rounded-lg ${getTypeColor(section.type)} bg-opacity-10 group-hover:scale-110 transition-transform`}>
-                                                    {section.icon}
-                                                </div>
-                                                {section.label}
-                                            </button>
-                                        ))}
-                                    </div>
+                                <div className="space-y-2.5">
+                                    <Button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isParsing}
+                                        variant="premium"
+                                        size="md"
+                                        className="w-full h-12 text-sm font-black group/btn transition-all duration-300"
+                                        icon={isParsing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 group-hover/btn:-translate-y-0.5 transition-transform" />}
+                                    >
+                                        {isParsing ? 'Processing...' : 'Import Resume'}
+                                    </Button>
+                                    <Button
+                                        onClick={handlePrint}
+                                        variant="secondary"
+                                        size="md"
+                                        className="w-full h-12 text-sm bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800 hover:border-indigo-200 dark:hover:border-indigo-800 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 group/btn transition-all duration-300"
+                                        icon={<Download className="w-4 h-4 group-hover/btn:-translate-y-0.5 transition-transform" />}
+                                    >
+                                        Download PDF
+                                    </Button>
                                 </div>
-                            </div>
-                        </Card>
 
-                        {/* Tips Card */}
-                        <Card variant="premium" className="p-6 bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-none">
-                            <Sparkles className="w-8 h-8 mb-4 text-indigo-200" />
-                            <h3 className="text-lg font-black mb-2 leading-tight">Pro Tip</h3>
-                            <p className="text-xs font-medium text-indigo-100 leading-relaxed mb-4">
-                                Keep your achievements focused on results. Use strong action verbs and quantify your impact whenever possible.
-                            </p>
-                            <div className="flex items-center gap-2 text-[10px] font-black text-white/60">
-                                <Zap className="w-3 h-3" /> AI Optimized
+
                             </div>
                         </Card>
                     </aside>
+
                 </div>
             )}
         </SharedPageLayout>

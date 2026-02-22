@@ -1,7 +1,7 @@
 import React from 'react';
 import { TrendingUp, Sparkles, Zap, Bookmark, FileText, Users, Target, GraduationCap, Mail, Shield, Scale } from 'lucide-react';
 import { useGlobalUI } from '../../contexts/GlobalUIContext';
-import { ROUTES } from '../../constants';
+import { ROUTES, APP_VERSION } from '../../constants';
 import { useNavigate } from 'react-router-dom';
 
 export const Footer: React.FC = () => {
@@ -82,7 +82,7 @@ export const Footer: React.FC = () => {
                                     <li key={item.label}>
                                         <button
                                             onClick={() => handleNavigate(item.path, item.view)}
-                                            className="group flex items-center gap-2.5 text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-left"
+                                            className="group flex items-center gap-2.5 text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-left"
                                         >
                                             <item.icon className="w-3.5 h-3.5 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300" />
                                             {item.label}
@@ -94,15 +94,21 @@ export const Footer: React.FC = () => {
                     ))}
                 </div>
 
-                <div className="pt-8 border-t border-neutral-100 dark:border-neutral-900 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold text-neutral-400 dark:text-neutral-600">
-                    <p>© 2026 Navigator. All Rights Reserved.</p>
+                <div className="pt-8 border-t border-neutral-100 dark:border-neutral-900 flex flex-col md:flex-row justify-between items-center gap-6 text-xs font-bold text-neutral-400 dark:text-neutral-600">
                     <div className="flex items-center gap-6">
                         <span className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors cursor-default">Building For Your Career</span>
                         <div className="w-1 h-1 rounded-full bg-neutral-200 dark:bg-neutral-800" />
                         <span className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors cursor-default">Privacy-First AI</span>
+                    </div>
+                    <div className="flex items-center gap-6">
+                        <p>© {new Date().getFullYear()} Navigator. All Rights Reserved.</p>
+                        <div className="w-1 h-1 rounded-full bg-neutral-200 dark:bg-neutral-800" />
+                        <p>System v{APP_VERSION}</p>
                     </div>
                 </div>
             </div>
         </footer>
     );
 };
+
+export default Footer;

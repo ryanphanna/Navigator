@@ -67,6 +67,8 @@ export interface FeatureDefinition {
     planHighlight?: boolean;
     /** Feature is currently in development and restricted */
     isComingSoon?: boolean;
+    /** Optional badge text (e.g. 'NEW') */
+    badge?: string;
 }
 
 // ─── Shared Color Palette ──────────────────────────────────────────────
@@ -162,9 +164,10 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         key: 'JOBFIT',
         name: 'AI Job Analysis',
         shortName: 'Match',
+        badge: 'New',
         description: {
             short: 'Instant 0–100 compatibility rating.',
-            full: 'Paste any job posting and instantly see how well you match. You get a 0–100 score plus a full breakdown of where you stand.',
+            full: 'Paste any job posting and see how you match based on your full profile—including your resume, skills, and academic transcript. Get a 0–100 score plus a detailed breakdown.',
             plan: 'Simple match quality ratings for every role',
         },
         action: { short: 'View Match', full: 'View Match' },
@@ -281,7 +284,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
     QUALITY_LOOP: {
         id: 'quality-loop',
         key: 'QUALITY_LOOP',
-        name: 'Cover Letter Quality Loop',
+        name: 'Quality Loop',
         shortName: 'Quality Loop',
         description: {
             short: 'Multi-pass cover letter refinement.',
@@ -321,8 +324,8 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
     FEED: {
         id: 'feed',
         key: 'FEED',
-        name: 'Job Feed',
-        shortName: 'Job Feed',
+        name: 'Feed',
+        shortName: 'Feed',
         description: {
             short: 'Pre-scored matches from your alerts.',
             full: 'A live feed of pre-scored job matches, automatically triaged from the alerts you forward. Your best opportunities, ranked and ready.',
@@ -342,7 +345,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
     MAIL_IN: {
         id: 'mail-in',
         key: 'MAIL_IN',
-        name: 'Email Job Alerts',
+        name: 'Job Alerts',
         shortName: 'Inbound',
         description: {
             short: 'Forward jobs to analysis via email.',
@@ -423,7 +426,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
     ROLE_MODELS: {
         id: 'role-modeling',
         key: 'ROLE_MODELS',
-        name: 'LinkedIn Role Modeling',
+        name: 'Role Modeling',
         shortName: 'Role Models',
         description: {
             short: 'Compare your path to industry leaders.',
@@ -443,8 +446,8 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
     BOOKMARKLET: {
         id: 'bookmarklet',
         key: 'BOOKMARKLET',
-        name: 'Browser Extension',
-        shortName: 'Extension',
+        name: 'Bookmarklet',
+        shortName: 'Bookmarklet',
         description: {
             short: 'Save jobs from any website instantly.',
             full: "Save job postings from any website with a single click. No more copying and pasting descriptions — just click and it's captured.",
@@ -485,9 +488,10 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         key: 'EDU_TRANSCRIPT',
         name: 'Academic Transcript',
         shortName: 'Transcript',
+        badge: 'New',
         description: {
             short: 'Manage coursework and monitor progress.',
-            full: 'Track your coursework, credits, and degree progress all in one place. See a clear picture of where you stand academically.',
+            full: 'Track your coursework, credits, and degree progress in one place. Your academic mastery automatically powers deeper insights and higher scores during Job Match analysis.',
             plan: 'Coursework and degree progress tracking',
         },
         action: { short: 'View', full: 'Open' },

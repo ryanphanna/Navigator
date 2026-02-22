@@ -37,7 +37,6 @@ export const CoverLetters: React.FC<CoverLettersProps> = ({ jobs, onSelectJob })
             <PageHeader
                 title="Cover Letters"
                 subtitle="Your AI-generated narratives optimized for selection."
-                icon={PenTool}
             />
 
             {/* Search */}

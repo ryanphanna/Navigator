@@ -58,12 +58,12 @@ export function StandardFilterGroup<T extends string>({
     const currentTheme = themes[themeColor];
 
     return (
-        <div className={`flex items-center gap-1.5 p-1 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-md rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-x-auto scrollbar-hide no-scrollbar ${className}`}>
+        <div className={`flex items-center gap-1 p-1 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-md rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm h-11 overflow-x-auto scrollbar-hide no-scrollbar ${className}`}>
             {options.map((option) => (
                 <button
                     key={option.id}
                     onClick={() => onSelect(option.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition-all duration-300 whitespace-nowrap active:scale-95 ${activeFilter === option.id ? currentTheme.active : currentTheme.inactive}`}
+                    className={`flex items-center gap-1.5 px-3 h-full rounded-xl text-xs font-bold transition-all duration-300 whitespace-nowrap active:scale-95 ${activeFilter === option.id ? currentTheme.active : currentTheme.inactive}`}
                 >
                     {option.icon && <span className="shrink-0">{option.icon}</span>}
                     {option.label}

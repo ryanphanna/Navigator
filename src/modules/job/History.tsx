@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { SavedJob } from '../../types';
-import { Trash2, ArrowRight, Sparkles, Building, Calendar, Filter, Clock } from 'lucide-react';
+import { Trash2, ArrowRight, Sparkles, Building, Calendar, Filter, Clock, MapPin, Hash } from 'lucide-react';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { StandardSearchBar } from '../../components/common/StandardSearchBar';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -84,30 +84,32 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
     };
 
     return (
-        <SharedPageLayout className="theme-job" spacing="none">
+        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="5xl">
             <PageHeader
                 variant="simple"
                 title="Application History"
                 subtitle="Track your applications, interviews, and offers in one place."
+                className="mb-8"
             />
 
             {/* Filters & Search Row */}
-            <div className="flex flex-col md:flex-row items-center gap-4 mb-8">
+            <div className="mb-6">
                 <StandardSearchBar
                     value={searchQuery}
                     onChange={setSearchQuery}
                     placeholder="Search"
                     themeColor="indigo"
-                    className="flex-1"
-                />
-                <StandardFilterGroup
-                    options={FILTER_OPTIONS.map(opt => ({
-                        ...opt,
-                        count: getCount(opt.id)
-                    }))}
-                    activeFilter={statusFilter}
-                    onSelect={(f) => setStatusFilter(f as StatusFilter)}
-                    themeColor="slate"
+                    rightElement={
+                        <StandardFilterGroup
+                            options={FILTER_OPTIONS.map(opt => ({
+                                ...opt,
+                                count: getCount(opt.id)
+                            }))}
+                            activeFilter={statusFilter}
+                            onSelect={(f) => setStatusFilter(f as StatusFilter)}
+                            themeColor="slate"
+                        />
+                    }
                 />
             </div>
 
@@ -190,9 +192,18 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                                                         <>
                                                             <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-700" />
                                                             <div className="flex items-center gap-1.5">
-                                                                <Building className="w-4 h-4 text-neutral-400" />
+                                                                <MapPin className="w-4 h-4 text-neutral-400" />
                                                                 <span>{location}</span>
                                                             </div>
+                                                            {job.analysis?.distilledJob.referenceCode && (
+                                                                <>
+                                                                    <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-700" />
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <Hash className="w-4 h-4 text-neutral-400" />
+                                                                        <span className="font-mono text-[11px] uppercase tracking-wider">{job.analysis.distilledJob.referenceCode}</span>
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                         </>
                                                     )}
                                                 </div>
@@ -259,6 +270,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                     })
                 )}
             </div>
+
         </SharedPageLayout>
     );
 }

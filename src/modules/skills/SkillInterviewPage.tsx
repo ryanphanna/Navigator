@@ -3,12 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import type { CustomSkill } from '../../types';
 import { generateUnifiedQuestions, analyzeUnifiedResponse } from '../../services/ai/interviewAiService';
 import { useSkillContext } from './context/SkillContext';
+import { useGlobalUI } from '../../contexts/GlobalUIContext';
 import { checkInterviewLimit, getUsageStats } from '../../services/usageLimits';
 import { supabase } from '../../services/supabase';
 import {
-    ShieldCheck, CheckCircle2, X,
+    CheckCircle2, X,
     Send, Sparkles, AlertCircle,
-    ArrowLeft, Check
+    Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ROUTES } from '../../constants';
@@ -27,13 +28,17 @@ interface InterviewMessage {
     skillResults?: { skill: string; demonstrated: boolean; note: string }[];
 }
 
+const MAX_SKILLS_PER_SESSION = 8;
+
 export const SkillInterviewPage: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { handleInterviewComplete } = useSkillContext();
 
-    // Accept array of skills from router state
-    const skills = (location.state?.skills as { name: string; proficiency: string }[]) || [];
+    // Accept array of skills from router state, enforced cap for quality
+    const rawSkills = (location.state?.skills as { name: string; proficiency: string }[]) || [];
+    const skills = React.useMemo(() => rawSkills.slice(0, MAX_SKILLS_PER_SESSION), [rawSkills]);
+    const isCapped = rawSkills.length > MAX_SKILLS_PER_SESSION;
 
     const [step, setStep] = useState<InterviewStep>('intro');
     const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +56,13 @@ export const SkillInterviewPage: React.FC = () => {
     const [skillScores, setSkillScores] = useState<Record<string, { demonstrated: number; total: number }>>({});
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const { setFocusedMode } = useGlobalUI();
+
+    useEffect(() => {
+        setFocusedMode(true);
+        return () => setFocusedMode(false);
+    }, [setFocusedMode]);
 
     useEffect(() => {
         const fetchUsage = async () => {
@@ -241,53 +253,13 @@ export const SkillInterviewPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-white dark:bg-[#0a0a0a] animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-b border-neutral-100 dark:border-neutral-800">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={handleClose}
-                            className="p-2 -ml-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </button>
-                        <div className="h-8 w-[1px] bg-neutral-200 dark:bg-neutral-700 mx-2" />
-                        <div className="flex items-center gap-3">
-                            <div className="relative group">
-                                <div className="absolute inset-0 bg-emerald-500 rounded-xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity" />
-                                <div className="relative w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg text-white">
-                                    <ShieldCheck className="w-5 h-5" />
-                                </div>
-                            </div>
-                            <div>
-                                <h3 className="text-base font-bold text-neutral-900 dark:text-white tracking-tight flex items-center gap-2">
-                                    Skills Assessment
-                                    {step === 'interview' && (
-                                        <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
-                                            {currentQuestionIndex + 1}/{questions.length}
-                                        </span>
-                                    )}
-                                </h3>
-                            </div>
-                        </div>
-                    </div>
-                    <button
-                        onClick={handleClose}
-                        className="w-8 h-8 rounded-full bg-neutral-50 dark:bg-neutral-800/50 flex items-center justify-center text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-all"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
-                </div>
-            </div>
-
             {/* Main Content */}
-            <div className="pt-20 min-h-screen flex flex-col relative overflow-hidden bg-neutral-50/50 dark:bg-black/50">
+            <div className="pt-24 min-h-screen flex flex-col relative overflow-hidden bg-neutral-50/50 dark:bg-black/50">
                 <div className="fixed top-20 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />
                 <div className="fixed bottom-0 left-0 w-96 h-96 bg-teal-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-                <div className="flex-1 w-full max-w-3xl mx-auto px-4 py-8 relative z-10 flex flex-col">
+                <div className={`flex-1 w-full ${step === 'intro' ? 'max-w-5xl' : 'max-w-3xl'} mx-auto px-4 py-8 relative z-10 flex flex-col transition-all duration-500`}>
                     <AnimatePresence mode="wait">
-                        {/* INTRO */}
                         {step === 'intro' && (
                             <motion.div
                                 key="intro"
@@ -295,73 +267,92 @@ export const SkillInterviewPage: React.FC = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.4 }}
-                                className="flex-1 flex flex-col items-center justify-center pb-20"
+                                className="flex-1 flex flex-col justify-center pb-20"
                             >
-                                <div className="text-center max-w-md mb-10">
-                                    <div className="inline-flex items-center justify-center w-24 h-24 rounded-[2rem] bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-2xl mb-8">
-                                        <ShieldCheck className="w-12 h-12 text-emerald-500" />
-                                    </div>
-                                    <h4 className="text-3xl font-bold text-neutral-900 dark:text-white mb-4 tracking-tight">
-                                        Ready to verify your skills?
-                                    </h4>
-                                    <p className="text-lg text-neutral-500 dark:text-neutral-400 leading-relaxed font-medium">
-                                        I'll ask cross-cutting questions that cover multiple skills at once. Answer naturally — no need to treat each skill separately.
-                                    </p>
-                                </div>
-
-                                {limitError && (
-                                    <div className="w-full max-w-md mb-8 p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-2xl flex items-center gap-3 text-orange-700 dark:text-orange-400 text-sm font-bold">
-                                        <AlertCircle className="w-5 h-5 shrink-0" />
-                                        <div className="flex-1">
-                                            <p>{limitError}</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 items-center">
+                                    {/* Left: Content */}
+                                    <div className="space-y-8">
+                                        <div>
+                                            <h4 className="text-4xl lg:text-5xl font-bold text-neutral-900 dark:text-white mb-6 tracking-tight">
+                                                Ready to verify your skills?
+                                            </h4>
+                                            <p className="text-lg lg:text-xl text-neutral-500 dark:text-neutral-400 leading-relaxed font-medium">
+                                                I'll ask cross-cutting questions that cover multiple skills at once. Answer naturally — no need to treat each skill separately.
+                                            </p>
                                         </div>
+
+                                        {limitError && (
+                                            <div className="p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-2xl flex items-center gap-3 text-orange-700 dark:text-orange-400 text-sm font-bold">
+                                                <AlertCircle className="w-5 h-5 shrink-0" />
+                                                <div className="flex-1">
+                                                    <p>{limitError}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => navigate(ROUTES.PLANS)}
+                                                    className="px-3 py-1.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors shrink-0"
+                                                >
+                                                    Upgrade
+                                                </button>
+                                            </div>
+                                        )}
+
                                         <button
-                                            onClick={() => navigate(ROUTES.PLANS)}
-                                            className="px-3 py-1.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors shrink-0"
+                                            onClick={handleStart}
+                                            disabled={isLoading || !!limitError}
+                                            className="w-full md:w-auto px-10 py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-lg transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/20 flex flex-col items-center gap-1 disabled:opacity-50"
                                         >
-                                            Upgrade
+                                            <div className="flex items-center gap-3">
+                                                {isLoading ? (
+                                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                ) : (
+                                                    <Sparkles className="w-5 h-5" />
+                                                )}
+                                                <span>{isLoading ? 'Preparing questions...' : 'Begin assessment'}</span>
+                                            </div>
+                                            {!isLoading && !limitError && usageInfo && (
+                                                <span className="text-[10px] opacity-70 uppercase tracking-widest font-bold">
+                                                    {usageInfo.total === Infinity
+                                                        ? 'Unlimited credits'
+                                                        : `${usageInfo.used} / ${usageInfo.total} credits used`}
+                                                </span>
+                                            )}
                                         </button>
                                     </div>
-                                )}
 
-                                {/* Skills to assess */}
-                                <div className="w-full max-w-md mb-10">
-                                    <div className="text-xs font-bold text-neutral-400 tracking-wide mb-3 px-1">
-                                        Skills being assessed
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {skills.map(s => (
-                                            <span
-                                                key={s.name}
-                                                className="px-3 py-1.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-medium text-neutral-700 dark:text-neutral-300"
-                                            >
-                                                {s.name}
-                                            </span>
-                                        ))}
+                                    {/* Right: Skills list */}
+                                    <div className="bg-white dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-800 p-8 lg:p-10 rounded-[2.5rem] shadow-sm overflow-hidden relative group">
+                                        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-500">
+                                            <Sparkles className="w-24 h-24 text-emerald-500" />
+                                        </div>
+
+                                        <div className="flex items-center justify-between mb-8">
+                                            <div className="space-y-1">
+                                                <div className="text-sm font-bold text-neutral-400 tracking-widest uppercase">
+                                                    Skills to verify
+                                                </div>
+                                                {isCapped && (
+                                                    <div className="text-[10px] text-amber-600 dark:text-amber-500 font-extrabold uppercase tracking-tight">
+                                                        Capped at {MAX_SKILLS_PER_SESSION} for quality focus
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full">
+                                                {skills.length} items
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-2.5">
+                                            {[...skills].sort((a, b) => a.name.localeCompare(b.name)).map(s => (
+                                                <span
+                                                    key={s.name}
+                                                    className="px-4 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 rounded-2xl text-sm font-semibold text-neutral-700 dark:text-neutral-300 shadow-sm"
+                                                >
+                                                    {s.name}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
-
-                                <button
-                                    onClick={handleStart}
-                                    disabled={isLoading || !!limitError}
-                                    className="px-10 py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-base transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/20 flex flex-col items-center gap-1 disabled:opacity-50"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        {isLoading ? (
-                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        ) : (
-                                            <Sparkles className="w-5 h-5" />
-                                        )}
-                                        <span>{isLoading ? 'Preparing questions...' : 'Begin assessment'}</span>
-                                    </div>
-                                    {!isLoading && !limitError && usageInfo && (
-                                        <span className="text-[10px] opacity-70 uppercase tracking-widest">
-                                            {usageInfo.total === Infinity
-                                                ? 'Unlimited credits'
-                                                : `${usageInfo.used} / ${usageInfo.total} credits used`}
-                                        </span>
-                                    )}
-                                </button>
                             </motion.div>
                         )}
 
@@ -526,35 +517,37 @@ export const SkillInterviewPage: React.FC = () => {
             </div>
 
             {/* Floating Input */}
-            {step === 'interview' && (
-                <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white to-transparent dark:from-[#0a0a0a] dark:via-[#0a0a0a] dark:to-transparent pt-24 z-40">
-                    <div className="max-w-3xl mx-auto">
-                        <div className="relative group">
-                            <div className={`absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl opacity-20 group-focus-within:opacity-100 transition duration-500 blur ${isAnalyzing ? 'opacity-0' : ''}`} />
-                            <div className="relative flex items-center bg-white dark:bg-neutral-900 rounded-xl shadow-2xl">
-                                <textarea
-                                    value={userAnswer}
-                                    onChange={(e) => setUserAnswer(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                    placeholder="Type your answer here..."
-                                    disabled={isAnalyzing}
-                                    className="w-full bg-transparent border-none p-6 text-base focus:ring-0 resize-none disabled:opacity-50 min-h-[4rem] max-h-48 text-neutral-900 dark:text-white placeholder:text-neutral-400 font-medium"
-                                    rows={1}
-                                />
-                                <div className="pr-4">
-                                    <button
-                                        onClick={handleSubmitAnswer}
-                                        disabled={!userAnswer.trim() || isAnalyzing}
-                                        className="p-4 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl disabled:opacity-50 hover:scale-105 active:scale-95 transition-all shadow-lg"
-                                    >
-                                        <Send className="w-5 h-5" />
-                                    </button>
+            {
+                step === 'interview' && (
+                    <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white to-transparent dark:from-[#0a0a0a] dark:via-[#0a0a0a] dark:to-transparent pt-24 z-40">
+                        <div className="max-w-3xl mx-auto">
+                            <div className="relative group">
+                                <div className={`absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl opacity-20 group-focus-within:opacity-100 transition duration-500 blur ${isAnalyzing ? 'opacity-0' : ''}`} />
+                                <div className="relative flex items-center bg-white dark:bg-neutral-900 rounded-xl shadow-2xl">
+                                    <textarea
+                                        value={userAnswer}
+                                        onChange={(e) => setUserAnswer(e.target.value)}
+                                        onKeyDown={handleKeyDown}
+                                        placeholder="Type your answer here..."
+                                        disabled={isAnalyzing}
+                                        className="w-full bg-transparent border-none p-6 text-base focus:ring-0 resize-none disabled:opacity-50 min-h-[4rem] max-h-48 text-neutral-900 dark:text-white placeholder:text-neutral-400 font-medium"
+                                        rows={1}
+                                    />
+                                    <div className="pr-4">
+                                        <button
+                                            onClick={handleSubmitAnswer}
+                                            disabled={!userAnswer.trim() || isAnalyzing}
+                                            className="p-4 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl disabled:opacity-50 hover:scale-105 active:scale-95 transition-all shadow-lg"
+                                        >
+                                            <Send className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };

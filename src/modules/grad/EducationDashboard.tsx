@@ -105,6 +105,8 @@ export const EducationDashboard: React.FC = () => {
                                 title={config.shortName}
                                 description={config.description.short}
                                 actionLabel={config.action.short}
+                                badge={config.badge}
+                                isComingSoon={config.isComingSoon}
                                 onAction={() => setView(config.targetView)}
                                 className="h-full"
                             />

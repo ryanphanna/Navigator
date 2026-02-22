@@ -8,13 +8,14 @@ import { PlansOnboardingStep } from './PlansOnboardingStep';
 import type { ExperienceBlock } from '../resume/types';
 import { ROUTES } from '../../constants';
 
-type JourneyStage = 'student' | 'job-hunter' | 'employed' | 'career-changer';
+type JourneyStage = 'student' | 'job-hunter' | 'employed' | 'career-changer' | 'exploring';
 
 const JOURNEY_OPTIONS: { id: JourneyStage; icon: React.ReactNode; title: string; description: string; color: string }[] = [
-    { id: 'job-hunter', icon: <Search className="w-6 h-6" />, title: "I'm job hunting", description: "Applying to roles and need an edge", color: 'indigo' },
-    { id: 'employed', icon: <Building2 className="w-6 h-6" />, title: "I'm planning my career", description: "Looking to grow or find role models", color: 'emerald' },
-    { id: 'career-changer', icon: <ArrowRight className="w-6 h-6 -rotate-45" />, title: "I'm changing careers", description: "Moving to a new industry or role", color: 'amber' },
-    { id: 'student', icon: <GraduationCap className="w-6 h-6" />, title: "I'm focusing on grad school", description: "Mapping my academic path and GPA", color: 'violet' },
+    { id: 'job-hunter', icon: <Search className="w-6 h-6" />, title: "I'm searching for a job", description: "Actively applying and interviewing for new roles", color: 'indigo' },
+    { id: 'employed', icon: <Building2 className="w-6 h-6" />, title: "I'm growing in my role", description: "Looking to level up, build new skills, or get promoted", color: 'emerald' },
+    { id: 'career-changer', icon: <ArrowRight className="w-6 h-6 -rotate-45" />, title: "I'm changing careers", description: "Pivoting to a new industry or different field", color: 'amber' },
+    { id: 'student', icon: <GraduationCap className="w-6 h-6" />, title: "I'm in school", description: "Managing studies, internships, or planning my next degree", color: 'violet' },
+    { id: 'exploring', icon: <Search className="w-6 h-6" />, title: "I'm just exploring", description: "Keeping an eye on the market and my career options", color: 'indigo' },
 ];
 
 const TAILORED_CONTENT: Record<JourneyStage, { headline: string; tips: string[] }> = {
@@ -33,6 +34,10 @@ const TAILORED_CONTENT: Record<JourneyStage, { headline: string; tips: string[] 
     'career-changer': {
         headline: "We'll map your transferable skills",
         tips: ["Translate experience to new fields", "Find bridge roles", "Build relevant credentials"]
+    },
+    exploring: {
+        headline: "We'll keep you market-ready",
+        tips: ["Track industry trends", "Build your personal brand", "Benchmark your skills"]
     }
 };
 

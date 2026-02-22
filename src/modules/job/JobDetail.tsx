@@ -8,7 +8,7 @@ import {
     Loader2, Sparkles, XCircle,
     FileText, Copy, PenTool, ExternalLink,
     BookOpen, AlertCircle, ArrowLeft, Link as LinkIcon,
-    Undo2, Wand2, Building, Target,
+    Wand2, Target, MapPin, Hash,
     Search, ShieldCheck
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
@@ -19,6 +19,7 @@ import { DetailHeader } from '../../components/common/DetailHeader';
 import { DetailTabs, type TabItem } from '../../components/common/DetailTabs';
 import { DetailLayout } from '../../components/common/DetailLayout';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
+import { toTitleCase, toSentenceCase } from '../../utils/stringUtils';
 
 // Types from their respective modules
 import type { SavedJob } from './types';
@@ -115,7 +116,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
         }
     };
 
-    if (job.status === 'analyzing' && !job.description) {
+    if (!job.analysis && job.status !== 'error') {
         return (
             <div className="theme-job flex flex-col items-center justify-center min-h-[80vh] px-6 relative overflow-hidden bg-white dark:bg-[#000000]">
                 {/* Background ambient glows */}
@@ -385,7 +386,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                             <Sparkles className="w-3.5 h-3.5" /> Professional Insight
                         </h3>
                         <div className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed font-bold bg-neutral-50 dark:bg-neutral-800/50 p-6 rounded-[2rem] border border-neutral-100 dark:border-white/5 shadow-inner">
-                            {analysis?.reasoning || "Analysis needed"}
+                            {toSentenceCase(analysis?.reasoning || "Analysis needed")}
                         </div>
                     </div>
                 </>
@@ -405,7 +406,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                 </div>
             ) : (
                 <>
-                    <h4 className="font-bold text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm">
+                    <h4 className="font-bold text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm normal-case">
                         <Sparkles className="w-3.5 h-3.5" /> Strategic Alignment
                     </h4>
                     <div className="space-y-4">
@@ -418,7 +419,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                     transition={{ delay: idx * 0.1 }}
                                     className="flex gap-4 text-sm text-neutral-700 dark:text-neutral-300 bg-white/50 dark:bg-neutral-800/50 p-6 rounded-[1.5rem] border border-neutral-100 dark:border-white/5 shadow-sm"
                                 >
-                                    <span className="font-black text-indigo-500/40 text-[10px] mt-1 shrink-0">0{idx + 1}</span>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/30 mt-2 shrink-0" />
                                     <span className="text-xs font-bold leading-relaxed">{instruction}</span>
                                 </motion.div>
                             ))}
@@ -464,19 +465,37 @@ export const JobDetail: React.FC<JobDetailProps> = ({
     };
 
     return (
-        <SharedPageLayout className="theme-job" spacing="none" maxWidth="4xl">
+        <SharedPageLayout className="theme-job" spacing="none" maxWidth="6xl">
             <div className="bg-white dark:bg-neutral-900 min-h-screen flex flex-col">
                 <DetailHeader
                     title={
                         <div className="flex items-center gap-3">
                             <span className="text-neutral-500 dark:text-neutral-400 font-bold text-sm truncate max-w-[200px] md:max-w-md">
-                                {analysis?.distilledJob?.roleTitle || job.position || 'Job Detail'}
+                                {toTitleCase(analysis?.distilledJob?.roleTitle || job.position || 'Job Detail')}
                             </span>
                         </div>
                     }
                     subtitle={
-                        <div className="flex items-center gap-2">
-                            <span>{analysis?.distilledJob?.companyName || job.company || 'Unknown Company'}</span>
+                        <div className="flex items-center flex-wrap gap-2 text-sm text-neutral-500 font-semibold">
+                            <span>{toTitleCase(analysis?.distilledJob?.companyName || job.company || 'Unknown Company')}</span>
+                            {analysis?.distilledJob?.location && (
+                                <>
+                                    <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-600" />
+                                    <div className="flex items-center gap-1">
+                                        <MapPin className="w-3.5 h-3.5" />
+                                        <span>{analysis.distilledJob.location}</span>
+                                    </div>
+                                </>
+                            )}
+                            {analysis?.distilledJob?.referenceCode && (
+                                <>
+                                    <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-600" />
+                                    <div className="flex items-center gap-1">
+                                        <Hash className="w-3.5 h-3.5" />
+                                        <span className="font-mono text-[10px] uppercase tracking-wider">{analysis.distilledJob.referenceCode}</span>
+                                    </div>
+                                </>
+                            )}
                             {analysis?.distilledJob?.salaryRange && (
                                 <>
                                     <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-600" />
@@ -485,27 +504,64 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                             )}
                         </div>
                     }
-                    onBack={() => { }} // Remove back arrow functionality from header
-                    hideBack // We will need to update DetailHeader to support this
-                    actions={actionsMenu}
-                    icon={Building}
+                    onBack={onBack}
                 />
                 <DetailTabs
                     tabs={tabs}
                     activeTab={activeTab}
                     onTabChange={(id) => setActiveTab(id as any)}
+                    actions={actionsMenu}
                 />
 
                 <DetailLayout
-                    sidebar={activeTab === 'analysis' ? matchSidebar : activeTab === 'resume' ? <ResumeSidebar /> : null}
+                    sidebar={
+                        activeTab === 'analysis' ? matchSidebar :
+                            activeTab === 'resume' ? <ResumeSidebar /> :
+                                activeTab === 'cover-letter' ? (
+                                    <div className="space-y-6">
+                                        {/* Strategy Card */}
+                                        <Card variant="premium" className="p-8 border-indigo-500/10 shadow-indigo-500/10">
+                                            <h4 className="font-bold text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm normal-case">
+                                                <Sparkles className="w-3.5 h-3.5" /> Refinement Strategy
+                                            </h4>
+                                            <div className="space-y-6">
+                                                <div>
+                                                    <div className="text-xs font-bold text-neutral-400 mb-3 uppercase tracking-widest">AI Comparison Logic</div>
+                                                    <div className="space-y-3">
+                                                        {(analysis?.coverLetterTailoringInstructions || analysis?.tailoringInstructions || [])
+                                                            .slice(0, 3)
+                                                            .map((instruction: string, idx: number) => (
+                                                                <motion.div
+                                                                    key={idx}
+                                                                    initial={{ opacity: 0, x: 20 }}
+                                                                    animate={{ opacity: 1, x: 0 }}
+                                                                    transition={{ delay: idx * 0.1 }}
+                                                                    className="flex gap-3 text-xs text-neutral-600 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800/50 p-4 rounded-2xl border border-neutral-100 dark:border-white/5 italic leading-relaxed"
+                                                                >
+                                                                    <span className="font-bold text-indigo-500/30">•</span>
+                                                                    <span>{instruction.replace(/\[Block ID: .*?\]/g, '').trim()}</span>
+                                                                </motion.div>
+                                                            ))}
+                                                        {(!analysis?.coverLetterTailoringInstructions && !analysis?.tailoringInstructions) && (
+                                                            <div className="text-xs text-neutral-500 italic py-4 text-center">No strategy identified.</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Card>
+
+                                        {/* Blind Review Placeholder - Logic remains in Editor but we could move it if needed */}
+                                    </div>
+                                ) : null
+                    }
                 >
-                    {(activeTab === 'analysis' || activeTab === 'resume') && <ProhibitionAlert />}
+                    {(activeTab === 'analysis' || activeTab === 'resume' || activeTab === 'cover-letter') && <ProhibitionAlert />}
 
                     {activeTab === 'analysis' && (
                         <div className="space-y-8">
                             <div className="pb-8 border-b border-neutral-100 dark:border-white/5">
-                                <h4 className="text-[11px] font-bold text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4" /> Principal Competencies
+                                <h4 className="text-sm font-black text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 normal-case">
+                                    <Sparkles className="w-4 h-4" /> Key Skills
                                 </h4>
                                 <div className="flex flex-wrap gap-2">
                                     {(analysis?.distilledJob?.keySkills || []).map((skill: string, i: number) => (
@@ -514,10 +570,10 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                             initial={{ opacity: 0, scale: 0.9 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{ delay: i * 0.05 }}
-                                            className="text-[11px] font-bold text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm hover:border-accent-primary/30 transition-all cursor-default flex items-center gap-2"
+                                            className="text-xs font-bold text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm hover:border-accent-primary/30 transition-all cursor-default flex items-center gap-2"
                                         >
                                             <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/50" />
-                                            {skill}
+                                            {toTitleCase(skill)}
                                         </motion.span>
                                     ))}
                                     {(!analysis?.distilledJob?.keySkills || analysis.distilledJob.keySkills.length === 0) && (
@@ -525,6 +581,40 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                     )}
                                 </div>
                             </div>
+
+                            {(analysis?.strengths?.length || 0) > 0 || (analysis?.weaknesses?.length || 0) > 0 ? (
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    {/* Strengths */}
+                                    <Card variant="glass" className="p-6 border-emerald-500/10 bg-emerald-500/5">
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-4 flex items-center gap-2">
+                                            <ShieldCheck className="w-3.5 h-3.5" /> Core Strengths
+                                        </h4>
+                                        <div className="space-y-3">
+                                            {analysis?.strengths?.map((s, i) => (
+                                                <div key={i} className="flex gap-3 text-xs font-bold text-neutral-700 dark:text-neutral-300">
+                                                    <div className="w-1 h-1 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                                                    {s}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </Card>
+
+                                    {/* Weaknesses */}
+                                    <Card variant="glass" className="p-6 border-rose-500/10 bg-rose-500/5">
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 mb-4 flex items-center gap-2">
+                                            <AlertCircle className="w-3.5 h-3.5" /> Identified Gaps
+                                        </h4>
+                                        <div className="space-y-3">
+                                            {analysis?.weaknesses?.map((w, i) => (
+                                                <div key={i} className="flex gap-3 text-xs font-bold text-neutral-700 dark:text-neutral-300">
+                                                    <div className="w-1 h-1 rounded-full bg-rose-500 mt-1.5 shrink-0" />
+                                                    {w}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </Card>
+                                </div>
+                            ) : null}
 
                             {job.status === 'analyzing' || analysisProgress ? (
                                 <Card variant="premium" className="p-6 animate-pulse border-accent-primary/10">
@@ -537,8 +627,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                             ) : (
                                 analysis?.distilledJob?.requiredSkills && analysis.distilledJob.requiredSkills.length > 0 && (
                                     <Card variant="premium" className="p-6 border-indigo-500/10 shadow-indigo-500/5">
-                                        <h4 className="font-bold text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm">
-                                            <Target className="w-4 h-4" /> Priority Skill Alignment
+                                        <h4 className="font-black text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm normal-case">
+                                            <Target className="w-4 h-4" /> Skill Match
                                         </h4>
                                         <div className="grid sm:grid-cols-2 gap-6">
                                             {analysis.distilledJob.requiredSkills.map((req: { name: string; level: 'learning' | 'comfortable' | 'expert' }, i: number) => {
@@ -558,13 +648,13 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                                                 {isMatch ? <ShieldCheck className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
                                                             </div>
                                                             <div>
-                                                                <span className="text-sm font-black text-neutral-900 dark:text-white block">{req.name}</span>
-                                                                <span className="text-[9px] font-bold text-neutral-400">Required: {req.level}</span>
+                                                                <span className="text-sm font-black text-neutral-900 dark:text-white block">{toTitleCase(req.name)}</span>
+                                                                <span className="text-[9px] font-bold text-neutral-400">Required: {toTitleCase(req.level)}</span>
                                                             </div>
                                                         </div>
                                                         {mySkill && (
                                                             <span className="text-[9px] font-bold text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-                                                                My Level: {mySkill.proficiency}
+                                                                My Level: {toTitleCase(mySkill.proficiency)}
                                                             </span>
                                                         )}
                                                     </motion.div>
@@ -575,8 +665,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                 ))}
 
                             <Card variant="glass" className="p-6 border-neutral-200/50 dark:border-white/5">
-                                <h4 className="font-bold text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm">
-                                    <BookOpen className="w-4 h-4" /> Strategic Responsibilities
+                                <h4 className="font-black text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm normal-case">
+                                    <BookOpen className="w-4 h-4" /> Core Responsibilities
                                 </h4>
                                 <div className="grid gap-4">
                                     {(analysis?.distilledJob?.coreResponsibilities || []).map((resp: string, i: number) => (
@@ -587,10 +677,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                             transition={{ delay: i * 0.1 }}
                                             className="flex gap-5 text-neutral-700 dark:text-neutral-300 text-sm font-bold leading-relaxed p-6 bg-neutral-50/50 dark:bg-neutral-800/40 rounded-[1.5rem] border border-neutral-50 dark:border-white/5"
                                         >
-                                            <div className="w-6 h-6 rounded-full bg-indigo-500/10 flex items-center justify-center shrink-0 border border-indigo-500/20 text-indigo-500 font-black text-[10px]">
-                                                {i + 1}
-                                            </div>
-                                            {resp}
+                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/30 mt-2 shrink-0" />
+                                            {toSentenceCase(resp)}
                                         </motion.div>
                                     ))}
                                     {job.status !== 'analyzing' && !analysisProgress && (!analysis?.distilledJob?.coreResponsibilities || analysis.distilledJob.coreResponsibilities.length === 0) && (
@@ -603,9 +691,9 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
                     {activeTab === 'job-post' && (
                         <Card variant="premium" className="p-8 border-accent-primary/10 shadow-indigo-500/5">
-                            <h4 className="flex items-center gap-2 font-black text-accent-primary-hex mb-8 uppercase text-[10px] tracking-widest">
+                            <h4 className="flex items-center gap-2 font-black text-accent-primary-hex mb-8 text-xs">
                                 <FileText className="w-4 h-4" />
-                                {'Job Description'}
+                                Job Description
                             </h4>
                             <div className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap font-sans font-medium bg-neutral-50 dark:bg-neutral-800/50 p-6 rounded-2xl border border-neutral-100 dark:border-neutral-700">
                                 {analysis?.cleanedDescription || job.description}
@@ -614,54 +702,48 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                     )}
 
                     {activeTab === 'resume' && (
-                        <div className="space-y-6">
+                        <div className="space-y-12 py-10 px-6 md:px-12 bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-100 dark:border-neutral-800 shadow-sm">
                             {/* Tailored Summary Section */}
                             {userTier !== 'free' && (
-                                <Card variant="premium" className="overflow-hidden border-indigo-500/10 mb-8">
-                                    <div className="border-b border-neutral-100 dark:border-white/5 p-8 flex justify-between items-center bg-neutral-50/30 dark:bg-neutral-800/30">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                                                <Wand2 className="w-4 h-4 text-indigo-500" />
-                                            </div>
-                                            <h3 className="font-black text-neutral-900 dark:text-white text-[10px] uppercase tracking-widest">AI Profile Summary</h3>
-                                        </div>
+                                <section>
+                                    <div className="flex justify-between items-center mb-6 border-b border-neutral-100 dark:border-neutral-800/50 pb-4">
+                                        <h3 className="text-xs font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                                            <Wand2 className="w-3.5 h-3.5" /> Professional Summary
+                                        </h3>
                                         <Button
                                             onClick={handleGenerateSummary}
                                             disabled={generatingSummary}
-                                            variant="accent"
+                                            variant="secondary"
                                             size="xs"
-                                            className="bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20"
-                                            icon={generatingSummary ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                                            className="text-[9px]"
+                                            icon={generatingSummary ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                                         >
-                                            {job.tailoredSummary ? 'Redraft with AI' : 'Draft Tailored Summary'}
+                                            {job.tailoredSummary ? 'Redraft' : 'Draft Tailored Summary'}
                                         </Button>
                                     </div>
                                     {job.tailoredSummary ? (
-                                        <div className="p-10 relative group">
-                                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <div className="bg-indigo-500/10 text-indigo-500 text-[10px] font-black px-3 py-1 rounded-full border border-indigo-500/20">AI OPTIMIZED</div>
-                                            </div>
-                                            <p className="text-base text-neutral-700 dark:text-neutral-300 leading-relaxed font-bold italic border-l-4 border-indigo-500/30 pl-6 py-2">{job.tailoredSummary}</p>
+                                        <div className="relative group">
+                                            <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium italic border-l-2 border-indigo-500/20 pl-6 py-1">
+                                                {job.tailoredSummary}
+                                            </p>
                                             <button
                                                 onClick={() => { navigator.clipboard.writeText(job.tailoredSummary || ''); showSuccess('Summary copied!'); }}
-                                                className="mt-8 text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-indigo-500 flex items-center gap-2 transition-all p-2 rounded-lg hover:bg-indigo-500/5"
+                                                className="mt-4 text-[9px] font-black uppercase tracking-widest text-neutral-400 hover:text-indigo-500 flex items-center gap-2 transition-all"
                                             >
-                                                <Copy className="w-3.5 h-3.5" /> Copy optimized summary
+                                                <Copy className="w-3 h-3" /> Copy optimized summary
                                             </button>
                                         </div>
                                     ) : (
-                                        <div className="p-10 text-center">
-                                            <p className="text-sm text-neutral-400 italic">Generate a high-impact professional summary meticulously tailored for this role.</p>
-                                        </div>
+                                        <p className="text-xs text-neutral-400 italic">Generate a high-impact professional summary meticulously tailored for this role.</p>
                                     )}
-                                </Card>
+                                </section>
                             )}
 
-                            {/* Experience Blocks */}
-                            <Card variant="premium" className="overflow-hidden border-indigo-500/10 shadow-indigo-500/5">
-                                <div className="border-b border-neutral-100 dark:border-neutral-800/50 p-6 flex flex-col sm:flex-row justify-between items-center bg-neutral-50/50 dark:bg-neutral-800/30 gap-4">
-                                    <h3 className="font-black text-neutral-900 dark:text-white text-[10px] uppercase tracking-widest">Experience Blocks</h3>
-                                    <div className="flex items-center gap-3">
+                            {/* Experience Section */}
+                            <section>
+                                <div className="flex justify-between items-center mb-8 border-b border-neutral-100 dark:border-neutral-800/50 pb-4">
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Experience & Achievements</h3>
+                                    <div className="flex items-center gap-2">
                                         {userTier !== 'free' && (
                                             <Button
                                                 onClick={() => {
@@ -670,8 +752,9 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                                 }}
                                                 disabled={!!bulkTailoringProgress || !!tailoringBlockId}
                                                 variant="secondary"
-                                                size="sm"
-                                                icon={bulkTailoringProgress ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                                                size="xs"
+                                                className="text-[9px]"
+                                                icon={bulkTailoringProgress ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                                             >
                                                 {bulkTailoringProgress ? `Tailoring ${bulkTailoringProgress.current}/${bulkTailoringProgress.total}` : 'Tailor All'}
                                             </Button>
@@ -679,77 +762,72 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                         <Button
                                             onClick={handleCopyResume}
                                             disabled={generating}
-                                            variant="accent"
-                                            size="sm"
-                                            icon={generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Copy className="w-3.5 h-3.5" />}
+                                            variant="secondary"
+                                            size="xs"
+                                            className="text-[9px]"
+                                            icon={generating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Copy className="w-3 h-3" />}
                                         >
-                                            {generating ? 'Processing...' : 'Copy Full Resume'}
+                                            Copy Full
                                         </Button>
                                     </div>
                                 </div>
-                                <div className="divide-y divide-neutral-100 dark:divide-neutral-800/50">
+
+                                <div className="space-y-10">
                                     {bestResume?.blocks
                                         .filter((b: ExperienceBlock) => analysis?.recommendedBlockIds ? analysis.recommendedBlockIds.includes(b.id) : b.isVisible)
                                         .map((block: ExperienceBlock) => {
                                             const tailoredBullets = job.tailoredResumes?.[block.id];
                                             const isTailoring = tailoringBlockId === block.id;
                                             return (
-                                                <div key={block.id} className="p-8 hover:bg-neutral-50/30 dark:hover:bg-neutral-800/20 transition-all">
-                                                    <div className="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4">
+                                                <div key={block.id} className="group relative">
+                                                    <div className="flex justify-between items-start mb-4">
                                                         <div>
-                                                            <h5 className="font-black text-neutral-900 dark:text-white text-base tracking-tight">{block.title}</h5>
-                                                            <div className="text-xs text-neutral-500 font-bold uppercase tracking-wider mt-1">{block.organization} • {block.dateRange}</div>
+                                                            <h4 className="font-bold text-neutral-900 dark:text-white text-base tracking-tight">{block.title}</h4>
+                                                            <div className="text-[11px] text-neutral-500 font-bold uppercase tracking-wider mt-0.5">
+                                                                {block.organization} <span className="mx-2 text-neutral-300">•</span> {block.dateRange}
+                                                            </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                             {tailoredBullets && (
                                                                 <button
                                                                     onClick={() => handleResetBlock(block.id)}
-                                                                    className="text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-neutral-600 bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 rounded-lg flex items-center gap-2 transition-all"
+                                                                    className="text-[9px] font-bold uppercase tracking-widest text-neutral-400 hover:text-neutral-600 bg-neutral-50 dark:bg-neutral-800 px-2 py-1 rounded-md transition-all"
+                                                                    title="Reset to original"
                                                                 >
-                                                                    <Undo2 className="w-3.5 h-3.5" />
                                                                     Reset
                                                                 </button>
                                                             )}
                                                             {userTier !== 'free' && (
-                                                                <div className="flex flex-col items-end gap-1.5">
-                                                                    <Button
-                                                                        onClick={() => handleHyperTailor(block)}
-                                                                        disabled={isTailoring || !!bulkTailoringProgress || (job.tailorCounts?.[block.id] || 0) >= RESUME_TAILORING.MAX_TAILORS_PER_BLOCK}
-                                                                        variant={tailoredBullets ? "secondary" : "accent"}
-                                                                        size="xs"
-                                                                        icon={isTailoring ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                                                                    >
-                                                                        {isTailoring ? 'Rewriting...' : tailoredBullets ? 'Retry Tailor' : 'Hyper-Tailor'}
-                                                                    </Button>
-                                                                    {job.tailorCounts?.[block.id] !== undefined && (job.tailorCounts?.[block.id] || 0) > 0 && (
-                                                                        <span className="text-[9px] font-black uppercase tracking-widest text-neutral-400">
-                                                                            {job.tailorCounts[block.id]}/{RESUME_TAILORING.MAX_TAILORS_PER_BLOCK} uses
-                                                                        </span>
-                                                                    )}
-                                                                </div>
+                                                                <Button
+                                                                    onClick={() => handleHyperTailor(block)}
+                                                                    disabled={isTailoring || !!bulkTailoringProgress || (job.tailorCounts?.[block.id] || 0) >= RESUME_TAILORING.MAX_TAILORS_PER_BLOCK}
+                                                                    variant={tailoredBullets ? "secondary" : "accent"}
+                                                                    size="xs"
+                                                                    className="text-[9px] h-7"
+                                                                    icon={isTailoring ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                                                >
+                                                                    {isTailoring ? 'Rewriting' : tailoredBullets ? 'Retry' : 'Hyper-Tailor'}
+                                                                </Button>
                                                             )}
                                                         </div>
                                                     </div>
 
-                                                    <div className="space-y-4">
+                                                    <ul className="space-y-3">
                                                         {(tailoredBullets || block.bullets).map((bullet: string, i: number) => (
-                                                            <motion.div
+                                                            <li
                                                                 key={i}
-                                                                initial={{ opacity: 0, x: -5 }}
-                                                                animate={{ opacity: 1, x: 0 }}
-                                                                transition={{ delay: i * 0.05 }}
-                                                                className={`flex gap-5 text-sm leading-relaxed p-5 rounded-[1.5rem] border transition-all ${tailoredBullets ? 'bg-indigo-500/5 border-indigo-500/10 text-neutral-800 dark:text-neutral-200 font-bold' : 'bg-neutral-50/50 dark:bg-neutral-800/40 border-neutral-100 dark:border-white/5 text-neutral-600 dark:text-neutral-400 font-medium'}`}
+                                                                className={`relative pl-6 text-sm leading-relaxed ${tailoredBullets ? 'text-neutral-800 dark:text-neutral-200 font-bold' : 'text-neutral-600 dark:text-neutral-400 font-medium'}`}
                                                             >
-                                                                <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${tailoredBullets ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]' : 'bg-neutral-300 dark:bg-neutral-700'}`} />
+                                                                <div className={`absolute left-0 top-2 w-1.5 h-1.5 rounded-full ${tailoredBullets ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)]' : 'bg-neutral-300 dark:bg-neutral-700'}`} />
                                                                 {bullet}
-                                                            </motion.div>
+                                                            </li>
                                                         ))}
-                                                    </div>
+                                                    </ul>
                                                 </div>
                                             );
                                         })}
                                 </div>
-                            </Card>
+                            </section>
                         </div>
                     )}
 

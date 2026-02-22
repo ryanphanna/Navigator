@@ -8,36 +8,45 @@ interface SkillCardProps {
 }
 
 export const SkillCard: React.FC<SkillCardProps> = ({ skill, onDelete }) => {
+    const isExpert = skill.proficiency === 'expert';
+    const isComfortable = skill.proficiency === 'comfortable';
 
     return (
         <div
-            className="group flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl hover:border-accent-primary-hex/50 hover:shadow-sm transition-all duration-300 relative"
+            className={`group flex items-center gap-2.5 px-3.5 py-1.5 bg-white dark:bg-neutral-900 border rounded-xl hover:shadow-md transition-all duration-300 relative ${isExpert ? 'border-amber-200 dark:border-amber-800/50 hover:border-amber-400' :
+                isComfortable ? 'border-indigo-200 dark:border-indigo-800/50 hover:border-indigo-400' :
+                    'border-neutral-200 dark:border-neutral-800 hover:border-neutral-400'
+                }`}
         >
             <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-neutral-700 dark:text-neutral-300 tracking-tight whitespace-nowrap">
+                <span className="text-sm font-bold text-neutral-800 dark:text-neutral-200 tracking-tight whitespace-nowrap">
                     {skill.name}
                 </span>
 
-                {skill.evidence && (
-                    <span className="flex-shrink-0" title="Verified Skill">
-                        <Check className="w-3.5 h-3.5 text-accent-primary-hex stroke-[3]" />
-                    </span>
-                )}
+                <div className="flex items-center gap-1.5 ml-0.5">
+                    {/* Verified Checkmark (Right Side) */}
+                    {skill.evidence && (
+                        <span title="Verified Skill" className="flex items-center">
+                            <Check className="w-3.5 h-3.5 text-neutral-900 dark:text-white stroke-[3.5]" />
+                        </span>
+                    )}
 
-                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${skill.proficiency === 'expert' ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]' :
-                    skill.proficiency === 'comfortable' ? 'bg-accent-primary-hex' :
-                        'bg-neutral-300 dark:bg-neutral-700'
-                    }`} title={skill.proficiency} />
+                    {/* Proficiency Dot (Right Side) */}
+                    <div className={`flex-shrink-0 w-2 h-2 rounded-full ${isExpert ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]' :
+                        isComfortable ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)]' :
+                            'bg-neutral-300 dark:bg-neutral-600'
+                        }`} title={skill.proficiency} />
+                </div>
             </div>
 
-            {/* Hover Delete Action */}
+            {/* Delete Button (Appears on Hover) */}
             <button
                 onClick={(e) => {
                     e.stopPropagation();
                     onDelete(skill.name);
                 }}
-                className="w-0 group-hover:w-6 overflow-hidden transition-all duration-300 text-neutral-400 hover:text-red-500 opacity-0 group-hover:opacity-100 flex items-center justify-center -mr-1"
-                title="Delete skill"
+                className="w-0 group-hover:w-5 overflow-hidden transition-all duration-300 text-neutral-300 hover:text-red-500 opacity-0 group-hover:opacity-100 flex items-center justify-center -mr-1"
+                title="Remove skill"
             >
                 <Trash2 className="w-3.5 h-3.5" />
             </button>

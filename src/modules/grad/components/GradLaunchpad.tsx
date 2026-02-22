@@ -105,26 +105,26 @@ export const GradLaunchpad: React.FC = () => {
 
                 {/* Right Column: The Big 3 Checklist */}
                 <div className="md:w-2/3">
-                    <h4 className="text-sm font-black text-neutral-400 uppercase tracking-widest mb-6">The "Big 3" Requirements</h4>
+                    <h4 className="text-sm font-black text-neutral-400 tracking-widest mb-6">The "Big 3" Requirements</h4>
 
                     <div className="space-y-4">
                         {tasks.map(task => {
                             const taskClasses = `flex items-start gap-5 p-5 rounded-2xl border-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] ${task.status === 'completed'
-                                    ? 'bg-neutral-50 dark:bg-neutral-800/50 border-transparent opacity-75'
-                                    : 'bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800 hover:border-indigo-500/30 shadow-sm hover:shadow-md'
+                                ? 'bg-neutral-50 dark:bg-neutral-800/50 border-transparent opacity-75'
+                                : 'bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800 hover:border-indigo-500/30 shadow-sm hover:shadow-md'
                                 }`;
 
                             const buttonClasses = `mt-0.5 shrink-0 transition-colors ${task.status === 'completed' ? 'text-indigo-600' : 'text-neutral-300 hover:text-indigo-500'
                                 }`;
 
                             const iconContainerClasses = `p-1.5 rounded-lg ${task.status === 'completed'
-                                    ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-500'
-                                    : 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600'
+                                ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-500'
+                                : 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600'
                                 }`;
 
                             const titleClasses = `font-bold ${task.status === 'completed'
-                                    ? 'text-neutral-500 line-through'
-                                    : 'text-neutral-900 dark:text-white'
+                                ? 'text-neutral-500 line-through'
+                                : 'text-neutral-900 dark:text-white'
                                 }`;
 
                             return (

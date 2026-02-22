@@ -1,15 +1,13 @@
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+
 
 interface DetailHeaderProps {
     title: React.ReactNode;
     subtitle?: React.ReactNode;
     onBack: () => void;
-    icon?: LucideIcon;
     actions?: React.ReactNode;
     center?: React.ReactNode;
-    themeColor?: 'accent' | 'neutral';
     hideBack?: boolean;
 }
 
@@ -17,16 +15,14 @@ export const DetailHeader: React.FC<DetailHeaderProps> = ({
     title,
     subtitle,
     onBack,
-    icon: Icon,
     actions,
     center,
-    themeColor = 'accent',
     hideBack = false
 }) => {
-    const iconColor = themeColor === 'accent' ? 'text-accent-primary-hex' : 'text-neutral-500';
+
 
     return (
-        <div className="border-b border-neutral-200 dark:border-neutral-800 sticky top-16 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md z-10">
+        <div className="border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md">
             <div className="mx-auto px-6 py-4 flex items-center justify-between relative">
                 <div className="flex items-center gap-4 relative z-10">
                     {!hideBack && (
@@ -44,7 +40,6 @@ export const DetailHeader: React.FC<DetailHeaderProps> = ({
                         {subtitle && (
                             <div className="flex flex-col gap-1.5 mt-0.5">
                                 <div className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
-                                    {Icon && <Icon className={`w-4 h-4 ${iconColor}`} />}
                                     <span className="font-semibold text-neutral-900 dark:text-neutral-200">{subtitle}</span>
                                 </div>
                             </div>
@@ -60,9 +55,11 @@ export const DetailHeader: React.FC<DetailHeaderProps> = ({
                     </div>
                 )}
 
-                <div className="flex items-center justify-end gap-3 relative z-10 p-1 bg-neutral-100/50 dark:bg-white/5 rounded-2xl border border-neutral-200/50 dark:border-white/5">
-                    {actions}
-                </div>
+                {actions && (
+                    <div className="flex items-center justify-end gap-3 relative z-10 p-1 bg-neutral-100/50 dark:bg-white/5 rounded-2xl border border-neutral-200/50 dark:border-white/5">
+                        {actions}
+                    </div>
+                )}
             </div>
         </div>
     );

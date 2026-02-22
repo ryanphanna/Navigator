@@ -35,15 +35,15 @@ export const StandardSearchBar: React.FC<StandardSearchBarProps> = ({
     };
 
     return (
-        <div className={`flex flex-col md:flex-row items-center gap-4 w-full ${className}`}>
-            <div className="relative group flex-1 w-full">
+        <div className={`flex flex-col md:flex-row items-center gap-3 w-full ${className}`}>
+            <div className={`relative group w-full ${rightElement ? 'md:flex-[3]' : 'flex-1'}`}>
                 <Search className={`absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 ${iconFocusColor[themeColor]} transition-colors z-10`} />
                 <input
                     type="text"
                     placeholder={placeholder}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
-                    className={`w-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 py-3 pl-15 pr-12 rounded-2xl text-sm focus:outline-none focus:ring-8 transition-all shadow-lg shadow-neutral-900/5 dark:shadow-black/20 text-neutral-900 dark:text-white placeholder:text-neutral-400 ${focusColors[themeColor]}`}
+                    className={`w-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 h-11 py-0 pl-15 pr-12 rounded-2xl text-sm focus:outline-none focus:ring-8 transition-all shadow-lg shadow-neutral-900/5 dark:shadow-black/20 text-neutral-900 dark:text-white placeholder:text-neutral-400 ${focusColors[themeColor]}`}
                 />
                 {value && (
                     <button
@@ -55,7 +55,7 @@ export const StandardSearchBar: React.FC<StandardSearchBarProps> = ({
                 )}
             </div>
             {rightElement && (
-                <div className="w-full md:w-auto animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="w-full md:flex-[2] animate-in fade-in slide-in-from-right-4 duration-500 min-w-0">
                     {rightElement}
                 </div>
             )}

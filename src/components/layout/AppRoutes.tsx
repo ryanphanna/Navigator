@@ -42,6 +42,7 @@ const PlansPage = lazyWithRetry(() => import('../../modules/plans/PlansPage').th
 const ComparisonTable = lazyWithRetry(() => import('../../modules/plans/ComparisonTable').then(m => ({ default: m.ComparisonTable })));
 const FeaturesPage = lazyWithRetry(() => import('../../modules/features/FeaturesPage').then(m => ({ default: m.FeaturesPage })));
 const OnboardingPage = lazyWithRetry(() => import('../../modules/onboarding/OnboardingPage').then(m => ({ default: m.OnboardingPage })));
+const SettingsPage = lazyWithRetry(() => import('../../modules/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const SkillInterviewPage = lazyWithRetry(() => import('../../modules/skills/SkillInterviewPage').then(m => ({ default: m.SkillInterviewPage })));
 const InterviewAdvisor = lazyWithRetry(() => import('../../modules/job/InterviewAdvisor').then(m => ({ default: m.InterviewAdvisor })));
 
@@ -116,6 +117,8 @@ export const AppRoutes: React.FC = () => {
             [ROUTES.PLANS_COMPARE]: 'plans-compare',
             [ROUTES.FEATURES]: 'features',
             [ROUTES.WELCOME]: 'welcome',
+            [ROUTES.SETTINGS]: 'settings',
+            ['/career/skills/interview']: 'skills-interview',
         };
 
         // Handle dynamic job detail route
@@ -180,6 +183,7 @@ export const AppRoutes: React.FC = () => {
             'terms': ROUTES.TERMS,
             'contact': ROUTES.CONTACT,
             'features': ROUTES.FEATURES,
+            'settings': ROUTES.SETTINGS,
         };
 
         const path = viewToPath[viewId];
@@ -262,7 +266,7 @@ export const AppRoutes: React.FC = () => {
                 {/* Core Views */}
                 <Route element={<ProtectedRoute />}>
                     <Route path={ROUTES.FEED} element={
-                        <Suspense fallback={<LoadingState message="Loading Pro Feed..." />}>
+                        <Suspense fallback={<LoadingState message="Loading Feed..." />}>
                             <NavigatorPro onDraftApplication={handleDraftApplication} onPromoteFromFeed={handlePromoteFromFeed} />
                         </Suspense>
                     } />
@@ -448,6 +452,14 @@ export const AppRoutes: React.FC = () => {
                         <FeaturesPage />
                     </Suspense>
                 } />
+
+                <Route element={<ProtectedRoute />}>
+                    <Route path={ROUTES.SETTINGS} element={
+                        <Suspense fallback={<LoadingState message="Loading Settings..." />}>
+                            <SettingsPage />
+                        </Suspense>
+                    } />
+                </Route>
 
                 <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
             </Routes>

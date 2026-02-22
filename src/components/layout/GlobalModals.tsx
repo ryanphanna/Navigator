@@ -7,12 +7,11 @@ import { lazyWithRetry } from '../../utils/lazyWithRetry';
 
 // Lazy load heavy modals to improve lighter initial bundle
 const AuthModal = lazyWithRetry(() => import('../AuthModal').then(m => ({ default: m.AuthModal })));
-import { SettingsModal } from '../SettingsModal';
 const UpgradeModal = lazyWithRetry(() => import('../UpgradeModal').then(m => ({ default: m.UpgradeModal })));
 
 export const GlobalModals: React.FC = () => {
-    const { user, userTier, isTester, isAdmin, simulatedTier, setSimulatedTier } = useUser();
-    const { upgradeModalData, closeUpgradeModal, usageStats } = useJobContext();
+    const { userTier } = useUser();
+    const { upgradeModalData, closeUpgradeModal } = useJobContext();
     const { activeModal, modalData, closeModal } = useModal();
     const { setView } = useGlobalUI();
 
@@ -29,21 +28,6 @@ export const GlobalModals: React.FC = () => {
             {activeModal === 'AUTH' && (
                 <AuthModal isOpen={true} onClose={closeModal} featureContext={modalData?.feature} />
             )}
-
-            {user && activeModal === 'SETTINGS' && (
-                <SettingsModal
-                    isOpen={true}
-                    onClose={closeModal}
-                    user={user}
-                    userTier={userTier}
-                    isTester={isTester}
-                    isAdmin={isAdmin}
-                    simulatedTier={simulatedTier}
-                    onSimulateTier={setSimulatedTier}
-                    usageStats={usageStats}
-                />
-            )}
-
 
             {(activeModal === 'UPGRADE' || upgradeModalData) && (
                 <UpgradeModal

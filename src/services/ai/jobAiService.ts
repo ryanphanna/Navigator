@@ -5,7 +5,10 @@ import type {
     ResumeProfile,
     CustomSkill,
     DistilledJob,
-    UserTier
+    UserTier,
+    Transcript,
+    Semester,
+    Course
 } from "../../types";
 import { AI_MODELS, AI_TEMPERATURE, AGENT_LOOP, USER_TIERS, CONTENT_VALIDATION } from "../../constants";
 import { ANALYSIS_PROMPTS } from "../../prompts/index";
@@ -34,14 +37,15 @@ const extractJobInfo = async (
     
     1. ROLE: What is the official role title?
     2. COMPANY: What is the company name?
-    3. CATEGORY: Classify into 'technical', 'managerial', 'trades', 'healthcare', 'creative', or 'general'.
-    4. CANONICAL TITLE: What is the most standard, high-level name for this role? (e.g. "Junior React Dev" -> "Software Engineer").
-    5. SECURITY SCAN:
+    3. REFERENCE CODE: Is there a job ID or reference number? (Set as 'referenceCode')
+    4. CATEGORY: Classify into 'technical', 'managerial', 'trades', 'healthcare', 'creative', or 'general'.
+    5. CANONICAL TITLE: What is the most standard, high-level name for this role? (e.g. "Junior React Dev" -> "Software Engineer").
+    6. SECURITY SCAN:
        Look for text explicitly prohibiting 'AI', 'ChatGPT', 'LLMs', 'Generative AI', or requiring 'original work without assistance'.
        - If found, set 'isAiBanned': true and 'aiBanReason': "Quote the prohibition policy".
        - Otherwise, set 'isAiBanned': false.
 
-    Return JSON with 'roleTitle', 'companyName', 'category', 'canonicalTitle', 'isAiBanned', and 'aiBanReason' fields.
+    Return JSON with 'roleTitle', 'companyName', 'referenceCode', 'category', 'canonicalTitle', 'isAiBanned', and 'aiBanReason' fields.
     `;
 
     return callWithRetry(async (metadata) => {
@@ -64,7 +68,8 @@ export const analyzeJobFit = async (
     resumes: ResumeProfile[],
     userSkills: CustomSkill[] = [],
     onProgress?: RetryProgressCallback,
-    jobId?: string
+    jobId?: string,
+    transcript?: Transcript | null
 ): Promise<JobAnalysis> => {
     if (onProgress) onProgress("Extracting job details...", 1, 2);
     const { distilledJob: extractionInfo, cleanedDescription } = await extractJobInfo(jobDescription, onProgress);
@@ -76,6 +81,10 @@ export const analyzeJobFit = async (
         ? `\nADDITIONAL SKILLS:\n${userSkills.map(s => `- ${s.name}: ${s.proficiency}`).join('\n')}`
         : '';
 
+    const educationContext = transcript
+        ? `\nACADEMIC BACKGROUND (Transcript):\nProgram: ${transcript.program} at ${transcript.university}\nCourses:\n${transcript.semesters.flatMap((s: Semester) => s.courses).map((c: Course) => `- ${c.title} (${c.code}): ${c.grade}`).join('\n')}`
+        : '';
+
     // Fetch Bucket Guidelines (Role Farming)
     const canonicalTitle = extractionInfo.canonicalTitle || extractionInfo.roleTitle || 'General';
     await BucketStorage.ensureBucket(canonicalTitle);
@@ -83,7 +92,7 @@ export const analyzeJobFit = async (
     const bucketAdvice = bucket?.guidelines?.promptAdvice;
 
     // Use the consolidated Strategic Professional prompt
-    const analysisPrompt = ANALYSIS_PROMPTS.JOB_FIT_ANALYSIS.DEFAULT(cleanedDescription, (resumeContext + skillsContext), bucketAdvice);
+    const analysisPrompt = ANALYSIS_PROMPTS.JOB_FIT_ANALYSIS.DEFAULT(cleanedDescription, (resumeContext + skillsContext + educationContext), bucketAdvice);
 
     const analysis = await callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
@@ -101,6 +110,7 @@ export const analyzeJobFit = async (
         // Ensure critical extraction info (safety/bans) takes ultimate precedence
         isAiBanned: extractionInfo.isAiBanned ?? analysis.distilledJob?.isAiBanned,
         aiBanReason: extractionInfo.aiBanReason || analysis.distilledJob?.aiBanReason,
+        referenceCode: extractionInfo.referenceCode || analysis.distilledJob?.referenceCode || null,
         // Detailed analysis is the primary source for these fields
         keySkills: analysis.distilledJob?.keySkills?.length ? analysis.distilledJob.keySkills : (extractionInfo.keySkills || []),
         requiredSkills: analysis.distilledJob?.requiredSkills || [],

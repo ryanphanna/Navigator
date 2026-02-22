@@ -8,10 +8,20 @@ export interface ExperienceBlock {
     isVisible: boolean;  // toggle to include/exclude in analysis
 }
 
+export interface ResumeSuggestion {
+    id: string;
+    type: 'add' | 'update' | 'remove';
+    suggestion: string;
+    impact: string;
+    source: string;
+    dateAdded: number;
+}
+
 export interface ResumeProfile {
     id: string;
     name: string;
-    blocks: ExperienceBlock[]; // The new structure
+    blocks: ExperienceBlock[];
+    suggestedUpdates?: ResumeSuggestion[]; // New: Persistent bank of AI suggestions
 }
 
 export interface RoleModelProfile {

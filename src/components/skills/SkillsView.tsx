@@ -119,11 +119,12 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
     };
 
     return (
-        <SharedPageLayout className="theme-emerald" spacing="compact">
+        <SharedPageLayout className="theme-emerald" spacing="compact" maxWidth="5xl">
             <PageHeader
                 title="Your Skills"
                 subtitle="Track and verify your professional technical proficiency."
-                icon={Zap}
+                variant="simple"
+                className="mb-8"
             />
             {/* Quick Stats */}
             <SkillsStats
@@ -143,7 +144,7 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
             />
 
             {/* Filter & Search */}
-            <div className="mb-8">
+            <div className="mb-6">
                 <StandardSearchBar
                     value={searchTerm}
                     onChange={setSearchTerm}

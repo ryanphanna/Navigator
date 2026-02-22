@@ -13,7 +13,9 @@ interface PlanCardProps {
         analyses: string;
         analysesPeriod: string;
         emails: number;
+        emailPeriod?: string;
         mentors: number | string;
+        mentorPeriod?: string;
         interviews: number | string;
     };
     subText?: string;
@@ -145,7 +147,10 @@ export const PlanCard = ({
                             <div className="flex items-center gap-1.5">
                                 <span className="font-bold text-neutral-400 capitalize tracking-wide">Alerts</span>
                             </div>
-                            <span className="font-black text-neutral-900 dark:text-white">{limits.emails === 0 ? '—' : limits.emails}</span>
+                            <span className="font-black text-neutral-900 dark:text-white">
+                                {limits.emails === 0 ? '—' : limits.emails}
+                                {limits.emails !== 0 && limits.emailPeriod && <span className="text-neutral-300 font-bold ml-0.5">/ {limits.emailPeriod}</span>}
+                            </span>
                         </div>
                         <div className="flex justify-between items-center text-[10px]">
                             <div className="flex items-center gap-1.5">
@@ -153,6 +158,7 @@ export const PlanCard = ({
                             </div>
                             <span className="font-black text-neutral-900 dark:text-white">
                                 {limits.mentors === Infinity || limits.mentors === 'Unlimited' ? 'Unlimited' : limits.mentors === 0 ? '—' : limits.mentors}
+                                {limits.mentors !== 0 && limits.mentors !== Infinity && limits.mentorPeriod && <span className="text-neutral-300 font-bold ml-0.5">/ {limits.mentorPeriod}</span>}
                             </span>
                         </div>
                         <div className="flex justify-between items-center text-[10px]">
