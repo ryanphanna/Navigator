@@ -50,7 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
             id: 'job',
             label: 'Jobs',
             icon: Briefcase,
-            isActive: !isCoachMode && !isEduMode && !['privacy', 'home', 'admin'].includes(currentView),
+            isActive: !isCoachMode && !isEduMode && !['privacy', 'home', 'admin', 'plans', 'plans-compare', 'settings', 'welcome', 'features', 'terms', 'contact'].includes(currentView),
             defaultView: 'job-home',
             items: [
                 { id: 'resumes', label: 'Resume', icon: FileText },
@@ -86,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
             id: 'plans',
             label: 'Upgrade',
             icon: Sparkles,
-            isActive: currentView === 'plans',
+            isActive: ['plans', 'plans-compare'].includes(currentView),
             defaultView: 'plans',
             items: []
         }

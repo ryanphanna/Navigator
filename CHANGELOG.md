@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [2.19.1] - 2026-02-22
+
+### Changed
+- **Changelog Reorganization**: Implemented collapsible `<details>` sections for all historical releases (back to v2.0.0) and archived legacy history (pre-v2.0.0) into `CHANGELOG_ARCHIVE.md` to improve readability and file maintenance.
+
+### Fixed
+- **Navigation Consistency**: Resolved a bug where the 'Jobs' tab remained active when viewing the Upgrade page, Settings page, and other top-level landing views.
+
+## [2.19.0] - 2026-02-22
+
+### Added
 - **Focused Session Mode**: Introduced a distraction-free "Focused Mode" for high-stakes assessments.
 - **Interview Feedback Banking**: Enhanced the Interview Advisor with a new "Bank Suggestion" feature. Users can now persistently save AI-generated bullet points to their professional profile, bridging the gap between verbal narrative and their written resume.
 - **Discovery Bank**: Integrated a persistent "Discovery Bank" sidebar in the Resume Editor that displays AI-captured suggestions from interview performance, featuring one-click "Apply" and "Dismiss" functionality.
@@ -139,7 +157,8 @@ All notable changes to this project will be documented in this file.
 - **Visual High-Intensity Styling**: Softened the visual profile of technical labels to improve readability and user empathy.
 - **Resume Editor Pro Tip**: Removed the "Pro Tip" sidebar card to reduce visual noise and documentation clutter.
 
-## [2.18.0] - 2026-02-21
+<details>
+<summary>## [2.18.0] - 2026-02-21</summary>
 
 ### Added
 - **Career Archetypes**: Launched an AI-powered professional persona system that analyzes application patterns to identify professional archetypes (Technologist, Leader, etc.) with premium interactive badges.
@@ -159,10 +178,12 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - **Stability**: Resolved critical crashes on the `/features` page and standardized `BentoCard` icons.
 - **Navigation**: Finalized "Back" button patterns and standardized transition effects across listing pages.
+</details>
 
 
 
-## [2.17.0] - 2026-02-20
+<details>
+<summary>## [2.17.0] - 2026-02-20</summary>
 
 ### Added
 - **Job Detail UI Overhaul**:
@@ -241,8 +262,10 @@ All notable changes to this project will be documented in this file.
   - Fixed a critical bug where a new user's initial resume upload would fail to persist to the cloud due to a missing `insert` clause in `resumeStorage`.
   - Added robust stringified JSON parsing for incoming cloud resume payloads to prevent data drops caused by schema type mismatches.
 - **Match Calculations**: Fixed a UI bug where a literal **0% Match Score** was treated as "missing data", causing jobs to display "Analysis Needed" instead of their correct score.
+</details>
 
-## [2.16.0] - 2026-02-20
+<details>
+<summary>## [2.16.0] - 2026-02-20</summary>
 
 ### Added
 - **UI Architecture**:
@@ -281,18 +304,24 @@ All notable changes to this project will be documented in this file.
 ### Removed
 - **Education**: Removed redundant "Back to Education" headers to streamline screen architecture.
 - **Privacy**: Removed outdated policy update badges from the home screen layout.
-## [2.15.2] - 2026-02-19
+</details>
+<details>
+<summary>## [2.15.2] - 2026-02-19</summary>
 
 ### Fixed
 - **Deployment**: Added `.npmrc` to bypass strict ERESOLVE peer dependencies caused by React 19 (`react-helmet-async`), resolving Vercel deployment failures.
+</details>
 
-## [2.15.1] - 2026-02-19
+<details>
+<summary>## [2.15.1] - 2026-02-19</summary>
 
 ### Fixed
 - **Stability**: Fixed a build error causing Vercel deployment failures by correcting deprecated `variant="default"` props on `Card` components.
 - **Documentation**: Updated `README.md` to reflect recent feature additions (Interview Advisor) and removed outdated API key instructions.
+</details>
 
-## [2.15.0] - 2026-02-19
+<details>
+<summary>## [2.15.0] - 2026-02-19</summary>
 
 ### Added
 - **Security & Safety**:
@@ -363,8 +392,10 @@ All notable changes to this project will be documented in this file.
 - **Redundancy**: Removed "Admin Beta" tags, "Beta Feature" notices, and "Resume parsed successfully" toasts.
 - **Legacy Components**: Deleted deprecated `SkillInterviewModal.tsx` and removed redundant Education dashboard cards.
 - **Design Clutter**: Removed footer taglines and "Added" dates from skill cards to simplify the interface.
+</details>
 
-## [2.14.0] - 2026-02-18
+<details>
+<summary>## [2.14.0] - 2026-02-18</summary>
 
 ### 🚀 New Features
 
@@ -416,8 +447,11 @@ All notable changes to this project will be documented in this file.
 - **Policies**: Updated transparency disclosures to include **AI Quality Logging** and **PII Redaction** policies.
 - **Account**: Implemented "Change Password" feature and removed self-service deletion to prevent abuse.
 - **Compliance**: Verified strict 0-email limits for Free tier and enforced multi-layer gates before AI execution.
+</details>
 
-## [2.13.0] - 2026-02-17
+<details>
+<summary>## [2.13.0] - 2026-02-17</summary>
+
 ### Added
 - **UI/UX**: Redesigned all homepage bento cards with premium, interactive graphics, high-fidelity SVG animations, and ambient glows.
 - **Education**: Implemented a dedicated high-fidelity graphic for the Education card on the homepage.
@@ -483,11 +517,14 @@ All notable changes to this project will be documented in this file.
 - **Build**: Resolved post-refactor build failures by removing dead code (`ROUTES.ANALYZE`) and fixing implicit `any` types in `usageLimits.ts`.
 - **Code Quality**: Cleaned up over 100 linting errors and removed unused variables across `AppLayout`, `Header`, and `AppRoutes`.
 - **Tests**: Fixed regression in `History` and `GapAnalysis` tests, and implemented robust recursive mocks for `usageLimits.test.ts` to fix Supabase chain errors.
+</details>
 
 ### Verified
 - **Navigation**: Verified functionality of all 20+ Header and Footer links via automated browser testing.
 
-## [2.12.0] - 2026-02-16
+<details>
+<summary>## [2.12.0] - 2026-02-16</summary>
+
 ### Added
 - **Global UI**: Architecture: Migrated theme state to `GlobalUIContext` for unified state management across the application.
 - **Navigation**: Added interactive navigation to the "Profiles" and "Goals" stats cards on the Coach Dashboard.
@@ -511,8 +548,11 @@ All notable changes to this project will be documented in this file.
 - **Usage Limits**: Fixed a UI bug where admin users initially saw a "0 / 3" limit.
 - **Security**: Hardened database functions by setting `search_path = public`.
 - **Admin**: Restored full Admin Dashboard functionality and fixed database schema drift.
+</details>
 
-## [2.11.9] - 2026-02-16
+<details>
+<summary>## [2.11.9] - 2026-02-16</summary>
+
 ### Added
 - **Education module**: Restored the `EducationDashboard` (Overview) as the main entry point for the module.
 
@@ -522,8 +562,11 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **Stability**: Resolved build-breaking TypeScript errors in `SettingsModal.tsx` and `EducationDashboard.tsx`.
+</details>
 
-## [2.11.1] - 2026-02-15
+<details>
+<summary>## [2.11.1] - 2026-02-15</summary>
+
 ### Fixed
 - **Navigation**: Resolved a layout issue where the navigation pill appeared below the header elements. Aligned it vertically to the center.
 - **Stability**: Resolved a merge conflict in `Header.tsx` to ensure type safety.
@@ -531,15 +574,21 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **Quality Assurance**: Added automated tests for `Header` layout integrity to prevent regressions.
 - **Workflow**: Introduced a UI Quality Checklist for future interface updates.
+</details>
 
-## [2.11.0] - 2026-02-15
+<details>
+<summary>## [2.11.0] - 2026-02-15</summary>
+
 ### Added
 - **Navigation**: Integrated `framer-motion` for a premium, smooth transition experience. Includes a "sliding puck" active indicator and fluid layout resizing for the central navigation island.
 
 ### Fixed
 - **Stability**: Resolved several build-breaking TypeScript errors caused by unused imports and variables in `SettingsModal.tsx`, `CoachContext.tsx`, and `storageCore.ts`.
+</details>
 
-## [2.10.0] - 2026-02-15
+<details>
+<summary>## [2.10.0] - 2026-02-15</summary>
+
 ### Added
 - **Architecture**: Established a "Single Source of Truth" for spacing using semantic categories (`hero`, `compact`, `none`) in `SharedPageLayout` and `PageLayout`. This ensures pixel-perfect vertical alignment across the entire app.
 
@@ -549,8 +598,11 @@ All notable changes to this project will be documented in this file.
 - **Honest Design**: Removed misleading grey circle placeholders and redundant copy from the Hero section.
 - **Header**: Reverted the "Sign In" button to a clean text-only style for a more minimal aesthetic.
 - **Cleanup**: Stripped all ad-hoc layout wrappers and paddings from `AppRoutes.tsx`.
+</details>
 
-## [2.9.0] - 2026-02-15
+<details>
+<summary>## [2.9.0] - 2026-02-15</summary>
+
 ### Changed
 - **Architecture**: Completed a major 3-phase refactor to improve modularity and maintainability.
   - **App Shell**: Extracted routing into `AppRoutes.tsx` and layout into `AppLayout.tsx`, reducing `App.tsx` from 400+ lines to 35.
@@ -565,8 +617,11 @@ All notable changes to this project will be documented in this file.
 - **Auto-Cleanup**: Automated 7-day TTL (Time-To-Live) for feed items to keep the stream fresh and self-cleaning.
 - **Monetization**: Restrictive access to Job Automation features for Pro-tier users with integrated upgrade nudges.
 - **Save to History**: One-click bookmarking to move jobs from the transient Feed to permanent application History.
+</details>
 
-## [2.8.3] - 2026-02-14
+<details>
+<summary>## [2.8.3] - 2026-02-14</summary>
+
 ### Changed
 - **Premium Design**: Redesigned the Bento feature grid with a unique, muted color palette (Sky, Violet, Rose, Indigo, Teal) for a more sophisticated and professional aesthetic.
 - **Visual Consistency**: Ensured color uniqueness across all 10+ feature variants in both logged-in and logged-out states.
@@ -574,18 +629,27 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - **Navigation**: Resolved a critical issue where the header menu buttons updated the UI state but failed to trigger actual URL changes, causing the app to feel "broken" when navigating between modules.
 - **Routing**: Implemented a bidirectional sync between the Global UI state and React Router URLs to ensure consistency across the application.
+</details>
 
-## [2.8.2] - 2026-02-13
+<details>
+<summary>## [2.8.2] - 2026-02-13</summary>
+
 ### Changed
 - **UI Refinement**: Reduced top padding and improved hero card spacing in `HomeInput` for a more balanced layout.
 - **Layout**: Simplified route wrappers in `App.tsx` by delegating spacing to the `SharedPageLayout` component.
+</details>
 
-## [2.8.1] - 2026-02-13
+<details>
+<summary>## [2.8.1] - 2026-02-13</summary>
+
 ### Fixed
 - **Deployment**: Resolved a Vercel build failure caused by an unused `React` import in `LandingContent.tsx` which triggered a TypeScript error.
+</details>
 
  
-## [2.8.0] - 2026-02-13
+<details>
+<summary>## [2.8.0] - 2026-02-13</summary>
+
 ### Added
 - **Genuine Usage Tracking**: Implemented a two-tier tracking system distinguishing between user "Interest" (clicks) and actual "Usage" (feature actions) across all modules (JobFit, Coach, Keywords, Resumes, Cover Letters).
 - **Admin Conversion Dashboard**: Added a comprehensive "Feature Usage" breakdown in Settings for Admins, showing curiosity (CLK) vs action (ACT) with real-time conversion rates.
@@ -597,8 +661,11 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - **Stability**: Resolved "Failed to fetch" errors with `SettingsModal` dynamic imports.
 - **Code Quality**: Fixed over 30 linting errors and resolved unused import warnings across the codebase.
+</details>
 
-## [2.7.0] - 2026-02-12
+<details>
+<summary>## [2.7.0] - 2026-02-12</summary>
+
 ### Added
 - **Education Module**: Reimagined `MAEligibility` as a **Targeted Program Fit** analyzer. Features include specific Match % scores, side-by-side GPA benchmarking, and traffic-light course mapping.
 - **Career Module**: Implemented **Trajectory Comparison** overlay for side-by-side visualization of user journey vs. role model history (Point A to Point B).
@@ -622,8 +689,10 @@ All notable changes to this project will be documented in this file.
 - **Code Quality**: Refined type definitions in `storageCore.ts` and improved error handling in Edge Functions.
 - **State Management**: Resolved a nested state mutation bug in `useAcademicLogic` that affected credit calculations.
 - **Test Infrastructure**: Fixed global state leakage in `localStorage` by ensuring mock stores are cleared.
+</details>
 
-## [2.6.0] - 2026-02-12
+<details>
+<summary>## [2.6.0] - 2026-02-12</summary>
 
 ### Security
 - **Backend AI Selection**: Migrated model resolution and Gemini API calls to a secure Supabase Edge Function to prevent client-side tampering and enforce subscription tiers.
@@ -632,8 +701,10 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Refactored `jobAiService`, `resumeAiService`, and `eduAiService` to use task-based model selection.
 - Removed `TIER_MODELS` configuration from frontend to better hide backend logic.
+</details>
 
-## [2.5.0] - 2026-02-12
+<details>
+<summary>## [2.5.0] - 2026-02-12</summary>
 
 ### Added
 - **AI Infrastructure**: Implemented a **Tiered AI Model Strategy** that dynamically resolves models based on user subscription tiers (`free`, `pro`, `admin`, `tester`).
@@ -651,8 +722,10 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - **AI**: Resolved "404 Not Found" errors and application-wide "Connection issue" messages caused by the retirement of the `gemini-1.5-pro` model.
 - **Tests**: Updated `constants.test.ts` to align with the new task-based model constants (`EXTRACTION`, `ANALYSIS_PRO`).
+</details>
 
-## [2.4.0] - 2026-02-12
+<details>
+<summary>## [2.4.0] - 2026-02-12</summary>
 
 ### Added
 - **Safety**: Automated detection of "No AI" policies in job descriptions. Warnings are displayed in the Cover Letter Editor to protect users from disqualification.
@@ -670,8 +743,10 @@ All notable changes to this project will be documented in this file.
 - **UI**: Fixed card separator misalignment by enforcing consistent height for preview sections in `BentoCard`.
 - **UI**: Reduced the height of dashboard cards in `ActionGrid` and `BentoCard` to improve visual density and reduce scrolling.
 - **UI**: Fixed Dark Mode toggle by adding missing Tailwind v4 `@custom-variant` configuration.
+</details>
 
-## [2.3.4] - 2026-02-11
+<details>
+<summary>## [2.3.4] - 2026-02-11</summary>
 
 ### Changed
 - **Header**: Refactored `HeroHeader` into a reusable component for consistent branding across Job, Coach, and Grad pages.
@@ -680,18 +755,24 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - **Layout**: Fixed vertical alignment offset in `HomeInput` (Analyze page) by standardizing top padding.
 - **Stability**: Resolved syntax errors and conditional rendering logic in `CoachDashboard` that caused white screens.
+</details>
 
-## [2.3.3] - 2026-02-11
+<details>
+<summary>## [2.3.3] - 2026-02-11</summary>
 
 ### Fixed
 - **Deployment**: Removed `/Navigator` base path configuration to support root domain deployment on Vercel.
+</details>
 
-## [2.3.2] - 2026-02-11
+<details>
+<summary>## [2.3.2] - 2026-02-11</summary>
 
 ### Fixed
 - **Routing**: Fixed a routing configuration mismatch (`base` vs `basename`) that caused a blank screen on deployment.
+</details>
 
-## [2.3.1] - 2026-02-11
+<details>
+<summary>## [2.3.1] - 2026-02-11</summary>
 
 ### Fixed
 - **Design System**: Restored clean `neutral` palette, removing the inadvertent blue tint from both theme modes.
@@ -701,8 +782,10 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 - **Marketing**: Removed the "ATS Comparison" and "Analyzing JD" preview graphics based on feedback.
+</details>
 
-## [2.3.0] - 2026-02-07
+<details>
+<summary>## [2.3.0] - 2026-02-07</summary>
 
 ### Added
 - **Programmatic SEO**: Implemented a dynamic SEO landing page engine at `/resume-for/:role` with a universal master template.
@@ -712,8 +795,10 @@ All notable changes to this project will be documented in this file.
 - **Architecture**: Refactored application state to distinguish between `activeSubmissionId` (specific user action) and `roleId` (canonical job role).
 - **Architecture**: Updated all navigation and state logic to use the new "Submission ID" terminology for better clarity.
 - **Routing**: Integrated `react-router-dom` more deeply to handle persistent SEO URLs and history navigation.
+</details>
 
-## [2.2.1] - 2026-02-07
+<details>
+<summary>## [2.2.1] - 2026-02-07</summary>
 
 ### Changed
 - **UI**: Narrowed Bento grid containers (`max-w-7xl`) to align perfectly with the header's navigation boundaries.
@@ -723,8 +808,10 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - **UI**: Resolved a race condition where the "Sign In" button and navigation pill would flicker or appear together during authentication loading.
 - **Build**: Fixed an unused `TrendingUp` icon import in `MarketingGrid` that was causing Vercel deployment failures.
+</details>
 
-## [2.2.0] - 2026-02-05
+<details>
+<summary>## [2.2.0] - 2026-02-05</summary>
 
 ### Added
 - **Role Model Emulation**: Comparison mode to bridge the gap between user profile and specific Role Models (`analyzeRoleModelGap`).
@@ -735,40 +822,54 @@ All notable changes to this project will be documented in this file.
 - **Hardening**: Explicitly set `search_path = public` on all PL/PGSQL functions to prevent hijacking.
 - **Privacy**: Restricted `daily_usage` table visibility to Admins only via RLS.
 - **Reliability**: Enforced `application/json` on AI responses and implemented manual input sanitization.
+</details>
 
-## [2.1.4] - 2026-02-02
+<details>
+<summary>## [2.1.4] - 2026-02-02</summary>
 
 ### Changed
 - **UI**: Removed "Role Model Synthesis" card from logged-out marketing grid. Kept 8 cards for a perfect 2x4 layout: JobFit Score, Keyword Targeting, Private Vault, Smart Cover Letters, Tailored Summaries, Bookmarklet, AI Career Coach, and 12-Month Roadmap.
 - **UI**: Updated `WelcomeScreen` feature cards to use `rounded-[2.5rem]` border radius for consistency with the glassmorphism design system.
+</details>
 
-## [2.1.3] - 2026-02-01
+<details>
+<summary>## [2.1.3] - 2026-02-01</summary>
 
 ### Changed
 - **UI**: Removed the "Bookmarklet" card from the marketing grid to create a perfect 8-card layout (2 rows of 4).
+</details>
 
-## [2.1.2] - 2026-02-01
+<details>
+<summary>## [2.1.2] - 2026-02-01</summary>
 
 ### Changed
 - **UI**: Aligned logged-out marketing card dimensions with logged-in action cards. Updated to 4-column grid, `p-6` padding, and `1920px` max-width.
+</details>
 
-## [2.1.1] - 2026-02-01
+<details>
+<summary>## [2.1.1] - 2026-02-01</summary>
 
 ### Fixed
 - **UI**: Fixed a bug where both marketing cards and action cards would render simultaneously for logged-out users. Added strict user session checks to the action card grid.
+</details>
 
-## [2.1.0] - 2026-02-01
+<details>
+<summary>## [2.1.0] - 2026-02-01</summary>
 
 ### Changed
 - **UI**: Unified design system between logged-in and logged-out states. All cards now use the premium glassmorphism aesthetic (`rounded-[2.5rem]`, backdrop blur).
 - **Welcome**: Refined `WelcomeScreen` features with glassmorphism style for a better first impression.
+</details>
 
-## [2.0.1] - 2026-02-01
+<details>
+<summary>## [2.0.1] - 2026-02-01</summary>
 
 ### Fixed
 - **Build**: Fixed syntax error and unused variable in `CoachDashboard` that caused Vercel deployment failure.
+</details>
 
-## [2.0.0] - 2026-02-01
+<details>
+<summary>## [2.0.0] - 2026-02-01</summary>
 
 ### Added
 - **AI Career Coach**: New dashboard for career path analysis and role model tracking.
@@ -779,26 +880,9 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - **Performance**: Resolved an infinite render loop in `HomeInput` component that caused high CPU usage.
 - **Cleanup**: Terminated orphaned background processes during initialization.
-
-## [1.1.0] - 2026-01-25
-
-### Fixed
-- **Security**: Removed hardcoded admin email from client code; admin status is now checked server-side via Supabase profiles.
-- **Security**: Removed hardcoded invite code bypass; invite codes are now validated exclusively via server-side RPC.
-- **Security**: Implemented AES-GCM encryption for API keys stored in `localStorage` using the Web Crypto API.
-- **Security**: Eliminated third-party proxy dependency (`corsproxy.io`) for web scraping; all scraping is now handled via Supabase Edge Functions.
-
-### Added
-- Standardized documentation format including `SECURITY.md` and `LICENSE`.
-- Secure storage utility for client-side encryption.
+</details>
 
 ---
 
-## [1.0.0] - 2026-01-24
-
-### Added
-- Initial release of JobFit.
-- Job analysis with Google Gemini.
-- Resume "Blocks" system.
-- Cover letter generation.
-- Local-first data storage.
+## Older Releases
+Historical changes prior to version 2.0.0 can be found in the [Changelog Archive](./CHANGELOG_ARCHIVE.md).
