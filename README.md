@@ -49,4 +49,6 @@ Navigator helps you manage your professional experience as discrete "blocks" and
 
 ---
 
-**Happy Hunting! 🚀💼**
+**Happy Shipping! 🚢📦**
+
+Built by [Ryan Hanna](https://github.com/ryanphanna)
