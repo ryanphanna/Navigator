@@ -57,7 +57,6 @@ export const RoleModelSection: React.FC<RoleModelSectionProps> = ({
                     variant="simple"
                     title="Role Models"
                     subtitle="Manage the career paths you're studying."
-                    icon={Users}
                     actions={
                         <Button
                             onClick={triggerUpload}

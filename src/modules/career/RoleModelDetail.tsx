@@ -81,8 +81,6 @@ export const RoleModelDetail: React.FC<RoleModelDetailProps> = ({
                 title={roleModel.name}
                 subtitle={roleModel.headline}
                 onBack={onBack}
-                icon={Briefcase}
-                themeColor="accent"
             />
 
             <DetailTabs
