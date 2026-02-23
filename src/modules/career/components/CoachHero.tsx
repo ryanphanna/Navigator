@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     Users,
-    TrendingUp,
     Plus,
     Target,
     Loader2,
@@ -58,16 +57,27 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                     <Card variant="glass" className="p-4 border-accent-primary/20 hover:border-accent-primary/50" glow>
                         <div className="flex flex-col md:flex-row items-center gap-4">
                             <div className="w-16 h-16 bg-accent-primary/10 rounded-3xl flex items-center justify-center text-accent-primary-hex shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500">
-                                {isUploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <TrendingUp className="w-8 h-8" />}
+                                {isUploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Users className="w-8 h-8" />}
                             </div>
 
-                            <div className="flex-1 text-center md:text-left">
-                                <div className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-1">Role Model</div>
-                                <div className="text-lg font-medium text-neutral-600 dark:text-neutral-300">
-                                    {isUploading
-                                        ? `Distilling ${uploadProgress.current}/${uploadProgress.total} profiles...`
-                                        : "Upload LinkedIn PDFs to start"}
+                            <div className="flex-1 w-full text-center md:text-left">
+                                <div className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-1">
+                                    Analyze Role Model
                                 </div>
+                                <input
+                                    type="text"
+                                    value={url}
+                                    onChange={(e) => { setUrl(e.target.value); setError(null); }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            triggerUpload();
+                                        }
+                                    }}
+                                    placeholder={isUploading ? `Distilling ${uploadProgress.current}/${uploadProgress.total} profiles...` : "Enter mentor name or skill to start..."}
+                                    className="w-full bg-transparent border-none rounded-xl text-lg font-medium text-neutral-600 dark:text-neutral-300 placeholder:text-neutral-400 focus:ring-0 focus:outline-none transition-all duration-300"
+                                    disabled={isUploading}
+                                />
                             </div>
 
                             <Button

@@ -43,16 +43,16 @@ export const EduHero: React.FC<EduHeroProps> = ({
                             themeColor="amber"
                             cards={{
                                 foundation: {
-                                    title: "Academic Record",
-                                    description: "We analyze your courses and calculate your 4.0 GPA automatically. Your privacy is our priority.",
+                                    title: "Academic Profile",
+                                    description: "Your education is more than just grades. We help you build a comprehensive profile of your learning journey.",
                                     icon: GraduationCap,
-                                    benefits: ['Smart Course Extraction', 'Grade Normalization', 'Privacy-First Parsing']
+                                    benefits: ['Comprehensive Learning View', 'Skills Extraction', 'Educational Milestones']
                                 },
                                 intelligence: {
-                                    title: "Intelligence",
-                                    description: "Experience a smart overview of your academic journey and discover your true potential.",
+                                    title: "Smart Analysis",
+                                    description: "Our AI extracts skills, projects, and achievements from your academic history to give you a competitive edge.",
                                     icon: Zap,
-                                    benefits: ['GPA Forecasting', 'Credit Tracking', 'Curated Program Discovery']
+                                    benefits: ['Skill Pattern Discovery', 'Achievement Breakdown', 'Growth Mapping']
                                 }
                             }}
                         />

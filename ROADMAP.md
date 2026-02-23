@@ -1,17 +1,19 @@
-# Navigator Roadmap 🚀
+# Roadmap
+
 
 This document tracks future features and strategic pivots for Navigator.
 
 ## Upcoming Features
 
-### 📬 Job Alert Email Feed (Live)
+### 📬 Job Alert Email Feed (In Progress)
 **Problem**: Monitoring 27+ different job boards manually is a massive time sink.
 **Solution**: Provide a unique Navigator email address for users to redirect their job alerts.
-- [x] Unique inbound email tokens per user.
-- [x] Supabase Edge Function to handle incoming webhooks (Postmark).
-- [x] Gemini-powered parsing of email job alerts.
-- [x] Automated triage (Match Score + Apply Now / Future Reference).
-- [x] Unified "Job Feed" UI for one-click applications.
+- [ ] Unique inbound email tokens per user.
+- [ ] Supabase Edge Function to handle incoming webhooks (Postmark).
+- [ ] Gemini-powered parsing of email job alerts.
+- [ ] Automated triage (Match Score + Apply Now / Future Reference).
+- [ ] Unified "Job Feed" UI for one-click applications.
+
 
 ### 🛡️ Trust & Safety (In Progress)
 **Problem**: Maintaining a high-quality free tier requires preventing abuse and ensuring genuine usage.
@@ -19,7 +21,8 @@ This document tracks future features and strategic pivots for Navigator.
 - [x] Browser fingerprinting to detect multi-account abuse.
 - [x] Device ID registration during onboarding.
 - [ ] Email Verification flow (Magic Links / codes).
-- [ ] Gmail alias normalization (e.g. `user+tag@gmail.com` -> `user@gmail.com`).
+- [x] Gmail alias normalization (e.g. `user+tag@gmail.com` -> `user@gmail.com`).
+
 
 ### 🎓 Education & Career (Live)
 **Problem**: Users need more than just job matching; they need a path to qualification.
@@ -36,7 +39,15 @@ This document tracks future features and strategic pivots for Navigator.
 - [ ] Instant background analysis status.
 
 ## Long-term Vision
-- [ ] **Org Intelligence**: Tracking which companies hire for specific transit roles over time.
-- [ ] **Credential Mapping**: Automated suggestions for transit-specific certifications based on job requirements.
-- [ ] **Networking Graph**: Tracking alumni or contacts at specific transit agencies.
-- [ ] **Per-Product Pricing**: Consider migrating from a global tier structure (Plus/Pro) to modular, per-product subscriptions (Jobs, Coach, Education) to lower entry barriers and target specific user needs.
+- [ ] **Org Intelligence**: Tracking which companies hire for specific professional roles over time.
+- [ ] **Credential Mapping**: Automated suggestions for career-specific certifications based on job requirements.
+- [ ] **Networking Graph**: Tracking alumni or contacts at specific target companies.
+
+### ✨ Feature Wishlist
+- [ ] **AI Interview Simulator**: Interactive mock reporting/feedback loop.
+- [ ] **Outreach Drafting**: One-click custom LinkedIn/Email messages for recruiters.
+- [ ] **Auto-Fill Assistant**: Chrome extension helper to port modular blocks into application forms.
+
+## Considerations
+- **Per-Product Pricing**: Consider migrating from a global tier structure (Plus/Pro) to modular, per-product subscriptions (Jobs, Coach, Education) to lower entry barriers and target specific user needs.
+

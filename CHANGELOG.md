@@ -5,10 +5,16 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Context-Aware Educational Onboarding**: Implemented unique, task-specific onboarding cards across the Education Dashboard, Transcript Registry, and Program Explorer to guide users more effectively.
+- **Academic Hierarchy**: Added dedicated `PageHeader` and descriptive metadata to the Transcript Registry for better module identity.
 
 ### Changed
+- **Career Coach UX Evolution**: Refactored the Role Model entry point from a static upload card to a high-impact search-first input, allowing users to enter names or skills before triggering analysis.
+- **Dynamic Component Architecture**: Enhanced `AcademicHero` and `EduHero` components to support custom card configurations, reducing visual repetition.
+- **UI Polish**: Updated icons and terminology across the Career Coach and Education modules for a more premium, cohesive professional tone.
 
 ### Fixed
+- **Bookmarklet Security**: Resolved an issue where React's security precautions blocked bookmarklet URLs (javascript:). Implemented a direct DOM-ref approach to allow the 'Save to Navigator' bookmarklet to be correctly dragged and used.
 
 ### Removed
 

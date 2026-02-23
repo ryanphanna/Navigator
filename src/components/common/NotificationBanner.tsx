@@ -28,6 +28,14 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({
     theme = 'sky',
     className = '',
 }) => {
+    const linkRef = React.useRef<HTMLAnchorElement>(null);
+
+    React.useEffect(() => {
+        if (linkRef.current && action?.href?.startsWith('javascript:')) {
+            linkRef.current.setAttribute('href', action.href);
+        }
+    }, [action?.href]);
+
     const themeStyles = {
         sky: {
             bg: 'bg-sky-50 dark:bg-sky-900/10',
@@ -104,8 +112,17 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({
                     {action && (
                         action.href ? (
                             <a
-                                href={action.href}
-                                onClick={action.onClick}
+                                ref={linkRef}
+                                href={action.href.startsWith('javascript:') ? '#' : action.href}
+                                onClick={(e) => {
+                                    if (action.href?.startsWith('javascript:')) {
+                                        // Bookmarklets should be dragged, but if clicked, we should prevent default and maybe alert
+                                        // or just let it be. Usually they are meant to be dragged.
+                                        // However, React might still throw if href is javascript: even if we don't click.
+                                        // By setting it to '#' in the prop and manually via ref, we bypass this.
+                                    }
+                                    action.onClick?.(e);
+                                }}
                                 className={`flex items-center gap-2 px-3 py-2 ${themeStyles.button} rounded-lg text-sm font-bold shadow-md transition-all hover:scale-105 whitespace-nowrap`}
                                 title={action.label}
                             >
@@ -134,3 +151,4 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({
         </div>
     );
 };
+

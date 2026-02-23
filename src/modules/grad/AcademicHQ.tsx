@@ -1,5 +1,6 @@
 import React from 'react';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
+import { PageHeader } from '../../components/ui/PageHeader';
 import { CourseEditModal } from '../../components/edu/CourseEditModal';
 import { useAcademicLogic } from './hooks/useAcademicLogic';
 
@@ -36,12 +37,13 @@ export const AcademicHQ: React.FC = () => {
     return (
         <SharedPageLayout maxWidth="full" className="relative">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* {!transcript && (
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Transcript</h1>
-                        <p className="text-neutral-500 dark:text-neutral-400 mt-2">Manage your coursework and track your degree progress.</p>
-                    </div>
-                )} */}
+                <div className="mb-8">
+                    <PageHeader
+                        variant="hero"
+                        title="Transcript Registry"
+                        subtitle="Manage your coursework, track your degree progress, and analyze your performance."
+                    />
+                </div>
 
                 {!transcript ? (
                     <AcademicHero

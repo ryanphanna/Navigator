@@ -4,6 +4,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { MAEligibility } from './MAEligibility';
 import { SkillExtractor } from './SkillExtractor';
 import { ProgramExplorer } from './components/ProgramExplorer';
+import { GraduationCap, Zap } from 'lucide-react';
 
 
 import { useSkillContext } from '../skills/context/SkillContext';
@@ -92,6 +93,20 @@ export const ProgramExplorerPage: React.FC = () => {
                             showVerification={showVerification}
                             setShowVerification={setShowVerification}
                             handleVerificationSave={handleVerificationSave}
+                            cards={{
+                                foundation: {
+                                    title: "Smart Discovery",
+                                    description: "Stop searching and start discovering. We match your academic background against thousands of top-tier degree programs.",
+                                    icon: GraduationCap,
+                                    benefits: ['Instant Program Matching', 'Requirement Mapping', 'Automatic Eligibility']
+                                },
+                                intelligence: {
+                                    title: "Match Logic",
+                                    description: "See exactly why you're a fit for a program, from credit requirements to skill-based eligibility mapping.",
+                                    icon: Zap,
+                                    benefits: ['Credit Transfer Gap', 'Skill Alignment', 'Course Prerequisites']
+                                }
+                            }}
                         />
                     </div>
                 )}

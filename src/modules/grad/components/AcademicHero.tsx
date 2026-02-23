@@ -3,6 +3,7 @@ import React from 'react';
 import { CourseVerificationModal } from '../../../components/edu/CourseVerificationModal';
 import type { Transcript } from '../../../types';
 import { UnifiedUploadHero } from '../../../components/common/UnifiedUploadHero';
+import type { UnifiedUploadHeroProps } from '../../../components/common/UnifiedUploadHero';
 import { GraduationCap, Zap } from 'lucide-react';
 
 interface AcademicHeroProps {
@@ -15,6 +16,7 @@ interface AcademicHeroProps {
     handleVerificationSave: (verified: Transcript) => void;
     title?: string;
     description?: string;
+    cards?: UnifiedUploadHeroProps['cards'];
 }
 
 export const AcademicHero: React.FC<AcademicHeroProps> = ({
@@ -26,8 +28,23 @@ export const AcademicHero: React.FC<AcademicHeroProps> = ({
     setShowVerification,
     handleVerificationSave,
     title = "Upload Transcript",
-    description = "Drag & drop your PDF transcript here to automatically import your academic history"
+    description = "Drag & drop your PDF transcript here to automatically import your academic history",
+    cards
 }) => {
+    const defaultCards = {
+        foundation: {
+            title: "Record Analysis",
+            description: "Automatically extract every course, grade, and credit from your official transcript with perfect accuracy.",
+            icon: GraduationCap,
+            benefits: ['Direct PDF Extraction', 'Grade Normalization', 'Privacy-First Engine']
+        },
+        intelligence: {
+            title: "GPA Intelligence",
+            description: "Get a detailed breakdown of your academic performance, including major-specific and cumulative GPA tracking.",
+            icon: Zap,
+            benefits: ['Major GPA Tracking', 'Credit Balance', 'Performance Trends']
+        }
+    };
     return (
         <div className="max-w-5xl mx-auto mt-12 px-4">
             <UnifiedUploadHero
@@ -37,20 +54,7 @@ export const AcademicHero: React.FC<AcademicHeroProps> = ({
                 isLoading={isParsing}
                 error={parseError}
                 themeColor="amber"
-                cards={{
-                    foundation: {
-                        title: "Academic Record",
-                        description: "We analyze your courses and calculate your 4.0 GPA automatically. Your privacy is our priority.",
-                        icon: GraduationCap,
-                        benefits: ['Smart Course Extraction', 'Grade Normalization', 'Privacy-First Parsing']
-                    },
-                    intelligence: {
-                        title: "Intelligence",
-                        description: "Experience a smart overview of your academic journey and discover your true potential.",
-                        icon: Zap,
-                        benefits: ['GPA Forecasting', 'Credit Tracking', 'Curated Program Discovery']
-                    }
-                }}
+                cards={cards || defaultCards}
             />
 
             {tempTranscript && (
