@@ -89,13 +89,13 @@ export const ResumeStorage = {
         await Vault.setSecure(STORAGE_KEYS.RESUMES, updated);
         const userId = await getUserId();
         if (userId) {
-            const { data, error: selectError } = await supabase.from('resumes').select('id').eq('user_id', userId).maybeSingle();
+            const { data: existingRow, error: selectError } = await supabase.from('resumes').select('id').eq('user_id', userId).maybeSingle();
             if (selectError && selectError.code !== 'PGRST116') {
                 console.error("Supabase select error in addResume:", selectError);
             }
 
-            if (data) {
-                const { error: updateError } = await supabase.from('resumes').update({ content: updated }).eq('id', data.id);
+            if (existingRow) {
+                const { error: updateError } = await supabase.from('resumes').update({ content: updated }).eq('user_id', userId);
                 if (updateError) console.error("Supabase update error:", updateError);
             } else {
                 const { error: insertError } = await supabase.from('resumes').insert({ user_id: userId, name: 'Default Profile', content: updated });

@@ -56,7 +56,8 @@ export const AppRoutes: React.FC = () => {
     } = useJobContext();
 
     const {
-        resumes, isParsingResume, importError, handleImportResume, handleUpdateResumes, clearImportError, isLoading: isResumesLoading
+        resumes, isParsingResume, importError, isLoading: isResumesLoading,
+        handleImportResume, handleUpdateResumes, clearImportError
     } = useResumeContext();
 
     const {
