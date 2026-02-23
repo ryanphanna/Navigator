@@ -8,17 +8,19 @@ The modern career path is fragmented. Job seekers juggle siloed resumes, navigat
 
 ## Features
 
-- Match & Analysis • Instant compatibility scoring, gap analysis, and icon emulation.
-- Modular Resume • AI-tailored "blocks" for hyper-personalized, instant applications.
-- Strategic Roadmaps • Automated 12-month career pathing and academic benchmarking.
-- Smart Capture • Single-click job saving and AI-powered inbox triage.
+- **Match & Analysis**: Instant compatibility scoring, gap analysis, and icon emulation.
+- **Modular Resume**: AI-tailored "blocks" for hyper-personalized, instant applications.
+- **Strategic Roadmaps**: Automated 12-month career pathing and academic benchmarking.
+- **Smart Capture**: Single-click job saving and AI-powered inbox triage.
+
 
 ## The Stack
 
-- **AI** • Google Gemini (Flash & Pro)
-- **Frontend** • React 19 • Vite • Tailwind CSS • Framer Motion
-- **Backend** • Supabase + Vercel
-- **Commerce** • Stripe
+- **AI**: Google Gemini (Flash & Pro)
+- **Frontend**: React 19, Vite, Tailwind CSS, Framer Motion
+- **Backend**: Supabase + Vercel
+- **Commerce**: Stripe
+
 
 ---
 
