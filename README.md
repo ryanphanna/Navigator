@@ -24,13 +24,8 @@ The modern career path is fragmented. Job seekers juggle siloed resumes, navigat
 
 ---
 
-<p align="center">
-  <b><a href="./ROADMAP.md">Roadmap</a></b> &nbsp;•&nbsp; 
-  <b><a href="./CHANGELOG.md">Changelog</a></b> &nbsp;•&nbsp; 
-  <b><a href="./SECURITY.md">Security</a></b>
-</p>
+[**Roadmap**](./ROADMAP.md) &nbsp;&nbsp; [**Changelog**](./CHANGELOG.md) &nbsp;&nbsp; [**Security**](./SECURITY.md)
 
-<p align="center">
-  <sub>Created by <b><a href="https://github.com/ryanphanna">Ryan Hanna</a></b> • <a href="https://ryanisnota.pro">ryanisnota.pro</a></sub>
-</p>
+*Crafted by [Ryan Hanna](https://github.com/ryanphanna) — [ryanisnota.pro](https://ryanisnota.pro)*
+
 
