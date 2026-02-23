@@ -141,7 +141,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
                 <div className="mt-4 h-6 flex items-center justify-end relative z-10">
                     {actionLabel && !isComingSoon && (
                         <div
-                            className={`flex items-center gap-2 ${actionTextClass} font-black text-[10px] tracking-[0.15em] transition-all cursor-pointer group/btn`}
+                            className={`flex items-center gap-2 ${actionTextClass} font-black text-[10px] tracking-[0.15em] uppercase transition-all cursor-pointer group/btn`}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onAction?.();

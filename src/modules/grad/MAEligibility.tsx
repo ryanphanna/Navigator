@@ -45,7 +45,7 @@ export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript, initia
                         <School className="w-6 h-6" />
                     </div>
                     <div>
-                        <h3 className="font-black text-xl text-neutral-900 dark:text-white tracking-tight text-left">Program Fit Analyzer</h3>
+                        <h3 className="font-black text-xl text-neutral-900 dark:text-white tracking-tight text-left">Admission Profile Match</h3>
                         <p className="text-sm text-neutral-500 font-medium text-left">The admissions "A to B" trajectory.</p>
                     </div>
                 </div>
@@ -75,7 +75,7 @@ export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript, initia
                                 Researching...
                             </>
                         ) : (
-                            'Analyze Trajectory'
+                            'Analyze Match'
                         )}
                     </button>
                 </div>
@@ -87,7 +87,7 @@ export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript, initia
                             <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full -mr-32 -mt-32 blur-3xl" />
 
                             <div className="flex flex-col items-center md:items-start">
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500 mb-2">Current Standing (A)</span>
+                                <span className="text-xs font-bold text-rose-500 mb-2">Current Standing (A)</span>
                                 <div className="text-2xl font-black">{transcript.cgpa || '8.2'}/10.0</div>
                                 <div className="text-[10px] text-neutral-400 font-bold uppercase mt-1">{transcript.university || 'Your University'}</div>
                             </div>
@@ -99,7 +99,7 @@ export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript, initia
                                         result.probability === 'Medium' ? 'border-amber-500' : 'border-rose-500'
                                         }`}>
                                         <div className="text-3xl font-black leading-none">{result.probability === 'High' ? '85' : result.probability === 'Medium' ? '65' : '45'}%</div>
-                                        <div className="text-[8px] font-black uppercase tracking-widest mt-1">FIT SCORE</div>
+                                        <div className="text-[9px] font-bold text-white/70 tracking-tight mt-1">Match Score</div>
                                     </div>
                                     <div className="absolute -right-4 top-1/2 -translate-y-1/2 md:hidden">
                                         <ArrowRight className="w-6 h-6 text-neutral-500" />
@@ -108,7 +108,7 @@ export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript, initia
                             </div>
 
                             <div className="flex flex-col items-center md:items-end text-center md:text-right">
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500 mb-2">Target Goal (B)</span>
+                                <span className="text-xs font-bold text-rose-500 mb-2">Target Goal (B)</span>
                                 <div className="text-lg font-black leading-tight max-w-[150px]">{targetProgram}</div>
                                 <div className="text-[10px] text-neutral-400 font-bold uppercase mt-1">Admission Target</div>
                             </div>
@@ -128,20 +128,20 @@ export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript, initia
                                                 {result.gpaBenchmark.standing}
                                             </div>
                                         </div>
-                                        <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-8 text-left">The Competitive Curve</h4>
+                                        <h4 className="text-xs font-bold text-neutral-400 tracking-tight mb-8 text-left">The Competitive Curve</h4>
                                         <div className="relative h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full mb-8">
                                             <div className="absolute inset-y-0 left-[20%] right-[30%] bg-indigo-500/20 rounded-full" title="Typical Intake Range" />
                                             <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-rose-600 rounded-full border-2 border-white shadow-lg transition-all duration-1000" style={{ left: `calc(${result.gpaBenchmark.userGPA.replace('%', '')}% - 8px)` }}>
                                                 <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-rose-600 whitespace-nowrap">You ({result.gpaBenchmark.userGPA})</div>
                                             </div>
-                                            <div className="absolute bottom-[-1.5rem] left-[45%] text-[8px] font-black text-neutral-400 uppercase tracking-widest">Intake Average ({result.gpaBenchmark.typicalIntake})</div>
+                                            <div className="absolute bottom-[-1.5rem] left-[45%] text-[9px] font-bold text-neutral-400 tracking-tight">Intake Average ({result.gpaBenchmark.typicalIntake})</div>
                                         </div>
                                         <p className="text-xs text-neutral-500 font-bold leading-relaxed text-left">{result.gpaContext}</p>
                                     </div>
                                 )}
 
                                 <div className="p-6 bg-amber-50 dark:bg-amber-900/10 rounded-3xl border border-amber-100 dark:border-amber-900/30">
-                                    <h4 className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <h4 className="text-xs font-bold text-amber-600 dark:text-amber-400 tracking-tight mb-4 flex items-center gap-2">
                                         <AlertTriangle className="w-3 h-3" />
                                         Trajectory Risks
                                     </h4>
@@ -159,7 +159,7 @@ export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript, initia
                             {/* Prerequisite "Traffic Light" Grid */}
                             <div className="lg:col-span-2 space-y-6">
                                 <div className="flex items-center justify-between mb-2 px-2">
-                                    <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Prerequisite "Traffic Light" Mapping</h4>
+                                    <h4 className="text-xs font-bold text-neutral-400 tracking-tight">Prerequisite "Traffic Light" Mapping</h4>
                                     <div className="text-[10px] font-bold text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-3 py-1 rounded-full italic">
                                         Research-Backed Requirements
                                     </div>
@@ -185,7 +185,7 @@ export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript, initia
                                             <p className="text-[10px] text-neutral-400 font-bold mb-3 leading-relaxed">{prereq.description}</p>
                                             {prereq.mapping && (
                                                 <div className="mt-auto pt-3 border-t border-neutral-50 dark:border-neutral-800 flex items-center justify-between">
-                                                    <span className="text-[9px] font-black text-neutral-300 uppercase">Transcript Match</span>
+                                                    <span className="text-[10px] font-bold text-neutral-400 tracking-tight">Transcript Match</span>
                                                     <span className="text-[10px] font-black text-neutral-600 dark:text-neutral-400">{prereq.mapping}</span>
                                                 </div>
                                             )}
@@ -209,7 +209,7 @@ export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript, initia
                                     <p className="text-neutral-500 font-bold mt-2">Tactical steps to fill the blanks in your application.</p>
                                 </div>
                                 <div className="px-6 py-3 bg-white/5 rounded-2xl border border-white/10 shrink-0">
-                                    <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">Estimated Gap</div>
+                                    <div className="text-xs font-bold text-rose-500 tracking-tight mb-1">Estimated Gap</div>
                                     <div className="text-lg font-black text-white">4-6 Months</div>
                                 </div>
                             </div>

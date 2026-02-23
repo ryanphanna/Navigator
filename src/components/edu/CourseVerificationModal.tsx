@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { X, Check, AlertCircle, Save, Trash2, Plus } from 'lucide-react';
 import type { Transcript, Course } from '../../types';
+import { SearchableInput } from '../ui/SearchableInput';
+import { UNIVERSITIES, PROGRAMS, CREDENTIAL_TYPES } from '../../modules/grad/data/academicConstants';
 
 interface CourseVerificationModalProps {
     isOpen: boolean;
@@ -63,9 +65,9 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-neutral-50/30 dark:bg-neutral-900">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <div className="p-4 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm">
-                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-2">Student Name</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div className="p-4 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm transition-all hover:shadow-md">
+                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-tight block mb-2">Student Name</label>
                             <input
                                 type="text"
                                 value={editableTranscript.studentName || ''}
@@ -74,16 +76,33 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                                 placeholder="Student Name"
                             />
                         </div>
-                        <div className="p-4 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm">
-                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-2">University</label>
-                            <input
-                                type="text"
-                                value={editableTranscript.university || ''}
-                                onChange={(e) => setEditableTranscript({ ...editableTranscript, university: e.target.value })}
-                                className="w-full bg-transparent border-b border-neutral-200 dark:border-neutral-700 focus:border-indigo-500 p-1 text-sm font-semibold focus:ring-0 transition-colors"
-                                placeholder="University Name"
-                            />
-                        </div>
+                        <SearchableInput
+                            label="University"
+                            value={editableTranscript.university || ''}
+                            onChange={(val) => setEditableTranscript({ ...editableTranscript, university: val })}
+                            options={UNIVERSITIES}
+                            placeholder="University Name"
+                            className="bg-white dark:bg-neutral-800 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm transition-all hover:shadow-md h-full"
+                            accentColor="indigo"
+                        />
+                        <SearchableInput
+                            label="Credential"
+                            value={editableTranscript.credentialType || ''}
+                            onChange={(val) => setEditableTranscript({ ...editableTranscript, credentialType: val })}
+                            options={CREDENTIAL_TYPES}
+                            placeholder="e.g. Bachelor's Degree"
+                            className="bg-white dark:bg-neutral-800 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm transition-all hover:shadow-md h-full"
+                            accentColor="indigo"
+                        />
+                        <SearchableInput
+                            label="Program"
+                            value={editableTranscript.program || ''}
+                            onChange={(val) => setEditableTranscript({ ...editableTranscript, program: val })}
+                            options={PROGRAMS}
+                            placeholder="Program Name"
+                            className="bg-white dark:bg-neutral-800 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm transition-all hover:shadow-md h-full"
+                            accentColor="indigo"
+                        />
                     </div>
 
                     {editableTranscript.semesters.map((sem, sIdx) => (
@@ -98,7 +117,7 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                                 </button>
                             </div>
 
-                            <div className="grid grid-cols-12 gap-4 text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-3">
+                            <div className="grid grid-cols-12 gap-4 text-[10px] font-bold text-neutral-400 capitalize tracking-tight px-3">
                                 <div className="col-span-2">Code</div>
                                 <div className="col-span-6">Title</div>
                                 <div className="col-span-2 text-center">Grade</div>

@@ -16,7 +16,7 @@ export const SkillStorage = {
                 .order('name');
 
             if (!error && data) {
-                skills = data.map(row => ({
+                const cloudSkills: CustomSkill[] = data.map(row => ({
                     id: row.id,
                     user_id: row.user_id,
                     name: row.name,
@@ -25,6 +25,12 @@ export const SkillStorage = {
                     created_at: row.created_at,
                     updated_at: row.updated_at
                 }));
+
+                // Non-destructive merge: cloud always wins for existing names, but keep local-only skills that haven't synced yet
+                const cloudNames = new Set(cloudSkills.map((s: CustomSkill) => s.name));
+                const unsyncedSkills = skills.filter((s: CustomSkill) => !cloudNames.has(s.name));
+
+                skills = [...cloudSkills, ...unsyncedSkills].sort((a, b) => a.name.localeCompare(b.name));
                 await Vault.setSecure(STORAGE_KEYS.SKILLS, skills);
             }
         }

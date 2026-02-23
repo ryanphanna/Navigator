@@ -58,20 +58,59 @@ export const useAcademicLogic = () => {
         }
     }, [setTempTranscript, setShowVerification]);
 
+    const toTitleCase = (str: string) => {
+        if (!str) return str;
+        // If it's all caps and more than one word, title case it
+        if (str === str.toUpperCase() && str.length > 3) {
+            return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+        return str;
+    };
+
     const handleVerificationSave = useCallback((verified: Transcript) => {
-        setTranscript(verified);
+        // Formatter to clean up screaming caps
+        const cleaned: Transcript = {
+            ...verified,
+            studentName: toTitleCase(verified.studentName || ''),
+            university: toTitleCase(verified.university || ''),
+            program: toTitleCase(verified.program || ''),
+            semesters: verified.semesters.map(sem => ({
+                ...sem,
+                courses: sem.courses.map(course => ({
+                    ...course,
+                    title: toTitleCase(course.title)
+                }))
+            }))
+        };
+        setTranscript(cleaned);
         setTempTranscript(null);
     }, [setTranscript]);
 
-    const handleCourseUpdate = useCallback((updated: Course) => {
+    const handleCourseUpdate = useCallback((updated: Course, targetSemIndex?: number) => {
         if (!transcript || !editingCourse) return;
 
-        const newSemesters = transcript.semesters.map((sem, idx) => {
-            if (idx !== editingCourse.semIndex) return sem;
-            const newCourses = [...sem.courses];
-            newCourses[editingCourse.courseIndex] = updated;
-            return { ...sem, courses: newCourses };
-        });
+        const { semIndex: sourceSemIndex, courseIndex } = editingCourse;
+        const targetIndex = targetSemIndex !== undefined ? targetSemIndex : sourceSemIndex;
+
+        let newSemesters = [...transcript.semesters];
+
+        if (sourceSemIndex === targetIndex) {
+            // Simple update within the same semester
+            const newCourses = [...newSemesters[sourceSemIndex].courses];
+            newCourses[courseIndex] = updated;
+            newSemesters[sourceSemIndex] = { ...newSemesters[sourceSemIndex], courses: newCourses };
+        } else {
+            // Move between semesters
+            // 1. Remove from source
+            const sourceCourses = [...newSemesters[sourceSemIndex].courses];
+            sourceCourses.splice(courseIndex, 1);
+            newSemesters[sourceSemIndex] = { ...newSemesters[sourceSemIndex], courses: sourceCourses };
+
+            // 2. Add to target
+            const targetCourses = [...newSemesters[targetIndex].courses];
+            targetCourses.push(updated); // Add to end of target semester
+            newSemesters[targetIndex] = { ...newSemesters[targetIndex], courses: targetCourses };
+        }
 
         setTranscript({ ...transcript, semesters: newSemesters });
         setEditingCourse(null);
@@ -130,7 +169,7 @@ export const useAcademicLogic = () => {
         if (newSemesters.length > 0) {
             const last = newSemesters[0]; // Assuming reverse chronological order (newest first)
             newYear = last.year;
-            if (last.term.toLowerCase().includes('fall') || last.term.toLowerCase() === 'fw') {
+            if (last.term.toLowerCase().includes('fall') || last.term.toLowerCase().includes('fw')) {
                 newTerm = 'Winter';
                 newYear++;
             } else if (last.term.toLowerCase().includes('winter')) {

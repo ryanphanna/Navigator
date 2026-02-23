@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Trash2, AlertCircle } from 'lucide-react';
+import { X, Save, Trash2, AlertCircle, Calendar } from 'lucide-react';
 import type { Course } from '../../types';
 
 interface CourseEditModalProps {
     isOpen: boolean;
     onClose: () => void;
     course: Course;
-    onSave: (updatedCourse: Course) => void;
+    currentSemIndex: number;
+    availableSemesters: { term: string; year: number }[];
+    onSave: (updatedCourse: Course, targetSemIndex: number) => void;
     onDelete: () => void;
 }
 
@@ -14,30 +16,48 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
     isOpen,
     onClose,
     course,
+    currentSemIndex,
+    availableSemesters,
     onSave,
     onDelete
 }) => {
     const [editedCourse, setEditedCourse] = useState<Course>(course);
+    const [targetSemIndex, setTargetSemIndex] = useState<number>(currentSemIndex);
     const [confirmDelete, setConfirmDelete] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setEditedCourse(course);
+            setTargetSemIndex(currentSemIndex);
             setConfirmDelete(false);
+
+            const handleKeyDown = (e: KeyboardEvent) => {
+                if (e.key === 'Escape') onClose();
+            };
+            window.addEventListener('keydown', handleKeyDown);
+            return () => window.removeEventListener('keydown', handleKeyDown);
         }
-    }, [course, isOpen]);
+    }, [course, isOpen, onClose, currentSemIndex]);
 
     if (!isOpen) return null;
 
+    const handleBackdropClick = (e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            onClose();
+        }
+    };
+
     const handleSave = () => {
-        onSave(editedCourse);
+        onSave(editedCourse, targetSemIndex);
         onClose();
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/50 backdrop-blur-sm">
-            <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full max-w-md border border-neutral-200 dark:border-neutral-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/50 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={handleBackdropClick}
+        >
+            <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full max-w-md border border-neutral-200 dark:border-neutral-800 overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-800/50">
                     <h3 className="font-black text-lg text-neutral-900 dark:text-white">Edit Course</h3>
@@ -51,7 +71,7 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
                     {/* Course Code & Title */}
                     <div className="grid grid-cols-3 gap-4">
                         <div className="col-span-1 space-y-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 pl-1">Code</label>
+                            <label className="text-[10px] font-black capitalize tracking-wider text-neutral-500 pl-1">Code</label>
                             <input
                                 type="text"
                                 value={editedCourse.code}
@@ -60,7 +80,7 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
                             />
                         </div>
                         <div className="col-span-2 space-y-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 pl-1">Title</label>
+                            <label className="text-[10px] font-black capitalize tracking-wider text-neutral-500 pl-1">Title</label>
                             <input
                                 type="text"
                                 value={editedCourse.title}
@@ -70,10 +90,10 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Numeric Grade & Letter Grade */}
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Numeric Grade, Credits & Course Term */}
+                    <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 pl-1">Grade</label>
+                            <label className="text-[10px] font-black capitalize tracking-wider text-neutral-500 pl-1">Grade</label>
                             <input
                                 type="text"
                                 value={editedCourse.grade}
@@ -82,7 +102,7 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 pl-1">Credits</label>
+                            <label className="text-[10px] font-black capitalize tracking-wider text-neutral-500 pl-1">Credits</label>
                             <input
                                 type="number"
                                 step="0.5"
@@ -90,6 +110,39 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
                                 onChange={(e) => setEditedCourse({ ...editedCourse, credits: parseFloat(e.target.value) })}
                                 className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
                             />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black capitalize tracking-wider text-neutral-500 pl-1">Course Term</label>
+                            <select
+                                value={editedCourse.term || ''}
+                                onChange={(e) => setEditedCourse({ ...editedCourse, term: e.target.value })}
+                                className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer"
+                            >
+                                <option value="">Default</option>
+                                <option value="Fall">Fall</option>
+                                <option value="Winter">Winter</option>
+                                <option value="Summer">Summer</option>
+                                <option value="Spring">Spring</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Move to Term */}
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black capitalize tracking-wider text-neutral-500 pl-1">Academic Term</label>
+                        <div className="relative">
+                            <select
+                                value={targetSemIndex}
+                                onChange={(e) => setTargetSemIndex(parseInt(e.target.value))}
+                                className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer"
+                            >
+                                {availableSemesters.map((sem, idx) => (
+                                    <option key={idx} value={idx}>
+                                        {sem.term} {sem.year}
+                                    </option>
+                                ))}
+                            </select>
+                            <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
                         </div>
                     </div>
 
@@ -116,7 +169,7 @@ export const CourseEditModal: React.FC<CourseEditModalProps> = ({
                             </div>
                         </div>
                     ) : (
-                        <div className="flex justify-start">
+                        <div className="flex justify-start pt-2">
                             <button
                                 onClick={() => setConfirmDelete(true)}
                                 className="text-xs font-bold text-red-500 flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-2 rounded-lg transition-colors"

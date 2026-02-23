@@ -67,8 +67,10 @@ export interface FeatureDefinition {
     planHighlight?: boolean;
     /** Feature is currently in development and restricted */
     isComingSoon?: boolean;
-    /** Optional badge text (e.g. 'NEW') */
+    /** Optional badge text (manually overridden if present) */
     badge?: string;
+    /** ISO date string for feature release (e.g. '2024-01-15') */
+    releaseDate?: string;
 }
 
 // ─── Shared Color Palette ──────────────────────────────────────────────
@@ -164,7 +166,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         key: 'JOBFIT',
         name: 'AI Job Analysis',
         shortName: 'Match',
-        badge: 'New',
+        releaseDate: '2024-11-01', // No longer "New"
         description: {
             short: 'Instant 0–100 compatibility rating.',
             full: 'Paste any job posting and see how you match based on your full profile—including your resume, skills, and academic transcript. Get a 0–100 score plus a detailed breakdown.',
@@ -217,6 +219,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         tier: 'plus',
         targetView: 'resumes',
         link: '/jobs/resumes',
+        releaseDate: '2024-12-15',
         rank: 14,
     },
     KEYWORDS: {
@@ -280,6 +283,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         rank: 2,
         showOnHomepage: true,
         planHighlight: true,
+        releaseDate: '2025-01-10',
     },
     QUALITY_LOOP: {
         id: 'quality-loop',
@@ -341,6 +345,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         rank: 4,
         showOnHomepage: true,
         planHighlight: true,
+        releaseDate: '2025-02-15',
     },
     MAIL_IN: {
         id: 'mail-in',
@@ -488,7 +493,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         key: 'EDU_TRANSCRIPT',
         name: 'Academic Transcript',
         shortName: 'Transcript',
-        badge: 'New',
+        releaseDate: '2025-02-23', // Released today (will show NEW for 30 days)
         description: {
             short: 'Manage coursework and monitor progress.',
             full: 'Track your coursework, credits, and degree progress in one place. Your academic mastery automatically powers deeper insights and higher scores during Job Match analysis.',
@@ -648,6 +653,25 @@ export const getFeaturesByTier = (tier: 'explorer' | 'plus' | 'pro'): FeatureDef
 /** Get hand-picked features to highlight on plan cards */
 export const getFeaturesForPlan = (tier: 'explorer' | 'plus' | 'pro'): FeatureDefinition[] => {
     return getAllFeatures().filter(f => f.planHighlight && f.tier === tier);
+};
+
+/** 
+ * Helper to determine if a feature should show a "NEW" badge.
+ * Defaults to true if releaseDate is within the last 30 days.
+ */
+export const shouldShowNewBadge = (feature: FeatureDefinition): boolean => {
+    if (!feature.releaseDate) return false;
+
+    try {
+        const releaseDate = new Date(feature.releaseDate);
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        return releaseDate > thirtyDaysAgo;
+    } catch (e) {
+        console.error(`Invalid releaseDate for feature ${feature.id}: ${feature.releaseDate}`);
+        return false;
+    }
 };
 
 // ─── Backward Compatibility ────────────────────────────────────────────

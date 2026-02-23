@@ -18,6 +18,7 @@ export interface Transcript {
     studentName?: string;
     university?: string;
     program?: string;
+    credentialType?: string; // e.g. "Bachelor's Degree", "Master's Degree"
     cgpa?: number; // Cumulative GPA if found
     semesters: Semester[];
     rawText?: string;

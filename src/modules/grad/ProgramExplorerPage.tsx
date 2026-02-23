@@ -54,15 +54,12 @@ export const ProgramExplorerPage: React.FC = () => {
 
     return (
         <SharedPageLayout maxWidth="full" className="relative theme-edu" spacing="compact">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="mb-8">
-
-                    <PageHeader
-                        variant="hero"
-                        title="Program Explorer"
-                        subtitle="Explore master's degrees and check your eligibility for top programs."
-                    />
-                </div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <PageHeader
+                    variant="simple"
+                    title="Program Explorer"
+                    subtitle="Explore master's degrees and check your eligibility for top programs."
+                />
 
                 {transcript ? (
                     <div className="space-y-12">

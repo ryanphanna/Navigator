@@ -11,6 +11,10 @@ import { useResumeContext } from './context/ResumeContext';
 import { EventService } from '../../services/eventService';
 import { UnifiedUploadHero } from '../../components/common/UnifiedUploadHero';
 import { ResumePreview } from './components/ResumePreview';
+import { calculateResumeStrength } from './utils/resumeStrength';
+import { TipService } from '../../services/tipService';
+import type { Tip } from '../../services/tipService';
+
 
 interface ResumeEditorProps {
     resumes: ResumeProfile[];
@@ -49,19 +53,42 @@ const getSortDate = (dateRange: string) => {
 
 const ResumeEditor: React.FC<ResumeEditorProps> = ({
     resumes,
+    skills,
     onSave,
     onImport,
     isParsing,
     importError,
     importTrigger
 }) => {
+
     const initialResume = resumes.length > 0 ? resumes[0] : { id: 'primary', name: 'Primary Experience', blocks: [] };
 
     const [blocks, setBlocks] = useState<ExperienceBlock[]>(initialResume.blocks || []);
     const [movingBlockId, setMovingBlockId] = useState<string | null>(null);
     const [hasStartedManually, setHasStartedManually] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [parsingMessageIndex, setParsingMessageIndex] = useState(0);
+    const [activeTip, setActiveTip] = useState<Tip | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+
+    const PARSING_MESSAGES = [
+        { title: "Summoning achievement hunters...", subtitle: "Scouring your past for those gold-medal moments.", icon: Briefcase },
+        { title: "Powering up impact engine...", subtitle: "Translating your hard work into career-defining fuel.", icon: Zap },
+        { title: "Deciphering skill matrix...", subtitle: "Translating your 'can-do' attitude into 'done-that' proof.", icon: Code },
+        { title: "Celebrating your altruism...", subtitle: "Ensuring your community impact gets the spotlight it deserves.", icon: Heart },
+        { title: "Adding finishing sparkles...", subtitle: "Polishing every bullet point until it shines like a supernova.", icon: Sparkles }
+    ];
+
+    useEffect(() => {
+        let interval: any;
+        if (isParsing) {
+            interval = setInterval(() => {
+                setParsingMessageIndex((prev) => (prev + 1) % PARSING_MESSAGES.length);
+            }, 3000);
+        }
+        return () => clearInterval(interval);
+    }, [isParsing, PARSING_MESSAGES.length]);
 
     const { clearImportError } = useResumeContext();
 
@@ -77,6 +104,11 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
             clearImportError();
         };
     }, [clearImportError]);
+
+    useEffect(() => {
+        const primaryResume = resumes.length > 0 ? resumes[0] : undefined;
+        setActiveTip(TipService.getTip(primaryResume));
+    }, [importTrigger, resumes]);
 
     useEffect(() => {
         setIsSaving(true);
@@ -201,28 +233,56 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
 
     if (isParsing) {
+        const CurrentIcon = PARSING_MESSAGES[parsingMessageIndex].icon;
         return (
             <SharedPageLayout>
-                <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 animate-in fade-in zoom-in-95 duration-700">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full animate-pulse" />
-                        <Card variant="glass" className="relative p-8 rounded-[3rem] shadow-2xl border-indigo-100 dark:border-neutral-800">
-                            <Loader2 className="w-16 h-16 text-indigo-600 animate-spin" />
-                        </Card>
+                <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-12 animate-in fade-in zoom-in-95 duration-1000">
+                    <div className="relative group">
+                        {/* Dynamic Ambient Background */}
+                        <div className="absolute inset-x-[-100px] inset-y-[-100px] bg-indigo-500/10 blur-[100px] rounded-full animate-pulse transition-all duration-1000" />
+
+                        <div className="relative">
+                            {/* Outer Ring */}
+                            <div className="absolute inset-0 rounded-full border-2 border-dashed border-indigo-200/50 animate-[spin_10s_linear_infinite]" />
+
+                            <Card variant="glass" className="relative w-32 h-32 flex items-center justify-center rounded-[2.5rem] shadow-2xl border-indigo-100/50 dark:border-white/5 bg-white/40 dark:bg-neutral-900/40 backdrop-blur-xl overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <CurrentIcon className="w-10 h-10 text-indigo-600 dark:text-indigo-400 animate-in zoom-in-50 fade-in duration-500" key={parsingMessageIndex} />
+                            </Card>
+
+                            {/* Orbiting particles/indicator */}
+                            <div className="absolute -top-2 -right-2 w-4 h-4 bg-indigo-500 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)] animate-bounce" />
+                        </div>
                     </div>
-                    <div className="text-center space-y-4">
-                        <h2 className="text-4xl font-black text-neutral-900 dark:text-white tracking-tight">
-                            Analyzing your history...
-                        </h2>
-                        <p className="text-lg text-neutral-500 dark:text-neutral-400 font-medium max-w-sm mx-auto leading-relaxed">
-                            Our AI is extracting your achievements and mapping your professional impact.
-                        </p>
+
+                    <div className="text-center space-y-6 max-w-md mx-auto relative px-4">
+                        <div className="space-y-2">
+                            <h2 className="text-4xl md:text-5xl font-black text-neutral-900 dark:text-white tracking-tight animate-in slide-in-from-bottom-4 duration-700" key={`title-${parsingMessageIndex}`}>
+                                {PARSING_MESSAGES[parsingMessageIndex].title}
+                            </h2>
+                            <p className="text-lg text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed animate-in slide-in-from-bottom-2 duration-700 delay-100" key={`subtitle-${parsingMessageIndex}`}>
+                                {PARSING_MESSAGES[parsingMessageIndex].subtitle}
+                            </p>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-3 px-6 py-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
-                        <Sparkles className="w-5 h-5 text-indigo-500 animate-bounce" />
-                        <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">
-                            Intelligence Engine active
-                        </span>
+
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="flex items-center gap-3 px-6 py-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100/50 dark:border-indigo-800/50 shadow-sm animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+                            <Sparkles className="w-5 h-5 text-indigo-500 animate-pulse" />
+                            <span className="text-sm font-black text-indigo-600 dark:text-indigo-400 tracking-wider">
+                                Intelligence Engine Active
+                            </span>
+                        </div>
+
+                        {/* Progress dots */}
+                        <div className="flex gap-2">
+                            {PARSING_MESSAGES.map((_, i) => (
+                                <div
+                                    key={i}
+                                    className={`h-1.5 rounded-full transition-all duration-500 ${i === parsingMessageIndex ? 'w-8 bg-indigo-500' : 'w-1.5 bg-neutral-200 dark:bg-neutral-800'}`}
+                                />
+                            ))}
+                        </div>
                     </div>
                 </div>
             </SharedPageLayout>
@@ -280,6 +340,36 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                 subtitle="Manage your professional history and accomplishments"
                 variant="simple"
                 className="mb-8 no-print"
+                actions={(
+                    <div className="flex items-center gap-3">
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 rounded-full border border-emerald-100 dark:border-emerald-500/20 mr-1">
+                            <div className={`w-1.5 h-1.5 rounded-full ${isSaving ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'} shadow-[0_0_8px_rgba(16,185,129,0.4)] shrink-0`} />
+                            <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
+                                {isSaving ? 'Updating...' : 'Experience synced'}
+                            </span>
+                        </div>
+                        <Button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isParsing}
+                            variant="premium"
+                            size="sm"
+                            className="font-black"
+                            icon={isParsing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                        >
+                            {isParsing ? 'Processing' : 'Import'}
+                        </Button>
+                        <Button
+                            onClick={handlePrint}
+                            variant="secondary"
+                            size="sm"
+                            className="font-black"
+                            icon={<Download className="w-3.5 h-3.5" />}
+                        >
+                            <span className="hidden sm:inline">Download PDF</span>
+                            <span className="sm:hidden">PDF</span>
+                        </Button>
+                    </div>
+                )}
             />
 
             {showEmptyState ? (
@@ -364,7 +454,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-indigo-200 dark:hover:border-indigo-800 text-neutral-500 hover:text-indigo-600 rounded-xl transition-all group/add shadow-sm hover:shadow-md"
                                                 >
                                                     <Plus className="w-3.5 h-3.5 group-hover/add:rotate-90 transition-transform duration-300" />
-                                                    <span className="text-[10px] font-black uppercase tracking-tight">Add {section.label === 'Professional Summary' ? 'Summary' : 'Entry'}</span>
+                                                    <span className="text-[10px] font-black tracking-tight">Add {section.label === 'Professional Summary' ? 'Summary' : 'Entry'}</span>
                                                 </button>
                                             )}
                                         </div>
@@ -492,19 +582,22 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                                     <div className="mt-4 flex items-center gap-1 no-print">
                                                                         <button
                                                                             onClick={() => addBullet(block.id)}
-                                                                            className="px-3 py-1.5 rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800 text-[10px] font-black text-neutral-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 flex items-center gap-1.5 transition-all"
+                                                                            className="px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 border border-transparent text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10"
                                                                         >
-                                                                            <Plus className="w-3 h-3" /> Add Achievement
+                                                                            <Plus className="w-3.5 h-3.5" />
+                                                                            <span className="text-[10px] font-black tracking-tight">Add Achievement</span>
                                                                         </button>
                                                                         <div className="w-px h-4 bg-neutral-100 dark:bg-neutral-800 mx-1" />
                                                                         <div className="relative">
                                                                             <button
                                                                                 onClick={() => setMovingBlockId(movingBlockId === block.id ? null : block.id)}
-                                                                                className={`px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 border ${movingBlockId === block.id ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg scale-105' : 'text-neutral-400 border-transparent hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'}`}
+                                                                                className={`px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 border ${movingBlockId === block.id
+                                                                                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 border-neutral-900 dark:border-white shadow-lg scale-105'
+                                                                                    : 'text-neutral-400 border-transparent hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'}`}
                                                                                 title="Move to Section"
                                                                             >
                                                                                 <ArrowRightLeft className="w-3.5 h-3.5" />
-                                                                                <span className="text-[10px] font-black">Move</span>
+                                                                                <span className="text-[10px] font-black tracking-tight">Move</span>
                                                                             </button>
 
                                                                             {movingBlockId === block.id && (
@@ -512,24 +605,35 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                                                     <div className="fixed inset-0 z-40" onClick={() => setMovingBlockId(null)} />
                                                                                     <div className="absolute bottom-full mb-3 left-0 z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl overflow-hidden min-w-[200px] animate-in slide-in-from-bottom-2 duration-200">
                                                                                         <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/50">
-                                                                                            <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Move to Section</p>
+                                                                                            <p className="text-[10px] font-black text-neutral-400 tracking-widest">Move to Section</p>
                                                                                         </div>
                                                                                         <div className="p-1.5">
-                                                                                            {SECTIONS.map(s => (
-                                                                                                <button
-                                                                                                    key={s.type}
-                                                                                                    onClick={() => {
-                                                                                                        updateBlock(block.id, 'type', s.type);
-                                                                                                        setMovingBlockId(null);
-                                                                                                    }}
-                                                                                                    className={`w-full px-3 py-2.5 text-left text-xs font-bold rounded-xl transition-all flex items-center gap-3 ${block.type === s.type ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white'}`}
-                                                                                                >
-                                                                                                    <div className={`p-1.5 rounded-lg ${getTypeColor(s.type)} bg-opacity-10 border border-current border-opacity-10 shadow-sm`}>
-                                                                                                        {s.icon}
-                                                                                                    </div>
-                                                                                                    {s.label}
-                                                                                                </button>
-                                                                                            ))}
+                                                                                            {SECTIONS.map(s => {
+                                                                                                const isSelected = block.type === s.type;
+                                                                                                const typeColor = getTypeColor(s.type);
+
+                                                                                                return (
+                                                                                                    <button
+                                                                                                        key={s.type}
+                                                                                                        onClick={() => {
+                                                                                                            updateBlock(block.id, 'type', s.type);
+                                                                                                            setMovingBlockId(null);
+                                                                                                        }}
+                                                                                                        className={`w-full px-3 py-2.5 text-left text-xs font-black rounded-xl transition-all flex items-center gap-3 border ${isSelected
+                                                                                                            ? `${typeColor} shadow-sm scale-[1.02]`
+                                                                                                            : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white border-transparent'
+                                                                                                            }`}
+                                                                                                    >
+                                                                                                        <div className={`p-1.5 rounded-lg transition-colors ${isSelected
+                                                                                                            ? 'bg-white/60 dark:bg-black/20 shadow-inner'
+                                                                                                            : `${typeColor} bg-opacity-10 border border-current border-opacity-10`
+                                                                                                            }`}>
+                                                                                                            {s.icon}
+                                                                                                        </div>
+                                                                                                        {s.label}
+                                                                                                    </button>
+                                                                                                );
+                                                                                            })}
                                                                                         </div>
                                                                                     </div>
                                                                                 </>
@@ -540,7 +644,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                                             className="p-1.5 text-neutral-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all"
                                                                             title="Delete Block"
                                                                         >
-                                                                            <Trash2 className="w-4 h-4" />
+                                                                            <Trash2 className="w-3.5 h-3.5" />
                                                                         </button>
                                                                     </div>
                                                                 )}
@@ -565,8 +669,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                             <Card variant="premium" className="p-5 border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/10 dark:bg-indigo-950/5">
                                 <div className="flex items-center gap-2 mb-4">
                                     <div className="flex flex-col">
-                                        <h3 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest leading-none mb-1">Discovery Bank</h3>
-                                        <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">AI Captured Suggestions</p>
+                                        <h3 className="text-[10px] font-black text-indigo-500 tracking-widest leading-none mb-1">Discovery Bank</h3>
+                                        <p className="text-[9px] text-neutral-400 font-bold tracking-tight">AI Captured Suggestions</p>
                                     </div>
                                 </div>
 
@@ -582,13 +686,13 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             <div className="flex items-center gap-2 pt-1 border-t border-neutral-50 dark:border-neutral-800">
                                                 <button
                                                     onClick={() => handleApplySuggestion(suggestion)}
-                                                    className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[9px] font-black uppercase tracking-tight transition-all"
+                                                    className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[9px] font-black tracking-tight transition-all"
                                                 >
                                                     Apply
                                                 </button>
                                                 <button
                                                     onClick={() => handleDismissSuggestion(suggestion.id)}
-                                                    className="px-2 py-1 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg text-[9px] font-black uppercase tracking-tight transition-all"
+                                                    className="px-2 py-1 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg text-[9px] font-black tracking-tight transition-all"
                                                 >
                                                     Dismiss
                                                 </button>
@@ -601,97 +705,111 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
                         {/* Resume Strength */}
                         <Card variant="premium" className="p-5 border-neutral-100 dark:border-neutral-800">
-                            <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <h3 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest leading-none mb-1">Resume Strength</h3>
-                                    <p className="text-xl font-black text-neutral-900 dark:text-white">
-                                        {Math.min(100, (blocks.reduce((acc, b) => acc + b.bullets.filter(bul => bul.trim()).length, 0) * 10) + (blocks.length * 5))}%
-                                    </p>
-                                </div>
-                                <div className="relative w-12 h-12">
-                                    <svg className="w-12 h-12 -rotate-90">
-                                        <circle cx="24" cy="24" r="20" fill="transparent" stroke="currentColor" strokeWidth="4" className="text-neutral-100 dark:text-neutral-800" />
-                                        <circle
-                                            cx="24" cy="24" r="20" fill="transparent" stroke="currentColor" strokeWidth="4"
-                                            strokeDasharray={125.6}
-                                            strokeDashoffset={125.6 - (125.6 * Math.min(100, (blocks.reduce((acc, b) => acc + b.bullets.filter(bul => bul.trim()).length, 0) * 10) + (blocks.length * 5))) / 100}
-                                            className="text-indigo-600 transition-all duration-1000 ease-out"
-                                        />
-                                    </svg>
-                                </div>
-                            </div>
-                            <p className="text-[10px] text-neutral-500 font-medium leading-relaxed">
-                                {blocks.length < 3 ? 'Add more sections to improve your visibility.' : 'Great start! Focus on quantifying your achievements.'}
-                            </p>
+                            {(() => {
+                                const strength = calculateResumeStrength(blocks, skills);
+                                return (
+                                    <>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div>
+                                                <h3 className="text-[10px] font-black text-neutral-400 tracking-widest leading-none mb-1">Resume Strength</h3>
+                                                <p className="text-xl font-black text-neutral-900 dark:text-white">
+                                                    {strength.score}%
+                                                </p>
+                                            </div>
+                                            <div className="relative w-12 h-12">
+                                                <svg className="w-12 h-12 -rotate-90">
+                                                    <circle cx="24" cy="24" r="20" fill="transparent" stroke="currentColor" strokeWidth="4" className="text-neutral-100 dark:text-neutral-800" />
+                                                    <circle
+                                                        cx="24" cy="24" r="20" fill="transparent" stroke="currentColor" strokeWidth="4"
+                                                        strokeDasharray={125.6}
+                                                        strokeDashoffset={125.6 - (125.6 * strength.score) / 100}
+                                                        className="text-indigo-600 transition-all duration-1000 ease-out"
+                                                    />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-neutral-500 font-medium leading-relaxed">
+                                            {strength.feedback}
+                                        </p>
+
+                                        {strength.score > 0 && (
+                                            <div className="mt-4 pt-4 border-t border-neutral-50 dark:border-neutral-800 space-y-2">
+                                                <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-tighter text-neutral-400">
+                                                    <span>Impact</span>
+                                                    <div className="flex-1 mx-2 h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${strength.metrics.impact}%` }} />
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-tighter text-neutral-400">
+                                                    <span>Alignment</span>
+                                                    <div className="flex-1 mx-2 h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-indigo-500 transition-all duration-1000" style={{ width: `${strength.metrics.alignment}%` }} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                );
+                            })()}
                         </Card>
 
                         {/* Top Skills Tag Wall */}
                         <Card variant="premium" className="p-5 border-neutral-100 dark:border-neutral-800">
                             <h3 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest leading-none mb-4">Top Skills Extracted</h3>
                             <div className="flex flex-wrap gap-1.5">
-                                {blocks.flatMap(b => b.bullets)
-                                    .join(' ')
-                                    .match(/[A-Z][a-z]+(?:\s[A-Z][a-z]+)*/g) // Very basic skill extraction for demo
-                                    ?.filter((v, i, a) => a.indexOf(v) === i && v.length > 3)
-                                    .slice(0, 12)
-                                    .map(skill => (
-                                        <span key={skill} className="px-2 py-1 bg-neutral-50 dark:bg-neutral-800 text-[10px] font-bold text-neutral-600 dark:text-neutral-400 rounded-lg border border-neutral-100 dark:border-neutral-700">
-                                            {skill}
-                                        </span>
-                                    )) || <p className="text-[10px] text-neutral-400 italic">No skills identified yet.</p>
-                                }
+                                {(() => {
+                                    // 1. Get skills from explicit skill blocks
+                                    const explicitSkills = blocks
+                                        .filter(b => b.type === 'skill')
+                                        .flatMap(b => b.bullets)
+                                        .filter(bul => bul.trim().length > 0)
+                                        .map(bul => bul.trim());
+
+                                    // 2. Discover skills from other blocks with better filtering
+                                    const STOP_WORDS = new Set(['Proven', 'Relevant', 'Strong', 'Excellent', 'Doing', 'Worked', 'Experienced', 'Highly', 'Association', 'Focused', 'Participated', 'Member', 'Student', 'Program', 'Representative', 'Cities', 'Regions', 'Planning', 'Environmental', 'University', 'College', 'Department', 'Professional', 'Experience', 'History', 'Based', 'Context', 'Results', 'Action', 'Impact', 'Goal', 'Target']);
+
+                                    const discovered = blocks
+                                        .filter(b => b.type !== 'skill')
+                                        .flatMap(b => b.bullets)
+                                        .join(' ')
+                                        .match(/[A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2}/g) // Max 3 words
+                                        ?.map(s => s.trim())
+                                        .filter(s =>
+                                            s.length > 3 &&
+                                            !STOP_WORDS.has(s) &&
+                                            !explicitSkills.includes(s) &&
+                                            !/^(The|A|An|In|On|At|To|For|With|By|Of)$/i.test(s)
+                                        ) || [];
+
+                                    const allSkills = Array.from(new Set([...explicitSkills, ...discovered]))
+                                        .filter(s => s.length > 2 && !/^\d+$/.test(s))
+                                        .slice(0, 12);
+
+                                    return allSkills.length > 0 ? (
+                                        allSkills.map(skill => (
+                                            <span key={skill} className="px-2 py-1 bg-neutral-50 dark:bg-neutral-800 text-[10px] font-bold text-neutral-600 dark:text-neutral-400 rounded-lg border border-neutral-100 dark:border-neutral-700">
+                                                {skill}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <p className="text-[10px] text-neutral-400 italic">No skills identified yet.</p>
+                                    );
+                                })()}
                             </div>
                         </Card>
 
                         {/* Pro Tip */}
-                        <div className="px-5 py-4 bg-amber-50/50 dark:bg-amber-900/10 rounded-[2rem] border border-amber-100/50 dark:border-amber-900/20 relative overflow-hidden group">
-                            <Sparkles className="absolute -right-2 -top-2 w-12 h-12 text-amber-200/20 rotate-12 group-hover:scale-110 transition-transform duration-700" />
-                            <h4 className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest mb-1">Pro Tip</h4>
-                            <p className="text-[11px] text-amber-800/80 dark:text-amber-400 leading-relaxed font-medium">
-                                Use action verbs like "Spearheaded", "Architected", or "Negotiated" to make your achievements stand out.
-                            </p>
-                        </div>
-
-                        {/* Status Card */}
-                        <Card variant="premium" className="p-6 border-indigo-100/50 dark:border-indigo-500/10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-none relative group overflow-visible">
-                            {/* Decorative Glow */}
-                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/10 blur-[50px] rounded-full group-hover:bg-indigo-500/20 transition-all duration-700" />
-
-                            <div className="flex items-center justify-center mb-6">
-                                <div className="flex items-center gap-2.5 px-4 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 rounded-full border border-emerald-100 dark:border-emerald-500/20 shadow-sm shadow-emerald-500/5">
-                                    <div className={`w-2 h-2 rounded-full ${isSaving ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'} shadow-[0_0_8px_rgba(16,185,129,0.4)] shrink-0`} />
-                                    <span className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 tracking-tight leading-tight">
-                                        {isSaving ? 'Updating...' : 'Experience synced'}
-                                    </span>
-                                </div>
+                        {activeTip && (
+                            <div className="px-5 py-4 bg-amber-50/50 dark:bg-amber-900/10 rounded-[2rem] border border-amber-100/50 dark:border-amber-900/20 relative overflow-hidden group">
+                                <Sparkles className="absolute -right-2 -top-2 w-12 h-12 text-amber-200/20 rotate-12 group-hover:scale-110 transition-transform duration-700" />
+                                <h4 className="text-[10px] font-black text-amber-600 dark:text-amber-500 tracking-widest mb-1">Pro Tip</h4>
+                                <p className="text-[11px] text-amber-800/80 dark:text-amber-400 leading-relaxed font-medium">
+                                    {activeTip.text}
+                                </p>
                             </div>
-
-                            <div className="space-y-4">
-                                <div className="space-y-2.5">
-                                    <Button
-                                        onClick={() => fileInputRef.current?.click()}
-                                        disabled={isParsing}
-                                        variant="premium"
-                                        size="md"
-                                        className="w-full h-12 text-sm font-black group/btn transition-all duration-300"
-                                        icon={isParsing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 group-hover/btn:-translate-y-0.5 transition-transform" />}
-                                    >
-                                        {isParsing ? 'Processing...' : 'Import Resume'}
-                                    </Button>
-                                    <Button
-                                        onClick={handlePrint}
-                                        variant="secondary"
-                                        size="md"
-                                        className="w-full h-12 text-sm bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800 hover:border-indigo-200 dark:hover:border-indigo-800 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 group/btn transition-all duration-300"
-                                        icon={<Download className="w-4 h-4 group-hover/btn:-translate-y-0.5 transition-transform" />}
-                                    >
-                                        Download PDF
-                                    </Button>
-                                </div>
+                        )}
 
 
-                            </div>
-                        </Card>
                     </aside>
 
                 </div>

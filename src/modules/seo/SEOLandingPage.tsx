@@ -95,7 +95,7 @@ export const SEOLandingPage: React.FC = () => {
                     <div className="inline-block p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl mb-4 text-indigo-600 dark:text-indigo-400">
                         <Briefcase className="w-6 h-6" />
                     </div>
-                    <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">Pro Tip for {displayTitle}s</h3>
+                    <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">Expert Tip for {displayTitle}s</h3>
                     <p className="text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto italic">
                         "{bucket.content.proTip}"
                     </p>

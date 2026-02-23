@@ -29,8 +29,22 @@ export const ResumeStorage = {
                 }
 
                 if (Array.isArray(cloudProfiles) && cloudProfiles.length > 0) {
-                    profiles = cloudProfiles;
-                    await Vault.setSecure(STORAGE_KEYS.RESUMES, profiles);
+                    // Non-destructive merge: Since resumes are a nested structure in a single column,
+                    // we check if the cloud actually has something. 
+                    // To be safe, if we have local profiles with blocks and cloud has fewer/none, we merge.
+                    // But usually resumes are synced as a whole unit.
+                    // For now, let's just ensure we don't wipe local if cloud is weirdly empty.
+
+                    const localHasData = profiles.some(p => p.blocks.length > 0);
+                    const cloudHasData = cloudProfiles.some((p: any) => p.blocks?.length > 0);
+
+                    if (cloudHasData || !localHasData) {
+                        profiles = cloudProfiles;
+                        await Vault.setSecure(STORAGE_KEYS.RESUMES, profiles);
+                    } else {
+                        // Keep local data, it's more complete
+                        console.log("[ResumeStorage] Cloud resumes seem empty or less complete than local. Keeping local for sync.");
+                    }
                 }
             }
         }

@@ -43,7 +43,7 @@ export const StandardSearchBar: React.FC<StandardSearchBarProps> = ({
                     placeholder={placeholder}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
-                    className={`w-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 h-11 py-0 pl-15 pr-12 rounded-2xl text-sm focus:outline-none focus:ring-8 transition-all shadow-lg shadow-neutral-900/5 dark:shadow-black/20 text-neutral-900 dark:text-white placeholder:text-neutral-400 ${focusColors[themeColor]}`}
+                    className={`w-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 h-12 py-0 pl-15 pr-12 rounded-2xl text-sm focus:outline-none focus:ring-8 transition-all shadow-lg shadow-neutral-900/5 dark:shadow-black/20 text-neutral-900 dark:text-white placeholder:text-neutral-400 ${focusColors[themeColor]}`}
                 />
                 {value && (
                     <button

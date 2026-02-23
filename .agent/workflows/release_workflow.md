@@ -28,7 +28,7 @@ When the user requests a version bump or "release" (e.g., at the end of the day)
     *   **Rewrite the `## [Unreleased]` section**: Condense the raw, chronological bullet points into a cohesive, grouped, and human-readable format highlighting major features and bug fixes.
     *   Rename `## [Unreleased]` to `## [VERSION] - YYYY-MM-DD`.
     *   Update the `version` field in `package.json`.
-    *   Create a new empty `## [Unreleased]` section at the top of `CHANGELOG.md`.
+    *   **Note**: Do NOT create a new empty `## [Unreleased]` section yet. This will be created only when the next new change is documented.
 4.  **Git Operations** (Best Practice):
     *   Stage the release files: `git add package.json CHANGELOG.md`
     *   Commit the release: `git commit -m "chore(release): v[VERSION]"`

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Sparkles, Filter, Database } from 'lucide-react';
+import { Search, Sparkles, Filter } from 'lucide-react';
 import { ProgramDiscoveryService } from '../services/ProgramDiscoveryService';
 import { ProgramCard } from './ProgramCard';
 import type { Program } from '../types/discovery';
@@ -28,10 +28,8 @@ export const ProgramExplorer: React.FC<ProgramExplorerProps> = ({ onSelect }) =>
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Search Header */}
             <div className="max-w-3xl mx-auto text-center space-y-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-full border border-emerald-100 dark:border-emerald-800">
-                    <Database className="w-4 h-4 text-emerald-600" />
-                    <span className="text-xs font-black text-emerald-600 uppercase tracking-widest">Grounded Program Library</span>
-                </div>
+                {/* Removed Grounded Program Library Label */}
+
 
                 <h2 className="text-4xl font-black text-neutral-900 dark:text-white tracking-tight">
                     Find your next <span className="text-emerald-600 italic">milestone.</span>
@@ -61,7 +59,8 @@ export const ProgramExplorer: React.FC<ProgramExplorerProps> = ({ onSelect }) =>
                         <button
                             key={tag}
                             onClick={() => setSearchQuery(tag)}
-                            className="px-4 py-2 rounded-xl border border-neutral-100 dark:border-neutral-800 bg-white/50 dark:bg-neutral-900/50 text-[10px] font-black text-neutral-500 hover:border-emerald-500 hover:text-emerald-600 transition-all uppercase tracking-widest"
+                            className="px-4 py-2 rounded-xl border border-neutral-100 dark:border-neutral-800 bg-white/50 dark:bg-neutral-900/50 text-xs font-bold text-neutral-500 hover:border-emerald-500 hover:text-emerald-600 transition-all tracking-tight"
+
                         >
                             #{tag}
                         </button>

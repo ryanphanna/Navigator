@@ -45,6 +45,7 @@ const OnboardingPage = lazyWithRetry(() => import('../../modules/onboarding/Onbo
 const SettingsPage = lazyWithRetry(() => import('../../modules/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const SkillInterviewPage = lazyWithRetry(() => import('../../modules/skills/SkillInterviewPage').then(m => ({ default: m.SkillInterviewPage })));
 const InterviewAdvisor = lazyWithRetry(() => import('../../modules/job/InterviewAdvisor').then(m => ({ default: m.InterviewAdvisor })));
+const EmailVerificationScreen = lazyWithRetry(() => import('../auth/EmailVerificationScreen').then(m => ({ default: m.EmailVerificationScreen })));
 
 export const AppRoutes: React.FC = () => {
     const {
@@ -235,6 +236,12 @@ export const AppRoutes: React.FC = () => {
                     </Suspense>
                 } />
 
+                <Route path={ROUTES.VERIFY_EMAIL} element={
+                    <Suspense fallback={<LoadingState />}>
+                        <EmailVerificationScreen />
+                    </Suspense>
+                } />
+
                 <Route path={ROUTES.JOB_HOME} element={
                     <Suspense fallback={<LoadingState />}>
                         <JobMatchInput
@@ -399,7 +406,7 @@ export const AppRoutes: React.FC = () => {
                     } />
 
                     <Route path={ROUTES.TRANSCRIPT} element={
-                        <Suspense fallback={<LoadingState message="Loading Academic HQ..." />}>
+                        <Suspense fallback={<LoadingState message="Loading Registry..." />}>
                             <AcademicHQ />
                         </Suspense>
                     } />

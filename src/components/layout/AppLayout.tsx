@@ -17,7 +17,7 @@ import { useLocation } from 'react-router-dom';
 
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { currentView, setView } = useGlobalUI();
+    const { currentView, setView, isFocusedMode } = useGlobalUI();
     const navigate = useNavigate();
     const location = useLocation();
     const { clearToasts } = useToast();
@@ -29,9 +29,6 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
     const isCoachMode = typeof currentView === 'string' && (currentView.startsWith('career') || currentView.startsWith('coach') || currentView === 'skills');
     const isEduMode = typeof currentView === 'string' && currentView.startsWith('edu');
-
-
-
 
     const handleViewChange = (viewId: string) => {
         const viewToPath: Record<string, string> = {
@@ -81,8 +78,6 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         }
     };
 
-
-
     return (
         <div className={`min-h-screen flex flex-col bg-white dark:bg-[#000000] font-sans selection:bg-emerald-500/30 text-neutral-900 dark:text-neutral-100 transition-colors duration-500 ${isCoachMode ? 'theme-coach' : isEduMode ? 'theme-edu' : 'theme-job'}`}>
             <style>{`
@@ -117,11 +112,13 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                 isEduMode={isEduMode}
             />
 
-            <main className="flex-1 w-full pt-16 pb-16 sm:pb-8">
+            <main className={`flex-1 w-full ${isFocusedMode ? 'pt-0 pb-0' : 'pt-16 pb-16 sm:pb-8'}`}>
                 {children}
             </main>
 
-            <Footer />
+            {!isFocusedMode && <Footer />}
         </div>
     );
+
+
 };

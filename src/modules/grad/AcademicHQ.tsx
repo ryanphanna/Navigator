@@ -1,6 +1,7 @@
 import React from 'react';
+import { GraduationCap, Zap } from 'lucide-react';
+
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
-import { PageHeader } from '../../components/ui/PageHeader';
 import { CourseEditModal } from '../../components/edu/CourseEditModal';
 import { useAcademicLogic } from './hooks/useAcademicLogic';
 
@@ -36,14 +37,7 @@ export const AcademicHQ: React.FC = () => {
 
     return (
         <SharedPageLayout maxWidth="full" className="relative">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="mb-8">
-                    <PageHeader
-                        variant="hero"
-                        title="Transcript Registry"
-                        subtitle="Manage your coursework, track your degree progress, and analyze your performance."
-                    />
-                </div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
                 {!transcript ? (
                     <AcademicHero
@@ -54,6 +48,22 @@ export const AcademicHQ: React.FC = () => {
                         showVerification={showVerification}
                         setShowVerification={setShowVerification}
                         handleVerificationSave={handleVerificationSave}
+                        title="Import Transcript"
+                        description="Start your registry by uploading your official academic records"
+                        cards={{
+                            foundation: {
+                                title: "Verified Records",
+                                description: "Every course is parsed with extreme care. We ensure your official history is perfectly represented.",
+                                icon: GraduationCap,
+                                benefits: ['Academic Accuracy', 'Course Mapping', 'Secure Storage']
+                            },
+                            intelligence: {
+                                title: "Progress Audit",
+                                description: "Instantly see how many credits you've completed and what's remaining for your degree.",
+                                icon: Zap,
+                                benefits: ['Credit Tally', 'Requirement Check', 'Degree Path']
+                            }
+                        }}
                     />
                 ) : (
                     <div className="space-y-12">
@@ -84,6 +94,8 @@ export const AcademicHQ: React.FC = () => {
                         isOpen={!!editingCourse}
                         onClose={() => setEditingCourse(null)}
                         course={editingCourse.course}
+                        currentSemIndex={editingCourse.semIndex}
+                        availableSemesters={transcript?.semesters || []}
                         onSave={handleCourseUpdate}
                         onDelete={handleCourseDelete}
                     />

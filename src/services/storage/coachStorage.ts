@@ -15,7 +15,13 @@ export const CoachStorage = {
                 .order('created_at', { ascending: false });
 
             if (!error && data) {
-                roleModels = data.map(row => ({ ...row.content, id: row.id }));
+                const cloudModels: RoleModelProfile[] = data.map(row => ({ ...row.content, id: row.id }));
+
+                // Non-destructive merge: cloud IDs always win, but keep local-only models that haven't synced yet
+                const cloudIds = new Set(cloudModels.map(m => m.id));
+                const unsyncedModels = roleModels.filter(m => !cloudIds.has(m.id));
+
+                roleModels = [...cloudModels, ...unsyncedModels];
                 await Vault.setSecure(STORAGE_KEYS.ROLE_MODELS, roleModels);
             }
         }
@@ -62,7 +68,7 @@ export const CoachStorage = {
                 .order('date_added', { ascending: false });
 
             if (!error && data) {
-                targetJobs = data.map(row => ({
+                const cloudTargets: TargetJob[] = data.map(row => ({
                     id: row.id,
                     title: row.title,
                     description: row.description,
@@ -73,6 +79,12 @@ export const CoachStorage = {
                     strictMode: row.strict_mode,
                     dateAdded: new Date(row.date_added).getTime()
                 }));
+
+                // Non-destructive merge
+                const cloudIds = new Set(cloudTargets.map(t => t.id));
+                const unsyncedTargets = targetJobs.filter(t => !cloudIds.has(t.id));
+
+                targetJobs = [...cloudTargets, ...unsyncedTargets].sort((a, b) => b.dateAdded - a.dateAdded);
                 await Vault.setSecure(STORAGE_KEYS.TARGET_JOBS, targetJobs);
             }
         }

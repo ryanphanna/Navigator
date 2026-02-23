@@ -38,6 +38,42 @@ export const Storage = {
                 }
             }
         }
+
+        // 3. Sync Skills
+        const localSkills = await Vault.getSecure<any[]>(STORAGE_KEYS.SKILLS) || [];
+        if (localSkills.length > 0) {
+            const { data: cloudSkills } = await supabase.from('user_skills').select('name').eq('user_id', userId);
+            const cloudNames = new Set(cloudSkills?.map(s => s.name) || []);
+
+            for (const skill of localSkills) {
+                if (!cloudNames.has(skill.name)) {
+                    await this.saveSkill(skill);
+                }
+            }
+        }
+
+        // 4. Sync Coach Data (Role Models & Target Jobs)
+        const localRoleModels = await Vault.getSecure<any[]>(STORAGE_KEYS.ROLE_MODELS) || [];
+        if (localRoleModels.length > 0) {
+            const { data: cloudModels } = await supabase.from('role_models').select('id').eq('user_id', userId);
+            const cloudIds = new Set(cloudModels?.map(m => m.id) || []);
+            for (const model of localRoleModels) {
+                if (!cloudIds.has(model.id)) {
+                    await this.addRoleModel(model);
+                }
+            }
+        }
+
+        const localTargetJobs = await Vault.getSecure<any[]>(STORAGE_KEYS.TARGET_JOBS) || [];
+        if (localTargetJobs.length > 0) {
+            const { data: cloudTargets } = await supabase.from('target_jobs').select('id').eq('user_id', userId);
+            const cloudIds = new Set(cloudTargets?.map(t => t.id) || []);
+            for (const target of localTargetJobs) {
+                if (!cloudIds.has(target.id)) {
+                    await this.saveTargetJob(target);
+                }
+            }
+        }
     },
 
     async signOut() {

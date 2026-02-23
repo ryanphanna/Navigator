@@ -19,7 +19,7 @@ export const LinkedInExportSteps: React.FC<LinkedInExportStepsProps> = ({ isOpen
                         </div>
                         <div>
                             <h3 className="font-black text-xl text-neutral-900 dark:text-white leading-tight">Export Guide</h3>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Desktop Instructions</p>
+                            <p className="text-[10px] font-black tracking-widest text-neutral-400">Desktop Instructions</p>
                         </div>
                     </div>
                     <button
@@ -41,7 +41,8 @@ export const LinkedInExportSteps: React.FC<LinkedInExportStepsProps> = ({ isOpen
                             />
                             {/* Overlay Badge */}
                             <div className="absolute top-4 right-4 px-3 py-1 bg-emerald-600 text-[10px] font-black text-white rounded-full uppercase tracking-widest shadow-lg shadow-emerald-500/20">
-                                Pro Tip
+                                Quick Tip
+
                             </div>
                         </div>
 

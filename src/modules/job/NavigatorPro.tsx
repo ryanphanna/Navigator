@@ -241,7 +241,7 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
                     placeholder="Search"
                     themeColor="indigo"
                     rightElement={
-                        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide w-full md:w-auto">
+                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide w-full md:w-auto">
                             <StandardFilterGroup
                                 options={[
                                     { id: 'date', label: 'Newest' },

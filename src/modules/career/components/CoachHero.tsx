@@ -188,7 +188,7 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                 {roleModels.length === 0 && targetJobs.length === 0 && (
                     <div className="mt-14 max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 delay-700">
                         <div className="text-center mb-6">
-                            <div className="text-[10px] uppercase tracking-widest font-black text-neutral-400">Quick Start</div>
+                            <div className="text-[10px] tracking-widest font-black text-neutral-400">Quick Start</div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div
@@ -198,7 +198,7 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                                 <div className="w-12 h-12 bg-accent-primary/10 rounded-2xl flex items-center justify-center text-accent-primary-hex mb-4 group-hover:scale-110 transition-transform">
                                     <Users className="w-6 h-6" />
                                 </div>
-                                <div className="text-[10px] uppercase tracking-widest font-black text-accent-primary-hex mb-1">Step 1</div>
+                                <div className="text-[10px] tracking-widest font-black text-accent-primary-hex mb-1">Step 1</div>
                                 <h4 className="font-bold text-neutral-900 dark:text-white mb-1">Add Mentors</h4>
                                 <p className="text-xs text-neutral-400 leading-relaxed">Upload LinkedIn profiles of people whose careers you admire.</p>
                                 <div className="flex items-center gap-1 mt-3 text-xs font-bold text-accent-primary-hex opacity-0 group-hover:opacity-100 transition-opacity">
@@ -213,7 +213,7 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                                 <div className="w-12 h-12 bg-accent-primary/10 rounded-2xl flex items-center justify-center text-accent-primary-hex mb-4 group-hover:scale-110 transition-transform">
                                     <Target className="w-6 h-6" />
                                 </div>
-                                <div className="text-[10px] uppercase tracking-widest font-black text-accent-primary-hex mb-1">Step 2</div>
+                                <div className="text-[10px] tracking-widest font-black text-accent-primary-hex mb-1">Step 2</div>
                                 <h4 className="font-bold text-neutral-900 dark:text-white mb-1">Set Goals</h4>
                                 <p className="text-xs text-neutral-400 leading-relaxed">Define your dream role and run a gap analysis against your profile.</p>
                                 <div className="flex items-center gap-1 mt-3 text-xs font-bold text-accent-primary-hex opacity-0 group-hover:opacity-100 transition-opacity">
@@ -228,7 +228,7 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                                 <div className="w-12 h-12 bg-accent-primary/10 rounded-2xl flex items-center justify-center text-accent-primary-hex mb-4 group-hover:scale-110 transition-transform">
                                     <Map className="w-6 h-6" />
                                 </div>
-                                <div className="text-[10px] uppercase tracking-widest font-black text-accent-primary-hex mb-1">Step 3</div>
+                                <div className="text-[10px] tracking-widest font-black text-accent-primary-hex mb-1">Step 3</div>
                                 <h4 className="font-bold text-neutral-900 dark:text-white mb-1">Track Growth</h4>
                                 <p className="text-xs text-neutral-400 leading-relaxed">Generate a 12-month roadmap and track milestones as you progress.</p>
                                 <div className="flex items-center gap-1 mt-3 text-xs font-bold text-accent-primary-hex opacity-0 group-hover:opacity-100 transition-opacity">

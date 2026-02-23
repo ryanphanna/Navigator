@@ -2,19 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.20.0] - 2026-02-23
 
 ### Added
-- **Context-Aware Educational Onboarding**: Implemented unique, task-specific onboarding cards across the Education Dashboard, Transcript Registry, and Program Explorer to guide users more effectively.
-- **Academic Hierarchy**: Added dedicated `PageHeader` and descriptive metadata to the Transcript Registry for better module identity.
+- **Premium Education Suite**: Launched a re-architected Education Dashboard and Transcript Registry. Includes a database of 60+ Canadian universities, automated credential extraction, and intelligent course reorganization.
+- **Academic Autocomplete**: High-fidelity `SearchableInput` for universities, programs, and degrees.
+- **Interview "Suggested Topics"**: Context-aware recommendations to ground interview answers in factual evidence from the user's history.
+- **Smart Resume Strength Engine**: Real-time evaluation of impact, professional depth, and skill alignment with verifiable evidence tracking.
+- **Career Tip Service**: Intelligent engine providing contextually aware career advice based on the current state of a user's resume.
+- **Email Verification Flow**: Comprehensive "Trust & Safety" gate with glassmorphic status polling and anti-spam cooldown logic.
+- **Automated Feature Badging**: System-wide dynamic "NEW" badges based on `releaseDate` metadata.
 
 ### Changed
-- **Career Coach UX Evolution**: Refactored the Role Model entry point from a static upload card to a high-impact search-first input, allowing users to enter names or skills before triggering analysis.
-- **Dynamic Component Architecture**: Enhanced `AcademicHero` and `EduHero` components to support custom card configurations, reducing visual repetition.
-- **UI Polish**: Updated icons and terminology across the Career Coach and Education modules for a more premium, cohesive professional tone.
+- **Platform-Wide Aesthetic Refinement**: Executed a comprehensive "Casing Polish" to remove aggressive all-caps/tracking. Standardized button casing, icon sizing, and layout patterns across all modules.
+- **Education Module Redesign**: 12-column Bento-style dashboard grid, modular Academic Overview cards, and modernized "Term-and-Course" card architecture.
+- **Interview Advisor UX Polish**: Implemented Focused Session Mode and refined action labels for a more professional practitioner experience.
+- **Resume Editor Evolution**: Streamlined sidebar architecture, migrated key actions to the global header, and improved multi-word skill extraction.
+- **Enhanced Storage Sync**: Implemented a non-destructive merge strategy to prevent data loss during authentication/sync cycles.
 
 ### Fixed
-- **Bookmarklet Security**: Resolved an issue where React's security precautions blocked bookmarklet URLs (javascript:). Implemented a direct DOM-ref approach to allow the 'Save to Navigator' bookmarklet to be correctly dragged and used.
+- **Skill Persistence & Sync**: Resolved critical race conditions in the storage layer to ensure local data is correctly persisted to the cloud.
+- **Bookmarklet Security**: Fixed drag-and-drop registration for the 'Save to Navigator' tool.
+- **Interview Advisor Stability**: Synchronized focused mode state to prevent navigation bleed during active sessions.
+- **Layout & Typographical Fixes**: Resolved search bar misalignments, button clipping, and missing font weight fallbacks.
 
 ### Removed
 

@@ -404,7 +404,7 @@ export const GapAnalysisSection: React.FC<GapAnalysisSectionProps> = ({
                             <TrendingUp className="w-5 h-5" />
                         </div>
                         <div>
-                            <div className="font-bold text-sm text-neutral-900 dark:text-white">Pro Tip</div>
+                            <div className="font-bold text-sm text-neutral-900 dark:text-white">Quick Tip</div>
                             <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Found an interesting role? Paste the URL above and we'll analyze exactly what's missing from your profile.</p>
                         </div>
                     </div>

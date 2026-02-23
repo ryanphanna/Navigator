@@ -28,6 +28,7 @@ import { supabase } from '../../services/supabase';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useGlobalUI } from '../../contexts/GlobalUIContext';
+import { LoadingState } from '../../components/common/LoadingState';
 
 export const InterviewAdvisor: React.FC = () => {
     const { jobs } = useJobContext();
@@ -53,7 +54,7 @@ export const InterviewAdvisor: React.FC = () => {
     const [copiedText, setCopiedText] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    const { setFocusedMode } = useGlobalUI();
+    const { isFocusedMode, setFocusedMode } = useGlobalUI();
 
     React.useEffect(() => {
         if (mode === 'session') {
@@ -63,6 +64,27 @@ export const InterviewAdvisor: React.FC = () => {
         }
         return () => setFocusedMode(false);
     }, [mode, setFocusedMode]);
+
+    // Reset mode if focused mode is disabled externally (e.g., from Header 'Exit')
+    React.useEffect(() => {
+        if (mode === 'session' && !isFocusedMode) {
+            setMode('selection');
+        }
+    }, [mode, isFocusedMode]);
+
+    const resumeSnippets = React.useMemo(() => {
+        if (!resumes || resumes.length === 0) return [];
+        const primaryResume = resumes[0];
+        const experienceBlocks = primaryResume.blocks?.filter(b => b.type === 'work' || b.type === 'volunteer' || b.type === 'project') || [];
+
+        const allBullets = experienceBlocks.flatMap(b => b.bullets.map(bullet => ({
+            text: bullet,
+            source: b.organization || b.title
+        })));
+
+        // Shuffle and pick 2-3
+        return [...allBullets].sort(() => 0.5 - Math.random()).slice(0, 3);
+    }, [resumes]);
 
     const messagesEndRef = React.useRef<HTMLDivElement>(null);
     React.useEffect(() => {
@@ -138,15 +160,45 @@ export const InterviewAdvisor: React.FC = () => {
 
     if (isSessionLoading) {
         return (
-            <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center">
-                <div className="text-center space-y-4">
-                    <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mx-auto" />
-                    <p className="text-sm font-bold text-indigo-500 tracking-tight animate-pulse">
-                        Warming up Gemini...
-                    </p>
-                    <p className="text-xs text-neutral-500">
-                        Analyzing your background and the target role
-                    </p>
+            <div className="min-h-screen bg-neutral-50 dark:bg-black flex flex-col items-center justify-center p-6">
+                <div className="max-w-md w-full space-y-12">
+                    <LoadingState
+                        message="Preparing your session..."
+                        subMessage="Tailoring questions to your unique background"
+                    />
+
+                    {resumeSnippets.length > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="space-y-4"
+                        >
+                            <div className="flex items-center gap-2 justify-center">
+                                <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+                                    Reviewing your background
+                                </span>
+                            </div>
+
+                            <div className="grid gap-3">
+                                {resumeSnippets.map((snippet, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="p-3 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm"
+                                    >
+                                        <p className="text-[11px] text-neutral-600 dark:text-neutral-300 leading-relaxed italic">
+                                            "{snippet.text}"
+                                        </p>
+                                        <p className="text-[9px] font-bold text-indigo-500 mt-2 flex items-center gap-1">
+                                            <Target className="w-2.5 h-2.5" />
+                                            {snippet.source}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
                 </div>
             </div>
         );
@@ -200,6 +252,34 @@ export const InterviewAdvisor: React.FC = () => {
                                     <div className="text-lg md:text-xl font-medium text-neutral-900 dark:text-neutral-100">
                                         {item.question.question}
                                     </div>
+
+                                    {/* Suggested Topics (Only for the active unanswered question) */}
+                                    {!item.response && resumeSnippets.length > 0 && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.3 }}
+                                            className="pt-2 flex flex-wrap gap-2"
+                                        >
+                                            <div className="w-full text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1 flex items-center gap-1.5">
+                                                <Target className="w-3 h-3" />
+                                                Possible Evidence from your Profile
+                                            </div>
+                                            {resumeSnippets.map((snippet, sIdx) => (
+                                                <div
+                                                    key={sIdx}
+                                                    className="group flex items-center gap-2 px-3 py-1 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-sm hover:border-indigo-400 dark:hover:border-indigo-500/50 transition-all cursor-default max-w-xs"
+                                                    title={snippet.source}
+                                                >
+                                                    <span className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400 truncate">
+                                                        {snippet.text}
+                                                    </span>
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/50" />
+                                                </div>
+                                            ))}
+                                        </motion.div>
+                                    )}
+
                                     {item.question.rationale && (
                                         <div className="text-xs text-neutral-500 italic bg-neutral-100 dark:bg-neutral-900 p-2 rounded-lg inline-block">
                                             Rationale: {item.question.rationale}
@@ -318,10 +398,9 @@ export const InterviewAdvisor: React.FC = () => {
                 </div>
 
                 {/* Input Area */}
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent dark:from-black dark:via-black dark:to-transparent pt-20">
+                <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent dark:from-black dark:via-black dark:to-transparent pt-20 z-40">
                     <div className="max-w-3xl mx-auto relative group">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-2xl opacity-20 group-focus-within:opacity-100 transition duration-500 blur" />
-                        <div className="relative flex items-end gap-2 bg-white dark:bg-neutral-900 rounded-xl shadow-2xl p-2 border border-neutral-200 dark:border-neutral-800">
+                        <div className="relative flex items-end gap-2 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl p-2 border border-neutral-200 dark:border-neutral-800 transition-all duration-300 group-focus-within:border-indigo-500 group-focus-within:ring-4 group-focus-within:ring-indigo-500/10">
                             <textarea
                                 value={userResponse}
                                 onChange={(e) => setUserResponse(e.target.value)}
@@ -367,6 +446,7 @@ export const InterviewAdvisor: React.FC = () => {
                 </div>
             </div>
         );
+
     }
 
 
@@ -406,7 +486,7 @@ export const InterviewAdvisor: React.FC = () => {
                             title="General Prep"
                             description="Broad behavioral questions applicable across roles. Master the STAR method."
                             color={FEATURE_COLORS.indigo}
-                            actionLabel="Start General"
+                            actionLabel="Practice Now"
                             onAction={handleStartGeneral}
                             previewContent={
                                 <ul className="space-y-3 pt-4 border-t border-neutral-100 dark:border-white/5">
@@ -433,7 +513,7 @@ export const InterviewAdvisor: React.FC = () => {
                             title="Tailored Mock"
                             description="Generated based on a specific role you've analyzed. High-stakes precision."
                             color={FEATURE_COLORS.violet}
-                            actionLabel="Start Tailored"
+                            actionLabel="Launch Mock"
                             onAction={handleStartTailored}
                             className={!selectedJobId ? "opacity-90" : ""}
                             previewContent={

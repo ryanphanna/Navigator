@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { FEATURE_REGISTRY, FEATURE_RANKINGS, getFeatureColor, type FeatureDefinition } from '../../featureRegistry';
+import { FEATURE_REGISTRY, FEATURE_RANKINGS, getFeatureColor, shouldShowNewBadge, type FeatureDefinition } from '../../featureRegistry';
 import { getPreviewComponent } from '../../components/common/FeaturePreviews';
 import { Mail, TrendingUp, PenTool, Sparkles, FileText, GraduationCap, Bookmark, Zap, RefreshCw, Shield, Users, Globe, Search, Calculator, MessageSquare, Rss, Activity, type LucideIcon } from 'lucide-react';
 import { BentoCard } from '../../components/ui/BentoCard';
@@ -169,7 +169,7 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
                             description={config.description[descriptionKey]}
                             color={color}
                             actionLabel={config.action[actionKey]}
-                            badge={config.badge}
+                            badge={config.badge || (shouldShowNewBadge(config) ? 'New' : undefined)}
                             isComingSoon={config.isComingSoon}
                             previewContent={getPreviewComponent(config.id, color)}
                             onAction={() => handleAction(config)}

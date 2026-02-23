@@ -173,6 +173,7 @@ export const ROUTES = {
   TERMS: '/terms',
   CONTACT: '/contact',
   SETTINGS: '/settings',
+  VERIFY_EMAIL: '/verify-email',
 } as const;
 
 // User Tiers

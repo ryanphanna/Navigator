@@ -92,21 +92,26 @@ export const PARSING_PROMPTS = {
     If this is NOT a transcript (e.g. receipt, essay, random text), return a JSON object with { "error": "Invalid Document Type" }.
 
     TASK:
-    1. Extract Student Info (Name, University, Program). 
+    1. Extract Student Info (Name, University, Program, Credential Type). 
+       CRITICAL: Use Title Case for these fields (e.g. "John Smith", "University of Toronto"). Avoid ALL CAPS.
        CRITICAL: Do NOT guess or infer the university or program. If it is not explicitly stated in the document, return null or an empty string. Never default to Stanford or any other institution.
+       CRITICAL: Identify the Credential Type (e.g. "Bachelor's Degree", "Master's Degree", "Diploma") if explicitly stated.
     2. Extract Cumulative GPA (CGPA) if explicitly stated.
     3. Group courses by Semester (Term/Year).
+       Use full names for terms (e.g. "Fall", "Winter", "Spring", "Summer", "Fall/Winter").
     4. For each course, extract Code, Title, Grade, and Credits.
+       Use Title Case for Course Titles (e.g. "Introduction to Computer Science"). Avoid ALL CAPS.
 
     Return JSON matching this schema:
     {
       "studentName": "string",
       "university": "string",
       "program": "string",
+      "credentialType": "string",
       "cgpa": number | null,
       "semesters": [
         {
-          "term": "string (e.g. Fall 2023)",
+          "term": "string (e.g. Fall or Fall/Winter)",
           "year": number,
           "courses": [
             {

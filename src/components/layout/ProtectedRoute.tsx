@@ -22,6 +22,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
         return <Navigate to={ROUTES.HOME} state={{ from: location }} replace />;
     }
 
+    const { isEmailVerified } = useUser();
+
+    if (!isEmailVerified && user.app_metadata?.provider === 'email') {
+        // Redirect unverified email users to the verification page
+        return <Navigate to={ROUTES.VERIFY_EMAIL} replace />;
+    }
+
     if (requireAdmin && !isAdmin) {
         // Redirect non-admins trying to access admin routes to the homepage
         return <Navigate to={ROUTES.HOME} replace />;

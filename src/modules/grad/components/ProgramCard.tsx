@@ -19,7 +19,7 @@ export const ProgramCard: React.FC<ProgramCardProps> = ({ program, onAnalyze, is
                         <GraduationCap className="w-5 h-5" />
                     </div>
                     {program.isVerified && (
-                        <span className="text-[10px] font-black bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 px-2 py-1 rounded-lg uppercase tracking-wider">
+                        <span className="text-xs font-bold bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 px-3 py-1 rounded-lg">
                             Verified
                         </span>
                     )}
@@ -65,7 +65,7 @@ export const ProgramCard: React.FC<ProgramCardProps> = ({ program, onAnalyze, is
                         ) : (
                             <>
                                 <Sparkles className="w-3 h-3" />
-                                Analyze Fit
+                                Match Profile
                             </>
                         )}
                     </button>

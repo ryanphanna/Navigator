@@ -22,6 +22,9 @@ interface UserContextType {
     acceptedTosVersion: number;
     dismissedNotices: Record<string, number>;
     dismissNotice: (id: string, snoozeDays?: number) => void;
+    isEmailVerified: boolean;
+    resendVerificationEmail: () => Promise<{ success: boolean; error?: any }>;
+    refreshUser: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -60,6 +63,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         return {};
     });
+    const [isEmailVerified, setIsEmailVerified] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
     // The tier used by the app - simulated if set by admin, otherwise actual
@@ -67,6 +71,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const processUser = async (currentUser: User | null) => {
         setUser(currentUser);
+        setIsEmailVerified(!!currentUser?.email_confirmed_at);
         if (currentUser) {
             try {
                 const { data, error } = await supabase
@@ -222,6 +227,22 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('navigator_dismissed_notices', JSON.stringify(updated));
     };
 
+    const resendVerificationEmail = async () => {
+        if (!user?.email) return { success: false, error: 'No email found' };
+        const { error } = await supabase.auth.resend({
+            type: 'signup',
+            email: user.email,
+        });
+        return { success: !error, error };
+    };
+
+    const refreshUser = async () => {
+        const { data: { user: updatedUser } } = await supabase.auth.getUser();
+        if (updatedUser) {
+            processUser(updatedUser);
+        }
+    };
+
     return (
         <UserContext.Provider value={{
             user,
@@ -238,7 +259,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             lastArchetypeUpdate,
             acceptedTosVersion,
             dismissedNotices,
-            dismissNotice
+            dismissNotice,
+            isEmailVerified,
+            resendVerificationEmail,
+            refreshUser
         }}>
             {children}
         </UserContext.Provider>

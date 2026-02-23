@@ -1,20 +1,39 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface LoadingStateProps {
     message?: string;
+    subMessage?: string;
 }
 
-export const LoadingState: React.FC<LoadingStateProps> = ({ message = 'Loading module...' }) => {
+export const LoadingState: React.FC<LoadingStateProps> = ({
+    message = 'Loading module...',
+    subMessage
+}) => {
     return (
-        <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
-            <div className="relative">
-                <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full" />
-                <Loader2 className="w-12 h-12 text-indigo-600 dark:text-indigo-400 animate-spin relative z-10" />
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center"
+        >
+            <div className="relative mb-8">
+                <div className="absolute inset-0 bg-indigo-500/30 blur-3xl rounded-full animate-pulse" />
+                <div className="relative p-4 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-neutral-100 dark:border-neutral-800">
+                    <Loader2 className="w-8 h-8 text-indigo-600 dark:text-indigo-400 animate-spin" />
+                </div>
             </div>
-            <p className="mt-6 text-sm font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest animate-pulse">
-                {message}
-            </p>
-        </div>
+            <div className="space-y-2">
+                <h3 className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-[0.2em]">
+                    {message}
+                </h3>
+                {subMessage && (
+                    <p className="text-xs font-bold text-neutral-400 dark:text-neutral-500 animate-pulse max-w-xs mx-auto">
+                        {subMessage}
+                    </p>
+                )}
+            </div>
+        </motion.div>
     );
 };
+
