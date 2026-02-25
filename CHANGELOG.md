@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.21.0] - 2026-02-24
+
+### Architecture & Refactoring
+- **Context-Aware URL Navigation**: Integrated the browser URL as the single source of truth. The UI now contextually derives its state from the path, ensuring perfect synchronization and eliminating redundant state management.
+- **Autonomous Component Architecture**: Refactored core views (`Header`, `HomePage`, `JobMatchInput`, `JobDetail`, `CoachDashboard`, etc.) to directly consume dependencies from specialized Context hooks, completely eliminating massive amounts of prop drilling across the application shell.
+- **Clean Routing Manifest**: Simplified `AppRoutes.tsx` into a lean, declarative manifest, decoupling business logic from the routing layer.
+
+### Visual Excellence & Aesthetics
+- **Premium Graphic Identity**: Launched a massive visual upgrade for Skills Bento cards. Replaced repetitive circular motifs with high-fidelity graphics featuring 3D orbiting particles, scanning pulse animations, and "Diamond/Prism" glass aesthetics.
+- **3D Glassmorphic Depth**: Implemented a stacked glass tile architecture for skill previews, featuring translucent layered depth, background blurs, and dynamic hover-driven rotation.
+- **Platform-Wide Design Standardization**:
+    - Unified vertical baselines and "Segmented Control" aesthetics for filters and search bars (standardized to 40px height) across the entire platform.
+    - Implemented a comprehensive removal of aggressive all-caps/uppercase styling in favor of a modern, professional sentence-case aesthetic.
+    - Standardized global rounding to `rounded-2xl` for interactive elements and implemented high-contrast `font-black` typography for primary buttons.
+    - Executed a comprehensive scaling and alignment pass on all dashboard graphics to ensure professional visual hierarchy.
+
+### Resume & Skills Intelligence
+- **Resume Preview Modal**: Introduced a high-fidelity modal for instant, print-ready resume visualization within the editor.
+- **Interactive Skill Discovery**: Enabled one-click saving of AI-discovered keywords directly to the global database from the resume sidebar.
+- **Unified Skill Indicators**: Reimagined the verification system into a single intuitive indicator. Verified skills now use emerald/orange checkmarks, while non-verified skills use proficiency dots.
+- **Manual Achievement Control**: Added manual controls for achievement bullet reordering via interactive move buttons on hover.
+- **Text Extraction High-Fidelity**: Upgraded the PDF extraction engine to proactively clean whitespace and resolve character artifacts (splitting ligatures like "fi", "fl", "ti") before AI processing.
+
+### Core Enhancements
+- **Seamless Authentication**: Overhauled the login experience into a fluid "one-flow" model using intelligent email detection to route users automatically, removing redundant manual toggles between signing in and signing up.
+- **Education Module Refinement**: Reverted nomenclature back to standard terms (**Programs** and **Transcript**) and improved the program exploration UX with an expanded discovery container.
+- **Resume Editor Streamlining**: Optimized the editor by removing redundant metrics (Strength Score, Pro-Tips, status badges) to prioritize a high-density, document-first writing experience.
+
+### Fixed & Stabilized
+- **React Stability**: Resolved "Rules of Hooks" violations in `ProtectedRoute` and fixed critical JSX syntax errors and hook initialization issues in the Resume Editor.
+- **UI Logic Fixes**: Corrected cursor behavior on interactive elements, resolved scroll-jitter in the header, fixed card dropdown clipping, and restored missing iconography to status filters.
+- **Data Integrity**: Resolved a "data loss" edge case by implementing latest-first recovery for resume records and fixed a malformed `user_skills` database schema.
+
 ## [2.20.0] - 2026-02-23
 
 ### Added
@@ -418,126 +451,77 @@ All notable changes to this project will be documented in this file.
 <details>
 <summary>## [2.14.0] - 2026-02-18</summary>
 
-### 🚀 New Features
+### Added
+- **Resume Tailoring Suite**: Implemented suite for Plus/Pro tiers, featuring **Tailored Summary** generation and **Hyper-Tailor** (Bulk & Individual) block rewriting.
+- **Diff View**: Added visual before/after comparison (strikethrough vs. new) and per-block **Reset/Undo** functionality.
+- **Premium Upload Flow**: Added new 3-card upload flow (Foundation, Intelligence, Upload) as the official empty state.
+- **Education Mechanics**: Implemented automatic **GPA Calculator** (4.0 scale), **Program Explorer**, and "Add Term/Course" planning functionality.
+- **Smart Onboarding**: Implemented real-time **Student Detection** (from resume) and predictive transcript prompts.
+- **Edu Components**: Created state-aware `EduHero` component and **Parsing Snapshot** for real-time skills feedback during onboarding.
+- **Mentorship Tools**: Implemented premium 3-card guide for Mentor upload flow (Identify, Distill, Analyze) and high-fidelity `LinkedInExportSteps` modal.
+- **Dynamic Role Farming**: Implemented system for automatic job title standardization and `canonical_roles` tracking in Supabase.
+- **Industry Personas**: Implemented granular **Job Mapping** system with specialized industry personas (`TRADES`, `HEALTHCARE`, `CREATIVE`, `TECHNICAL`) and role-specific prompt templates.
+- **SEO Engine**: Integrated `react-helmet-async` and created centralized `SEO` component for dynamic head management.
+- **SEO Assets**: Added standard `robots.txt`, `sitemap.xml`, and Open Graph/Twitter Card support with professional default meta tags.
+- **System Constants**: Introduced structural constants in `src/constants.ts` for **Tracking Events**, **Bento Categories**, and **PLAN_LIMITS**.
+- **Plans Page**: Created dedicated page featuring premium pricing tiers and feature comparisons.
+- **Legal Compliance**: Implemented official high-fidelity **Privacy Policy**, **Terms of Service**, and **Contact** pages.
+- **Theme Transitions**: Added "Theme Pulse" transition on onboarding completion.
 
-#### Resume Tailoring Suite
-- **AI**: Implemented **Resume Tailoring** suite for Plus/Pro tiers, featuring **Tailored Summary** generation and **Hyper-Tailor** (Bulk & Individual) block rewriting.
-- **UX**: Added **Diff View** for visual before/after comparison (strikethrough vs. new) and per-block **Reset/Undo** functionality.
-- **Discovery**: Added **Resume Tailoring Card** to Features page and new premium **3-card upload flow** (Foundation, Intelligence, Upload) as the official empty state.
-
-#### Education & Onboarding
-- **Education**: Implemented automatic **GPA Calculator** (4.0 scale), **Program Explorer**, and "Add Term/Course" planning functionality.
-- **Onboarding**: Implemented **Smart Onboarding** with real-time **Student Detection** (from resume) and predictive transcript prompts.
-- **UX**: Created state-aware `EduHero` component and **Parsing Snapshot** for real-time skills feedback during onboarding.
-
-#### Mentorship & Career
-- **Mentors**: Implemented premium 3-card guide for Mentor upload flow (Identify, Distill, Analyze) and high-fidelity `LinkedInExportSteps` modal.
-- **Jobs**: Implemented **Dynamic Role Farming** system for automatic job title standardization and `canonical_roles` tracking in Supabase.
-
-#### AI & Intelligence
-- **Architecture**: Implemented granular **Job Mapping** system with specialized industry personas (`TRADES`, `HEALTHCARE`, `CREATIVE`, `TECHNICAL`) and role-specific prompt templates.
-- **Logic**: Integrated modular **Guideline Injection** for job analysis and cover letter generation.
-- **Security**: Implemented **Resume Tailoring Usage Limits** (max 2 attempts per block) and "Dual-Gate" inbound limit system (Emails vs. Jobs).
-
-### 🏗 Architecture & SEO
-
-#### SEO Engine
-- **Infrastructure**: Integrated `react-helmet-async` and created centralized `SEO` component for dynamic head management.
-- **Assets**: Added standard `robots.txt`, `sitemap.xml`, and Open Graph/Twitter Card support with professional default meta tags.
+### Changed
+- **Guideline Injection**: Integrated modular injection for job analysis and cover letter generation.
+- **Usage Limits**: Implemented **Resume Tailoring Usage Limits** (max 2 attempts per block) and "Dual-Gate" inbound limit system (Emails vs. Jobs).
 - **Refactor**: Refactored `SEOLandingPage` to use the new component system.
+- **Feed Architecture**: Generalized Job Feed to be strictly user-driven (removed hardcoded scraping targets).
+- **Settings UI**: Updated `SettingsModal.tsx` with emerald (Jobs) and indigo (Emails) progress bars, and a 3-column layout (Account, Plan, Integrations).
+- **Accessibility**: Improved **Cover Letter Editor** accessibility with ARIA roles and fixed mobile layout issues.
+- **Navigation**: Added prominent "Upgrade" button and restored Dark Mode toggle to main navigation.
+- **UX Feedback**: Added immediate "Copied!" feedback for tokens/emails and granular rating loops for cover letters.
+- **Policies**: Updated transparency disclosures to include **AI Quality Logging** and **PII Redaction** policies.
 
-#### System Internals
-- **Constants**: Introduced structural constants in `src/constants.ts` for **Tracking Events**, **Bento Categories**, and **PLAN_LIMITS**.
-- **Refactor**: Generalized Job Feed architecture to be strictly user-driven (removed hardcoded scraping targets).
+### Fixed
 - **Tests**: Added comprehensive unit tests for architectural constants, upload flows, and usage limits.
 
-### 💅 UI/UX Refinements
-
-#### Design Polish
-- **Settings**: Updated `SettingsModal.tsx` with emerald (Jobs) and indigo (Emails) progress bars, and a 3-column layout (Account, Plan, Integrations).
-- **Visuals**: Added "Theme Pulse" transition on onboarding completion and refined button styles across the app.
-- **Accessibility**: Improved **Cover Letter Editor** accessibility with ARIA roles and fixed mobile layout issues.
-
-#### Navigation & Content
-- **Plans**: Created dedicated **Plans** page featuring premium pricing tiers and feature comparisons.
-- **Legal**: Implemented official high-fidelity **Privacy Policy**, **Terms of Service**, and **Contact** pages.
-- **Header**: Added prominent "Upgrade" button and restored Dark Mode toggle to main navigation.
-- **Feedback**: Added immediate "Copied!" feedback for tokens/emails and granular rating loops for cover letters.
-
-### 🛡 Security & Privacy
-- **Policies**: Updated transparency disclosures to include **AI Quality Logging** and **PII Redaction** policies.
-- **Account**: Implemented "Change Password" feature and removed self-service deletion to prevent abuse.
-- **Compliance**: Verified strict 0-email limits for Free tier and enforced multi-layer gates before AI execution.
+### Removed
+- **Self-Service Deletion**: Removed to prevent abuse.
 </details>
 
 <details>
 <summary>## [2.13.0] - 2026-02-17</summary>
 
 ### Added
-- **UI/UX**: Redesigned all homepage bento cards with premium, interactive graphics, high-fidelity SVG animations, and ambient glows.
-- **Education**: Implemented a dedicated high-fidelity graphic for the Education card on the homepage.
-- **Education**: Complete overhaul of `EducationDashboard` graphics, including high-fidelity interactive previews for Academic Record, Program Explorer, and GPA Calculator.
-- **Architecture**: Centralized all Bento card configurations in `src/constants.ts` to ensure absolute design and terminology parity across Jobs and Education modules.
-- **Browser Extension Alpha**: Initial release of the Navigator Chrome Extension.
-  - Captures job descriptions from any active tab.
-  - Integration with Navigator account via Email/Password login.
-  - "Save to Navigator" functionality directly from the browser.
-- **Email Alerts Usage**: Added a visual progress bar in Settings > Plan & Usage to track daily email job alert limits.
-- **Abuse Prevention**: Implemented browser fingerprinting to detect and limit multi-account abuse (`fingerprint.ts`).
-- **Data Integrity**: Added `job_id` tracing to all AI operations (`aiCore.ts`) for debugging.
-- **Career**: Implemented a "Quick Add" goal input in the Gap Analysis empty state.
-- **Career**: Added functional Drag & Drop support to the Role Models empty state.
-- **Education**: Implemented randomized, aspirational headlines for the Education Command Center.
-- **UX**: Feature cards are now fully clickable, ensuring a smoother transition to actions like "Analyze" or authentication.
-- **UI**: Implemented layout safeguards (`min-height`) in `BentoCard.tsx`.
+- **Homepage Visuals**: Redesigned all bento cards with premium, interactive graphics, high-fidelity SVG animations, and ambient glows.
+- **Education Graphics**: Complete overhaul of `EducationDashboard` graphics, including high-fidelity interactive previews for Academic Record, Program Explorer, and GPA Calculator.
+- **Browser Extension Alpha**: Initial release of the Navigator Chrome Extension with job description capture and direct save functionality.
+- **Email Alerts Usage**: Added visual progress bar in Settings to track daily email job alert limits.
+- **Abuse Prevention**: Implemented browser fingerprinting to detect and limit multi-account abuse.
+- **Data Integrity**: Added `job_id` tracing to all AI operations for improved debugging.
+- **Career Planning**: Implemented "Quick Add" goal input and functional Drag & Drop support to the Role Models section.
+- **Education Content**: Implemented randomized, aspirational headlines for the Education Command Center.
+- **Feature Interaction**: Made feature cards fully clickable for smoother transitions.
 
 ### Changed
-- **UI/UX**: Differentiated Match (circular) and GPA (vertical pillar) graphics to improve visual distinction across modules.
-- **UI/UX**: Added micro-animations and hover-triggered state changes to all feature cards for a more responsive feel.
-- **Branding**: Updated footer copyright and dual taglines ("Building For Your Career" and "Privacy-First AI") to Title Case for a more premium feel.
-- **Terminology**: Renamed "Job" to **"Jobs"** in the main navigation to better describe the module's scope (Feed, Match, History).
-- **Terminology**: Consistently singularized "Resumes" to **"Resume"** across the entire application (Header, Footer, Feature Cards).
-- **Terminology**: Standardized "Academic Record" to **"Transcript"** for clearer module identity.
-- **Branding**: Removed all instances of the phrase "Ultimate Resume" from the project files and documentation.
-- **Education**: Refactored the Education page to use the unified `BentoCard` system, aligning its aesthetic with the premium home page design.
-- **Navigation**: Renamed "Letters" to "Cover Letters" for better clarity.
-- **Settings**: Renamed "Analyses used" to "Analysis Used".
-- **Usage Limits**: Strictly enforced 0 email alerts for Free tier users.
-- **Routing**: Refactored application routing to use nested paths (`/jobs`, `/career`, `/education`) for better organization.
-- **Components**: Updated `AppRoutes`, `AppLayout`, `Header`, and `Footer` to support the new nested routing structure.
-- **Branding**: Renamed "Job Fit" to "Match" and "Job Feed" to "Feed".
-- **Cleanup**: Removed deprecated route keys and unused navigation props.
-- **Branding**: Rebranded "Navigator Score" to **Match Score** and standardized feature card titles.
-- **Onboarding**: Updated `WelcomeScreen` to collect user names and register device IDs during signup.
-- **Education**: Complete UI overhaul of the `EducationDashboard` to align with the premium design system.
-- **Education**: Refined tools grid with premium card styles (`rounded-[2rem]`) and active scaling.
-- **Career**: Redesigned the "GENERAL/TECHNICAL" toggle in `GapAnalysisSection.tsx` with premium glassmorphism.
-- **Career**: Redesigned the "Emulate" / "Destination" mode selector in `CoachHero.tsx`.
-- **Career**: Refactored Coach architecture to support multi-file processing and added a LinkedIn export guide.
-- **History**: Redesigned the Application History screen with premium glassmorphism and lift effects.
-- **History**: Implemented dynamic visibility for status filters and overhauled "Analyzing"/"Failed" states.
-- **Architecture**: Unified profile management in `UserContext` and added missing route constants.
+- **Visual Distinction**: Differentiated Match (circular) and GPA (vertical pillar) graphics for better module separation.
+- **Micro-Animations**: Added hover-triggered state changes to all feature cards.
+- **Branding Polish**: Updated dual taglines ("Building For Your Career" and "Privacy-First AI") and footer copyright to Title Case.
+- **Navigation Terminology**: Renamed "Job" to **"Jobs"** (encompassing Feed, Match, History).
+- **Standardized Naming**: Consistently singularized "Resumes" to **"Resume"** across the platform.
+- **Transcript Identity**: Standardized "Academic Record" to **"Transcript"** for clearer module identity.
+- **Module Architecture**: Refactored Education page to use the unified `BentoCard` system.
+- **Routing Structure**: Refactored to use nested paths (`/jobs`, `/career`, `/education`) for better organization.
+- **Score Branding**: Rebranded "Navigator Score" to **Match Score**.
+- **Onboarding Refresh**: Updated `WelcomeScreen` to collect user names and register device IDs.
+- **Career UI**: Redesigned toggles and mode selectors with premium glassmorphism.
+- **History UI**: Redesigned Application History with premium glassmorphism and lift effects.
+- **Profile Management**: Unified profile management in `UserContext`.
 
 ### Fixed
-- **Navigation**: Removed redundant "Coach" sub-link from the Career navigation group.
-- **UI**: Aligned Education module card dimensions and centering with the Home page grid for a cohesive physical scale.
-- **Navigation**: Resolved a bug where the "Career" link in the header failed to navigate to the (`/career`) page, although the view state was updated.
-- **Navigation**: Resolved a bug where the "Career" tab in the header failed to highlight when visiting the main Coach page (`/career`), hiding sub-link navigation.
-- **Architecture**: Passed missing `isCoachMode` and `isEduMode` props to the `Header` component to ensure state updates correctly.
-- **Authentication**: Replaced token copy-paste in extension with standard Email/Password login flow.
-- **Navigation**: Fixed routing issue causing blank screen on "Career" page.
-- **Cleanup**: Removed redundant "Cover Letters" page from all navigation menus.
-- **Consistency**: Renamed "Academic Record" to "Transcript" in footer to match main navigation.
-- **Tests**: Updated `History.test.tsx` to handle `useNavigate` hook by wrapping components in `MemoryRouter`.
-- **Navigation**: Resolved a critical issue where header links failed to update the view state.
-- **Stability**: Fixed a runtime crash in `AppLayout` caused by undefined theme mode variables during navigation.
-- **Layout**: Corrected active state styling for nested sub-routes in the header.
-- **Stability**: Resolved "Failed to fetch dynamically imported module" errors by implementing `lazyWithRetry`.
-- **Auth**: Resolved a discrepancy between modal systems that prevented authentication triggers in logged-out states.
-- **History**: Resolved logical inconsistencies where failed analyses still displayed "Analyzing..." placeholders.
-- **Build**: Resolved post-refactor build failures by removing dead code (`ROUTES.ANALYZE`) and fixing implicit `any` types in `usageLimits.ts`.
-- **Code Quality**: Cleaned up over 100 linting errors and removed unused variables across `AppLayout`, `Header`, and `AppRoutes`.
-- **Tests**: Fixed regression in `History` and `GapAnalysis` tests, and implemented robust recursive mocks for `usageLimits.test.ts` to fix Supabase chain errors.
+- **Navigation Bugs**: Resolved issues where header links (Career, Education) failed to navigate or highlight correctly.
+- **Authentication**: Replaced token copy-paste in extension with standard Email/Password login.
+- **Stability**: Resolved "Failed to fetch" errors by implementing `lazyWithRetry`.
+- **UI Consistency**: Aligned Education card dimensions and centering with the Home page grid.
+- **Clean-up**: Removed redundant "Cover Letters" and "Coach" sub-links.
+- **Build & Tests**: Resolved post-refactor build failures and regression in `History` and `GapAnalysis` tests.
 </details>
 
 ### Verified
