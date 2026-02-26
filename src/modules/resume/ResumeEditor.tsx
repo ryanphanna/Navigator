@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { ExperienceBlock, EducationBlock, PublicationBlock, ProjectBlock, SidebarSection, Resume } from './types';
+import type { ExperienceBlock } from './types';
 import { Upload, Loader2, Plus, Trash2, Briefcase, GraduationCap, Code, Layers, Calendar, UserCircle, FileText, Zap, Sparkles, Heart, Download, ArrowRightLeft, ChevronUp, ChevronDown, X, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TRACKING_EVENTS, ROUTES } from '../../constants';

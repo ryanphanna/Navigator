@@ -5,13 +5,16 @@ import { Button } from '../../../components/ui/Button';
 import { UnifiedUploadHero } from '../../../components/common/UnifiedUploadHero';
 
 
+import type { ViewId } from '../../../utils/navigation';
+
+
 interface EduHeroProps {
     transcript: Transcript | null;
     calculatedGpa: string;
     totalCredits: number;
     targetCredits: number;
     progressPercentage: number;
-    onViewChange: (view: string) => void;
+    onViewChange: (view: ViewId) => void;
     handleFileUpload: (files: File[]) => void;
     isParsing: boolean;
     parseError: string | null;

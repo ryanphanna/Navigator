@@ -1,6 +1,7 @@
 import React from 'react';
 import { GraduationCap, Calculator, BarChart3, Info, Sparkles, School } from 'lucide-react';
 import type { Transcript } from '../../../types';
+import type { ViewId } from '../../../utils/navigation';
 import { BentoCard } from '../../../components/ui/BentoCard';
 import { FEATURE_COLORS } from '../../../featureRegistry';
 
@@ -10,7 +11,7 @@ interface EducationStatsProps {
     totalCredits: number;
     targetCredits: number;
     progressPercentage: number;
-    onViewChange: (view: any) => void;
+    onViewChange: (view: ViewId) => void;
 }
 
 export const EducationStats: React.FC<EducationStatsProps> = ({
