@@ -3,14 +3,12 @@ import { PenTool, ArrowRight, Copy, Building, Calendar } from 'lucide-react';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { StandardSearchBar } from '../../components/common/StandardSearchBar';
-import type { SavedJob } from '../../types';
 
-interface CoverLettersProps {
-    jobs: SavedJob[];
-    onSelectJob: (id: string) => void;
-}
 
-export const CoverLetters: React.FC<CoverLettersProps> = ({ jobs, onSelectJob }) => {
+import { useJobContext } from './context/JobContext';
+
+export const CoverLetters: React.FC = () => {
+    const { jobs, setActiveJobId: onSelectJob } = useJobContext();
     const [searchQuery, setSearchQuery] = React.useState('');
 
     const letters = useMemo(() => {
@@ -33,7 +31,7 @@ export const CoverLetters: React.FC<CoverLettersProps> = ({ jobs, onSelectJob })
     };
 
     return (
-        <SharedPageLayout className="theme-job" spacing="compact">
+        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="7xl">
             <PageHeader
                 title="Cover Letters"
                 subtitle="Your AI-generated narratives optimized for selection."

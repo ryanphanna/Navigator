@@ -1,14 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { STORAGE_KEYS } from '../constants';
+import { getViewIdFromPath, type ViewId, getPathFromViewId } from '../utils/navigation';
 
 interface GlobalUIContextType {
-    currentView: string;
+    currentView: ViewId;
     showSettings: boolean;
     isDark: boolean;
     isFocusedMode: boolean;
 
     // Actions
-    setView: (view: string) => void;
+    setView: (view: ViewId) => void;
     setShowSettings: (show: boolean) => void;
     toggleDarkMode: () => void;
     setFocusedMode: (focused: boolean) => void;
@@ -25,7 +27,12 @@ export const useGlobalUI = () => {
 };
 
 export const GlobalUIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [currentView, setView] = useState('home');
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // Derive view from URL - No more redundant state!
+    const currentView = getViewIdFromPath(location.pathname);
+
     const [showSettings, setShowSettings] = useState(false);
     const [isFocusedMode, setFocusedMode] = useState(false);
     const [isDark, setIsDark] = useState(() => {
@@ -49,6 +56,14 @@ export const GlobalUIProvider: React.FC<{ children: ReactNode }> = ({ children }
     }, [isDark]);
 
     const toggleDarkMode = () => setIsDark(prev => !prev);
+
+    // setView now handles navigation automatically
+    const setView = (viewId: ViewId) => {
+        const path = getPathFromViewId(viewId);
+        if (path && path !== location.pathname) {
+            navigate(path);
+        }
+    };
 
     return (
         <GlobalUIContext.Provider value={{

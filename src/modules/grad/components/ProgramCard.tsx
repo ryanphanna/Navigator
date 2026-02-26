@@ -10,36 +10,41 @@ interface ProgramCardProps {
 
 export const ProgramCard: React.FC<ProgramCardProps> = ({ program, onAnalyze, isAnalyzing }) => {
     return (
-        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:border-emerald-500/30 transition-all group relative overflow-hidden">
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 shadow-sm hover:shadow-xl hover:border-emerald-500/30 transition-all group relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-emerald-500/10 transition-colors" />
 
             <div className="flex flex-col h-full gap-4 relative z-10">
                 <div className="flex items-start justify-between">
-                    <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center text-emerald-600 shadow-inner">
+                    <div className="w-9 h-9 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center text-emerald-600 shadow-inner">
                         <GraduationCap className="w-5 h-5" />
                     </div>
-                    {program.isVerified && (
-                        <span className="text-xs font-bold bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 px-3 py-1 rounded-lg">
-                            Verified
+                    <div className="flex flex-col items-end gap-1.5">
+                        <span className="text-[10px] font-black uppercase tracking-wider bg-neutral-100 dark:bg-neutral-800 text-neutral-500 px-2 py-0.5 rounded-md">
+                            {program.type}
                         </span>
-                    )}
+                        {program.isVerified && (
+                            <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 px-2 py-0.5 rounded-md">
+                                Verified
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <div>
-                    <h3 className="text-lg font-black text-neutral-900 dark:text-white leading-tight mb-1 group-hover:text-emerald-600 transition-colors">
+                    <h3 className="text-base font-black text-neutral-900 dark:text-white leading-tight mb-1 group-hover:text-emerald-600 transition-colors break-words">
                         {program.name}
                     </h3>
-                    <p className="text-sm font-bold text-neutral-500">{program.institution}</p>
+                    <p className="text-xs font-bold text-neutral-500">{program.institution}</p>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs font-medium text-neutral-400">
+                <div className="flex items-center gap-2 text-[11px] font-medium text-neutral-400">
                     <MapPin className="w-3.5 h-3.5" />
                     {program.location.city}, {program.location.province}
                 </div>
 
-                <div className="flex flex-wrap gap-2 py-2">
+                <div className="flex flex-wrap gap-1.5 py-1">
                     {program.keywords.map(kw => (
-                        <span key={kw} className="px-2 py-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-[10px] font-bold text-neutral-500">
+                        <span key={kw} className="px-2 py-0.5 bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-700/50 rounded-lg text-[9px] font-bold text-neutral-400">
                             {kw}
                         </span>
                     ))}

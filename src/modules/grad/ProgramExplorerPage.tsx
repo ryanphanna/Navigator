@@ -2,21 +2,19 @@ import React from 'react';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { MAEligibility } from './MAEligibility';
-import { SkillExtractor } from './SkillExtractor';
 import { ProgramExplorer } from './components/ProgramExplorer';
 import { GraduationCap, Zap } from 'lucide-react';
-
-
-import { useSkillContext } from '../skills/context/SkillContext';
-import { Storage } from '../../services/storageService';
+import { ProgramRequirements } from './components/ProgramRequirements';
 import { useToast } from '../../contexts/ToastContext';
 import { AcademicHero } from './components/AcademicHero';
 import { useAcademicLogic } from './hooks/useAcademicLogic';
 
 export const ProgramExplorerPage: React.FC = () => {
-    const { updateSkills } = useSkillContext();
     const {
         transcript,
+        programRequirements,
+        isAnalyzingRequirements,
+        fetchRequirements,
         handleFileUpload,
         isParsing,
         parseError,
@@ -28,54 +26,57 @@ export const ProgramExplorerPage: React.FC = () => {
     const [selectedProgram, setSelectedProgram] = React.useState<string | undefined>();
     useToast();
 
-    const handleAddSkills = async (newSkills: Array<{ name: string; category?: 'hard' | 'soft'; proficiency: 'learning' | 'comfortable' | 'expert'; evidence?: string }>) => {
-        try {
-            // 1. Save all skills to storage
-            await Promise.all(newSkills.map(skill =>
-                Storage.saveSkill({
-                    name: skill.name,
-                    category: skill.category,
-                    proficiency: skill.proficiency,
-                    evidence: skill.evidence
-                })
-            ));
-
-            // 2. Refresh skills from storage to get full objects with IDs
-            const updatedSkills = await Storage.getSkills();
-
-            // 3. Update context
-            updateSkills(updatedSkills);
-
-        } catch (error) {
-            console.error('Failed to save skills:', error);
-            throw error; // Re-throw to let SkillExtractor handle the error state
-        }
-    };
-
     return (
         <SharedPageLayout maxWidth="full" className="relative theme-edu" spacing="compact">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
                 <PageHeader
                     variant="simple"
-                    title="Program Explorer"
-                    subtitle="Explore master's degrees and check your eligibility for top programs."
+                    title="Programs"
+                    subtitle="Track requirements for your current program and discover future opportunities."
                 />
 
                 {transcript ? (
-                    <div className="space-y-12">
-                        {/* 1. Discovery Backbone */}
-                        <ProgramExplorer
-                            onSelect={(p) => {
-                                setSelectedProgram(`${p.institution} - ${p.name}`);
-                                // Scroll to analyzer
-                                document.getElementById('program-analyzer')?.scrollIntoView({ behavior: 'smooth' });
-                            }}
-                        />
+                    <div className="space-y-16">
+                        {/* 1. Current Progress Tracking */}
+                        <div className="space-y-8">
+                            <div className="flex flex-col gap-1 text-left">
+                                <h3 className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">Active Program</h3>
+                                <p className="text-sm text-neutral-500 font-medium">Tracking requirements for: <span className="text-emerald-600 font-bold">{transcript.program}</span></p>
+                            </div>
+                            <div>
+                                <ProgramRequirements
+                                    requirements={programRequirements}
+                                    isAnalyzing={isAnalyzingRequirements}
+                                    onAnalyze={fetchRequirements}
+                                    programName={transcript.program}
+                                />
+                            </div>
+                        </div>
 
-                        {/* 2. Deep Analysis & Extraction (Grounded Analysis) */}
-                        <div id="program-analyzer" className="grid grid-cols-1 lg:grid-cols-2 gap-8 scroll-mt-20">
-                            <MAEligibility transcript={transcript} initialProgram={selectedProgram} />
-                            <SkillExtractor transcript={transcript} onAddSkills={handleAddSkills} />
+                        <div className="w-full h-px bg-neutral-100 dark:bg-neutral-800" />
+
+                        {/* 2. Future Discovery */}
+                        <div className="space-y-8">
+                            <div className="flex flex-col gap-1 text-left">
+                                <h3 className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">Discovery Library</h3>
+                                <p className="text-sm text-neutral-500 font-medium">Explore master's degrees, certifications, and career pivots.</p>
+                            </div>
+
+                            <ProgramExplorer
+                                onSelect={(p: any) => {
+                                    setSelectedProgram(`${p.institution} - ${p.name}`);
+                                    // Scroll to analyzer
+                                    setTimeout(() => {
+                                        document.getElementById('program-analyzer')?.scrollIntoView({ behavior: 'smooth' });
+                                    }, 100);
+                                }}
+                            />
+
+                            {selectedProgram && (
+                                <div id="program-analyzer" className="animate-in fade-in slide-in-from-bottom-4 duration-700 scroll-mt-20">
+                                    <MAEligibility transcript={transcript} initialProgram={selectedProgram} />
+                                </div>
+                            )}
                         </div>
                     </div>
                 ) : (

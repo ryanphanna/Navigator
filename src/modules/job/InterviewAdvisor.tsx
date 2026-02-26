@@ -451,7 +451,7 @@ export const InterviewAdvisor: React.FC = () => {
 
 
     return (
-        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="5xl">
+        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="7xl">
             <PageHeader
                 title="Interview Advisor"
                 subtitle="Master your narrative with AI-powered mock sessions"
@@ -476,7 +476,7 @@ export const InterviewAdvisor: React.FC = () => {
                 </motion.div>
             )}
 
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                     {/* General Session Card */}
                     <div className="animate-in slide-in-from-bottom-8 fade-in duration-700 delay-100 fill-mode-both">

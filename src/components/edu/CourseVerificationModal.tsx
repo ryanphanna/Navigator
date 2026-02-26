@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Check, AlertCircle, Save, Trash2, Plus } from 'lucide-react';
+import { X, Check, Save, Trash2, Plus } from 'lucide-react';
 import type { Transcript, Course } from '../../types';
 import { SearchableInput } from '../ui/SearchableInput';
 import { UNIVERSITIES, PROGRAMS, CREDENTIAL_TYPES } from '../../modules/grad/data/academicConstants';
@@ -54,9 +54,9 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                     <div>
                         <h2 className="text-xl font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                             <Check className="w-6 h-6 text-emerald-500" />
-                            Verify Transcript Data
+                            Verify
                         </h2>
-                        <p className="text-sm text-neutral-500 mt-1">Gemini extracted these courses. Please confirm they are accurate.</p>
+                        <p className="text-sm text-neutral-500 mt-1">Please confirm accuracy.</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full transition-colors">
                         <X className="w-5 h-5 text-neutral-500" />
@@ -180,11 +180,7 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/50 dark:bg-neutral-800/50">
-                    <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-500 font-medium">
-                        <AlertCircle className="w-4 h-4" />
-                        Changes will be saved to your secure Navigator Vault.
-                    </div>
+                <div className="p-6 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-end bg-neutral-50/50 dark:bg-neutral-800/50">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={onClose}
@@ -197,7 +193,7 @@ export const CourseVerificationModal: React.FC<CourseVerificationModalProps> = (
                             className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2 active:scale-95"
                         >
                             <Save className="w-4 h-4" />
-                            Confirm Data
+                            Save
                         </button>
                     </div>
                 </div>

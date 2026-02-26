@@ -39,7 +39,7 @@ export const ProgramExplorer: React.FC<ProgramExplorerProps> = ({ onSelect }) =>
                     <div className="absolute inset-0 bg-emerald-500/10 blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
                     <input
                         type="text"
-                        placeholder="Search programs, institutions, or keywords (e.g. 'Waterloo', 'Design')..."
+                        placeholder="Search programs, institutions, or keywords..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full px-8 py-5 bg-white dark:bg-neutral-900 border-2 border-neutral-100 dark:border-neutral-800 rounded-[2rem] text-lg font-bold focus:border-emerald-500 focus:ring-8 focus:ring-emerald-500/5 transition-all outline-none shadow-2xl relative z-10"
@@ -54,22 +54,21 @@ export const ProgramExplorer: React.FC<ProgramExplorerProps> = ({ onSelect }) =>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap justify-center gap-4 pt-2">
+                <div className="flex flex-wrap justify-center gap-2 pt-2">
                     {['Urban Planning', 'Sustainability', 'Computer Science', 'Design'].map(tag => (
                         <button
                             key={tag}
                             onClick={() => setSearchQuery(tag)}
-                            className="px-4 py-2 rounded-xl border border-neutral-100 dark:border-neutral-800 bg-white/50 dark:bg-neutral-900/50 text-xs font-bold text-neutral-500 hover:border-emerald-500 hover:text-emerald-600 transition-all tracking-tight"
-
+                            className="group flex items-center gap-2 px-3.5 py-1.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl hover:shadow-md hover:border-emerald-400 dark:hover:border-emerald-600 transition-all duration-300 text-sm font-bold text-neutral-800 dark:text-neutral-200 tracking-tight whitespace-nowrap"
                         >
-                            #{tag}
+                            {tag}
                         </button>
                     ))}
                 </div>
             </div>
 
             {/* Results Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {results.map(program => (
                     <ProgramCard
                         key={program.id}

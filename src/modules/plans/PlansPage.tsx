@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ArrowRight, Zap, Shield } from 'lucide-react';
 import { ROUTES, PLAN_LIMITS, PLAN_PRICING, USER_TIERS, HEADLINES } from '../../constants';
 import { getFeaturesForPlan } from '../../featureRegistry';
@@ -97,7 +97,7 @@ export const PlansPage: React.FC = () => {
             <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] -z-10 animate-pulse" />
             <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] -z-10 animate-pulse-slow" />
 
-            <div className="max-w-6xl mx-auto relative z-10">
+            <div className="max-w-7xl mx-auto relative z-10 px-4 sm:px-6">
                 <PageHeader
                     variant="hero"
                     title={headline.text}
@@ -108,16 +108,17 @@ export const PlansPage: React.FC = () => {
                 <div className="text-center mb-16 flex flex-col items-center -mt-8">
                     {/* Monthly / Annual Toggle */}
                     <motion.div
+                        layout
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="flex items-center justify-center gap-8"
+                        transition={{ delay: 0.3, duration: 0.4 }}
+                        className="flex items-center justify-center gap-6"
                     >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center">
                             <div className="relative inline-flex p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800">
                                 {/* Sliding highlight */}
                                 <div
-                                    className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-white dark:bg-neutral-800 shadow-sm transition-transform duration-300 ease-out ${isAnnual ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'}`}
+                                    className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-white dark:bg-neutral-800 shadow-sm transition-transform duration-200 ease-in-out ${isAnnual ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'}`}
                                 />
                                 <button
                                     onClick={() => setIsAnnual(false)}
@@ -132,25 +133,43 @@ export const PlansPage: React.FC = () => {
                                     Annual
                                 </button>
                             </div>
-                            {isAnnual && (
-                                <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider rounded-full animate-in fade-in zoom-in-95 duration-200">
-                                    Save up to 21%
-                                </span>
-                            )}
+
+                            <AnimatePresence>
+                                {isAnnual && (
+                                    <motion.div
+                                        key="savings-badge-container"
+                                        layout
+                                        initial={{ width: 0, opacity: 0, x: -5 }}
+                                        animate={{ width: 'auto', opacity: 1, x: 0 }}
+                                        exit={{ width: 0, opacity: 0, x: -5 }}
+                                        transition={{
+                                            duration: 0.2,
+                                            ease: "easeInOut"
+                                        }}
+                                        className="overflow-hidden flex items-center shrink-0"
+                                    >
+                                        <span className="ml-3 px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-full whitespace-nowrap">
+                                            Save up to 21%
+                                        </span>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
 
-                        <Link
-                            to={ROUTES.FEATURES}
-                            className="group flex items-center gap-2 text-sm font-bold text-neutral-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
-                        >
-                            Explore all features
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
+                        <motion.div layout transition={{ duration: 0.2, ease: "easeInOut" }} className="flex items-center shrink-0">
+                            <Link
+                                to={ROUTES.FEATURES}
+                                className="group flex items-center gap-2 text-sm font-bold text-neutral-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
+                            >
+                                Explore all features
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                        </motion.div>
                     </motion.div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24 max-w-5xl mx-auto px-4 items-stretch">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24 max-w-7xl mx-auto px-4 sm:px-6 items-stretch">
                 {/* Explorer Plan */}
                 <PlanCard
                     title="Explorer"
@@ -236,7 +255,7 @@ export const PlansPage: React.FC = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                className="mt-24 pt-12 border-t border-neutral-100 dark:border-neutral-800 grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto px-4"
+                className="mt-24 pt-12 border-t border-neutral-100 dark:border-neutral-800 grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto px-4 sm:px-6"
             >
                 <div className="flex gap-4 items-start text-left">
                     <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center shrink-0">

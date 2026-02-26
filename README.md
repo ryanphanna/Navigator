@@ -14,7 +14,7 @@ The modern career path is fragmented. Job seekers juggle siloed resumes, navigat
 - **Smart Capture**: Single-click job saving and AI-powered inbox triage.
 
 
-## The Stack
+## Stack
 
 - **AI**: Google Gemini (Flash & Pro)
 - **Frontend**: React 19, Vite, Tailwind CSS, Framer Motion

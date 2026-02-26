@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import type { CustomSkill, ResumeProfile } from '../../types';
+import type { CustomSkill } from '../../types';
 import { Storage } from '../../services/storageService';
 import { SharedPageLayout } from '../common/SharedPageLayout';
-import { PageHeader } from '../ui/PageHeader';
 import { Zap } from 'lucide-react';
 import { StandardSearchBar } from '../common/StandardSearchBar';
 import { StandardFilterGroup } from '../common/StandardFilterGroup';
@@ -15,14 +14,18 @@ import { SkillSuggestions } from './SkillSuggestions';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { STORAGE_KEYS } from '../../constants';
 
-interface SkillsViewProps {
-    skills: CustomSkill[];
-    resumes: ResumeProfile[];
-    onSkillsUpdated: (skills: CustomSkill[]) => void;
-    onStartUnifiedInterview: (skills: { name: string; proficiency: string }[]) => void;
-}
+import { useNavigate } from 'react-router-dom';
+import { useSkillContext } from '../../modules/skills/context/SkillContext';
+import { useResumeContext } from '../../modules/resume/context/ResumeContext';
 
-export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkillsUpdated, onStartUnifiedInterview }) => {
+export const SkillsView: React.FC = () => {
+    const navigate = useNavigate();
+    const { skills, updateSkills: onSkillsUpdated } = useSkillContext();
+    const { resumes } = useResumeContext();
+
+    const onStartUnifiedInterview = (skillsToVerify: { name: string; proficiency: string }[]) => {
+        navigate('/career/skills/interview', { state: { skills: skillsToVerify } });
+    };
     const [searchTerm, setSearchTerm] = useState('');
     const [isAdding, setIsAdding] = useState(false);
 
@@ -119,13 +122,7 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ skills, resumes, onSkill
     };
 
     return (
-        <SharedPageLayout className="theme-emerald" spacing="compact" maxWidth="5xl">
-            <PageHeader
-                title="Your Skills"
-                subtitle="Track and verify your professional technical proficiency."
-                variant="simple"
-                className="mb-8"
-            />
+        <SharedPageLayout className="theme-coach" spacing="compact" maxWidth="7xl">
             {/* Quick Stats */}
             <SkillsStats
                 skills={skills}

@@ -24,7 +24,19 @@ export const extractPdfText = async (base64: string): Promise<string> => {
         });
 
         const pagesContent = await Promise.all(pagePromises);
-        return pagesContent.join('\n') + '\n';
+        const rawContent = pagesContent.join('\n');
+
+        // Clean common PDF extraction artifacts
+        return rawContent
+            .replace(/f\s+i/g, 'fi')
+            .replace(/f\s+l/g, 'fl')
+            .replace(/fi\s+/g, 'fi')
+            .replace(/fl\s+/g, 'fl')
+            .replace(/ti\s+/g, 'ti')
+            .replace(/ff\s+/g, 'ff')
+            .replace(/ft\s+/g, 'ft')
+            .replace(/\s+/g, ' ')
+            .trim() + '\n';
     } catch {
         return "";
     }

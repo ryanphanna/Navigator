@@ -278,15 +278,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, featureCo
                         </button>
                     </div>
 
-                    <div className="text-center pt-2">
-                        <button
-                            type="button"
-                            onClick={() => setIsSignUp(!isSignUp)}
-                            className="text-xs text-neutral-500 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                        >
-                            {isSignUp ? 'Actually, I have an account' : "Wait, I don't have an account"}
-                        </button>
-                    </div>
                 </form>
             )}
         </div>
@@ -304,7 +295,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, featureCo
                         <div className="flex-1 flex flex-col bg-neutral-50 dark:bg-neutral-900/50">
                             <div className="px-8 py-6 border-b border-neutral-200/50 dark:border-neutral-800/50 flex justify-between items-center bg-gradient-to-r from-indigo-50/50 to-violet-50/50 dark:from-indigo-900/20 dark:to-violet-900/20">
                                 <h3 className="font-bold text-xl text-neutral-900 dark:text-white tracking-tight">
-                                    {successMessage ? 'Success' : step === 0 ? 'Sign In or Sign Up' : isSignUp ? 'Create Account' : 'Welcome Back'}
+                                    {successMessage ? 'Success' : step === 0 ? 'Get Started' : isSignUp ? 'Create Account' : 'Welcome Back'}
                                 </h3>
                                 <button
                                     onClick={onClose}
@@ -323,7 +314,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, featureCo
                     <>
                         <div className="px-8 py-6 border-b border-neutral-200/50 dark:border-neutral-800/50 flex justify-between items-center bg-gradient-to-r from-indigo-50/50 to-violet-50/50 dark:from-indigo-900/20 dark:to-violet-900/20">
                             <h3 className="font-bold text-xl text-neutral-900 dark:text-white tracking-tight">
-                                {successMessage ? 'Success' : step === 0 ? 'Sign In or Sign Up' : isSignUp ? 'Create Account' : 'Welcome Back'}
+                                {successMessage ? 'Success' : step === 0 ? 'Get Started' : isSignUp ? 'Create Account' : 'Welcome Back'}
                             </h3>
                             <button
                                 onClick={onClose}

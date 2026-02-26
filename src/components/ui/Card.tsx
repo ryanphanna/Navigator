@@ -6,6 +6,7 @@ interface CardProps {
     className?: string;
     onClick?: () => void;
     glow?: boolean;
+    overflow?: 'hidden' | 'visible';
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -13,9 +14,10 @@ export const Card: React.FC<CardProps> = ({
     children,
     className = "",
     onClick,
-    glow = false
+    glow = false,
+    overflow = 'hidden'
 }) => {
-    const baseStyles = "relative rounded-[2.5rem] transition-all duration-500 overflow-hidden";
+    const baseStyles = "relative rounded-[2.5rem] transition-all duration-500 " + (overflow === 'hidden' ? 'overflow-hidden' : 'overflow-visible');
 
     const variants = {
         premium: "card-premium backdrop-blur-xl border border-neutral-200 dark:border-white/10 shadow-2xl shadow-accent-primary/5",

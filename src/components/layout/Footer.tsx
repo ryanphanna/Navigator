@@ -1,8 +1,9 @@
 import React from 'react';
-import { TrendingUp, Sparkles, Zap, Bookmark, FileText, Users, Target, GraduationCap, Mail, Shield, Scale } from 'lucide-react';
+import { TrendingUp, Sparkles, Zap, Bookmark, FileText, Users, Target, GraduationCap, Mail, Shield, Scale, MessageSquare } from 'lucide-react';
 import { useGlobalUI } from '../../contexts/GlobalUIContext';
 import { ROUTES, APP_VERSION } from '../../constants';
 import { useNavigate } from 'react-router-dom';
+import { type ViewId } from '../../utils/navigation';
 
 export const Footer: React.FC = () => {
     const { setView } = useGlobalUI();
@@ -10,7 +11,7 @@ export const Footer: React.FC = () => {
 
     const handleNavigate = (path: string, viewId: string) => {
         navigate(path);
-        setView(viewId);
+        setView(viewId as ViewId);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -21,6 +22,7 @@ export const Footer: React.FC = () => {
             title: 'Jobs',
             items: [
                 { label: 'Resume', path: ROUTES.RESUMES, view: 'resumes', icon: FileText },
+                { label: 'Interviews', path: ROUTES.INTERVIEWS, view: 'interviews', icon: MessageSquare },
                 { label: 'Feed', path: ROUTES.FEED, view: 'feed', icon: Sparkles },
                 { label: 'History', path: ROUTES.HISTORY, view: 'history', icon: Bookmark },
 

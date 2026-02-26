@@ -62,7 +62,7 @@ export const PlanCard = ({
                 } `}
         >
             {isPopular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[10px] font-black tracking-[0.2em] uppercase rounded-full shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 whitespace-nowrap">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[11px] font-bold rounded-full shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 whitespace-nowrap">
                     <Sparkles className="w-3 h-3" />
                     Recommended
                 </div>
@@ -79,7 +79,7 @@ export const PlanCard = ({
                     {price !== '$0' && <span className="text-neutral-500 dark:text-neutral-400 text-sm font-bold">/mo</span>}
                 </div>
                 {subText ? (
-                    <div className={`mt-2 text-[9px] font-black uppercase tracking-[0.15em]
+                    <div className={`mt-2 text-[11px] font-bold
                         ${isEmerald ? 'text-emerald-500/80' :
                             isViolet ? 'text-violet-500/80' :
                                 isIndigo ? 'text-indigo-500/80' :
@@ -88,7 +88,7 @@ export const PlanCard = ({
                         {subText}
                     </div>
                 ) : !isCompact && (
-                    <div className="mt-2 text-[10px] invisible uppercase tracking-[0.15em]" aria-hidden="true">
+                    <div className="mt-2 text-[11px] invisible" aria-hidden="true">
                         Spacer
                     </div>
                 )}
@@ -177,7 +177,7 @@ export const PlanCard = ({
                     onClick={onSelect}
                     disabled={isLoading}
                     type="button"
-                    className={`w-full py-4 px-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-auto
+                    className={`w-full py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-auto
                         ${isPopular
                             ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-lg shadow-emerald-500/25'
                             : isIndigo

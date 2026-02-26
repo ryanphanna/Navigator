@@ -13,8 +13,8 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onDelete }) => {
 
     return (
         <div
-            className={`group flex items-center gap-2.5 px-3.5 py-1.5 bg-white dark:bg-neutral-900 border rounded-xl hover:shadow-md transition-all duration-300 relative ${isExpert ? 'border-amber-200 dark:border-amber-800/50 hover:border-amber-400' :
-                isComfortable ? 'border-indigo-200 dark:border-indigo-800/50 hover:border-indigo-400' :
+            className={`group flex items-center gap-2.5 px-3.5 py-1.5 bg-white dark:bg-neutral-900 border rounded-xl hover:shadow-md transition-all duration-300 relative ${isExpert ? 'border-emerald-200 dark:border-emerald-800/50 hover:border-emerald-400' :
+                isComfortable ? 'border-orange-200 dark:border-orange-800/50 hover:border-orange-400' :
                     'border-neutral-200 dark:border-neutral-800 hover:border-neutral-400'
                 }`}
         >
@@ -24,18 +24,23 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onDelete }) => {
                 </span>
 
                 <div className="flex items-center gap-1.5 ml-0.5">
-                    {/* Verified Checkmark (Right Side) */}
-                    {skill.evidence && (
-                        <span title="Verified Skill" className="flex items-center">
-                            <Check className="w-3.5 h-3.5 text-neutral-900 dark:text-white stroke-[3.5]" />
-                        </span>
+                    {/* Unified Proficiency & Verification Indicator */}
+                    {skill.evidence ? (
+                        <div title={`Verified ${skill.proficiency}`} className="flex items-center">
+                            <Check className={`w-3.5 h-3.5 stroke-[3.5] ${isExpert ? 'text-emerald-500' :
+                                isComfortable ? 'text-orange-500' :
+                                    'text-neutral-500'
+                                }`} />
+                        </div>
+                    ) : (
+                        <div
+                            className={`flex-shrink-0 w-2 h-2 rounded-full ${isExpert ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
+                                isComfortable ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]' :
+                                    'bg-neutral-300 dark:bg-neutral-600'
+                                }`}
+                            title={skill.proficiency}
+                        />
                     )}
-
-                    {/* Proficiency Dot (Right Side) */}
-                    <div className={`flex-shrink-0 w-2 h-2 rounded-full ${isExpert ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]' :
-                        isComfortable ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)]' :
-                            'bg-neutral-300 dark:bg-neutral-600'
-                        }`} title={skill.proficiency} />
                 </div>
             </div>
 

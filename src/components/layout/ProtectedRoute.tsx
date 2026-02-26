@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin = false }) => {
-    const { user, isLoading, isAdmin } = useUser();
+    const { user, isLoading, isAdmin, isEmailVerified } = useUser();
     const location = useLocation();
 
     if (isLoading) {
@@ -22,7 +22,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
         return <Navigate to={ROUTES.HOME} state={{ from: location }} replace />;
     }
 
-    const { isEmailVerified } = useUser();
 
     if (!isEmailVerified && user.app_metadata?.provider === 'email') {
         // Redirect unverified email users to the verification page

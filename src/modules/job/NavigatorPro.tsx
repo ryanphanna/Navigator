@@ -13,13 +13,14 @@ import { STORAGE_KEYS } from '../../constants';
 import { StandardSearchBar } from '../../components/common/StandardSearchBar';
 import { StandardFilterGroup } from '../../components/common/StandardFilterGroup';
 
-interface NavigatorProProps {
-    onDraftApplication: (url: string) => void;
-    onPromoteFromFeed?: (jobId: string) => void;
-    onSaveFromFeed?: (jobId: string) => void;
-}
+import { useJobContext } from './context/JobContext';
 
-export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, onPromoteFromFeed, onSaveFromFeed }) => {
+export const NavigatorPro: React.FC = () => {
+    const {
+        handleDraftApplication: onDraftApplication,
+        handlePromoteFromFeed: onPromoteFromFeed,
+        handleSaveFromFeed: onSaveFromFeed
+    } = useJobContext();
     const [feed, setFeed] = useState<JobFeedItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [analyzingId, setAnalyzingId] = useState<string | null>(null);
@@ -226,7 +227,7 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
 
 
     return (
-        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="5xl">
+        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="7xl">
             <PageHeader
                 title="Feed"
                 subtitle="Your personalized stream of high-match professional opportunities."
@@ -250,6 +251,7 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
                                 activeFilter={sort}
                                 onSelect={(s) => setSort(s as 'date' | 'match')}
                                 themeColor="indigo"
+                                className="shrink-0"
                             />
 
                             <StandardFilterGroup
@@ -259,6 +261,7 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
                                 activeFilter={filterHighMatch ? 'high-match' : ''}
                                 onSelect={() => setFilterHighMatch(!filterHighMatch)}
                                 themeColor="indigo"
+                                className="shrink-0"
                             />
 
                             <StandardFilterGroup
@@ -268,6 +271,7 @@ export const NavigatorPro: React.FC<NavigatorProProps> = ({ onDraftApplication, 
                                 activeFilter={filterClosingSoon ? 'closing-soon' : ''}
                                 onSelect={() => setFilterClosingSoon(!filterClosingSoon)}
                                 themeColor="amber"
+                                className="shrink-0"
                             />
                         </div>
                     }

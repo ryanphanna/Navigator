@@ -15,6 +15,7 @@ export interface BentoCardProps {
     isComingSoon?: boolean;
     badge?: string;
     className?: string;
+    variant?: 'default' | 'compact';
 }
 
 export const BentoCard: React.FC<BentoCardProps> = ({
@@ -29,6 +30,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
     isComingSoon = false,
     badge,
     className = "",
+    variant = "default",
 }) => {
     const cardRef = useRef<HTMLDivElement>(null);
     const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -73,7 +75,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
                     : `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-4px)`,
                 transition: tilt.x === 0 ? 'all 0.6s cubic-bezier(0.23, 1, 0.32, 1)' : 'transform 0.1s ease-out, box-shadow 0.3s ease-out'
             }}
-            className={`group relative bg-white dark:bg-neutral-900/40 backdrop-blur-2xl rounded-3xl p-4 border ${borderAccentClass} h-full shadow-xl shadow-black/5 dark:shadow-none hover:shadow-2xl hover:shadow-indigo-500/10 text-left overflow-hidden flex flex-col cursor-pointer ${className}`}
+            className={`group relative bg-white dark:bg-neutral-900/40 backdrop-blur-2xl ${variant === 'compact' ? 'rounded-2xl p-4' : 'rounded-3xl p-6'} border ${borderAccentClass} h-full shadow-xl shadow-black/5 dark:shadow-none hover:shadow-2xl hover:shadow-indigo-500/10 text-left flex flex-col cursor-pointer ${className}`}
             onClick={onAction}
         >
             {/* Dynamic Mouse Shimmer */}
@@ -100,9 +102,9 @@ export const BentoCard: React.FC<BentoCardProps> = ({
                 </button>
             )}
 
-            <div className="flex items-start justify-between relative z-10 mb-2">
-                <div className={`w-10 h-10 shrink-0 ${iconBgClass} ${iconColorClass} rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/10 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out`}>
-                    <Icon className="w-5 h-5" />
+            <div className={`flex items-start justify-between relative z-10 ${variant === 'compact' ? 'mb-2' : 'mb-2'}`}>
+                <div className={`${variant === 'compact' ? 'w-8 h-8' : 'w-10 h-10'} shrink-0 ${iconBgClass} ${iconColorClass} rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/10 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out`}>
+                    <Icon className={`${variant === 'compact' ? 'w-4 h-4' : 'w-5 h-5'}`} />
                 </div>
 
                 <div className="flex gap-1 pt-1.5">
@@ -119,26 +121,28 @@ export const BentoCard: React.FC<BentoCardProps> = ({
                 </div>
             </div>
 
-            <div className="relative z-10 mb-1.5 h-[2.75rem] flex flex-col justify-start">
-                <h3 className="text-lg font-black text-neutral-900 dark:text-white tracking-tight leading-tight line-clamp-2">
+            <div className={`relative z-10 mb-1 ${variant === 'compact' ? 'h-auto' : 'h-[3rem]'} flex flex-col justify-start`}>
+                <h3 className={`${variant === 'compact' ? 'text-lg font-bold' : 'text-lg font-black'} text-neutral-900 dark:text-white tracking-tight leading-tight line-clamp-2`}>
                     {title}
                 </h3>
             </div>
 
-            <div className="min-h-[3rem] mb-4">
-                <p className="text-[12px] text-neutral-500 dark:text-neutral-400 leading-relaxed relative z-10 font-medium line-clamp-3">
+            <div className={`${variant === 'compact' ? 'h-auto mb-4' : 'h-[3.75rem] mb-4'}`}>
+                <p className={`${variant === 'compact' ? 'text-[11px]' : 'text-[12px]'} text-neutral-500 dark:text-neutral-400 leading-relaxed relative z-10 font-medium line-clamp-3`}>
                     {description}
                 </p>
             </div>
 
             {/* Preview Section */}
             <div className="relative mt-auto pt-4 border-t border-neutral-100 dark:border-white/5">
-                <div className="relative z-10 transform group-hover:scale-105 transition-transform duration-700 ease-out">
-                    {previewContent}
-                </div>
+                {previewContent && (
+                    <div className="h-24 flex items-center justify-center relative z-10 transform group-hover:scale-105 transition-transform duration-700 ease-out">
+                        {previewContent}
+                    </div>
+                )}
 
                 {/* Action Bar Area - Reserved space for alignment */}
-                <div className="mt-4 h-6 flex items-center justify-end relative z-10">
+                <div className={`${previewContent ? 'mt-2' : ''} h-6 flex items-center justify-end relative z-10`}>
                     {actionLabel && !isComingSoon && (
                         <div
                             className={`flex items-center gap-2 ${actionTextClass} font-black text-[10px] tracking-[0.15em] uppercase transition-all cursor-pointer group/btn`}

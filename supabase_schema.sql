@@ -87,6 +87,15 @@ create table daily_usage (
   primary key (user_id, date)
 );
 
+-- USER_SKILLS: Stores verified and manual skills
+create table user_skills (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references profiles(id) not null,
+  name text not null,
+  proficiency text default 'beginner' check (proficiency in ('beginner', 'intermediate', 'advanced', 'expert')),
+  evidence jsonb default '[]'::jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
   unique(user_id, name)
 );
 

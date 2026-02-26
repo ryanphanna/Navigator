@@ -67,7 +67,7 @@ export const RoleModelSection: React.FC<RoleModelSectionProps> = ({
                             {isUploading ? 'Parsing...' : 'Upload PDF'}
                         </Button>
                     }
-                    className="max-w-4xl mx-auto mb-10"
+                    className="max-w-7xl mx-auto mb-10"
                 />
             )}
 
@@ -78,7 +78,7 @@ export const RoleModelSection: React.FC<RoleModelSectionProps> = ({
                     isUploading={isUploading}
                 />
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
                     {roleModels.map(rm => (
                         <EntityCard
                             key={rm.id}

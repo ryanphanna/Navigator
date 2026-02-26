@@ -5,27 +5,18 @@ import { FeatureGrid } from './FeatureGrid';
 import { useHeadlines } from '../../hooks/useHeadlines';
 import { PageHeader } from '../../components/ui/PageHeader';
 
-import type { User } from '@supabase/supabase-js';
+import { useUser } from '../../contexts/UserContext';
+import { useGlobalUI } from '../../contexts/GlobalUIContext';
+import { useModal } from '../../contexts/ModalContext';
 
-interface HomePageProps {
-    user: User | null;
-    isAdmin?: boolean;
-    isTester?: boolean;
-    onNavigate?: (view: string) => void;
-    onShowAuth?: (feature?: any) => void;
-    journey?: string;
-    userTier?: string;
-}
+const HomePage: React.FC = () => {
+    const { user, isAdmin, isTester, journey, userTier } = useUser();
+    const { setView } = useGlobalUI();
+    const { openModal } = useModal();
 
-const HomePage: React.FC<HomePageProps> = ({
-    user,
-    isAdmin = false,
-    isTester = false,
-    onNavigate,
-    onShowAuth,
-    journey = 'job-hunter',
-    userTier = 'free',
-}) => {
+    const onNavigate = (view: any) => setView(view);
+    const onShowAuth = (feature?: any) => openModal('AUTH', feature ? { feature } : undefined);
+
     const headlineCategory = journey === 'student' ? 'edu' : 'all';
     const activeHeadline = useHeadlines(headlineCategory);
 
@@ -49,11 +40,11 @@ const HomePage: React.FC<HomePageProps> = ({
                 subtitle=""
             />
 
-            <div className="w-full max-w-6xl mx-auto">
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
                 <FeatureGrid
                     user={user}
                     onNavigate={onNavigate}
-                    onShowAuth={(feature) => onShowAuth?.(feature)}
+                    onShowAuth={onShowAuth}
                     isAdmin={isAdmin}
                     isTester={isTester}
                     userTier={userTier}

@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { EventService } from '../../services/eventService';
-import type { CustomSkill, RoleModelProfile, TargetJob, Transcript } from '../../types';
 import { TRACKING_EVENTS } from '../../constants';
 
 // Refactored Components
@@ -12,46 +11,33 @@ import { RoleModelComparison } from './components/RoleModelComparison';
 import { GrowthPage } from './components/GrowthPage';
 import { useHeadlines } from '../../hooks/useHeadlines';
 import { PageHeader } from '../../components/ui/PageHeader';
-import type { ResumeProfile } from '../resume/types';
 import type { CoachViewType } from './types';
+import { useCoachContext } from './context/CoachContext';
+import { useSkillContext } from '../skills/context/SkillContext';
+import { useResumeContext } from '../resume/context/ResumeContext';
+import { useGlobalUI } from '../../contexts/GlobalUIContext';
 
-interface CoachDashboardProps {
-    userSkills: CustomSkill[];
-    roleModels: RoleModelProfile[];
-    targetJobs: TargetJob[];
-    resumes: ResumeProfile[];
-    transcript: Transcript | null;
-    view: CoachViewType;
-    onViewChange: (view: CoachViewType) => void;
-    onAddRoleModel: (file: File) => Promise<void>;
-    onAddTargetJob: (url: string) => Promise<void>;
-    onUpdateTargetJob: (job: TargetJob) => Promise<void>;
-    onEmulateRoleModel: (id: string) => void;
-    onDeleteRoleModel: (id: string) => Promise<void>;
-    onRunGapAnalysis: (targetJobId: string) => Promise<void>;
-    onGenerateRoadmap: (targetJobId: string) => Promise<void>;
-    onToggleMilestone: (targetJobId: string, milestoneId: string) => Promise<void>;
-    activeAnalysisIds?: Set<string>;
-}
+export const CoachDashboard: React.FC = () => {
+    const {
+        roleModels, targetJobs, transcript, activeAnalysisIds = new Set<string>(),
+        handleAddRoleModel: onAddRoleModel,
+        handleDeleteRoleModel: onDeleteRoleModel,
+        handleRunGapAnalysis: onRunGapAnalysis,
+        handleGenerateRoadmap: onGenerateRoadmap,
+        handleToggleMilestone: onToggleMilestone,
+        handleTargetJobCreated: onAddTargetJob,
+        handleEmulateRoleModel: onEmulateRoleModel,
+        handleUpdateTargetJob: onUpdateTargetJob
+    } = useCoachContext();
 
-export const CoachDashboard: React.FC<CoachDashboardProps> = ({
-    userSkills,
-    roleModels,
-    targetJobs,
-    resumes,
-    transcript,
-    view,
-    onAddRoleModel,
-    onAddTargetJob,
-    onUpdateTargetJob,
-    onDeleteRoleModel,
-    onRunGapAnalysis,
-    onGenerateRoadmap,
-    onToggleMilestone,
-    onEmulateRoleModel,
-    onViewChange,
-    activeAnalysisIds = new Set()
-}) => {
+    const { skills: userSkills } = useSkillContext();
+    const { resumes } = useResumeContext();
+    const { currentView, setView: onViewChange } = useGlobalUI();
+
+    // Cast view safely for the dashboard
+    const view = (currentView.startsWith('career') || currentView.startsWith('coach'))
+        ? (currentView as CoachViewType)
+        : 'coach-home';
     // State
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
@@ -118,98 +104,98 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
 
     return (
         <SharedPageLayout maxWidth="full" animate={false} className="relative theme-coach" spacing="hero">
-            <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept=".pdf"
-                multiple
-                onChange={handleFileChange}
-            />
-
-            {/* Ambient Background Glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-full pointer-events-none -z-10">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent-primary/10 rounded-full blur-3xl mix-blend-multiply animate-blob" />
-                <div className="absolute top-40 right-1/4 w-96 h-96 bg-accent-primary/10 rounded-full blur-3xl mix-blend-multiply animate-blob animation-delay-2000" />
-            </div>
-
-            {view === 'coach-home' && (
-                <PageHeader
-                    variant="hero"
-                    title={activeHeadline.text}
-                    highlight={activeHeadline.highlight}
-                    subtitle="Distill career paths into your personalized growth roadmap."
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept=".pdf"
+                    multiple
+                    onChange={handleFileChange}
                 />
-            )}
 
-            {view === 'coach-home' && (
-                <CoachHero
-                    isUploading={isUploading}
-                    uploadProgress={uploadProgress}
-                    triggerUpload={triggerUpload}
-                    handleTargetJobSubmit={handleTargetJobSubmit}
-                    url={url}
-                    setUrl={setUrl}
-                    isScrapingUrl={isScrapingUrl}
-                    error={error}
-                    setError={setError}
-                    roleModels={roleModels}
-                    targetJobs={targetJobs}
-                    userSkills={userSkills}
-                    onViewChange={onViewChange}
-                />
-            )}
+                {/* Ambient Background Glow */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none -z-10">
+                    <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-accent-primary/10 rounded-full blur-[120px] mix-blend-multiply animate-blob" />
+                    <div className="absolute top-40 right-1/4 w-[500px] h-[500px] bg-accent-primary/10 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-2000" />
+                </div>
 
-            {
-                view === 'coach-role-models' && (
-                    <RoleModelSection
-                        roleModels={roleModels}
-                        selectedRoleModelId={selectedRoleModelId}
-                        setSelectedRoleModelId={setSelectedRoleModelId}
-                        isUploading={isUploading}
-                        onDeleteRoleModel={onDeleteRoleModel}
-                        handleEmulateRoleModel={handleEmulateRoleModel}
-                        onUpload={handleFiles}
+                {view === 'coach-home' && (
+                    <PageHeader
+                        variant="hero"
+                        title={activeHeadline.text}
+                        highlight={activeHeadline.highlight}
+                        subtitle="Distill career paths into your personalized growth roadmap."
                     />
-                )
-            }
+                )}
 
-            {
-                view === 'coach-gap-analysis' && (
+                {view === 'coach-home' && (
+                    <CoachHero
+                        isUploading={isUploading}
+                        uploadProgress={uploadProgress}
+                        triggerUpload={triggerUpload}
+                        handleTargetJobSubmit={handleTargetJobSubmit}
+                        url={url}
+                        setUrl={setUrl}
+                        isScrapingUrl={isScrapingUrl}
+                        error={error}
+                        setError={setError}
+                        roleModels={roleModels}
+                        targetJobs={targetJobs}
+                        userSkills={userSkills}
+                        onViewChange={onViewChange}
+                    />
+                )}
+
+                {
+                    view === 'coach-role-models' && (
+                        <RoleModelSection
+                            roleModels={roleModels}
+                            selectedRoleModelId={selectedRoleModelId}
+                            setSelectedRoleModelId={setSelectedRoleModelId}
+                            isUploading={isUploading}
+                            onDeleteRoleModel={onDeleteRoleModel}
+                            handleEmulateRoleModel={handleEmulateRoleModel}
+                            onUpload={handleFiles}
+                        />
+                    )
+                }
+
+                {view === 'coach-gap-analysis' && (
                     <GapAnalysisSection
                         targetJobs={targetJobs}
                         roleModels={roleModels}
                         transcript={transcript}
                         onUpdateTargetJob={onUpdateTargetJob}
                         onAddTargetJob={onAddTargetJob}
-                        onRunGapAnalysis={onRunGapAnalysis}
+                        onRunGapAnalysis={(id) => onRunGapAnalysis(id, { resumes, skills: userSkills })}
                         onGenerateRoadmap={onGenerateRoadmap}
                         onToggleMilestone={onToggleMilestone}
                         onCompare={(id) => setComparisonRoleModelId(id)}
                         activeAnalysisIds={activeAnalysisIds}
                     />
-                )
-            }
+                )}
 
-            {
-                view === 'career-growth' && (
-                    <GrowthPage
-                        targetJobs={targetJobs}
-                        onToggleMilestone={onToggleMilestone}
-                        onViewChange={onViewChange}
-                    />
-                )
-            }
+                {
+                    view === 'career-growth' && (
+                        <GrowthPage
+                            targetJobs={targetJobs}
+                            onToggleMilestone={onToggleMilestone}
+                            onViewChange={onViewChange}
+                        />
+                    )
+                }
 
-            {
-                comparisonRoleModelId && resumes[0] && (
-                    <RoleModelComparison
-                        userProfile={resumes[0]}
-                        roleModel={roleModels.find(rm => rm.id === comparisonRoleModelId)!}
-                        onBack={() => setComparisonRoleModelId(null)}
-                    />
-                )
-            }
+                {
+                    comparisonRoleModelId && resumes[0] && (
+                        <RoleModelComparison
+                            userProfile={resumes[0]}
+                            roleModel={roleModels.find(rm => rm.id === comparisonRoleModelId)!}
+                            onBack={() => setComparisonRoleModelId(null)}
+                        />
+                    )
+                }
+            </div>
         </SharedPageLayout >
     );
 };

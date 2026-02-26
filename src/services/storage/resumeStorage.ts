@@ -16,6 +16,8 @@ export const ResumeStorage = {
                 .from('resumes')
                 .select('content')
                 .eq('user_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(1)
                 .maybeSingle();
 
             if (data?.content) {
@@ -56,7 +58,13 @@ export const ResumeStorage = {
 
         const userId = await getUserId();
         if (userId) {
-            const { data, error: selectError } = await supabase.from('resumes').select('id').eq('user_id', userId).maybeSingle();
+            const { data, error: selectError } = await supabase
+                .from('resumes')
+                .select('id')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
             if (selectError && selectError.code !== 'PGRST116') {
                 console.error("Supabase select error in saveResumes:", selectError);
             }
@@ -103,7 +111,13 @@ export const ResumeStorage = {
         await Vault.setSecure(STORAGE_KEYS.RESUMES, updated);
         const userId = await getUserId();
         if (userId) {
-            const { data: existingRow, error: selectError } = await supabase.from('resumes').select('id').eq('user_id', userId).maybeSingle();
+            const { data: existingRow, error: selectError } = await supabase
+                .from('resumes')
+                .select('id')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
             if (selectError && selectError.code !== 'PGRST116') {
                 console.error("Supabase select error in addResume:", selectError);
             }

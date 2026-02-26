@@ -10,32 +10,32 @@ export interface Tip {
 const GENERAL_TIPS: Tip[] = [
     {
         id: 'quant-1',
-        text: 'Instead of "Managed a team", try "Led a team of 10 to exceed sales targets by 24%". Numbers catch the eye.',
+        text: 'Pro Tip: Ditch the "Responsibilities included" list. Start every bullet with a strong action verb and end with a result or metric.',
         category: 'quantification'
     },
     {
         id: 'ats-1',
-        text: 'Use standard section headings like "Work Experience" and "Education". Creative titles can confuse some ATS filters.',
+        text: 'Pro Tip: ATS systems scan for "contextual relevance". Don\'t just list skills—weave them into your achievements to prove you used them.',
         category: 'ats'
     },
     {
         id: 'strat-1',
-        text: 'Tailor your summary for every job. Mirror the language used in the job description to show immediate alignment.',
+        text: 'Pro Tip: Target one specific role at a time. If you\'re applying for "Marketing Manager", that phrase should appear at least 3 times in your resume.',
         category: 'strategy'
     },
     {
         id: 'narrative-1',
-        text: 'Your resume should tell a story of growth. Highlight how your responsibilities increased at each career step.',
+        text: 'Pro Tip: Use the STAR method (Situation, Task, Action, Result) for your most significant projects to give recruiters the full picture.',
         category: 'narrative'
     },
     {
         id: 'quant-2',
-        text: 'Think about the "So What?". For every bullet point, ask yourself how it helped the company save time, money, or effort.',
+        text: 'Pro Tip: Ask "So What?" for every bullet. If you "Created a dashboard," did it save 5 hours a week? Did it identify $10k in lost revenue?',
         category: 'quantification'
     },
     {
         id: 'formatting-1',
-        text: 'Keep your formatting consistent. If you use "Jan" for one date, don\'t use "January" for another.',
+        text: 'Pro Tip: White space is your friend. Recruiter eyes skip over large blocks of text. Keep bullets under three lines long.',
         category: 'formatting'
     }
 ];

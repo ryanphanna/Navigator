@@ -13,10 +13,10 @@ export const SkillSuggestions: React.FC<SkillSuggestionsProps> = ({ suggestions,
     return (
         <div className="mb-10 animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="flex items-center gap-3 mb-4 px-1">
-                <h2 className="text-xs font-black uppercase tracking-widest text-neutral-400">Discoveries</h2>
+                <h2 className="text-sm font-black text-neutral-400">Skill Discoveries</h2>
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20">
                     <span className="w-1 h-1 rounded-full bg-indigo-500 animate-pulse" />
-                    <span className="text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-tight">AI Found {suggestions.length}</span>
+                    <span className="text-indigo-600 dark:text-indigo-400 text-[10px] font-black tracking-tight">AI found {suggestions.length}</span>
                 </div>
             </div>
             <div className="flex flex-wrap gap-2">

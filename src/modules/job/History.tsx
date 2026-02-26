@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { SavedJob } from '../../types';
-import { Trash2, ArrowRight, Sparkles, Building, Calendar, Filter, Clock, MapPin, Hash } from 'lucide-react';
+import { Trash2, ArrowRight, Sparkles, Building, Calendar, Filter, Clock, MapPin, Hash, Layers, FileText, Zap } from 'lucide-react';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { StandardSearchBar } from '../../components/common/StandardSearchBar';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -10,24 +10,21 @@ import { Button } from '../../components/ui/Button';
 import { ROUTES } from '../../constants';
 import { StandardFilterGroup } from '../../components/common/StandardFilterGroup';
 
-interface HistoryProps {
-    jobs: SavedJob[];
-    onSelectJob: (id: string) => void;
-    onDeleteJob: (id: string) => void;
-}
+import { useJobContext } from './context/JobContext';
 
 const FILTER_OPTIONS = [
-    { id: 'all', label: 'All' },
-    { id: 'saved', label: 'Saved' },
-    { id: 'applied', label: 'Applied' },
-    { id: 'interview', label: 'Interview' },
-    { id: 'offer', label: 'Offer' },
-    { id: 'rejected', label: 'Rejected' },
+    { id: 'all', label: 'All', icon: <Layers className="w-3.5 h-3.5" /> },
+    { id: 'saved', label: 'Saved', icon: <Building className="w-3.5 h-3.5" /> },
+    { id: 'applied', label: 'Applied', icon: <FileText className="w-3.5 h-3.5" /> },
+    { id: 'interview', label: 'Interview', icon: <Sparkles className="w-3.5 h-3.5" /> },
+    { id: 'offer', icon: <Zap className="w-3.5 h-3.5" />, label: 'Offer' },
+    { id: 'rejected', label: 'Rejected', icon: <Trash2 className="w-3.5 h-3.5" /> },
 ] as const;
 
 type StatusFilter = typeof FILTER_OPTIONS[number]['id'];
 
-export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps) {
+export default function History() {
+    const { jobs, setActiveJobId: onSelectJob, handleDeleteJob: onDeleteJob } = useJobContext();
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -84,7 +81,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
     };
 
     return (
-        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="5xl">
+        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="7xl">
             <PageHeader
                 variant="simple"
                 title="Application History"
@@ -107,7 +104,7 @@ export default function History({ jobs, onSelectJob, onDeleteJob }: HistoryProps
                             }))}
                             activeFilter={statusFilter}
                             onSelect={(f) => setStatusFilter(f as StatusFilter)}
-                            themeColor="slate"
+                            themeColor="indigo"
                         />
                     }
                 />

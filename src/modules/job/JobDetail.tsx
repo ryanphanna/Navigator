@@ -23,29 +23,26 @@ import { toTitleCase, toSentenceCase } from '../../utils/stringUtils';
 
 // Types from their respective modules
 import type { SavedJob } from './types';
-import type { ExperienceBlock, ResumeProfile } from '../resume/types';
-import type { CustomSkill } from '../skills/types';
 import type { TargetJob } from '../../types/target';
+import type { ExperienceBlock } from '../resume/types'; // Assuming ExperienceBlock is from resume types
 
-interface JobDetailProps {
-    job: SavedJob;
-    onBack: () => void;
-    onUpdateJob: (job: SavedJob) => void;
-    onAnalyzeJob?: (job: SavedJob) => Promise<SavedJob>;
-    userTier: 'free' | 'plus' | 'pro' | 'admin' | 'tester';
-    userSkills: CustomSkill[];
-    resumes: ResumeProfile[];
-}
+import { useJobContext } from './context/JobContext';
+import { useUser } from '../../contexts/UserContext';
+import { useSkillContext } from '../skills/context/SkillContext';
+import { useResumeContext } from '../resume/context/ResumeContext';
+import { useGlobalUI } from '../../contexts/GlobalUIContext';
 
-export const JobDetail: React.FC<JobDetailProps> = ({
-    job,
-    onBack,
-    onUpdateJob,
-    onAnalyzeJob,
-    userTier,
-    userSkills,
-    resumes
-}) => {
+export const JobDetail: React.FC = () => {
+    const { activeJob: job, handleUpdateJob: onUpdateJob, handleAnalyzeJob } = useJobContext();
+    const { userTier } = useUser();
+    const { skills: userSkills } = useSkillContext();
+    const { resumes } = useResumeContext();
+    const { setView } = useGlobalUI();
+
+    const onBack = () => setView('history');
+    const onAnalyzeJob = (j: SavedJob) => handleAnalyzeJob(j, { resumes, skills: userSkills });
+
+    if (!job) return null;
     const { showSuccess, showError } = useToast();
     const [targetJobs, setTargetJobs] = useState<TargetJob[]>([]);
 
@@ -465,7 +462,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
     };
 
     return (
-        <SharedPageLayout className="theme-job" spacing="none" maxWidth="6xl">
+        <SharedPageLayout className="theme-job" spacing="none" maxWidth="7xl">
             <div className="bg-white dark:bg-neutral-900 min-h-screen flex flex-col">
                 <DetailHeader
                     title={

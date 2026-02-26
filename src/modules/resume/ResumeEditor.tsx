@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { ResumeProfile, ExperienceBlock, CustomSkill } from '../../types';
-import { Upload, Loader2, Plus, Trash2, Briefcase, GraduationCap, Code, Layers, Calendar, UserCircle, FileText, Zap, Sparkles, Heart, Download, ArrowRightLeft } from 'lucide-react';
-import { TRACKING_EVENTS } from '../../constants';
+import { useNavigate } from 'react-router-dom';
+import type { ExperienceBlock, EducationBlock, PublicationBlock, ProjectBlock, SidebarSection, Resume } from './types';
+import { Upload, Loader2, Plus, Trash2, Briefcase, GraduationCap, Code, Layers, Calendar, UserCircle, FileText, Zap, Sparkles, Heart, Download, ArrowRightLeft, ChevronUp, ChevronDown, X, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { TRACKING_EVENTS, ROUTES } from '../../constants';
+import { isRecognizedSkill } from '../../data/skillDatabase';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Card } from '../../components/ui/Card';
@@ -10,27 +13,18 @@ import { Alert } from '../../components/ui/Alert';
 import { useResumeContext } from './context/ResumeContext';
 import { EventService } from '../../services/eventService';
 import { UnifiedUploadHero } from '../../components/common/UnifiedUploadHero';
+import { GlobalDragOverlay } from '../../components/common/GlobalDragOverlay';
 import { ResumePreview } from './components/ResumePreview';
-import { calculateResumeStrength } from './utils/resumeStrength';
-import { TipService } from '../../services/tipService';
-import type { Tip } from '../../services/tipService';
+import { Storage } from '../../services/storageService';
 
 
-interface ResumeEditorProps {
-    resumes: ResumeProfile[];
-    skills: CustomSkill[];
-    onSave: (resumes: ResumeProfile[]) => void;
-    onImport: (file: File) => void;
-    isParsing: boolean;
-    importError: string | null;
-    importTrigger: number;
-}
+
 
 type SectionType = ExperienceBlock['type'];
 
 const SECTIONS: { type: SectionType; label: string; icon: React.ReactNode }[] = [
     { type: 'summary', label: 'Professional Summary', icon: <UserCircle className="w-4 h-4" /> },
-    { type: 'work', label: 'Work Experience', icon: <Briefcase className="w-4 h-4" /> },
+    { type: 'work', label: 'Work', icon: <Briefcase className="w-4 h-4" /> },
     { type: 'education', label: 'Education', icon: <GraduationCap className="w-4 h-4" /> },
     { type: 'volunteer', label: 'Volunteer', icon: <Heart className="w-4 h-4" /> },
     { type: 'project', label: 'Projects', icon: <Code className="w-4 h-4" /> },
@@ -51,26 +45,32 @@ const getSortDate = (dateRange: string) => {
     return 0;
 };
 
-const ResumeEditor: React.FC<ResumeEditorProps> = ({
-    resumes,
-    skills,
-    onSave,
-    onImport,
-    isParsing,
-    importError,
-    importTrigger
-}) => {
+import { useSkillContext } from '../skills/context/SkillContext';
+
+export const ResumeEditor: React.FC = () => {
+    const {
+        resumes,
+        handleUpdateResumes: onSave,
+        handleImportResume: onImport,
+        isParsingResume: isParsing,
+        importError,
+        clearImportError
+    } = useResumeContext();
+
+    const {
+        skills,
+        updateSkills: onSkillsUpdated
+    } = useSkillContext();
 
     const initialResume = resumes.length > 0 ? resumes[0] : { id: 'primary', name: 'Primary Experience', blocks: [] };
 
     const [blocks, setBlocks] = useState<ExperienceBlock[]>(initialResume.blocks || []);
     const [movingBlockId, setMovingBlockId] = useState<string | null>(null);
     const [hasStartedManually, setHasStartedManually] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
     const [parsingMessageIndex, setParsingMessageIndex] = useState(0);
-    const [activeTip, setActiveTip] = useState<Tip | null>(null);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-
+    const navigate = useNavigate();
 
     const PARSING_MESSAGES = [
         { title: "Summoning achievement hunters...", subtitle: "Scouring your past for those gold-medal moments.", icon: Briefcase },
@@ -90,13 +90,13 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         return () => clearInterval(interval);
     }, [isParsing, PARSING_MESSAGES.length]);
 
-    const { clearImportError } = useResumeContext();
+
 
     useEffect(() => {
         if (resumes.length > 0) {
             setBlocks(resumes[0].blocks);
         }
-    }, [importTrigger, resumes]);
+    }, [resumes]);
 
     // Clear error on unmount
     useEffect(() => {
@@ -105,17 +105,12 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         };
     }, [clearImportError]);
 
-    useEffect(() => {
-        const primaryResume = resumes.length > 0 ? resumes[0] : undefined;
-        setActiveTip(TipService.getTip(primaryResume));
-    }, [importTrigger, resumes]);
+
 
     useEffect(() => {
-        setIsSaving(true);
         const handler = setTimeout(() => {
             const updatedProfile = { ...initialResume, blocks };
             onSave([updatedProfile]);
-            setIsSaving(false);
             // Track usage of resume builder
             EventService.trackUsage(TRACKING_EVENTS.RESUMES);
         }, 800);
@@ -179,6 +174,18 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         setBlocks(blocks.map(b => {
             if (b.id !== blockId) return b;
             return { ...b, bullets: b.bullets.filter((_: string, i: number) => i !== index) };
+        }));
+    };
+
+    const moveBullet = (blockId: string, index: number, direction: 'up' | 'down') => {
+        setBlocks(blocks.map(b => {
+            if (b.id !== blockId) return b;
+            const newBullets = [...b.bullets];
+            const targetIndex = direction === 'up' ? index - 1 : index + 1;
+            if (targetIndex >= 0 && targetIndex < newBullets.length) {
+                [newBullets[index], newBullets[targetIndex]] = [newBullets[targetIndex], newBullets[index]];
+            }
+            return { ...b, bullets: newBullets };
         }));
     };
 
@@ -290,7 +297,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
     }
 
     return (
-        <SharedPageLayout className="relative min-h-screen pb-32" maxWidth="5xl" spacing="compact">
+        <SharedPageLayout className="theme-resume" spacing="compact" maxWidth="7xl">
             <style>
                 {`
                     @media print {
@@ -313,13 +320,26 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                             margin: 0 !important;
                             padding: 0 !important;
                         }
+                        #resume-preview {
+                            display: block !important;
+                            visibility: visible !important;
+                            position: static !important;
+                            width: 100% !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                        }
+                        .page-layout-root {
+                            display: none !important;
+                        }
                     }
                 `}
             </style>
 
-            <div id="resume-preview" className="hidden print-only">
+            <div id="resume-preview" className="hidden print-only bg-white">
                 <ResumePreview blocks={blocks} />
             </div>
+            <GlobalDragOverlay onDrop={(files) => onImport(files[0])} />
+
             {/* Contextual Ambient Background */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] rounded-full animate-pulse" />
@@ -342,21 +362,24 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                 className="mb-8 no-print"
                 actions={(
                     <div className="flex items-center gap-3">
-                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 rounded-full border border-emerald-100 dark:border-emerald-500/20 mr-1">
-                            <div className={`w-1.5 h-1.5 rounded-full ${isSaving ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'} shadow-[0_0_8px_rgba(16,185,129,0.4)] shrink-0`} />
-                            <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
-                                {isSaving ? 'Updating...' : 'Experience synced'}
-                            </span>
-                        </div>
                         <Button
                             onClick={() => fileInputRef.current?.click()}
                             disabled={isParsing}
-                            variant="premium"
+                            variant="secondary"
                             size="sm"
                             className="font-black"
                             icon={isParsing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                         >
                             {isParsing ? 'Processing' : 'Import'}
+                        </Button>
+                        <Button
+                            onClick={() => setIsPreviewOpen(true)}
+                            variant="secondary"
+                            size="sm"
+                            className="font-black"
+                            icon={<FileText className="w-3.5 h-3.5" />}
+                        >
+                            Preview
                         </Button>
                         <Button
                             onClick={handlePrint}
@@ -365,7 +388,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                             className="font-black"
                             icon={<Download className="w-3.5 h-3.5" />}
                         >
-                            <span className="hidden sm:inline">Download PDF</span>
+                            <span className="hidden sm:inline">Download</span>
                             <span className="sm:hidden">PDF</span>
                         </Button>
                     </div>
@@ -373,8 +396,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
             />
 
             {showEmptyState ? (
-                <div className="animate-in zoom-in-95 duration-700 overflow-hidden relative flex flex-col items-center justify-center py-12 no-print">
-                    <div className="relative z-10 w-full max-w-5xl mx-auto">
+                <div className="animate-in zoom-in-95 duration-700 relative no-print pt-4">
+                    <div className="relative z-10 w-full">
                         {importError && (
                             <div className="mb-8 max-w-2xl mx-auto">
                                 <Alert
@@ -429,15 +452,15 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                         <div className="space-y-12">
                             {SECTIONS.map((section) => {
                                 const sectionBlocks = blocks
-                                    .filter(b => b.type === section.type)
-                                    .sort((a, b) => getSortDate(b.dateRange) - getSortDate(a.dateRange));
+                                    .filter(b => b.type === section.type);
+                                // Defensive sort - only sort by date if they aren't currently "moving" things, to prevent jumping
+                                if (!movingBlockId) {
+                                    sectionBlocks.sort((a, b) => getSortDate(b.dateRange) - getSortDate(a.dateRange));
+                                }
 
                                 return (
                                     <div key={section.type} className="scroll-mt-20 print-card">
                                         <div className="flex items-center gap-2 mb-6 border-b border-neutral-100 dark:border-neutral-800/50 pb-3 no-print">
-                                            <div className={`p-2 rounded-xl ${getTypeColor(section.type)} bg-opacity-10 border shadow-sm`}>
-                                                {section.icon}
-                                            </div>
                                             <div className="flex flex-col flex-1">
                                                 <h2 className="text-lg font-black text-neutral-900 dark:text-white items-center flex gap-2">
                                                     {section.label}
@@ -464,6 +487,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                 <Card
                                                     key={block.id}
                                                     variant="premium"
+                                                    overflow="visible"
                                                     className={`group relative transition-all duration-300 border-neutral-200 dark:border-neutral-800 hover:border-indigo-200 dark:hover:border-indigo-900/50 shadow-sm hover:shadow-xl print-card ${!block.isVisible ? 'opacity-50 no-print' : ''}`}
                                                 >
                                                     <div className="p-6 md:p-8">
@@ -565,15 +589,38 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                                                     target.style.height = target.scrollHeight + 'px';
                                                                                 }}
                                                                             />
-                                                                            {block.type !== 'summary' && (
-                                                                                <button
-                                                                                    onClick={() => removeBullet(block.id, idx)}
-                                                                                    className="opacity-0 group-hover/line:opacity-100 p-1 text-neutral-200 hover:text-rose-400 transition-opacity"
-                                                                                    tabIndex={-1}
-                                                                                >
-                                                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                                                </button>
-                                                                            )}
+                                                                            <div className="opacity-0 group-hover/line:opacity-100 flex items-center gap-0.5 no-print">
+                                                                                {block.bullets.length > 1 && (
+                                                                                    <>
+                                                                                        <button
+                                                                                            onClick={() => moveBullet(block.id, idx, 'up')}
+                                                                                            disabled={idx === 0}
+                                                                                            className="p-1 text-neutral-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-all disabled:opacity-0"
+                                                                                            title="Move Up"
+                                                                                        >
+                                                                                            <ChevronUp className="w-3 h-3" />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={() => moveBullet(block.id, idx, 'down')}
+                                                                                            disabled={idx === block.bullets.length - 1}
+                                                                                            className="p-1 text-neutral-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-all disabled:opacity-0"
+                                                                                            title="Move Down"
+                                                                                        >
+                                                                                            <ChevronDown className="w-3 h-3" />
+                                                                                        </button>
+                                                                                    </>
+                                                                                )}
+                                                                                {block.type !== 'summary' && (
+                                                                                    <button
+                                                                                        onClick={() => removeBullet(block.id, idx)}
+                                                                                        className="p-1 text-neutral-200 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-all"
+                                                                                        title="Remove Line"
+                                                                                        tabIndex={-1}
+                                                                                    >
+                                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
                                                                         </div>
                                                                     ))}
                                                                 </div>
@@ -585,63 +632,57 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                                             className="px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 border border-transparent text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10"
                                                                         >
                                                                             <Plus className="w-3.5 h-3.5" />
-                                                                            <span className="text-[10px] font-black tracking-tight">Add Achievement</span>
+                                                                            <span className="text-[10px] font-black tracking-tight">Add</span>
                                                                         </button>
-                                                                        <div className="w-px h-4 bg-neutral-100 dark:bg-neutral-800 mx-1" />
-                                                                        <div className="relative">
+
+                                                                        <div className="flex items-center gap-1 group/move relative">
                                                                             <button
                                                                                 onClick={() => setMovingBlockId(movingBlockId === block.id ? null : block.id)}
-                                                                                className={`px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 border ${movingBlockId === block.id
-                                                                                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 border-neutral-900 dark:border-white shadow-lg scale-105'
-                                                                                    : 'text-neutral-400 border-transparent hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'}`}
+                                                                                className={`px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 border border-transparent relative z-20 ${movingBlockId === block.id
+                                                                                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-lg'
+                                                                                    : 'text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'}`}
                                                                                 title="Move to Section"
                                                                             >
                                                                                 <ArrowRightLeft className="w-3.5 h-3.5" />
                                                                                 <span className="text-[10px] font-black tracking-tight">Move</span>
                                                                             </button>
 
-                                                                            {movingBlockId === block.id && (
-                                                                                <>
-                                                                                    <div className="fixed inset-0 z-40" onClick={() => setMovingBlockId(null)} />
-                                                                                    <div className="absolute bottom-full mb-3 left-0 z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl overflow-hidden min-w-[200px] animate-in slide-in-from-bottom-2 duration-200">
-                                                                                        <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/50">
-                                                                                            <p className="text-[10px] font-black text-neutral-400 tracking-widest">Move to Section</p>
-                                                                                        </div>
-                                                                                        <div className="p-1.5">
-                                                                                            {SECTIONS.map(s => {
-                                                                                                const isSelected = block.type === s.type;
-                                                                                                const typeColor = getTypeColor(s.type);
-
-                                                                                                return (
-                                                                                                    <button
-                                                                                                        key={s.type}
-                                                                                                        onClick={() => {
-                                                                                                            updateBlock(block.id, 'type', s.type);
-                                                                                                            setMovingBlockId(null);
-                                                                                                        }}
-                                                                                                        className={`w-full px-3 py-2.5 text-left text-xs font-black rounded-xl transition-all flex items-center gap-3 border ${isSelected
-                                                                                                            ? `${typeColor} shadow-sm scale-[1.02]`
-                                                                                                            : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white border-transparent'
-                                                                                                            }`}
-                                                                                                    >
-                                                                                                        <div className={`p-1.5 rounded-lg transition-colors ${isSelected
-                                                                                                            ? 'bg-white/60 dark:bg-black/20 shadow-inner'
-                                                                                                            : `${typeColor} bg-opacity-10 border border-current border-opacity-10`
-                                                                                                            }`}>
-                                                                                                            {s.icon}
-                                                                                                        </div>
-                                                                                                        {s.label}
-                                                                                                    </button>
-                                                                                                );
-                                                                                            })}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </>
-                                                                            )}
+                                                                            <AnimatePresence>
+                                                                                {movingBlockId === block.id && (
+                                                                                    <motion.div
+                                                                                        initial={{ opacity: 0, x: -20, width: 0 }}
+                                                                                        animate={{ opacity: 1, x: 0, width: 'auto' }}
+                                                                                        exit={{ opacity: 0, x: -20, width: 0 }}
+                                                                                        className="flex items-center gap-1 ml-0 p-1 pl-4 -ml-2 bg-white dark:bg-neutral-900 rounded-r-xl border border-l-0 border-neutral-200 dark:border-neutral-800 shadow-xl overflow-hidden z-10"
+                                                                                    >
+                                                                                        {SECTIONS.filter(s => s.type !== 'summary').map(s => {
+                                                                                            const isSelected = block.type === s.type;
+                                                                                            const typeColor = getTypeColor(s.type);
+                                                                                            return (
+                                                                                                <button
+                                                                                                    key={s.type}
+                                                                                                    onClick={() => {
+                                                                                                        updateBlock(block.id, 'type', s.type);
+                                                                                                        setMovingBlockId(null);
+                                                                                                    }}
+                                                                                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black tracking-tight transition-all flex items-center gap-2 justify-center active:scale-95 whitespace-nowrap ${isSelected
+                                                                                                        ? `${typeColor} shadow-sm bg-neutral-50 dark:bg-neutral-800`
+                                                                                                        : 'text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                                                                                        }`}
+                                                                                                >
+                                                                                                    {s.icon && <span className="w-3.5 h-3.5 flex items-center justify-center opacity-70 group-hover:opacity-100">{s.icon}</span>}
+                                                                                                    {s.label}
+                                                                                                </button>
+                                                                                            );
+                                                                                        })}
+                                                                                    </motion.div>
+                                                                                )}
+                                                                            </AnimatePresence>
                                                                         </div>
+
                                                                         <button
                                                                             onClick={() => removeBlock(block.id)}
-                                                                            className="p-1.5 text-neutral-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all"
+                                                                            className="p-1.5 text-neutral-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all no-print"
                                                                             title="Delete Block"
                                                                         >
                                                                             <Trash2 className="w-3.5 h-3.5" />
@@ -653,8 +694,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                     </div>
                                                 </Card>
                                             ))}
-
-
                                         </div>
                                     </div>
                                 );
@@ -703,115 +742,184 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                             </Card>
                         )}
 
-                        {/* Resume Strength */}
-                        <Card variant="premium" className="p-5 border-neutral-100 dark:border-neutral-800">
-                            {(() => {
-                                const strength = calculateResumeStrength(blocks, skills);
-                                return (
-                                    <>
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div>
-                                                <h3 className="text-[10px] font-black text-neutral-400 tracking-widest leading-none mb-1">Resume Strength</h3>
-                                                <p className="text-xl font-black text-neutral-900 dark:text-white">
-                                                    {strength.score}%
-                                                </p>
-                                            </div>
-                                            <div className="relative w-12 h-12">
-                                                <svg className="w-12 h-12 -rotate-90">
-                                                    <circle cx="24" cy="24" r="20" fill="transparent" stroke="currentColor" strokeWidth="4" className="text-neutral-100 dark:text-neutral-800" />
-                                                    <circle
-                                                        cx="24" cy="24" r="20" fill="transparent" stroke="currentColor" strokeWidth="4"
-                                                        strokeDasharray={125.6}
-                                                        strokeDashoffset={125.6 - (125.6 * strength.score) / 100}
-                                                        className="text-indigo-600 transition-all duration-1000 ease-out"
-                                                    />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        <p className="text-[10px] text-neutral-500 font-medium leading-relaxed">
-                                            {strength.feedback}
-                                        </p>
+                        {(() => {
+                            const allText = blocks.flatMap(b => [...b.bullets, b.title, b.organization]).join(' ').toLowerCase();
+                            const verifiedSkills = skills.filter(s => allText.includes(s.name.toLowerCase()));
+                            const explicitSkills = blocks
+                                .filter(b => b.type === 'skill')
+                                .flatMap(b => b.bullets)
+                                .filter(bul => bul.trim().length > 0)
+                                .map(bul => bul.trim());
 
-                                        {strength.score > 0 && (
-                                            <div className="mt-4 pt-4 border-t border-neutral-50 dark:border-neutral-800 space-y-2">
-                                                <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-tighter text-neutral-400">
-                                                    <span>Impact</span>
-                                                    <div className="flex-1 mx-2 h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${strength.metrics.impact}%` }} />
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-tighter text-neutral-400">
-                                                    <span>Alignment</span>
-                                                    <div className="flex-1 mx-2 h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-indigo-500 transition-all duration-1000" style={{ width: `${strength.metrics.alignment}%` }} />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </>
-                                );
-                            })()}
-                        </Card>
+                            const ACTION_VERBS = new Set(['Doing', 'Working', 'Led', 'Managed', 'Developed', 'Created', 'Implemented', 'Designed', 'Built', 'Oversaw', 'Supervised', 'Coordinated', 'Monitored', 'Evaluated', 'Analyzed', 'Researched', 'Presented', 'Reported', 'Negotiated', 'Facilitated', 'Collaborated', 'Supported', 'Assisted', 'Provided', 'Handled', 'Operated', 'Maintained', 'Repaired', 'Installed', 'Performed', 'Conducted', 'Participated', 'Attended', 'Represented', 'Served', 'Acted', 'Assigned', 'Awarded', 'Earned', 'Gained', 'Obtained', 'Received', 'Recognized', 'Selected', 'Chosen', 'Nominated', 'Appointed', 'Promoted', 'Increased', 'Improved', 'Enhanced', 'Expanded', 'Reduced', 'Saved', 'Generated', 'Produced', 'Delivered', 'Completed', 'Achieved', 'Exceeded', 'Met', 'Succeeded']);
+                            const GENERIC_TITLES = new Set(['Program', 'Representative', 'Student', 'Students', 'Member', 'Officer', 'Coordinator', 'Director', 'Manager', 'Lead', 'Analyst', 'Consultant', 'Specialist', 'Assistant', 'Advisor', 'Chair', 'President', 'Vice', 'Head', 'Chief', 'Intern', 'Volunteer', 'Employee', 'Staff', 'Associate', 'Participant', 'Group', 'Team', 'Unit', 'Corps', 'Candidate', 'Scholar', 'Fellow']);
+                            const CONTEXT_WORDS = new Set(['University', 'College', 'School', 'Department', 'Institute', 'Academy', 'Foundation', 'Association', 'Organization', 'Company', 'Corporation', 'Agency', 'Board', 'Committee', 'Council', 'Federation', 'Society', 'Union', 'Club', 'League', 'Party', 'Major', 'Minor', 'Degree', 'Course', 'Class', 'Project', 'Experience', 'History', 'Summary', 'Profile', 'Skill', 'Skills', 'Change', 'Focused', 'Proven', 'Relevant', 'Strong', 'Excellent', 'Highly', 'Professional', 'History', 'Based', 'Context', 'Results', 'Action', 'Impact', 'Goal', 'Target', 'Status', 'Level', 'Standard', 'Quality', 'Process', 'Spring', 'Fall', 'Summer', 'Winter', 'Semester', 'Quarter', 'Session', 'Year', 'Annual', 'Monthly', 'Weekly', 'Daily']);
 
-                        {/* Top Skills Tag Wall */}
-                        <Card variant="premium" className="p-5 border-neutral-100 dark:border-neutral-800">
-                            <h3 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest leading-none mb-4">Top Skills Extracted</h3>
-                            <div className="flex flex-wrap gap-1.5">
-                                {(() => {
-                                    // 1. Get skills from explicit skill blocks
-                                    const explicitSkills = blocks
-                                        .filter(b => b.type === 'skill')
-                                        .flatMap(b => b.bullets)
-                                        .filter(bul => bul.trim().length > 0)
-                                        .map(bul => bul.trim());
+                            const discovered = blocks
+                                .filter(b => b.type !== 'skill')
+                                .flatMap(b => b.bullets)
+                                .join(' ')
+                                .match(/[A-Z][a-z]+(?:\s[A-Z][a-z]+){1,2}/g)
+                                ?.map(s => s.trim())
+                                .filter(s => {
+                                    const words = s.split(/\s+/);
+                                    if (words.length === 0) return false;
 
-                                    // 2. Discover skills from other blocks with better filtering
-                                    const STOP_WORDS = new Set(['Proven', 'Relevant', 'Strong', 'Excellent', 'Doing', 'Worked', 'Experienced', 'Highly', 'Association', 'Focused', 'Participated', 'Member', 'Student', 'Program', 'Representative', 'Cities', 'Regions', 'Planning', 'Environmental', 'University', 'College', 'Department', 'Professional', 'Experience', 'History', 'Based', 'Context', 'Results', 'Action', 'Impact', 'Goal', 'Target']);
+                                    // Filter out if it starts with an action verb (likely a sentence start)
+                                    if (ACTION_VERBS.has(words[0])) return false;
 
-                                    const discovered = blocks
-                                        .filter(b => b.type !== 'skill')
-                                        .flatMap(b => b.bullets)
-                                        .join(' ')
-                                        .match(/[A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2}/g) // Max 3 words
-                                        ?.map(s => s.trim())
-                                        .filter(s =>
-                                            s.length > 3 &&
-                                            !STOP_WORDS.has(s) &&
-                                            !explicitSkills.includes(s) &&
-                                            !/^(The|A|An|In|On|At|To|For|With|By|Of)$/i.test(s)
-                                        ) || [];
-
-                                    const allSkills = Array.from(new Set([...explicitSkills, ...discovered]))
-                                        .filter(s => s.length > 2 && !/^\d+$/.test(s))
-                                        .slice(0, 12);
-
-                                    return allSkills.length > 0 ? (
-                                        allSkills.map(skill => (
-                                            <span key={skill} className="px-2 py-1 bg-neutral-50 dark:bg-neutral-800 text-[10px] font-bold text-neutral-600 dark:text-neutral-400 rounded-lg border border-neutral-100 dark:border-neutral-700">
-                                                {skill}
-                                            </span>
-                                        ))
-                                    ) : (
-                                        <p className="text-[10px] text-neutral-400 italic">No skills identified yet.</p>
+                                    // Filter out if it's all generic/context/title words
+                                    const allGeneric = words.every(w =>
+                                        GENERIC_TITLES.has(w) ||
+                                        CONTEXT_WORDS.has(w) ||
+                                        ACTION_VERBS.has(w)
                                     );
-                                })()}
-                            </div>
-                        </Card>
+                                    if (allGeneric) return false;
 
-                        {/* Pro Tip */}
-                        {activeTip && (
-                            <div className="px-5 py-4 bg-amber-50/50 dark:bg-amber-900/10 rounded-[2rem] border border-amber-100/50 dark:border-amber-900/20 relative overflow-hidden group">
-                                <Sparkles className="absolute -right-2 -top-2 w-12 h-12 text-amber-200/20 rotate-12 group-hover:scale-110 transition-transform duration-700" />
-                                <h4 className="text-[10px] font-black text-amber-600 dark:text-amber-500 tracking-widest mb-1">Pro Tip</h4>
-                                <p className="text-[11px] text-amber-800/80 dark:text-amber-400 leading-relaxed font-medium">
-                                    {activeTip.text}
-                                </p>
-                            </div>
-                        )}
+                                    // Filter out common person/academic suffixes
+                                    const lastWord = words[words.length - 1];
+                                    if (['Student', 'Students', 'Member', 'Members', 'Associate', 'Representative'].includes(lastWord)) return false;
 
+                                    return (
+                                        isRecognizedSkill(s) &&
+                                        s.length > 3 &&
+                                        !explicitSkills.includes(s) &&
+                                        !skills.some(ks => ks.name.toLowerCase() === s.toLowerCase())
+                                    );
+                                }) || [];
 
+                            const uniqueDiscovered = Array.from(new Set(discovered)).slice(0, 6);
+
+                            return (
+                                <>
+                                    {/* Verified Strengths Card */}
+                                    <Card variant="premium" className="p-5 border-neutral-100 dark:border-neutral-800">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <p className="text-[10px] font-black text-emerald-500 tracking-tight flex items-center gap-1.5">
+                                                <div className="w-1 h-1 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                                                Verified Strengths
+                                            </p>
+                                            <button
+                                                onClick={() => navigate(ROUTES.SKILLS)}
+                                                className="text-[9px] font-black text-indigo-500 hover:text-indigo-600 flex items-center gap-1 transition-colors"
+                                            >
+                                                Manage
+                                                <ArrowRightLeft className="w-2.5 h-2.5" />
+                                            </button>
+                                        </div>
+
+                                        {verifiedSkills.length > 0 ? (
+                                            <div className="flex flex-wrap gap-2">
+                                                {verifiedSkills.map(s => {
+                                                    const isExpert = s.proficiency === 'expert';
+                                                    const isComfortable = s.proficiency === 'comfortable';
+                                                    const borderColor = isExpert ? 'border-emerald-100 dark:border-emerald-500/20' :
+                                                        isComfortable ? 'border-orange-100 dark:border-orange-500/20' :
+                                                            'border-neutral-100 dark:border-neutral-800';
+                                                    const dotColor = isExpert ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
+                                                        isComfortable ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]' :
+                                                            'bg-neutral-300';
+
+                                                    return (
+                                                        <div key={s.id} className={`flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-neutral-900 border ${borderColor} rounded-xl shadow-sm transition-all duration-300`}>
+                                                            <span className="text-[11px] font-bold text-neutral-700 dark:text-neutral-300">
+                                                                {s.name}
+                                                            </span>
+                                                            <div className="flex items-center gap-1">
+                                                                {s.evidence ? (
+                                                                    <div title={`Verified ${s.proficiency}`} className="flex items-center">
+                                                                        <Check className={`w-2.5 h-2.5 stroke-[3] ${isExpert ? 'text-emerald-500' :
+                                                                            isComfortable ? 'text-orange-500' :
+                                                                                'text-neutral-500'
+                                                                            }`} />
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className={`w-1.5 h-1.5 rounded-full ${dotColor}`} title={s.proficiency} />
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <p className="text-[10px] text-neutral-400 italic">No verified strengths detected yet.</p>
+                                        )}
+                                    </Card>
+
+                                    {/* Discovered Keywords Card */}
+                                    {uniqueDiscovered.length > 0 && (
+                                        <Card variant="premium" className="p-5 border-neutral-100 dark:border-neutral-800">
+                                            <p className="text-[10px] font-black text-indigo-500 tracking-tight mb-4 flex items-center gap-1.5">
+                                                <div className="w-1 h-1 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.4)]" />
+                                                Discovered Keywords
+                                            </p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {uniqueDiscovered.map(s => (
+                                                    <button
+                                                        key={s}
+                                                        onClick={async () => {
+                                                            if (onSkillsUpdated) {
+                                                                const newSkill = await Storage.saveSkill({
+                                                                    name: s,
+                                                                    proficiency: 'learning'
+                                                                });
+                                                                onSkillsUpdated([...skills, newSkill]);
+                                                            }
+                                                        }}
+                                                        className="group flex items-center gap-2 px-3 py-1 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500/20 transition-all shadow-sm"
+                                                    >
+                                                        <span className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
+                                                            {s}
+                                                        </span>
+                                                        <Plus className="w-3 h-3 text-neutral-400 group-hover:text-indigo-600 transition-colors" />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </Card>
+                                    )}
+
+                                    {verifiedSkills.length === 0 && uniqueDiscovered.length === 0 && (
+                                        <Card variant="premium" className="p-5 border-neutral-100 dark:border-neutral-800">
+                                            <p className="text-[10px] text-neutral-400 italic">Add more details to reveal your skill matrix.</p>
+                                        </Card>
+                                    )}
+                                </>
+                            );
+                        })()}
                     </aside>
+                </div>
+            )}
 
+            {/* Preview Modal */}
+            {isPreviewOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300">
+                    <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-xl" onClick={() => setIsPreviewOpen(false)} />
+                    <div className="relative bg-neutral-100 dark:bg-neutral-950 w-full max-w-5xl h-full rounded-[2rem] shadow-2xl overflow-hidden border border-white/10 flex flex-col">
+                        <div className="px-8 py-6 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-white dark:bg-neutral-900">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-indigo-500/10 rounded-xl text-indigo-600">
+                                    <FileText className="w-5 h-5" />
+                                </div>
+                                <h3 className="font-black text-xl text-neutral-900 dark:text-white">Preview</h3>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Button onClick={handlePrint} variant="secondary" size="sm" icon={<Download className="w-3.5 h-3.5" />}>
+                                    Download PDF
+                                </Button>
+                                <button
+                                    onClick={() => setIsPreviewOpen(false)}
+                                    className="p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-all"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-8 md:p-12 scrollbar-none">
+                            <div className="mx-auto shadow-2xl origin-top scale-[0.85] md:scale-100">
+                                <ResumePreview blocks={blocks} />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </SharedPageLayout>

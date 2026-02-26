@@ -20,45 +20,40 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 
-import type { ResumeProfile, SavedJob } from '../../types';
-import type { User } from '@supabase/supabase-js';
-import type { UsageStats } from '../../services/usageLimits';
+import type { SavedJob } from '../../types';
 import { STORAGE_KEYS, TRACKING_EVENTS } from '../../constants';
 
-interface JobMatchInputProps {
-    resumes: ResumeProfile[];
-    onJobCreated: (job: SavedJob) => void;
-    onTargetJobCreated: (url: string) => void;
-    onImportResume: (file: File) => Promise<void>;
-    onClearError?: () => void;
-    isParsing: boolean;
-    importError: string | null;
-    isAdmin?: boolean;
-    user: User | null;
-    usageStats?: UsageStats;
-    mode?: 'apply' | 'goal';
-    onNavigate?: (view: string) => void;
-    onShowAuth?: (feature?: any) => void;
-}
+import { useUser } from '../../contexts/UserContext';
+import { useGlobalUI } from '../../contexts/GlobalUIContext';
+import { useModal } from '../../contexts/ModalContext';
+import { useJobContext } from './context/JobContext';
+import { useResumeContext } from '../resume/context/ResumeContext';
+import { useCoachContext } from '../career/context/CoachContext';
 
-const JobMatchInput: React.FC<JobMatchInputProps> = ({
-    resumes,
-    onJobCreated,
-    onTargetJobCreated,
-    onImportResume,
-    onClearError,
-    isParsing,
-    importError,
-    isAdmin = false,
-    user,
-    usageStats,
-    mode = 'apply',
-    onNavigate,
-    onShowAuth,
-}) => {
+const JobMatchInput: React.FC = () => {
+    const { user, isAdmin } = useUser();
+    const { setView: onNavigate } = useGlobalUI();
+    const { openModal } = useModal();
+    const {
+        handleJobCreated: onJobCreated,
+        usageStats
+    } = useJobContext();
+    const {
+        handleTargetJobCreated: onTargetJobCreated
+    } = useCoachContext();
+    const {
+        resumes,
+        handleImportResume: onImportResume,
+        clearImportError: onClearError,
+        isParsingResume: isParsing,
+        importError
+    } = useResumeContext();
+
+    const onShowAuth = (feature?: any) => openModal('AUTH', feature ? { feature } : undefined);
+    const mode: 'apply' | 'goal' = 'apply';
     const { showSuccess } = useToast();
     const [url, setUrl] = useState('');
-    const [isTargetMode, setIsTargetMode] = useState(mode === 'goal');
+    const [isTargetMode, setIsTargetMode] = useState(false);
     const [manualText, setManualText] = useState('');
     const [isManualMode, setIsManualMode] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -237,9 +232,9 @@ const JobMatchInput: React.FC<JobMatchInputProps> = ({
 
     return (
         <SharedPageLayout
-            maxWidth="4xl"
+            maxWidth="7xl"
             className="theme-job"
-            spacing="hero"
+            spacing="compact"
         >
             <PageHeader
                 variant="hero"
@@ -253,7 +248,7 @@ const JobMatchInput: React.FC<JobMatchInputProps> = ({
             />
 
             {!isManualMode ? (
-                <div className="w-full max-w-3xl mx-auto mb-16 animate-in zoom-in-95 fade-in duration-500">
+                <div className="w-full max-w-7xl mx-auto mb-16 animate-in zoom-in-95 fade-in duration-500">
                     <form onSubmit={error ? (e) => { e.preventDefault(); handleJobSubmission({ type: 'text', content: url }); } : handleUrlSubmit}>
                         <Card variant="glass" className={`p-4 border-accent-primary/20 ${isAnalyzing ? 'border-accent-primary/50 shadow-accent-primary/20' : 'hover:border-accent-primary/30'}`} glow>
                             <div className="flex flex-col md:flex-row items-center gap-6">
@@ -342,7 +337,7 @@ const JobMatchInput: React.FC<JobMatchInputProps> = ({
                     action={{
                         label: 'Save to Navigator',
                         icon: Plus,
-                        href: `javascript:(function(){window.open('${window.location.origin}/jobs?job='+encodeURIComponent(window.location.href));})();`,
+                        href: `javascript:(function(){var url='${window.location.origin}/jobs?job='+encodeURIComponent(window.location.href); if(!window.open(url,'_blank')) { window.location.href=url; }})();`,
                     }}
                     onDismiss={() => {
                         setShowBookmarkletTip(false);

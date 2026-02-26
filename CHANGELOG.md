@@ -2,7 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.22.0] - 2026-02-25
+
+### Added
+- **Global Drag-and-Drop Overlay**: Implemented a platform-wide, high-fidelity drag-and-drop overlay for instant resume and transcript analysis.
+- **Education Dashboard Analytics**: Introduced a new `EducationStats` bento-card suite for real-time tracking of GPA, credit progress, and academic targets.
+- **Layout Expansion**: Standardized global maximum width to `7xl` across all core modules (Job Match, Feed, History, Resume Editor, Education HQ, and Settings) for a more expansive and immersive professional interface.
+
+### Changed
+- **Visual Design Parity**: 
+    - Harmonized horizontal padding and vertical baselines across every major view, ensuring a unified vertical line for all page headers and content blocks.
+    - Updated `SkillsView` and `CoachDashboard` to support the new `7xl` width standard with improved spacing.
+    - Expanded ambient background glows in the Coach module with wider blur radiuses for a more atmospheric depth.
+- **Bento Card Evolution**: Removed `overflow-hidden` constraints from `BentoCard` to allow soft shadows and ambient glows to bleed naturally, eliminating hard "boxy" edges.
+
+### Fixed
+- **System Stability**: Resolved a critical issue causing 40%+ CPU spikes and intensive fan usage, primarily driven by massive system file synchronization and lingering browser processes.
+- **UI Clipping**: Fixed several layout bugs where high-fidelity background animations were being clipped by restrictive container boundaries.
+- **Code Clean-up**: Resolved persistent linting errors in the Cover Letters and Resume Editor modules by purging unused imports and variables.
+
 
 ## [2.21.0] - 2026-02-24
 

@@ -3,8 +3,6 @@
 All notable changes to this project prior to version 2.0.0 are documented in this file.
 For recent changes, see [CHANGELOG.md](./CHANGELOG.md).
 
----
-
 ## [1.1.0] - 2026-01-25
 
 ### Fixed
@@ -16,8 +14,6 @@ For recent changes, see [CHANGELOG.md](./CHANGELOG.md).
 ### Added
 - Standardized documentation format including `SECURITY.md` and `LICENSE`.
 - Secure storage utility for client-side encryption.
-
----
 
 ## [1.0.0] - 2026-01-24
 

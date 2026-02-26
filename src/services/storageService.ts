@@ -18,7 +18,7 @@ export const Storage = {
         if (!userId) return;
 
         // 1. Sync Resumes if Cloud is Empty
-        const { data: cloudResume } = await supabase.from('resumes').select('id').eq('user_id', userId).maybeSingle();
+        const { data: cloudResume } = await supabase.from('resumes').select('id').eq('user_id', userId).limit(1).maybeSingle();
         if (!cloudResume) {
             const resumes = await Vault.getSecure(STORAGE_KEYS.RESUMES) as ResumeProfile[];
             if (resumes && resumes.length > 0) {

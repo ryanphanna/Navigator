@@ -184,6 +184,17 @@
     font-family: var(--font-inter);
     overflow-x: hidden;
   }
+
+  button,
+  [role="button"],
+  select,
+  summary {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
 }
 
 @layer base {
@@ -258,7 +269,7 @@
 }
 
 .card-premium {
-  @apply relative transition-all duration-500 border border-neutral-200/50 dark:border-neutral-700/30 rounded-3xl overflow-hidden;
+  @apply relative transition-all duration-500 border border-neutral-200/50 dark:border-neutral-700/30 rounded-3xl;
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
 }

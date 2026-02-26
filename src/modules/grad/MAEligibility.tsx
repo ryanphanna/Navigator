@@ -45,7 +45,7 @@ export const MAEligibility: React.FC<MAEligibilityProps> = ({ transcript, initia
                         <School className="w-6 h-6" />
                     </div>
                     <div>
-                        <h3 className="font-black text-xl text-neutral-900 dark:text-white tracking-tight text-left">Admission Profile Match</h3>
+                        <h3 className="font-black text-xl text-neutral-900 dark:text-white tracking-tight text-left">Match Profile</h3>
                         <p className="text-sm text-neutral-500 font-medium text-left">The admissions "A to B" trajectory.</p>
                     </div>
                 </div>

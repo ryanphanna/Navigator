@@ -6,23 +6,13 @@ import { useUser } from '../../contexts/UserContext';
 import { useModal } from '../../contexts/ModalContext';
 import { useGlobalUI } from '../../contexts/GlobalUIContext';
 import { ROUTES } from '../../constants';
+import { getModeFromViewId } from '../../utils/navigation';
 
-interface HeaderProps {
-    currentView: string;
-    onViewChange: (view: string) => void;
-    isCoachMode?: boolean;
-    isEduMode?: boolean;
-}
-
-export const Header: React.FC<HeaderProps> = ({
-    currentView,
-    onViewChange,
-    isCoachMode = false,
-    isEduMode = false
-}) => {
+export const Header: React.FC = () => {
     const { user, isLoading, isAdmin, isTester, signOut } = useUser();
     const { openModal } = useModal();
-    const { isDark, toggleDarkMode, isFocusedMode, setFocusedMode, setView } = useGlobalUI();
+    const { currentView, setView: onViewChange, isDark, toggleDarkMode, isFocusedMode, setFocusedMode, setView } = useGlobalUI();
+    const { isCoachMode, isEduMode } = getModeFromViewId(currentView);
     const [scrolled, setScrolled] = React.useState(false);
     const navigate = useNavigate();
 
@@ -39,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({
     };
 
     React.useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 10);
+        const handleScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
@@ -79,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
             defaultView: 'edu-home',
             items: [
                 { id: 'edu-transcript', label: 'Transcript', icon: GraduationCap },
-                { id: 'edu-programs', label: 'Programs', icon: Sparkles }
+                { id: 'edu-programs', label: 'Pathfinding', icon: Sparkles }
             ]
         },
         {
@@ -99,9 +89,9 @@ export const Header: React.FC<HeaderProps> = ({
 
 
     return (
-        <header className={`fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-500 ease-in-out ${scrolled || isFocusedMode
-            ? 'bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-b border-neutral-100 dark:border-neutral-800'
-            : 'bg-transparent'
+        <header className={`fixed top-0 left-0 right-0 z-50 h-16 transition-[all] duration-300 ease-in-out border-b ${scrolled || isFocusedMode
+            ? 'bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-neutral-100 dark:border-neutral-800'
+            : 'bg-transparent border-transparent'
             }`}>
             {/* Background Background blur/border (Conditional on scroll if needed, but keeping it elegant) */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between relative pointer-events-auto">
@@ -160,8 +150,8 @@ export const Header: React.FC<HeaderProps> = ({
 
                                         <div className="relative z-10 flex items-center gap-1">
                                             <button
-                                                onClick={() => onViewChange((group as any).defaultView || group.items[0].id)}
-                                                className={`px-2.5 py-2 rounded-2xl text-[11px] font-bold transition-all duration-300 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 ${group.isActive
+                                                onClick={() => onViewChange((group as any).defaultView || group.items[0].id as any)}
+                                                className={`px-2.5 py-2 rounded-2xl text-[11px] font-bold transition-all duration-300 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 cursor-pointer ${group.isActive
                                                     ? (group.id === 'career' ? 'text-emerald-600' : group.id === 'edu' ? 'text-amber-600' : group.id === 'plans' ? 'text-amber-500' : 'text-indigo-600')
                                                     : (group.id === 'plans' ? 'text-amber-500/80 hover:text-amber-600' : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200')
                                                     } ${group.id === 'plans' ? '!py-1.5 !px-3' : ''}`}
@@ -181,8 +171,8 @@ export const Header: React.FC<HeaderProps> = ({
                                                         {group.items.map((item) => (
                                                             <button
                                                                 key={item.id}
-                                                                onClick={() => onViewChange(item.id)}
-                                                                className={`relative px-2 py-1.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap tracking-wide overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 ${currentView === item.id
+                                                                onClick={() => onViewChange(item.id as any)}
+                                                                className={`relative px-2 py-1.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap tracking-wide overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 cursor-pointer ${currentView === item.id
                                                                     ? (group.id === 'career' ? 'text-emerald-600' : group.id === 'edu' ? 'text-amber-600' : group.id === 'indigo-600')
                                                                     : 'text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
                                                                     }`}
@@ -207,13 +197,13 @@ export const Header: React.FC<HeaderProps> = ({
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => openModal('AUTH')}
-                                className="px-4 py-2 text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100 transition-all active:scale-95"
+                                className="px-4 py-2 text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100 transition-all active:scale-95 cursor-pointer"
                             >
                                 Sign In
                             </button>
                             <button
                                 onClick={() => openModal('AUTH')}
-                                className="px-4 py-2 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
+                                className="px-4 py-2 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95 cursor-pointer"
                             >
                                 Sign Up
                             </button>
@@ -223,7 +213,7 @@ export const Header: React.FC<HeaderProps> = ({
                             {isFocusedMode ? (
                                 <button
                                     onClick={handleExit}
-                                    className="group flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800/80 transition-all text-neutral-500 dark:text-neutral-400 active:scale-95"
+                                    className="group flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800/80 transition-all text-neutral-500 dark:text-neutral-400 active:scale-95 cursor-pointer"
                                 >
                                     <LogOut className="w-4 h-4 transition-transform group-hover:rotate-180" />
                                     <span className="tracking-wider">Exit</span>
@@ -231,7 +221,7 @@ export const Header: React.FC<HeaderProps> = ({
                             ) : (
                                 <button
                                     onClick={signOut}
-                                    className="group flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800/80 transition-all text-neutral-500 dark:text-neutral-400"
+                                    className="group flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800/80 transition-all text-neutral-500 dark:text-neutral-400 cursor-pointer active:scale-95"
                                 >
                                     <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
                                     <span className="hidden md:inline tracking-wider">Sign Out</span>
@@ -243,7 +233,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     {isAdmin && (
                                         <button
                                             onClick={() => onViewChange('admin')}
-                                            className="p-2.5 text-neutral-400 hover:text-indigo-600 dark:text-neutral-500 dark:hover:text-indigo-400 transition-all active:scale-90"
+                                            className="p-2.5 text-neutral-400 hover:text-indigo-600 dark:text-neutral-500 dark:hover:text-indigo-400 transition-all active:scale-90 cursor-pointer"
                                             title="Admin Console"
                                         >
                                             <ShieldCheck className="w-4.5 h-4.5" />
@@ -251,14 +241,14 @@ export const Header: React.FC<HeaderProps> = ({
                                     )}
                                     <button
                                         onClick={toggleDarkMode}
-                                        className="p-2.5 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100 transition-all active:scale-90"
+                                        className="p-2.5 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100 transition-all active:scale-90 cursor-pointer"
                                         title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
                                     >
                                         {isDark ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
                                     </button>
                                     <button
                                         onClick={() => onViewChange('settings')}
-                                        className="p-2.5 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100 transition-all active:scale-90"
+                                        className="p-2.5 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100 transition-all active:scale-90 cursor-pointer"
                                     >
                                         <Settings className="w-4.5 h-4.5" />
                                     </button>

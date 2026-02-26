@@ -9,6 +9,7 @@ import { useAcademicLogic } from './hooks/useAcademicLogic';
 import { AcademicHero } from './components/AcademicHero';
 import { AcademicProfileSummary } from './components/AcademicProfileSummary';
 import { CourseRegistry } from './components/CourseRegistry';
+import { GlobalDragOverlay } from '../../components/common/GlobalDragOverlay';
 
 export const AcademicHQ: React.FC = () => {
     const {
@@ -37,7 +38,8 @@ export const AcademicHQ: React.FC = () => {
 
     return (
         <SharedPageLayout maxWidth="full" className="relative">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <GlobalDragOverlay onDrop={handleFileUpload} />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
                 {!transcript ? (
                     <AcademicHero
@@ -49,7 +51,7 @@ export const AcademicHQ: React.FC = () => {
                         setShowVerification={setShowVerification}
                         handleVerificationSave={handleVerificationSave}
                         title="Import Transcript"
-                        description="Start your registry by uploading your official academic records"
+                        description="Start your academic profile by uploading your official records"
                         cards={{
                             foundation: {
                                 title: "Verified Records",
@@ -76,7 +78,7 @@ export const AcademicHQ: React.FC = () => {
                             gpa={calculatedGpa}
                         />
 
-                        <div className="max-w-4xl mx-auto space-y-8">
+                        <div className="space-y-8">
                             <CourseRegistry
                                 transcript={transcript}
                                 setTranscript={setTranscript}

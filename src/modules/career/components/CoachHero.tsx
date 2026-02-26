@@ -52,7 +52,7 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
         <>
 
             {/* High-Impact Input Area */}
-            <div className="w-full max-w-3xl mx-auto animate-in fade-in duration-1000 delay-200">
+            <div className="w-full max-w-7xl mx-auto animate-in fade-in duration-1000 delay-200">
                 {!isTargetMode ? (
                     <Card variant="glass" className="p-4 border-accent-primary/20 hover:border-accent-primary/50" glow>
                         <div className="flex flex-col md:flex-row items-center gap-4">
@@ -61,7 +61,7 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                             </div>
 
                             <div className="flex-1 w-full text-center md:text-left">
-                                <div className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-1">
+                                <div className="text-sm font-bold text-neutral-400 tracking-widest mb-1">
                                     Analyze Role Model
                                 </div>
                                 <input
@@ -104,7 +104,7 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                                 </div>
 
                                 <div className="flex-1 w-full text-center md:text-left">
-                                    <div className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-1">
+                                    <div className="text-sm font-bold text-neutral-400 tracking-widest mb-1">
                                         Dream Job
                                     </div>
                                     <input
@@ -149,7 +149,7 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                         </div>
                         <div>
                             <div className="text-lg font-black text-neutral-900 dark:text-white leading-none">{roleModels.length}</div>
-                            <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 group-hover:text-accent-primary-hex transition-colors">Profiles</div>
+                            <div className="text-[10px] tracking-widest font-bold text-neutral-400 group-hover:text-accent-primary-hex transition-colors">Profiles</div>
                         </div>
                     </div>
 
@@ -164,7 +164,7 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                         </div>
                         <div>
                             <div className="text-lg font-black text-neutral-900 dark:text-white leading-none">{targetJobs.length}</div>
-                            <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 group-hover:text-accent-primary-hex transition-colors">Goals</div>
+                            <div className="text-[10px] tracking-widest font-bold text-neutral-400 group-hover:text-accent-primary-hex transition-colors">Goals</div>
                         </div>
                     </div>
 
@@ -179,14 +179,14 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                         </div>
                         <div>
                             <div className="text-lg font-black text-neutral-900 dark:text-white leading-none">{userSkills.length}</div>
-                            <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-400 group-hover:text-accent-primary-hex transition-colors">Skills</div>
+                            <div className="text-[10px] tracking-widest font-bold text-neutral-400 group-hover:text-accent-primary-hex transition-colors">Skills</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Quick-Start Guide (only when empty) */}
                 {roleModels.length === 0 && targetJobs.length === 0 && (
-                    <div className="mt-14 max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 delay-700">
+                    <div className="mt-14 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 delay-700">
                         <div className="text-center mb-6">
                             <div className="text-[10px] tracking-widest font-black text-neutral-400">Quick Start</div>
                         </div>
