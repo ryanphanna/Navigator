@@ -5,8 +5,17 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- **Browser Extension v2**: Completely rebuilt the Navigator browser extension with a smart extraction engine (parsing `json-ld`, Open Graph metadata, and DOM heuristics) to instantly capture structured job data (title, company, location, salary, description) with one click.
-- **Premium Extension UI**: Redesigned the extension popup to match Navigator's main app visual language (glassmorphism, dark mode), featuring a 3-state flow (Login -> Ready/Preview -> Saved) with instant extraction confidence feedback.
+- 
+
+### Changed
+
+### Fixed
+
+## [2.22.0] - 2026-02-27
+
+### Added
+- **Browser Extension (v1.0.0)**: Officially launched the Navigator browser extension with a smart extraction engine (parsing `json-ld`, Open Graph metadata, and DOM heuristics) to instantly capture structured job data (title, company, location, salary, description) with one click. Replaces the legacy bookmarklet.
+- **Premium Extension UI**: Initial release featuring a high-fidelity glassmorphic interface with a 3-state flow (Login -> Ready/Preview -> Saved) and instant extraction confidence feedback.
 
 ### Changed
 - **Bookmarklet Deprecation**: Replaced the fragile JavaScript bookmarklet flow with the new Browser Extension. Updated all related notifications, tips, feature registry entries, and UI previews from "Bookmarklet" to "Browser Extension".
