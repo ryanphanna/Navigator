@@ -87,7 +87,7 @@ export const STORAGE_KEYS = {
   QUOTA_STATUS: 'navigator_quota_status',
   CURRENT_VIEW: 'navigator_current_view',
   ACTIVE_TAB: 'navigator_active_tab',
-  BOOKMARKLET_TIP_DISMISSED: 'navigator_bookmarklet_tip_dismissed',
+  EXTENSION_TIP_DISMISSED: 'navigator_extension_tip_dismissed',
   SKILL_SUGGESTIONS: 'navigator_skill_suggestions',
   TRANSCRIPT_CACHE: 'NAVIGATOR_TRANSCRIPT_CACHE',
   FEED_CACHE: 'navigator_feed_cache',
@@ -273,7 +273,7 @@ export const KEYBOARD_SHORTCUTS = {
 
 // Feature Flags
 export const FEATURES = {
-  ENABLE_BOOKMARKLET: true,
+  ENABLE_EXTENSION: true,
   ENABLE_DARK_MODE: true,
   ENABLE_KEYBOARD_SHORTCUTS: true,
   ENABLE_RETRY_MESSAGES: true,

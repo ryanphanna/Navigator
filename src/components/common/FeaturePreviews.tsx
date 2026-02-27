@@ -380,9 +380,9 @@ const EduGpaPreview: React.FC<{ color: FeatureColor }> = ({ color }) => (
     </div>
 );
 
-// ─── Bookmarklet ───────────────────────────────────────────────────────
+// ─── Browser Extension ───────────────────────────────────────────────────────
 
-const BookmarkletPreview: React.FC<{ color: FeatureColor }> = ({ color }) => (
+const ExtensionPreview: React.FC<{ color: FeatureColor }> = ({ color }) => (
     <div className="relative w-full h-24 flex items-center justify-center">
         <div className={`absolute inset-0 ${color.glow} blur-3xl opacity-10`} />
         <div className="relative bg-white dark:bg-neutral-800 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-700 p-2.5 flex flex-col gap-2 w-28 group-hover:-translate-y-1 transition-transform duration-500">
@@ -465,7 +465,7 @@ const PREVIEW_MAP: Record<string, React.FC<{ color: FeatureColor }>> = {
     'edu-transcript': EduTranscriptPreview,
     'edu-explorer': EduExplorerPreview,
     'edu-gpa': EduGpaPreview,
-    'bookmarklet': BookmarkletPreview,
+    'extension': ExtensionPreview,
     '_notice_archetype': ArchetypeUpdatePreview,
     '_notice_tos': PolicyUpdatePreview,
 };

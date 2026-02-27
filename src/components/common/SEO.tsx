@@ -24,9 +24,9 @@ export const SEO: React.FC<SEOProps> = ({
 }) => {
     const siteTitle = 'Navigator';
     const fullTitle = title ? `${title} | ${siteTitle}` : `${siteTitle} | Smart Career & Resume Tools`;
-    const siteUrl = 'https://navigator.career';
+    const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
     const defaultDescription = 'Elevate your career with AI-powered resume tailoring, job analysis, and professional growth tools. Built for the modern job seeker.';
-    const defaultOgImage = `${siteUrl}/images/og-image.png`;
+    const defaultOgImage = '/images/og-image.png';
 
     return (
         <Helmet>

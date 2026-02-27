@@ -66,8 +66,8 @@ const JobMatchInput: React.FC = () => {
     const activeHeadline = useHeadlines(headlineCategory);
     const lastUrlRef = React.useRef<string>('');
 
-    const [showBookmarkletTip, setShowBookmarkletTip] = useState(() => {
-        return !localStorage.getItem(STORAGE_KEYS.BOOKMARKLET_TIP_DISMISSED);
+    const [showExtensionTip, setShowExtensionTip] = useState(() => {
+        return !localStorage.getItem(STORAGE_KEYS.EXTENSION_TIP_DISMISSED);
     });
 
     useEffect(() => {
@@ -78,7 +78,7 @@ const JobMatchInput: React.FC = () => {
         setIsScrapingUrl(false);
         setIsAnalyzing(false);
 
-        // Handle bookmarklet or external job URL params
+        // Handle extension or external job URL params
         const params = new URLSearchParams(window.location.search);
         const jobUrl = params.get('job') || params.get('url');
 
@@ -327,21 +327,21 @@ const JobMatchInput: React.FC = () => {
                 </div>
             )}
 
-            {user && showBookmarkletTip && mode === 'apply' && (
+            {user && showExtensionTip && mode === 'apply' && (
                 <NotificationBanner
                     icon={Bookmark}
                     theme="sky"
-                    title="Save from anywhere"
-                    description="Drag the button to your bookmarks bar to save jobs from any site."
+                    title="Get the browser extension"
+                    description="Save jobs from any website with one click. Extracted instantly and ready for analysis."
                     className="max-w-xl mx-auto mt-8"
                     action={{
-                        label: 'Save to Navigator',
+                        label: 'Get Extension',
                         icon: Plus,
-                        href: `javascript:(function(){var url='${window.location.origin}/jobs?job='+encodeURIComponent(window.location.href); if(!window.open(url,'_blank')) { window.location.href=url; }})();`,
+                        href: 'https://github.com/ryanphanna/Navigator', // TODO: Update to chrome web store URL
                     }}
                     onDismiss={() => {
-                        setShowBookmarkletTip(false);
-                        localStorage.setItem(STORAGE_KEYS.BOOKMARKLET_TIP_DISMISSED, 'true');
+                        setShowExtensionTip(false);
+                        localStorage.setItem(STORAGE_KEYS.EXTENSION_TIP_DISMISSED, 'true');
                     }}
                 />
             )}

@@ -1,9 +1,16 @@
-console.log('Navigator Content Script Active');
+import { extractJobData } from './extractor';
 
-// simple listener to confirm it's working
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'scrape_page') {
-        const bodyText = document.body.innerText;
-        sendResponse({ success: true, text: bodyText });
+chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+    if (request.action === 'extract_job') {
+        try {
+            const data = extractJobData();
+            sendResponse({ success: true, data });
+        } catch (error) {
+            sendResponse({
+                success: false,
+                error: error instanceof Error ? error.message : 'Extraction failed',
+            });
+        }
     }
+    return true; // keep channel open
 });

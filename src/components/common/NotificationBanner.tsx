@@ -116,10 +116,9 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({
                                 href={action.href.startsWith('javascript:') ? '#' : action.href}
                                 onClick={(e) => {
                                     if (action.href?.startsWith('javascript:')) {
-                                        // Bookmarklets should be dragged, but if clicked, we should prevent default and maybe alert
-                                        // or just let it be. Usually they are meant to be dragged.
-                                        // However, React might still throw if href is javascript: even if we don't click.
-                                        // By setting it to '#' in the prop and manually via ref, we bypass this.
+                                        if (action.href?.startsWith('javascript:')) {
+                                            // Legacy bookmarklet support
+                                        }
                                     }
                                     action.onClick?.(e);
                                 }}

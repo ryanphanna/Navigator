@@ -1,16 +1,15 @@
 {
     "manifest_version": 3,
-    "name": "Navigator - Job Capture",
-    "version": "1.0.0",
-    "description": "Capture job descriptions and save them to Navigator.",
+    "name": "Navigator",
+    "version": "2.1.0",
+    "description": "Save and analyze job postings with one click.",
     "permissions": [
         "activeTab",
-        "scripting",
         "storage"
     ],
     "host_permissions": [
-        "http://*/*",
-        "https://*/*"
+        "https://*/*",
+        "http://*/*"
     ],
     "action": {
         "default_popup": "index.html",

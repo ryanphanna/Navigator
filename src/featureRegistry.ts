@@ -448,14 +448,14 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         rank: 19,
         planHighlight: true,
     },
-    BOOKMARKLET: {
-        id: 'bookmarklet',
-        key: 'BOOKMARKLET',
-        name: 'Bookmarklet',
-        shortName: 'Bookmarklet',
+    EXTENSION: {
+        id: 'extension',
+        key: 'EXTENSION',
+        name: 'Browser Extension',
+        shortName: 'Extension',
         description: {
             short: 'Save jobs from any website instantly.',
-            full: "Save job postings from any website with a single click. No more copying and pasting descriptions — just click and it's captured.",
+            full: "Save job postings from any website with a single click. Structured data is extracted instantly — no copying and pasting.",
             plan: 'One-click job saving from any site',
         },
         action: { short: 'Install', full: 'Install' },
