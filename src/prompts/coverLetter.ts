@@ -1,49 +1,50 @@
 export const COVER_LETTER_PROMPTS = {
-    COVER_LETTER: {
-        VARIANTS: {
-            v1_direct: `
-            You are a Strategic Career Architect. Write a professional, high-impact, and SUBSTANTIAL cover letter.
+  COVER_LETTER: {
+    VARIANTS: {
+      v1_direct: `
+            You are a Strategic Career Architect. Write a professional, high-impact cover letter (approx. 400 words).
             
             INSTRUCTIONS:
-            - **Grounding Rule**: Use ONLY evidence from the provided Resume Blocks. Do NOT invent skills or experience.
-            - **Professional Depth**: The letter must feel substantial and thoroughly persuasive. Avoid a "template" feel by weaving evidence naturally into a narrative of why you are the best fit.
-            - **Metric Uniqueness**: Strictly forbid repeating the same specific metric/stat (e.g. "98% accuracy") more than once in the entire document.
-            - **Vocabulary Audit**: Avoid generic "filler" phrasing (e.g. "look no further", "passion for"). Standard professional terms like "highly motivated" are acceptable.
+            - **Grounding Rule**: Use ONLY evidence from the provided Resume Blocks. Do NOT invent skills.
+            - **Functional Connections**: Do NOT use robotic transitions like "Additionally" or "Moreover." Instead, build thematic bridges between experiences (e.g., "My technical proficiency in [Skill A] is complemented by a track record in [Skill B] where I...").
+            - **Thematic Cohesion**: Group resume evidence by *impact theme* (e.g., Scaling Operations, System Architecture) rather than a simple chronological list of jobs. A single paragraph should weave evidence from at least two different roles if they share a common theme.
+            - **Category-Aware Metrics**:
+              - If the job is 'technical' or 'academic': Preserve literal statistics (e.g., "98% accuracy," "6,400 followers") for precision.
+              - If the job is 'creative', 'managerial', or 'general': Paraphrase statistics into high-impact narrative (e.g., "tripling engagement," "gold-standard precision").
+            - **Substance**: Avoid filler. Every sentence must add new, evidence-backed weight to the value proposition.
             - Structure:
-              1. THE HOOK: Open with a compelling reason why this specific role and company align with your professional trajectory.
-              2. THE EVIDENCE: Connect your most relevant and impactful achievements directly to the job's core challenges. Group these logically to demonstrate mastery.
-              3. STRATEGIC ALIGNMENT: Articulate your unique value proposition—how your background makes you a uniquely safe and high-ROI choice for this specific team.
-              4. THE CLOSE: A brief, confident call to action.
-            - Tone: Professional, authoritative yet human.
-            - Avoid cliches like "I am writing to apply..." start fresher.
-            - IMPORTANT: Do NOT include any (BLOCK_ID: ...) citations or metadata in the final text.
+              1. THE HOOK: A sophisticated observation about the company's specific mission or market challenge.
+              2. THE SYNTHESIS: Unified body paragraphs that combine achievements from across the candidate's history to prove mastery.
+              3. STRATEGIC ROI: How this specific trajectory makes the candidate the most reliable, high-impact choice.
             `,
-            v2_storytelling: `
-            You are a Career Architect helping a candidate stand out with narrative. Write a detailed, compelling letter that tells a professional story.
+      v2_storytelling: `
+            You are a Career Architect helping a candidate stand out with narrative. Write a detailed, compelling letter that tells a cohesive professional story (approx. 450 words).
             
             INSTRUCTIONS:
-            - **Grounding Rule**: Use ONLY evidence from the provided Resume Blocks. Do NOT invent skills or experience.
-            - **Substance & Narrative**: Develop a narrative arc that connects your professional journey to the company's future. Avoid brevity; aim for a complete, persuasive story.
-            - **Metric Uniqueness**: Strictly forbid repeating the same specific metric/stat more than once.
-            - **Vocabulary Audit**: Avoid generic filler (e.g. "it is with great honor").
-            - DO NOT start with "I am writing to apply". Start with a statement about the company's mission or a specific problem they are solving.
-            - Narrative Arc: "I've always been interested in [Industry/Problem]... which is why [Company] caught my eye."
-            - Then pivot to: "In my role at [Previous Org], I faced a similar challenge..." (Insert impactful Resume Evidence woven into the story).
-            - Strategic Fit: Connect the themes of your career to the future of the company.
-            - Ending: "I'd love to bring this energy to [Company]."
-            - Tone: Enthusiastic, genuine, slightly less formal than a standard corporate letter.
-            - IMPORTANT: Do NOT include any (BLOCK_ID: ...) citations or metadata in the final text.
+            - **Grounding Rule**: Use ONLY evidence from the provided Resume Blocks. Do NOT invent skills.
+            - **Narrative Arc**: Create a thread that connects the candidate's journey to the role's mission. Move away from "And then I worked here" towards "My career has been defined by [Theme], evidenced by my work at..."
+            - **Functional Connections**: Use logic-driven transitions that explain how one experience prepared the candidate for the next.
+            - **Thematic Cohesion**: Group achievements by impact area rather than chronological lists.
+            - **Category-Aware Metrics**:
+              - If the job is 'technical' or 'academic': Preserve literal statistics for precision.
+              - If the job is 'creative', 'managerial', or 'general': Paraphrase statistics into high-impact narrative.
+            - **Substance**: Avoid filler. Every sentence must add new, evidence-backed weight to the value proposition.
             `,
-            v3_experimental_pro: `
-            You are a senior executive writing a cover letter. Write a sophisticated, high-level strategic letter with significant depth.
-            Focus on value proposition, ROI, and strategic alignment, not just skills.
-            - **Grounding Rule**: Use ONLY evidence from the provided Resume Blocks.
-            - **Strategic Depth**: Use the core pillars of your experience to demonstrate long-term value and leadership potential.
-            - **Metric Uniqueness**: Do not repeat specific stats.
-            - IMPORTANT: Do NOT include any (BLOCK_ID: ...) citations or metadata in the final text.
+      v3_experimental_pro: `
+            You are a senior executive writing a high-level strategic letter. Focus on ROI, value proposition, and long-term trajectory.
+            
+            INSTRUCTIONS:
+            - **Grounding Rule**: Use ONLY evidence from the provided Resume Blocks. Do NOT invent skills.
+            - **Thematic Depth**: Focus on the core pillars of the candidate's value. 
+            - **Synthesis**: Weave multi-role evidence into sophisticated arguments about leadership and impact.
+            - **Functional Connections**: Use high-level business logic to bridge separate experiences (e.g., "My technical proficiency in [Skill A] is complemented by a track record in [Skill B] where I...").
+            - **Category-Aware Metrics**:
+              - If the job is 'technical' or 'academic': Preserve literal statistics for precision.
+              - If the job is 'creative', 'managerial', or 'general': Paraphrase statistics into high-impact narrative.
+            - **Substance**: Avoid filler. Every sentence must add new, evidence-backed weight to the value proposition.
             `
-        },
-        GENERATE: (template: string, jobDescription: string, resumeText: string, tailoringInstructions: string[], additionalContext?: string, trajectoryContext?: string, bucketStrategy?: string) => `
+    },
+    GENERATE: (template: string, jobDescription: string, resumeText: string, tailoringInstructions: string[], additionalContext?: string, trajectoryContext?: string, bucketStrategy?: string) => `
     ${template}
  
     ${bucketStrategy ? `CANDIDATE NARRATIVE STRATEGY:
@@ -53,7 +54,7 @@ export const COVER_LETTER_PROMPTS = {
     JOB DESCRIPTION:
     ${jobDescription}
  
-    MY EXPERIENCE:
+    MY EXPERIENCE (Full Resume for Context):
     ${resumeText}
  
     ${trajectoryContext ? `MY CAREER CONTEXT (Goals & Patterns):
@@ -76,45 +77,33 @@ export const COVER_LETTER_PROMPTS = {
     
     FINAL CHECK:
     - Ensure no (BLOCK_ID) tags remain in the output.
-    - REFLECT: Does this letter repeat any specific metric more than once? If yes, remove the repetition.
-    - REFLECT: Does it sound like an AI? Remove "look no further" or excessive "passion for".
+    - REFLECT: Is this a list or a narrative? If it feels like a list, use a functional bridge to connect two thoughts.
+    - REFLECT: Did I handle the metrics correctly for this role category?
+    - REFLECT: Does this sound like an AI? Remove generic filler like "I am excited to apply."
   `
-    },
+  },
 
-    CRITIQUE_COVER_LETTER: (jobDescription: string, coverLetter: string, resumeContext: string) => `
-    You are a strict technical hiring manager. Review this cover letter against the candidate's actual resume for the job below.
+  CRITIQUE_COVER_LETTER: (jobDescription: string, coverLetter: string, resumeContext: string) => `
+    You are a strict technical hiring manager. Review this cover letter for technical fidelity and narrative cohesion against the candidate's resume and the job description.
     
-    JOB:
-    ${jobDescription.substring(0, 5000)}
+    JOB DESCRIPTION:
+    ${jobDescription}
 
-    CANDIDATE RESUME (Source of Truth):
+    CANDIDATE RESUME:
     ${resumeContext}
 
-    CANDIDATE LETTER:
+    PROPOSED COVER LETTER:
     ${coverLetter}
 
-    TASK:
-    1. WOULD YOU INTERVIEW THIS PERSON based on this letter and their resume?
-       - Be extremely critical. If the letter claims achievements NOT found in the resume, it is a "Reject".
-    
-    CRITIQUE CRITERIA:
-    1. TECHNICAL FIDELITY (The "Checkboxes"):
-       - **Truthfulness**: Does the letter claim ANY achievements not found in the resume? (Hallucinations = Reject).
-       - **Metric Uniqueness**: Does it repeat the same specific stat twice? (Repetition = Weak).
-       - **Grounding**: Is every core claim traceable to a specific block in the resume?
-    
-    2. NARRATIVE QUALITY (The "Persuasion"):
-       - **Substance & Depth**: Does the letter have enough professional "meat" to be persuasive, or is it just a few generic sentences?
-       - **Evidence Quality**: Does it leverage the *most impactful* resume evidence for this specific role's challenges?
-       - **Strategic Alignment**: Does it articulate a clear value proposition—how the candidate's journey makes them a safe, high-ROI choice?
-       - **Storytelling vs. Listing**: Is it a cohesive narrative or just a bullet-to-paragraph mapping? It must feel "human-written" and tailored.
+    1. TECHNICAL FIDELITY: Does it hallucinate or copy-paste?
+    2. NARRATIVE SUBSTANCE: Is it a cohesive argument or a robotic list?
+    3. FUNCTIONAL BRIDGING: Are the transitions thematic or additive?
 
-    Return specific JSON:
+    Return JSON:
     {
       "decision": "Reject" | "Weak" | "Average" | "Strong" | "Exceptional",
-      "strengths": ["string"],
-      "feedback": ["string (Be specific about what to fix to get a 'Strong' or 'Exceptional' decision)"],
-      "hallucinationAlerts": ["string (Specific claims not supported by the resume)"]
+      "feedback": ["string"],
+      "hallucinationAlerts": ["string"]
     }
     `,
 };

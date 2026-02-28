@@ -2,12 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.23.0] - 2026-02-28
 
 ### Added
-- 
+- **Prompt Evolution Tracker**: Established a dedicated tracking system (`PROMPTS_EVOLUTION.md`) for core AI prompt changes to maintain long-term architectural visibility.
 
 ### Changed
+- **High-Fidelity Cover Letters**: Overhauled the cover letter generation engine to move from simple job-by-job mapping to a cohesive thematic synthesis. Implemented "Functional Connections" to eliminate robotic transitions and added category-aware metric handling (literal stats for technical roles, narrative impact for others).
+- **Prompt Architecture**: Removed deprecated `analysis.ts` monolithic export wrapper and transitioned all domain AI services to consume modular prompt files directly.
 
 ### Fixed
 

@@ -3,7 +3,7 @@ import type { SavedJob, ResumeProfile, JobAnalysis, TargetJob } from '../../type
 import { Storage } from '../../services/storageService';
 import type { UserTier } from '../../types/app';
 import { generateCoverLetter, generateCoverLetterWithQuality, critiqueCoverLetter } from '../../services/geminiService';
-import { ANALYSIS_PROMPTS } from '../../prompts/analysis';
+import { COVER_LETTER_PROMPTS } from '../../prompts/coverLetter';
 import { ArchetypeUtils } from '../../utils/archetypeUtils';
 import {
     Loader2, Sparkles, AlertCircle, PenTool,
@@ -112,7 +112,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
 
             if (isComparisonTriggered) {
                 setAnalysisProgress("Generating stylistic variants...");
-                const variants = Object.keys(ANALYSIS_PROMPTS.COVER_LETTER.VARIANTS).slice(0, 2); // Pick first two
+                const variants = Object.keys(COVER_LETTER_PROMPTS.COVER_LETTER.VARIANTS).slice(0, 2); // Pick first two
 
                 const results = await Promise.all(variants.map(v =>
                     generateCoverLetter(textToUse, bestResume, instructions || [], finalContext, v, trajectoryContext, localJob.id, canonicalTitle)

@@ -4,7 +4,7 @@ import type {
     CustomSkill,
     ResumeProfile
 } from "../../types";
-import { PARSING_PROMPTS, ANALYSIS_PROMPTS } from "../../prompts/index";
+import { PARSING_PROMPTS, JOB_ANALYSIS_PROMPTS, CAREER_PROMPTS } from "../../prompts/index";
 import { AI_MODELS } from "../../constants";
 
 const stringifyProfile = (profile: ResumeProfile): string => {
@@ -71,7 +71,7 @@ export const tailorExperienceBlock = async (
     instructions: string[],
     jobId?: string
 ): Promise<string[]> => {
-    const prompt = ANALYSIS_PROMPTS.TAILOR_EXPERIENCE_BLOCK(jobDescription, block.title, block.organization, block.bullets, instructions);
+    const prompt = JOB_ANALYSIS_PROMPTS.TAILOR_EXPERIENCE_BLOCK(jobDescription, block.title, block.organization, block.bullets, instructions);
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
@@ -111,7 +111,7 @@ export const generateSkillQuestions = async (
     skillName: string,
     proficiency: string
 ): Promise<{ questions: string[] }> => {
-    const prompt = ANALYSIS_PROMPTS.SKILL_VERIFICATION(skillName, proficiency);
+    const prompt = CAREER_PROMPTS.SKILL_VERIFICATION(skillName, proficiency);
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
@@ -125,7 +125,7 @@ export const suggestSkillsFromResumes = async (
     resumes: ResumeProfile[]
 ): Promise<{ name: string; description: string }[]> => {
     const resumeContext = resumes.map(stringifyProfile).join('\n---\n');
-    const prompt = ANALYSIS_PROMPTS.SUGGEST_SKILLS(resumeContext);
+    const prompt = CAREER_PROMPTS.SUGGEST_SKILLS(resumeContext);
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });

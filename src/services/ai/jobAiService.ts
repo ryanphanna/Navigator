@@ -11,7 +11,7 @@ import type {
     Course
 } from "../../types";
 import { AI_MODELS, AI_TEMPERATURE, AGENT_LOOP, USER_TIERS, CONTENT_VALIDATION } from "../../constants";
-import { ANALYSIS_PROMPTS } from "../../prompts/index";
+import { JOB_ANALYSIS_PROMPTS, COVER_LETTER_PROMPTS } from "../../prompts/index";
 import { BucketStorage } from "../storage/bucketStorage";
 
 const stringifyProfile = (profile: ResumeProfile): string => {
@@ -92,7 +92,7 @@ export const analyzeJobFit = async (
     const bucketAdvice = bucket?.guidelines?.promptAdvice;
 
     // Use the consolidated Strategic Professional prompt
-    const analysisPrompt = ANALYSIS_PROMPTS.JOB_FIT_ANALYSIS.DEFAULT(cleanedDescription, (resumeContext + skillsContext + educationContext), bucketAdvice);
+    const analysisPrompt = JOB_ANALYSIS_PROMPTS.JOB_FIT_ANALYSIS.DEFAULT(cleanedDescription, (resumeContext + skillsContext + educationContext), bucketAdvice);
 
     const analysis = await callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
@@ -141,7 +141,7 @@ export const generateCoverLetter = async (
     canonicalTitle?: string
 ): Promise<{ text: string; promptVersion: string }> => {
     const resumeText = stringifyProfile(selectedResume);
-    const template = forceVariant ? (ANALYSIS_PROMPTS.COVER_LETTER.VARIANTS as any)[forceVariant] : ANALYSIS_PROMPTS.COVER_LETTER.VARIANTS.v1_direct;
+    const template = forceVariant ? (COVER_LETTER_PROMPTS.COVER_LETTER.VARIANTS as any)[forceVariant] : COVER_LETTER_PROMPTS.COVER_LETTER.VARIANTS.v1_direct;
 
     // Fetch Bucket Strategy
     let bucketStrategy = undefined;
@@ -150,7 +150,7 @@ export const generateCoverLetter = async (
         bucketStrategy = bucket?.guidelines?.coverLetterStrategy;
     }
 
-    const prompt = ANALYSIS_PROMPTS.COVER_LETTER.GENERATE(template, jobDescription, resumeText, tailoringInstructions, additionalContext, trajectoryContext, bucketStrategy);
+    const prompt = COVER_LETTER_PROMPTS.COVER_LETTER.GENERATE(template, jobDescription, resumeText, tailoringInstructions, additionalContext, trajectoryContext, bucketStrategy);
 
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'analysis' });
@@ -166,7 +166,7 @@ export const critiqueCoverLetter = async (
     resumeContext: string,
     jobId?: string
 ): Promise<{ decision: 'Reject' | 'Weak' | 'Average' | 'Strong' | 'Exceptional'; feedback: string[]; strengths: string[]; hallucinationAlerts: string[] }> => {
-    const prompt = ANALYSIS_PROMPTS.CRITIQUE_COVER_LETTER(jobDescription, coverLetter, resumeContext);
+    const prompt = COVER_LETTER_PROMPTS.CRITIQUE_COVER_LETTER(jobDescription, coverLetter, resumeContext);
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
@@ -242,7 +242,7 @@ export const generateTailoredSummary = async (
     jobId?: string
 ): Promise<string> => {
     const resumeContext = resumes.map(stringifyProfile).join('\n---\n');
-    const prompt = ANALYSIS_PROMPTS.TAILORED_SUMMARY(jobDescription, resumeContext);
+    const prompt = JOB_ANALYSIS_PROMPTS.TAILORED_SUMMARY(jobDescription, resumeContext);
 
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });

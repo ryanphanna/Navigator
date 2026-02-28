@@ -10,14 +10,14 @@ import type {
     ProjectProposal
 } from "../../types";
 import { AI_MODELS, AI_TEMPERATURE } from "../../constants";
-import { ANALYSIS_PROMPTS, PARSING_PROMPTS } from "../../prompts/index";
+import { EDUCATION_PROMPTS, CAREER_PROMPTS, PARSING_PROMPTS } from "../../prompts/index";
 
 export const analyzeMAEligibility = async (
     transcript: Transcript,
     targetProgram: string
 ): Promise<AdmissionEligibility> => {
     const transcriptText = JSON.stringify(transcript);
-    const prompt = ANALYSIS_PROMPTS.GRAD_SCHOOL_ELIGIBILITY(transcriptText, targetProgram);
+    const prompt = EDUCATION_PROMPTS.GRAD_SCHOOL_ELIGIBILITY(transcriptText, targetProgram);
 
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
@@ -61,7 +61,7 @@ export const analyzeGap = async (
     const resumeContext = JSON.stringify(userResumes);
     const skillContext = JSON.stringify(userSkills);
     const transcriptContext = transcript ? JSON.stringify(transcript) : '';
-    const prompt = ANALYSIS_PROMPTS.GAP_ANALYSIS(roleModelContext, resumeContext, skillContext + transcriptContext);
+    const prompt = CAREER_PROMPTS.GAP_ANALYSIS(roleModelContext, resumeContext, skillContext + transcriptContext);
 
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
@@ -74,7 +74,7 @@ export const analyzeGap = async (
 export const generateRoadmap = async (
     gapAnalysis: GapAnalysisResult
 ): Promise<RoadmapMilestone[]> => {
-    const prompt = ANALYSIS_PROMPTS.GENERATE_ROADMAP(JSON.stringify(gapAnalysis));
+    const prompt = CAREER_PROMPTS.GENERATE_ROADMAP(JSON.stringify(gapAnalysis));
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
@@ -94,7 +94,7 @@ export const analyzeRoleModelGap = async (
     const roleModelContext = JSON.stringify(roleModel);
     const resumeContext = JSON.stringify(resumes);
     const skillsContext = JSON.stringify(userSkills);
-    const analysisPrompt = ANALYSIS_PROMPTS.ROLE_MODEL_GAP_ANALYSIS(roleModelContext, resumeContext + skillsContext);
+    const analysisPrompt = CAREER_PROMPTS.ROLE_MODEL_GAP_ANALYSIS(roleModelContext, resumeContext + skillsContext);
 
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
@@ -133,7 +133,7 @@ export const extractSkillsFromCourses = async (
 ): Promise<CustomSkill[]> => {
     const allCourses = transcript.semesters.flatMap(s => s.courses);
     const coursesList = JSON.stringify(allCourses);
-    const prompt = ANALYSIS_PROMPTS.COURSE_SKILL_EXTRACTION(coursesList);
+    const prompt = EDUCATION_PROMPTS.COURSE_SKILL_EXTRACTION(coursesList);
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
@@ -148,7 +148,7 @@ export const analyzeCurrentProgramRequirements = async (
     university: string
 ): Promise<AdmissionEligibility> => {
     const transcriptText = JSON.stringify(transcript);
-    const prompt = ANALYSIS_PROMPTS.PROGRAM_REQUIREMENTS_ANALYSIS(transcriptText, programName, university);
+    const prompt = EDUCATION_PROMPTS.PROGRAM_REQUIREMENTS_ANALYSIS(transcriptText, programName, university);
 
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
@@ -163,7 +163,7 @@ export const extractProjectsFromCourses = async (
 ): Promise<ProjectProposal[]> => {
     const allCourses = transcript.semesters.flatMap(s => s.courses);
     const coursesList = JSON.stringify(allCourses);
-    const prompt = ANALYSIS_PROMPTS.COURSE_PROJECT_EXTRACTION(coursesList);
+    const prompt = EDUCATION_PROMPTS.COURSE_PROJECT_EXTRACTION(coursesList);
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
