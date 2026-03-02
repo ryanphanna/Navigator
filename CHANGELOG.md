@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## [2.23.0] - 2026-02-28
 
 ### Added
@@ -48,12 +56,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.21.0] - 2026-02-24
 
-### Architecture & Refactoring
-- **Context-Aware URL Navigation**: Integrated the browser URL as the single source of truth. The UI now contextually derives its state from the path, ensuring perfect synchronization and eliminating redundant state management.
-- **Autonomous Component Architecture**: Refactored core views (`Header`, `HomePage`, `JobMatchInput`, `JobDetail`, `CoachDashboard`, etc.) to directly consume dependencies from specialized Context hooks, completely eliminating massive amounts of prop drilling across the application shell.
-- **Clean Routing Manifest**: Simplified `AppRoutes.tsx` into a lean, declarative manifest, decoupling business logic from the routing layer.
-
-### Visual Excellence & Aesthetics
+### Added
 - **Premium Graphic Identity**: Launched a massive visual upgrade for Skills Bento cards. Replaced repetitive circular motifs with high-fidelity graphics featuring 3D orbiting particles, scanning pulse animations, and "Diamond/Prism" glass aesthetics.
 - **3D Glassmorphic Depth**: Implemented a stacked glass tile architecture for skill previews, featuring translucent layered depth, background blurs, and dynamic hover-driven rotation.
 - **Platform-Wide Design Standardization**:
@@ -61,20 +64,21 @@ All notable changes to this project will be documented in this file.
     - Implemented a comprehensive removal of aggressive all-caps/uppercase styling in favor of a modern, professional sentence-case aesthetic.
     - Standardized global rounding to `rounded-2xl` for interactive elements and implemented high-contrast `font-black` typography for primary buttons.
     - Executed a comprehensive scaling and alignment pass on all dashboard graphics to ensure professional visual hierarchy.
-
-### Resume & Skills Intelligence
 - **Resume Preview Modal**: Introduced a high-fidelity modal for instant, print-ready resume visualization within the editor.
 - **Interactive Skill Discovery**: Enabled one-click saving of AI-discovered keywords directly to the global database from the resume sidebar.
 - **Unified Skill Indicators**: Reimagined the verification system into a single intuitive indicator. Verified skills now use emerald/orange checkmarks, while non-verified skills use proficiency dots.
 - **Manual Achievement Control**: Added manual controls for achievement bullet reordering via interactive move buttons on hover.
 - **Text Extraction High-Fidelity**: Upgraded the PDF extraction engine to proactively clean whitespace and resolve character artifacts (splitting ligatures like "fi", "fl", "ti") before AI processing.
 
-### Core Enhancements
+### Changed
+- **Context-Aware URL Navigation**: Integrated the browser URL as the single source of truth. The UI now contextually derives its state from the path, ensuring perfect synchronization and eliminating redundant state management.
+- **Autonomous Component Architecture**: Refactored core views (`Header`, `HomePage`, `JobMatchInput`, `JobDetail`, `CoachDashboard`, etc.) to directly consume dependencies from specialized Context hooks, completely eliminating massive amounts of prop drilling across the application shell.
+- **Clean Routing Manifest**: Simplified `AppRoutes.tsx` into a lean, declarative manifest, decoupling business logic from the routing layer.
 - **Seamless Authentication**: Overhauled the login experience into a fluid "one-flow" model using intelligent email detection to route users automatically, removing redundant manual toggles between signing in and signing up.
 - **Education Module Refinement**: Reverted nomenclature back to standard terms (**Programs** and **Transcript**) and improved the program exploration UX with an expanded discovery container.
 - **Resume Editor Streamlining**: Optimized the editor by removing redundant metrics (Strength Score, Pro-Tips, status badges) to prioritize a high-density, document-first writing experience.
 
-### Fixed & Stabilized
+### Fixed
 - **React Stability**: Resolved "Rules of Hooks" violations in `ProtectedRoute` and fixed critical JSX syntax errors and hook initialization issues in the Resume Editor.
 - **UI Logic Fixes**: Corrected cursor behavior on interactive elements, resolved scroll-jitter in the header, fixed card dropdown clipping, and restored missing iconography to status filters.
 - **Data Integrity**: Resolved a "data loss" edge case by implementing latest-first recovery for resume records and fixed a malformed `user_skills` database schema.
@@ -307,7 +311,7 @@ All notable changes to this project will be documented in this file.
   - Fixed corrupted JSX structure in the Job Detail module to ensure stable rendering across all application states.
   - Resolved missing icon imports for `Search` and `ShieldCheck` in `JobDetail.tsx`.
 
-### Added (Previous)
+### Added
 - **Education Module: Grad School Discovery**:
   - Introduced **Program Explorer** to search and filter curated Master's programs with seamless integration into the Program Fit Analyzer.
   - Added **Application Launchpad**, providing a structured, interactive roadmap for core admission requirements (GRE/GMAT, SOP, LORs).
@@ -566,11 +570,8 @@ All notable changes to this project will be documented in this file.
 - **UI Consistency**: Aligned Education card dimensions and centering with the Home page grid.
 - **Clean-up**: Removed redundant "Cover Letters" and "Coach" sub-links.
 - **Build & Tests**: Resolved post-refactor build failures and regression in `History` and `GapAnalysis` tests.
-</details>
-
-### Verified
 - **Navigation**: Verified functionality of all 20+ Header and Footer links via automated browser testing.
-
+</details>
 <details>
 <summary>## [2.12.0] - 2026-02-16</summary>
 
