@@ -109,12 +109,12 @@ export const BentoCard: React.FC<BentoCardProps> = ({
 
                 <div className="flex gap-1 pt-1.5">
                     {badge && (
-                        <span className="px-1.5 py-0.5 bg-emerald-500/10 text-[8px] font-black tracking-widest text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-500/10 uppercase">
+                        <span className="px-1.5 py-0.5 bg-emerald-500/10 text-[8px] font-black tracking-widest text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-500/10">
                             {badge}
                         </span>
                     )}
                     {isComingSoon && (
-                        <span className="px-1.5 py-0.5 bg-neutral-100 dark:bg-white/5 text-[8px] font-black tracking-widest text-neutral-400 dark:text-neutral-500 rounded-md border border-neutral-200/50 dark:border-white/5 uppercase">
+                        <span className="px-1.5 py-0.5 bg-neutral-100 dark:bg-white/5 text-[8px] font-black tracking-widest text-neutral-400 dark:text-neutral-500 rounded-md border border-neutral-200/50 dark:border-white/5">
                             Soon
                         </span>
                     )}
@@ -134,18 +134,18 @@ export const BentoCard: React.FC<BentoCardProps> = ({
             </div>
 
             {/* Preview Section */}
-            <div className="relative mt-auto pt-4 border-t border-neutral-100 dark:border-white/5">
+            <div className="relative mt-auto pt-4 border-t border-neutral-100 dark:border-white/5 flex flex-col gap-4">
                 {previewContent && (
-                    <div className="h-24 flex items-center justify-center relative z-10 transform group-hover:scale-105 transition-transform duration-700 ease-out">
+                    <div className="relative z-10 transform group-hover:scale-[1.02] transition-transform duration-700 ease-out">
                         {previewContent}
                     </div>
                 )}
 
-                {/* Action Bar Area - Reserved space for alignment */}
-                <div className={`${previewContent ? 'mt-2' : ''} h-6 flex items-center justify-end relative z-10`}>
+                {/* Action Bar Area */}
+                <div className="h-6 flex items-center justify-end relative z-10">
                     {actionLabel && !isComingSoon && (
                         <div
-                            className={`flex items-center gap-2 ${actionTextClass} font-black text-[10px] tracking-[0.15em] uppercase transition-all cursor-pointer group/btn`}
+                            className={`flex items-center gap-2 ${actionTextClass} font-black text-[10px] tracking-[0.1em] transition-all cursor-pointer group/btn`}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onAction?.();

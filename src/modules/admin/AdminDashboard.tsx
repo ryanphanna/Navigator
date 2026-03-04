@@ -76,7 +76,7 @@ export const AdminDashboard: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-[#fafafa] dark:bg-neutral-950 p-6 md:p-12 pt-24">
-            <div className="max-w-7xl mx-auto space-y-10">
+            <div className="max-w-6xl mx-auto space-y-10">
 
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">

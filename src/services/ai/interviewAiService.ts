@@ -17,7 +17,7 @@ export const generateTailoredInterviewQuestions = async (
     const prompt = INTERVIEW_PROMPTS.GENERATE_QUESTIONS(jobDescription, resumeContext, jobTitle);
 
     return callWithRetry(async (metadata) => {
-        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'interview', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         const questions = JSON.parse(cleanJsonOutput(response.response.text()));
@@ -32,7 +32,7 @@ export const generateSkillQuestions = async (
     const prompt = INTERVIEW_PROMPTS.SKILL_INTERVIEW(skillName, level);
 
     return callWithRetry(async (metadata) => {
-        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'interview', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         const questions = JSON.parse(cleanJsonOutput(response.response.text()));
@@ -46,7 +46,7 @@ export const generateUnifiedQuestions = async (
     const prompt = INTERVIEW_PROMPTS.UNIFIED_SKILL_INTERVIEW(skills);
 
     return callWithRetry(async (metadata) => {
-        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'interview', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         return JSON.parse(cleanJsonOutput(response.response.text()));
@@ -65,7 +65,7 @@ export const analyzeUnifiedResponse = async (
     const prompt = INTERVIEW_PROMPTS.ANALYZE_UNIFIED_RESPONSE(question, targetSkills, userResponse);
 
     return callWithRetry(async (metadata) => {
-        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'interview', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         return JSON.parse(cleanJsonOutput(response.response.text()));
@@ -76,7 +76,7 @@ export const generateGeneralBehavioralQuestions = async (): Promise<InterviewQue
     const prompt = INTERVIEW_PROMPTS.GENERAL_BEHAVIORAL;
 
     return callWithRetry(async (metadata) => {
-        const model = await getModel({ task: 'extraction', generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'interview', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         const questions = JSON.parse(cleanJsonOutput(response.response.text()));
@@ -93,7 +93,7 @@ export const analyzeInterviewResponse = async (
     const prompt = INTERVIEW_PROMPTS.ANALYZE_RESPONSE(question, userResponse, jobDescription);
 
     return callWithRetry(async (metadata) => {
-        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'interview', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         return JSON.parse(cleanJsonOutput(response.response.text()));
@@ -109,7 +109,7 @@ export const generateFollowUp = async (
     const prompt = INTERVIEW_PROMPTS.FOLLOW_UP(question, userResponse, jobDescription);
 
     return callWithRetry(async (metadata) => {
-        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'interview', generationConfig: { responseMimeType: "application/json" } });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         return JSON.parse(cleanJsonOutput(response.response.text()));

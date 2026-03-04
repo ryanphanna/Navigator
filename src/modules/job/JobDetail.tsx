@@ -89,12 +89,12 @@ export const JobDetail: React.FC = () => {
             lines.push('');
 
             if (job.tailoredSummary) {
-                lines.push('SUMMARY');
+                lines.push('Summary');
                 lines.push(job.tailoredSummary);
                 lines.push('');
             }
 
-            lines.push('EXPERIENCE');
+            lines.push('Experience');
             bestResume?.blocks
                 .filter((b: ExperienceBlock) => analysis?.recommendedBlockIds ? analysis.recommendedBlockIds.includes(b.id) : b.isVisible)
                 .forEach((block: ExperienceBlock) => {
@@ -322,7 +322,7 @@ export const JobDetail: React.FC = () => {
                     Storage.updateJob(updated);
                     onUpdateJob(updated);
                 }}
-                className="text-xs bg-neutral-50 dark:bg-neutral-800 rounded-xl px-4 py-2 font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-400 border-none focus:ring-4 focus:ring-accent-primary/10 transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                className="text-xs bg-neutral-50 dark:bg-neutral-800 rounded-xl px-4 py-2 font-black text-neutral-600 dark:text-neutral-400 border-none focus:ring-4 focus:ring-accent-primary/10 transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700"
             >
                 <option value="saved">Saved</option>
                 <option value="applied">Applied</option>
@@ -359,7 +359,7 @@ export const JobDetail: React.FC = () => {
                 <>
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-xs font-bold text-neutral-400">Match Analysis</h3>
-                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${(analysis?.compatibilityScore ?? -1) >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 shadow-emerald-500/5' :
+                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-black border shadow-sm ${(analysis?.compatibilityScore ?? -1) >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 shadow-emerald-500/5' :
                             (analysis?.compatibilityScore ?? -1) >= 60 ? 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 shadow-amber-500/5' :
                                 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 shadow-rose-500/5'
                             }`}>
@@ -452,7 +452,7 @@ export const JobDetail: React.FC = () => {
                         )}
                     </p>
                     <div className="mt-3 flex gap-2">
-                        <span className="text-[10px] font-black uppercase tracking-wider bg-amber-200/50 dark:bg-amber-900/50 px-2 py-0.5 rounded text-amber-900 dark:text-amber-200">
+                        <span className="text-[10px] font-black bg-amber-200/50 dark:bg-amber-900/50 px-2 py-0.5 rounded text-amber-900 dark:text-amber-200">
                             Safe Mode Active
                         </span>
                     </div>
@@ -489,7 +489,7 @@ export const JobDetail: React.FC = () => {
                                     <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-600" />
                                     <div className="flex items-center gap-1">
                                         <Hash className="w-3.5 h-3.5" />
-                                        <span className="font-mono text-[10px] uppercase tracking-wider">{analysis.distilledJob.referenceCode}</span>
+                                        <span className="font-mono text-[10px] tracking-wider">{analysis.distilledJob.referenceCode}</span>
                                     </div>
                                 </>
                             )}
@@ -516,328 +516,322 @@ export const JobDetail: React.FC = () => {
                             activeTab === 'resume' ? <ResumeSidebar /> :
                                 activeTab === 'cover-letter' ? (
                                     <div className="space-y-6">
-                                        {/* Strategy Card */}
                                         <Card variant="premium" className="p-8 border-indigo-500/10 shadow-indigo-500/10">
                                             <h4 className="font-bold text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm normal-case">
                                                 <Sparkles className="w-3.5 h-3.5" /> Refinement Strategy
                                             </h4>
                                             <div className="space-y-6">
-                                                <div>
-                                                    <div className="text-xs font-bold text-neutral-400 mb-3 uppercase tracking-widest">AI Comparison Logic</div>
-                                                    <div className="space-y-3">
-                                                        {(analysis?.coverLetterTailoringInstructions || analysis?.tailoringInstructions || [])
-                                                            .slice(0, 3)
-                                                            .map((instruction: string, idx: number) => (
-                                                                <motion.div
-                                                                    key={idx}
-                                                                    initial={{ opacity: 0, x: 20 }}
-                                                                    animate={{ opacity: 1, x: 0 }}
-                                                                    transition={{ delay: idx * 0.1 }}
-                                                                    className="flex gap-3 text-xs text-neutral-600 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800/50 p-4 rounded-2xl border border-neutral-100 dark:border-white/5 italic leading-relaxed"
-                                                                >
-                                                                    <span className="font-bold text-indigo-500/30">•</span>
-                                                                    <span>{instruction.replace(/\[Block ID: .*?\]/g, '').trim()}</span>
-                                                                </motion.div>
-                                                            ))}
-                                                        {(!analysis?.coverLetterTailoringInstructions && !analysis?.tailoringInstructions) && (
-                                                            <div className="text-xs text-neutral-500 italic py-4 text-center">No strategy identified.</div>
-                                                        )}
-                                                    </div>
+                                                <div className="space-y-3">
+                                                    {(analysis?.coverLetterTailoringInstructions || analysis?.tailoringInstructions || [])
+                                                        .slice(0, 3)
+                                                        .map((instruction: string, idx: number) => (
+                                                            <motion.div
+                                                                key={idx}
+                                                                initial={{ opacity: 0, x: 20 }}
+                                                                animate={{ opacity: 1, x: 0 }}
+                                                                transition={{ delay: idx * 0.1 }}
+                                                                className="flex gap-3 text-xs text-neutral-600 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800/50 p-4 rounded-2xl border border-neutral-100 dark:border-white/5 italic leading-relaxed"
+                                                            >
+                                                                <span className="font-bold text-indigo-500/30">•</span>
+                                                                <span>{instruction.replace(/\[Block ID: .*?\]/g, '').trim()}</span>
+                                                            </motion.div>
+                                                        ))}
+                                                    {(!analysis?.coverLetterTailoringInstructions && !analysis?.tailoringInstructions) && (
+                                                        <div className="text-xs text-neutral-500 italic py-4 text-center">No strategy identified.</div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </Card>
-
-                                        {/* Blind Review Placeholder - Logic remains in Editor but we could move it if needed */}
                                     </div>
                                 ) : null
                     }
                 >
-                    {(activeTab === 'analysis' || activeTab === 'resume' || activeTab === 'cover-letter') && <ProhibitionAlert />}
+                    <div className="p-6 md:p-8">
+                        {(activeTab === 'analysis' || activeTab === 'resume' || activeTab === 'cover-letter') && <ProhibitionAlert />}
 
-                    {activeTab === 'analysis' && (
-                        <div className="space-y-8">
-                            <div className="pb-8 border-b border-neutral-100 dark:border-white/5">
-                                <h4 className="text-sm font-black text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 normal-case">
-                                    <Sparkles className="w-4 h-4" /> Key Skills
-                                </h4>
-                                <div className="flex flex-wrap gap-2">
-                                    {(analysis?.distilledJob?.keySkills || []).map((skill: string, i: number) => (
-                                        <motion.span
-                                            key={i}
-                                            initial={{ opacity: 0, scale: 0.9 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: i * 0.05 }}
-                                            className="text-xs font-bold text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm hover:border-accent-primary/30 transition-all cursor-default flex items-center gap-2"
-                                        >
-                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/50" />
-                                            {toTitleCase(skill)}
-                                        </motion.span>
+                        {activeTab === 'analysis' && (
+                            <div className="space-y-8">
+                                <div className="pb-8 border-b border-neutral-100 dark:border-white/5">
+                                    <h4 className="text-sm font-black text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 normal-case">
+                                        <Sparkles className="w-4 h-4" /> Key Skills
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(analysis?.distilledJob?.keySkills || []).map((skill: string, i: number) => (
+                                            <motion.span
+                                                key={i}
+                                                initial={{ opacity: 0, scale: 0.9 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{ delay: i * 0.05 }}
+                                                className="text-xs font-bold text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm hover:border-accent-primary/30 transition-all cursor-default flex items-center gap-2"
+                                            >
+                                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/50" />
+                                                {toTitleCase(skill)}
+                                            </motion.span>
+                                        ))}
+                                        {(!analysis?.distilledJob?.keySkills || analysis.distilledJob.keySkills.length === 0) && (
+                                            <span className="text-sm font-medium text-neutral-400 italic">No specific competencies extracted.</span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {(analysis?.strengths?.length || 0) > 0 || (analysis?.weaknesses?.length || 0) > 0 ? (
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <Card variant="glass" className="p-6 border-emerald-500/10 bg-emerald-500/5">
+                                            <h4 className="text-[10px] font-black tracking-widest text-emerald-600 dark:text-emerald-400 mb-4 flex items-center gap-2">
+                                                <ShieldCheck className="w-3.5 h-3.5" /> Core Strengths
+                                            </h4>
+                                            <div className="space-y-3">
+                                                {analysis?.strengths?.map((s, i) => (
+                                                    <div key={i} className="flex gap-3 text-xs font-bold text-neutral-700 dark:text-neutral-300">
+                                                        <div className="w-1 h-1 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                                                        {s}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </Card>
+
+                                        <Card variant="glass" className="p-6 border-rose-500/10 bg-rose-500/5">
+                                            <h4 className="text-[10px] font-black tracking-widest text-rose-600 dark:text-rose-400 mb-4 flex items-center gap-2">
+                                                <AlertCircle className="w-3.5 h-3.5" /> Identified Gaps
+                                            </h4>
+                                            <div className="space-y-3">
+                                                {analysis?.weaknesses?.map((w, i) => (
+                                                    <div key={i} className="flex gap-3 text-xs font-bold text-neutral-700 dark:text-neutral-300">
+                                                        <div className="w-1 h-1 rounded-full bg-rose-50 mt-1.5 shrink-0" />
+                                                        {w}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </Card>
+                                    </div>
+                                ) : null}
+
+                                {job.status === 'analyzing' || analysisProgress ? (
+                                    <Card variant="premium" className="p-6 animate-pulse border-accent-primary/10">
+                                        <div className="h-6 bg-neutral-100 dark:bg-neutral-800 rounded-full w-1/4 mb-10"></div>
+                                        <div className="grid sm:grid-cols-2 gap-6">
+                                            <div className="h-20 bg-neutral-50 dark:bg-neutral-800 rounded-[1.5rem]"></div>
+                                            <div className="h-20 bg-neutral-50 dark:bg-neutral-800 rounded-[1.5rem]"></div>
+                                        </div>
+                                    </Card>
+                                ) : (
+                                    analysis?.distilledJob?.requiredSkills && analysis.distilledJob.requiredSkills.length > 0 && (
+                                        <Card variant="premium" className="p-6 border-indigo-500/10 shadow-indigo-500/5">
+                                            <h4 className="font-black text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm normal-case">
+                                                <Target className="w-4 h-4" /> Skill Match
+                                            </h4>
+                                            <div className="grid sm:grid-cols-2 gap-6">
+                                                {analysis.distilledJob.requiredSkills.map((req: { name: string; level: 'learning' | 'comfortable' | 'expert' }, i: number) => {
+                                                    const mySkill = userSkills.find(s => s.name.toLowerCase().includes(req.name.toLowerCase()));
+                                                    const levels: Record<string, number> = { learning: 1, comfortable: 2, expert: 3 };
+                                                    const isMatch = !!(mySkill && levels[mySkill.proficiency] >= levels[req.level]);
+                                                    return (
+                                                        <motion.div
+                                                            key={i}
+                                                            initial={{ opacity: 0, x: -10 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            transition={{ delay: i * 0.1 }}
+                                                            className="flex items-center justify-between p-6 bg-neutral-50 dark:bg-neutral-900/40 border border-neutral-100 dark:border-white/5 rounded-[1.5rem] shadow-sm hover:border-accent-primary/30 transition-all group"
+                                                        >
+                                                            <div className="flex items-center gap-4">
+                                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${isMatch ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400'}`}>
+                                                                    {isMatch ? <ShieldCheck className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-sm font-black text-neutral-900 dark:text-white block">{toTitleCase(req.name)}</span>
+                                                                    <span className="text-[9px] font-bold text-neutral-400">Required: {toTitleCase(req.level)}</span>
+                                                                </div>
+                                                            </div>
+                                                            {mySkill && (
+                                                                <span className="text-[9px] font-bold text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+                                                                    My Level: {toTitleCase(mySkill.proficiency)}
+                                                                </span>
+                                                            )}
+                                                        </motion.div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </Card>
                                     ))}
-                                    {(!analysis?.distilledJob?.keySkills || analysis.distilledJob.keySkills.length === 0) && (
-                                        <span className="text-sm font-medium text-neutral-400 italic">No specific competencies extracted.</span>
-                                    )}
-                                </div>
-                            </div>
 
-                            {(analysis?.strengths?.length || 0) > 0 || (analysis?.weaknesses?.length || 0) > 0 ? (
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    {/* Strengths */}
-                                    <Card variant="glass" className="p-6 border-emerald-500/10 bg-emerald-500/5">
-                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-4 flex items-center gap-2">
-                                            <ShieldCheck className="w-3.5 h-3.5" /> Core Strengths
-                                        </h4>
-                                        <div className="space-y-3">
-                                            {analysis?.strengths?.map((s, i) => (
-                                                <div key={i} className="flex gap-3 text-xs font-bold text-neutral-700 dark:text-neutral-300">
-                                                    <div className="w-1 h-1 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-                                                    {s}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </Card>
-
-                                    {/* Weaknesses */}
-                                    <Card variant="glass" className="p-6 border-rose-500/10 bg-rose-500/5">
-                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 mb-4 flex items-center gap-2">
-                                            <AlertCircle className="w-3.5 h-3.5" /> Identified Gaps
-                                        </h4>
-                                        <div className="space-y-3">
-                                            {analysis?.weaknesses?.map((w, i) => (
-                                                <div key={i} className="flex gap-3 text-xs font-bold text-neutral-700 dark:text-neutral-300">
-                                                    <div className="w-1 h-1 rounded-full bg-rose-500 mt-1.5 shrink-0" />
-                                                    {w}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </Card>
-                                </div>
-                            ) : null}
-
-                            {job.status === 'analyzing' || analysisProgress ? (
-                                <Card variant="premium" className="p-6 animate-pulse border-accent-primary/10">
-                                    <div className="h-6 bg-neutral-100 dark:bg-neutral-800 rounded-full w-1/4 mb-10"></div>
-                                    <div className="grid sm:grid-cols-2 gap-6">
-                                        <div className="h-20 bg-neutral-50 dark:bg-neutral-800 rounded-[1.5rem]"></div>
-                                        <div className="h-20 bg-neutral-50 dark:bg-neutral-800 rounded-[1.5rem]"></div>
+                                <Card variant="glass" className="p-6 border-neutral-200/50 dark:border-white/5">
+                                    <h4 className="font-black text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm normal-case">
+                                        <BookOpen className="w-4 h-4" /> Core Responsibilities
+                                    </h4>
+                                    <div className="grid gap-4">
+                                        {(analysis?.distilledJob?.coreResponsibilities || []).map((resp: string, i: number) => (
+                                            <motion.div
+                                                key={i}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: i * 0.1 }}
+                                                className="flex gap-5 text-neutral-700 dark:text-neutral-300 text-sm font-bold leading-relaxed p-6 bg-neutral-50/50 dark:bg-neutral-800/40 rounded-[1.5rem] border border-neutral-50 dark:border-white/5"
+                                            >
+                                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/30 mt-2 shrink-0" />
+                                                {toSentenceCase(resp)}
+                                            </motion.div>
+                                        ))}
+                                        {job.status !== 'analyzing' && !analysisProgress && (!analysis?.distilledJob?.coreResponsibilities || analysis.distilledJob.coreResponsibilities.length === 0) && (
+                                            <div className="text-sm font-medium text-neutral-400 italic text-center py-10">No core responsibilities extracted.</div>
+                                        )}
                                     </div>
                                 </Card>
-                            ) : (
-                                analysis?.distilledJob?.requiredSkills && analysis.distilledJob.requiredSkills.length > 0 && (
-                                    <Card variant="premium" className="p-6 border-indigo-500/10 shadow-indigo-500/5">
-                                        <h4 className="font-black text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm normal-case">
-                                            <Target className="w-4 h-4" /> Skill Match
-                                        </h4>
-                                        <div className="grid sm:grid-cols-2 gap-6">
-                                            {analysis.distilledJob.requiredSkills.map((req: { name: string; level: 'learning' | 'comfortable' | 'expert' }, i: number) => {
-                                                const mySkill = userSkills.find(s => s.name.toLowerCase().includes(req.name.toLowerCase()));
-                                                const levels: Record<string, number> = { learning: 1, comfortable: 2, expert: 3 };
-                                                const isMatch = !!(mySkill && levels[mySkill.proficiency] >= levels[req.level]);
-                                                return (
-                                                    <motion.div
-                                                        key={i}
-                                                        initial={{ opacity: 0, x: -10 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        transition={{ delay: i * 0.1 }}
-                                                        className="flex items-center justify-between p-6 bg-neutral-50 dark:bg-neutral-900/40 border border-neutral-100 dark:border-white/5 rounded-[1.5rem] shadow-sm hover:border-accent-primary/30 transition-all group"
-                                                    >
-                                                        <div className="flex items-center gap-4">
-                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${isMatch ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400'}`}>
-                                                                {isMatch ? <ShieldCheck className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
-                                                            </div>
-                                                            <div>
-                                                                <span className="text-sm font-black text-neutral-900 dark:text-white block">{toTitleCase(req.name)}</span>
-                                                                <span className="text-[9px] font-bold text-neutral-400">Required: {toTitleCase(req.level)}</span>
-                                                            </div>
-                                                        </div>
-                                                        {mySkill && (
-                                                            <span className="text-[9px] font-bold text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-                                                                My Level: {toTitleCase(mySkill.proficiency)}
-                                                            </span>
-                                                        )}
-                                                    </motion.div>
-                                                );
-                                            })}
-                                        </div>
-                                    </Card>
-                                ))}
+                            </div>
+                        )}
 
-                            <Card variant="glass" className="p-6 border-neutral-200/50 dark:border-white/5">
-                                <h4 className="font-black text-indigo-500 dark:text-indigo-400 mb-6 flex items-center gap-2 text-sm normal-case">
-                                    <BookOpen className="w-4 h-4" /> Core Responsibilities
+                        {activeTab === 'job-post' && (
+                            <Card variant="premium" className="p-8 border-accent-primary/10 shadow-indigo-500/5">
+                                <h4 className="flex items-center gap-2 font-black text-accent-primary-hex mb-8 text-xs">
+                                    <FileText className="w-4 h-4" />
+                                    Job Description
                                 </h4>
-                                <div className="grid gap-4">
-                                    {(analysis?.distilledJob?.coreResponsibilities || []).map((resp: string, i: number) => (
-                                        <motion.div
-                                            key={i}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: i * 0.1 }}
-                                            className="flex gap-5 text-neutral-700 dark:text-neutral-300 text-sm font-bold leading-relaxed p-6 bg-neutral-50/50 dark:bg-neutral-800/40 rounded-[1.5rem] border border-neutral-50 dark:border-white/5"
-                                        >
-                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/30 mt-2 shrink-0" />
-                                            {toSentenceCase(resp)}
-                                        </motion.div>
-                                    ))}
-                                    {job.status !== 'analyzing' && !analysisProgress && (!analysis?.distilledJob?.coreResponsibilities || analysis.distilledJob.coreResponsibilities.length === 0) && (
-                                        <div className="text-sm font-medium text-neutral-400 italic text-center py-10">No core responsibilities extracted.</div>
-                                    )}
+                                <div className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap font-sans font-medium bg-neutral-50 dark:bg-neutral-800/50 p-6 rounded-2xl border border-neutral-100 dark:border-neutral-700">
+                                    {analysis?.cleanedDescription || job.description}
                                 </div>
                             </Card>
-                        </div>
-                    )}
+                        )}
 
-                    {activeTab === 'job-post' && (
-                        <Card variant="premium" className="p-8 border-accent-primary/10 shadow-indigo-500/5">
-                            <h4 className="flex items-center gap-2 font-black text-accent-primary-hex mb-8 text-xs">
-                                <FileText className="w-4 h-4" />
-                                Job Description
-                            </h4>
-                            <div className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap font-sans font-medium bg-neutral-50 dark:bg-neutral-800/50 p-6 rounded-2xl border border-neutral-100 dark:border-neutral-700">
-                                {analysis?.cleanedDescription || job.description}
-                            </div>
-                        </Card>
-                    )}
-
-                    {activeTab === 'resume' && (
-                        <div className="space-y-12 py-10 px-6 md:px-12 bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-100 dark:border-neutral-800 shadow-sm">
-                            {/* Tailored Summary Section */}
-                            {userTier !== 'free' && (
-                                <section>
-                                    <div className="flex justify-between items-center mb-6 border-b border-neutral-100 dark:border-neutral-800/50 pb-4">
-                                        <h3 className="text-xs font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
-                                            <Wand2 className="w-3.5 h-3.5" /> Professional Summary
-                                        </h3>
-                                        <Button
-                                            onClick={handleGenerateSummary}
-                                            disabled={generatingSummary}
-                                            variant="secondary"
-                                            size="xs"
-                                            className="text-[9px]"
-                                            icon={generatingSummary ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                                        >
-                                            {job.tailoredSummary ? 'Redraft' : 'Draft Tailored Summary'}
-                                        </Button>
-                                    </div>
-                                    {job.tailoredSummary ? (
-                                        <div className="relative group">
-                                            <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium italic border-l-2 border-indigo-500/20 pl-6 py-1">
-                                                {job.tailoredSummary}
-                                            </p>
-                                            <button
-                                                onClick={() => { navigator.clipboard.writeText(job.tailoredSummary || ''); showSuccess('Summary copied!'); }}
-                                                className="mt-4 text-[9px] font-black uppercase tracking-widest text-neutral-400 hover:text-indigo-500 flex items-center gap-2 transition-all"
-                                            >
-                                                <Copy className="w-3 h-3" /> Copy optimized summary
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <p className="text-xs text-neutral-400 italic">Generate a high-impact professional summary meticulously tailored for this role.</p>
-                                    )}
-                                </section>
-                            )}
-
-                            {/* Experience Section */}
-                            <section>
-                                <div className="flex justify-between items-center mb-8 border-b border-neutral-100 dark:border-neutral-800/50 pb-4">
-                                    <h3 className="text-xs font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Experience & Achievements</h3>
-                                    <div className="flex items-center gap-2">
-                                        {userTier !== 'free' && (
+                        {activeTab === 'resume' && (
+                            <div className="space-y-12 py-10 px-6 md:px-12 bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-100 dark:border-neutral-800 shadow-sm">
+                                {userTier !== 'free' && (
+                                    <section>
+                                        <div className="flex justify-between items-center mb-6 border-b border-neutral-100 dark:border-neutral-800/50 pb-4">
+                                            <h3 className="text-xs font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                                                <Wand2 className="w-3.5 h-3.5" /> Professional Summary
+                                            </h3>
                                             <Button
-                                                onClick={() => {
-                                                    const blocks = bestResume?.blocks.filter((b: ExperienceBlock) => analysis?.recommendedBlockIds ? analysis.recommendedBlockIds.includes(b.id) : b.isVisible) || [];
-                                                    handleBulkTailor(blocks);
-                                                }}
-                                                disabled={!!bulkTailoringProgress || !!tailoringBlockId}
+                                                onClick={handleGenerateSummary}
+                                                disabled={generatingSummary}
                                                 variant="secondary"
                                                 size="xs"
                                                 className="text-[9px]"
-                                                icon={bulkTailoringProgress ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                                icon={generatingSummary ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                                             >
-                                                {bulkTailoringProgress ? `Tailoring ${bulkTailoringProgress.current}/${bulkTailoringProgress.total}` : 'Tailor All'}
+                                                {job.tailoredSummary ? 'Redraft' : 'Draft Tailored Summary'}
                                             </Button>
+                                        </div>
+                                        {job.tailoredSummary ? (
+                                            <div className="relative group">
+                                                <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium italic border-l-2 border-indigo-500/20 pl-6 py-1">
+                                                    {job.tailoredSummary}
+                                                </p>
+                                                <button
+                                                    onClick={() => { navigator.clipboard.writeText(job.tailoredSummary || ''); showSuccess('Summary copied!'); }}
+                                                    className="mt-4 text-[9px] font-black tracking-widest text-neutral-400 hover:text-indigo-500 flex items-center gap-2 transition-all"
+                                                >
+                                                    <Copy className="w-3 h-3" /> Copy optimized summary
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <p className="text-xs text-neutral-400 italic">Generate a high-impact professional summary meticulously tailored for this role.</p>
                                         )}
-                                        <Button
-                                            onClick={handleCopyResume}
-                                            disabled={generating}
-                                            variant="secondary"
-                                            size="xs"
-                                            className="text-[9px]"
-                                            icon={generating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Copy className="w-3 h-3" />}
-                                        >
-                                            Copy Full
-                                        </Button>
-                                    </div>
-                                </div>
+                                    </section>
+                                )}
 
-                                <div className="space-y-10">
-                                    {bestResume?.blocks
-                                        .filter((b: ExperienceBlock) => analysis?.recommendedBlockIds ? analysis.recommendedBlockIds.includes(b.id) : b.isVisible)
-                                        .map((block: ExperienceBlock) => {
-                                            const tailoredBullets = job.tailoredResumes?.[block.id];
-                                            const isTailoring = tailoringBlockId === block.id;
-                                            return (
-                                                <div key={block.id} className="group relative">
-                                                    <div className="flex justify-between items-start mb-4">
-                                                        <div>
-                                                            <h4 className="font-bold text-neutral-900 dark:text-white text-base tracking-tight">{block.title}</h4>
-                                                            <div className="text-[11px] text-neutral-500 font-bold uppercase tracking-wider mt-0.5">
-                                                                {block.organization} <span className="mx-2 text-neutral-300">•</span> {block.dateRange}
+                                <section>
+                                    <div className="flex justify-between items-center mb-8 border-b border-neutral-100 dark:border-neutral-800/50 pb-4">
+                                        <h3 className="text-xs font-black text-indigo-600 dark:text-indigo-400">Experience & Achievements</h3>
+                                        <div className="flex items-center gap-2">
+                                            {userTier !== 'free' && (
+                                                <Button
+                                                    onClick={() => {
+                                                        const blocks = bestResume?.blocks.filter((b: ExperienceBlock) => analysis?.recommendedBlockIds ? analysis.recommendedBlockIds.includes(b.id) : b.isVisible) || [];
+                                                        handleBulkTailor(blocks);
+                                                    }}
+                                                    disabled={!!bulkTailoringProgress || !!tailoringBlockId}
+                                                    variant="secondary"
+                                                    size="xs"
+                                                    className="text-[9px]"
+                                                    icon={bulkTailoringProgress ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                                >
+                                                    {bulkTailoringProgress ? `Tailoring ${bulkTailoringProgress.current}/${bulkTailoringProgress.total}` : 'Tailor All'}
+                                                </Button>
+                                            )}
+                                            <Button
+                                                onClick={handleCopyResume}
+                                                disabled={generating}
+                                                variant="secondary"
+                                                size="xs"
+                                                className="text-[9px]"
+                                                icon={generating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Copy className="w-3 h-3" />}
+                                            >
+                                                Copy Full
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-10">
+                                        {bestResume?.blocks
+                                            .filter((b: ExperienceBlock) => analysis?.recommendedBlockIds ? analysis.recommendedBlockIds.includes(b.id) : b.isVisible)
+                                            .map((block: ExperienceBlock) => {
+                                                const tailoredBullets = job.tailoredResumes?.[block.id];
+                                                const isTailoring = tailoringBlockId === block.id;
+                                                return (
+                                                    <div key={block.id} className="space-y-4">
+                                                        <div className="group relative">
+                                                            <div className="flex justify-between items-start mb-4">
+                                                                <div>
+                                                                    <h4 className="font-bold text-neutral-900 dark:text-white text-base tracking-tight">{block.title}</h4>
+                                                                    <div className="text-[11px] text-neutral-500 font-bold mt-0.5">
+                                                                        {block.organization} <span className="mx-2 text-neutral-300">•</span> {block.dateRange}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    {tailoredBullets && (
+                                                                        <button
+                                                                            onClick={() => handleResetBlock(block.id)}
+                                                                            className="text-[9px] font-bold text-neutral-400 hover:text-neutral-600 bg-neutral-50 dark:bg-neutral-800 px-2 py-1 rounded-md transition-all"
+                                                                            title="Reset to original"
+                                                                        >
+                                                                            Reset
+                                                                        </button>
+                                                                    )}
+                                                                    {userTier !== 'free' && (
+                                                                        <Button
+                                                                            onClick={() => handleHyperTailor(block)}
+                                                                            disabled={isTailoring || !!bulkTailoringProgress || (job.tailorCounts?.[block.id] || 0) >= RESUME_TAILORING.MAX_TAILORS_PER_BLOCK}
+                                                                            variant={tailoredBullets ? "secondary" : "accent"}
+                                                                            size="xs"
+                                                                            className="text-[9px] h-7"
+                                                                            icon={isTailoring ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                                                        >
+                                                                            {isTailoring ? 'Rewriting' : tailoredBullets ? 'Retry' : 'Hyper-Tailor'}
+                                                                        </Button>
+                                                                    )}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            {tailoredBullets && (
-                                                                <button
-                                                                    onClick={() => handleResetBlock(block.id)}
-                                                                    className="text-[9px] font-bold uppercase tracking-widest text-neutral-400 hover:text-neutral-600 bg-neutral-50 dark:bg-neutral-800 px-2 py-1 rounded-md transition-all"
-                                                                    title="Reset to original"
-                                                                >
-                                                                    Reset
-                                                                </button>
-                                                            )}
-                                                            {userTier !== 'free' && (
-                                                                <Button
-                                                                    onClick={() => handleHyperTailor(block)}
-                                                                    disabled={isTailoring || !!bulkTailoringProgress || (job.tailorCounts?.[block.id] || 0) >= RESUME_TAILORING.MAX_TAILORS_PER_BLOCK}
-                                                                    variant={tailoredBullets ? "secondary" : "accent"}
-                                                                    size="xs"
-                                                                    className="text-[9px] h-7"
-                                                                    icon={isTailoring ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                                                                >
-                                                                    {isTailoring ? 'Rewriting' : tailoredBullets ? 'Retry' : 'Hyper-Tailor'}
-                                                                </Button>
-                                                            )}
+
+                                                            <ul className="space-y-3">
+                                                                {(tailoredBullets || block.bullets).map((bullet: string, i: number) => (
+                                                                    <li
+                                                                        key={i}
+                                                                        className={`relative pl-6 text-sm leading-relaxed ${tailoredBullets ? 'text-neutral-800 dark:text-neutral-200 font-bold' : 'text-neutral-600 dark:text-neutral-400 font-medium'}`}
+                                                                    >
+                                                                        <div className={`absolute left-0 top-2 w-1.5 h-1.5 rounded-full ${tailoredBullets ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)]' : 'bg-neutral-300 dark:bg-neutral-700'}`} />
+                                                                        {bullet}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
                                                         </div>
                                                     </div>
+                                                );
+                                            })}
+                                    </div>
+                                </section>
+                            </div>
+                        )}
 
-                                                    <ul className="space-y-3">
-                                                        {(tailoredBullets || block.bullets).map((bullet: string, i: number) => (
-                                                            <li
-                                                                key={i}
-                                                                className={`relative pl-6 text-sm leading-relaxed ${tailoredBullets ? 'text-neutral-800 dark:text-neutral-200 font-bold' : 'text-neutral-600 dark:text-neutral-400 font-medium'}`}
-                                                            >
-                                                                <div className={`absolute left-0 top-2 w-1.5 h-1.5 rounded-full ${tailoredBullets ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)]' : 'bg-neutral-300 dark:bg-neutral-700'}`} />
-                                                                {bullet}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            );
-                                        })}
-                                </div>
-                            </section>
-                        </div>
-                    )}
-
-                    {activeTab === 'cover-letter' && analysis && (
-                        <CoverLetterEditor
-                            job={job}
-                            analysis={analysis}
-                            bestResume={bestResume}
-                            userTier={userTier}
-                            targetJobs={targetJobs}
-                            onJobUpdate={onUpdateJob}
-                        />
-                    )}
+                        {activeTab === 'cover-letter' && analysis && (
+                            <CoverLetterEditor
+                                job={job}
+                                analysis={analysis}
+                                bestResume={bestResume}
+                                userTier={userTier}
+                                targetJobs={targetJobs}
+                                onJobUpdate={onUpdateJob}
+                            />
+                        )}
+                    </div>
                 </DetailLayout>
             </div>
         </SharedPageLayout>

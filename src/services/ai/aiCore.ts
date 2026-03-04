@@ -10,7 +10,7 @@ export const getApiKey = async (): Promise<string | null> => {
 };
 
 export interface ModelParams {
-    task: 'extraction' | 'analysis';
+    task: 'extraction' | 'analysis' | 'interview';
     generationConfig?: {
         temperature?: number;
         maxOutputTokens?: number;

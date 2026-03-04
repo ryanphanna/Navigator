@@ -24,7 +24,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
                 </div>
             </div>
             <div className="space-y-2">
-                <h3 className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-[0.2em]">
+                <h3 className="text-sm font-black text-neutral-900 dark:text-white">
                     {message}
                 </h3>
                 {subMessage && (

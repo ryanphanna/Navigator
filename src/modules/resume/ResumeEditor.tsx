@@ -297,7 +297,7 @@ export const ResumeEditor: React.FC = () => {
     }
 
     return (
-        <SharedPageLayout className="theme-resume" spacing="compact" maxWidth="7xl">
+        <SharedPageLayout className="theme-resume" spacing="compact" maxWidth="6xl">
             <style>
                 {`
                     @media print {

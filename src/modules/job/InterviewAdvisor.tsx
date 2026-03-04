@@ -29,6 +29,7 @@ import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useGlobalUI } from '../../contexts/GlobalUIContext';
 import { LoadingState } from '../../components/common/LoadingState';
+import { useToast } from '../../contexts/ToastContext';
 
 export const InterviewAdvisor: React.FC = () => {
     const { jobs } = useJobContext();
@@ -55,6 +56,7 @@ export const InterviewAdvisor: React.FC = () => {
     const navigate = useNavigate();
 
     const { isFocusedMode, setFocusedMode } = useGlobalUI();
+    const { showError } = useToast();
 
     React.useEffect(() => {
         if (mode === 'session') {
@@ -107,6 +109,8 @@ export const InterviewAdvisor: React.FC = () => {
         if (job) {
             loadTailoredQuestions(job, resumes);
             setMode('session');
+        } else {
+            showError("Please select a target job first");
         }
     };
 
@@ -176,7 +180,7 @@ export const InterviewAdvisor: React.FC = () => {
                         >
                             <div className="flex items-center gap-2 justify-center">
                                 <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+                                <span className="text-[10px] font-black text-neutral-400">
                                     Reviewing your background
                                 </span>
                             </div>
@@ -261,9 +265,9 @@ export const InterviewAdvisor: React.FC = () => {
                                             transition={{ delay: 0.3 }}
                                             className="pt-2 flex flex-wrap gap-2"
                                         >
-                                            <div className="w-full text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1 flex items-center gap-1.5">
+                                            <div className="w-full text-[10px] font-black text-neutral-400 mb-1 flex items-center gap-1.5">
                                                 <Target className="w-3 h-3" />
-                                                Possible Evidence from your Profile
+                                                Evidence from your Profile
                                             </div>
                                             {resumeSnippets.map((snippet, sIdx) => (
                                                 <div
@@ -321,7 +325,7 @@ export const InterviewAdvisor: React.FC = () => {
                                                 {/* Resume Suggestions */}
                                                 {item.response.analysis.resumeSuggestions && item.response.analysis.resumeSuggestions.length > 0 && (
                                                     <div className="mt-4 pt-3 border-t border-indigo-200 dark:border-indigo-800/30 space-y-3">
-                                                        <div className="flex items-center gap-2 text-[10px] font-black text-indigo-500 uppercase tracking-widest">
+                                                        <div className="flex items-center gap-2 text-[10px] font-black text-indigo-500">
                                                             <FileText className="w-3 h-3" />
                                                             <span>Resume Suggestions Based on your Answer</span>
                                                         </div>
@@ -451,7 +455,7 @@ export const InterviewAdvisor: React.FC = () => {
 
 
     return (
-        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="7xl">
+        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="6xl">
             <PageHeader
                 title="Interview Advisor"
                 subtitle="Master your narrative with AI-powered mock sessions"
@@ -476,7 +480,7 @@ export const InterviewAdvisor: React.FC = () => {
                 </motion.div>
             )}
 
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-6xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                     {/* General Session Card */}
                     <div className="animate-in slide-in-from-bottom-8 fade-in duration-700 delay-100 fill-mode-both">
@@ -518,7 +522,7 @@ export const InterviewAdvisor: React.FC = () => {
                             className={!selectedJobId ? "opacity-90" : ""}
                             previewContent={
                                 <div className="space-y-3 pt-2 border-t border-neutral-100 dark:border-white/5 min-h-[160px] flex flex-col">
-                                    <label className="text-[10px] font-black tracking-[0.1em] text-neutral-400 uppercase">
+                                    <label className="text-[10px] font-black text-neutral-400">
                                         Select Target Job
                                     </label>
 
@@ -560,7 +564,7 @@ export const InterviewAdvisor: React.FC = () => {
                                                         e.stopPropagation();
                                                         navigate(ROUTES.HISTORY);
                                                     }}
-                                                    className="text-[9px] font-black text-indigo-500 uppercase tracking-tight hover:underline transition-all"
+                                                    className="text-[9px] font-black text-indigo-500 hover:underline transition-all"
                                                 >
                                                     View History
                                                 </button>

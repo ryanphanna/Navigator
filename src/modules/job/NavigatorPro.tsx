@@ -227,7 +227,7 @@ export const NavigatorPro: React.FC = () => {
 
 
     return (
-        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="7xl">
+        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="6xl">
             <PageHeader
                 title="Feed"
                 subtitle="Your personalized stream of high-match professional opportunities."

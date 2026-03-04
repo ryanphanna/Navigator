@@ -87,7 +87,7 @@ export const Terms: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-white dark:bg-black text-neutral-900 dark:text-white pt-24 pb-20">
-            <div className="max-w-7xl mx-auto px-4">
+            <div className="max-w-5xl mx-auto px-4">
                 <div className="max-w-3xl mx-auto text-center mb-16">
                     <div className="inline-flex items-center justify-center p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-2xl mb-6">
                         <Scale className="w-8 h-8" />

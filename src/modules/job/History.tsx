@@ -81,7 +81,7 @@ export default function History() {
     };
 
     return (
-        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="7xl">
+        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="5xl">
             <PageHeader
                 variant="simple"
                 title="Application History"
@@ -165,7 +165,7 @@ export default function History() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="text-[10px] font-bold tracking-widest uppercase text-neutral-400 dark:text-neutral-500 flex items-center gap-1.5">
+                                        <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 flex items-center gap-1.5">
                                             <Calendar className="w-3 h-3" />
                                             {new Date(job.dateAdded).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                         </div>
@@ -197,7 +197,7 @@ export default function History() {
                                                                     <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-700" />
                                                                     <div className="flex items-center gap-1.5">
                                                                         <Hash className="w-4 h-4 text-neutral-400" />
-                                                                        <span className="font-mono text-[11px] uppercase tracking-wider">{job.analysis.distilledJob.referenceCode}</span>
+                                                                        <span className="font-mono text-[11px] tracking-wider">{job.analysis.distilledJob.referenceCode}</span>
                                                                     </div>
                                                                 </>
                                                             )}
@@ -206,7 +206,7 @@ export default function History() {
                                                 </div>
                                             </div>
 
-                                            <div className={`self-start px-3 py-1 rounded-full text-[10px] font-black border flex items-center gap-2 uppercase tracking-widest transition-all ${params.color}`}>
+                                            <div className={`self-start px-3 py-1 rounded-full text-[10px] font-black border flex items-center gap-2 transition-all ${params.color}`}>
                                                 <div className="w-1.5 h-1.5 rounded-full bg-current" />
                                                 {params.label}
                                             </div>
@@ -217,7 +217,7 @@ export default function History() {
                                             <div className="flex items-center gap-4">
                                                 {isAnalyzing ? (
                                                     <div className="flex flex-col gap-1.5 min-w-[200px]">
-                                                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-accent-primary-hex">
+                                                        <div className="flex justify-between items-center text-[10px] font-black text-accent-primary-hex">
                                                             <span>{job.progressMessage || 'Finding your fit...'}</span>
                                                             <span>{job.progress || 0}%</span>
                                                         </div>
@@ -229,7 +229,7 @@ export default function History() {
                                                         </div>
                                                     </div>
                                                 ) : isError ? (
-                                                    <div className="text-[10px] font-black uppercase tracking-widest text-rose-500 flex items-center gap-2">
+                                                    <div className="text-[10px] font-black text-rose-500 flex items-center gap-2">
                                                         <Trash2 className="w-3.5 h-3.5" /> Extraction failed
                                                     </div>
                                                 ) : (score !== undefined && score !== null) ? (

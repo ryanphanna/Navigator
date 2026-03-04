@@ -101,8 +101,18 @@ export const handler = async (req: Request) => {
         const { payload, task = "analysis", generationConfig } = await req.json()
 
         // Validate task
-        const validTasks = ['extraction', 'analysis'];
+        const validTasks = ['extraction', 'analysis', 'interview'];
         const safeTask = validTasks.includes(task) ? task : 'analysis';
+
+        if (safeTask === 'interview' && userTier === 'free') {
+            return new Response(JSON.stringify({
+                error: "limit_reached",
+                message: "Interviews are a premium feature available on Plus and Pro tiers."
+            }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 403,
+            });
+        }
 
         const tierConfig = TIER_MODELS[userTier] || TIER_MODELS.free;
         const modelName = safeTask === 'extraction' ? tierConfig.extraction : tierConfig.analysis;

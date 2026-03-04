@@ -109,7 +109,7 @@ export const FeaturesPage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="max-w-7xl mx-auto mb-12"
+                className="max-w-6xl mx-auto mb-12"
             >
                 <div className="flex items-center justify-center">
                     <div className="relative inline-flex p-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800">
@@ -142,7 +142,7 @@ export const FeaturesPage: React.FC = () => {
             </motion.div>
 
             {/* Cards Grid */}
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-6xl mx-auto">
                 <AnimatePresence mode="popLayout">
                     <motion.div
                         key={activeTier}

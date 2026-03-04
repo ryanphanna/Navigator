@@ -6,10 +6,10 @@ interface LandingContentProps {
 
 export const LandingContent = ({ onShowAuth }: LandingContentProps) => {
     return (
-        <div className="w-full max-w-7xl mx-auto px-4 pb-32 space-y-32 mt-32">
+        <div className="w-full max-w-6xl mx-auto px-4 pb-32 space-y-32 mt-32">
 
             {/* 2. How it Works (Steps) - Unified with Bento Cards */}
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-6xl mx-auto">
                 <div className="grid md:grid-cols-3 gap-8">
                     {[
                         { step: 1, title: 'Copy Job Link', desc: 'Find a job on LinkedIn, Indeed, or anywhere. Just copy the URL.', icon: Target, color: 'bg-neutral-100 dark:bg-neutral-800' },

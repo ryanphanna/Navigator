@@ -232,7 +232,7 @@ const JobMatchInput: React.FC = () => {
 
     return (
         <SharedPageLayout
-            maxWidth="7xl"
+            maxWidth="5xl"
             className="theme-job"
             spacing="compact"
         >
@@ -248,7 +248,7 @@ const JobMatchInput: React.FC = () => {
             />
 
             {!isManualMode ? (
-                <div className="w-full max-w-7xl mx-auto mb-16 animate-in zoom-in-95 fade-in duration-500">
+                <div className="w-full max-w-3xl mx-auto mb-16 animate-in zoom-in-95 fade-in duration-500">
                     <form onSubmit={error ? (e) => { e.preventDefault(); handleJobSubmission({ type: 'text', content: url }); } : handleUrlSubmit}>
                         <Card variant="glass" className={`p-4 border-accent-primary/20 ${isAnalyzing ? 'border-accent-primary/50 shadow-accent-primary/20' : 'hover:border-accent-primary/30'}`} glow>
                             <div className="flex flex-col md:flex-row items-center gap-6">

@@ -31,7 +31,7 @@ export const CoverLetters: React.FC = () => {
     };
 
     return (
-        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="7xl">
+        <SharedPageLayout className="theme-job" spacing="compact" maxWidth="6xl">
             <PageHeader
                 title="Cover Letters"
                 subtitle="Your AI-generated narratives optimized for selection."
