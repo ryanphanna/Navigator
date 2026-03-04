@@ -62,7 +62,11 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             await new Promise<void>((resolve, reject) => {
                 reader.onload = async () => {
                     try {
-                        const base64 = (reader.result as string).split(',')[1];
+                        const result = reader.result as string;
+                        if (!result || !result.includes(',')) {
+                            throw new Error('Failed to read file: unexpected format');
+                        }
+                        const base64 = result.split(',')[1];
                         const blocks = await parseResumeFile(base64, file.type);
 
                         const newResume: ResumeProfile = {

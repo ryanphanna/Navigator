@@ -73,7 +73,7 @@ export const tailorExperienceBlock = async (
 ): Promise<string[]> => {
     const prompt = JOB_ANALYSIS_PROMPTS.TAILOR_EXPERIENCE_BLOCK(jobDescription, block.title, block.organization, block.bullets, instructions);
     return callWithRetry(async (metadata) => {
-        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" }, feature: 'resume_tailor' });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         return JSON.parse(cleanJsonOutput(response.response.text()));

@@ -50,9 +50,12 @@ export const useJobManager = () => {
 
     // Sync Usage Stats
     useEffect(() => {
-        if (user) {
-            getUsageStats(user.id).then(setUsageStats).catch(console.error);
-        }
+        if (!user) return;
+        let mounted = true;
+        getUsageStats(user.id).then(stats => {
+            if (mounted) setUsageStats(stats);
+        }).catch(console.error);
+        return () => { mounted = false; };
     }, [user]);
 
     const activeJob = jobs.find(j => j.id === activeJobId);

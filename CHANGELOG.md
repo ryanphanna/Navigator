@@ -2,9 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.25.0] - 2026-03-04
 
-## [2.24.0] - 2026-03-04
+### Fixed
+- **Security – Plan Limit Enforcement**: All AI feature tier restrictions were previously enforced client-side only. Server-side gating now blocks free users from cover letter and resume tailoring features, and blocks non-Pro users from gap analysis, roadmap, and role model features — enforced in the Gemini proxy Edge Function.
+- **Security – Interview Cap Server-Side**: Monthly interview limits for Plus (2) and Pro (5) are now counted and enforced by the proxy. The proxy also writes its own log entry after each successful interview call, making the count tamper-resistant.
+- **Security – Role Model Limit Was Dead Code**: `checkRoleModelLimit` was defined but never called. It now runs before a role model is added, with a user-facing error message on breach.
+- **Security – Plan Limit Constants Mismatch**: `PLAN_LIMITS` constants and the `check_analysis_limit` SQL function were out of sync (Plus showed 100/week but enforced 200; Pro showed 350/week but enforced 500/day). Both now consistently reflect Plus = 200/week and Pro = 100/day. Includes a migration file to deploy the SQL correction.
+- **Crash – Onboarding Race Condition**: `setTimeout` callback accessed `resumes[resumes.length - 1].blocks` without guarding against an empty array, causing a runtime crash if the resume list changed before the timer fired.
+- **Crash – File Reader Null Dereference**: `reader.result.split(',')` in `ResumeContext` and `useCoachManager` could crash if the FileReader returned null or an unexpected format. Now guarded with an explicit null/format check.
+- **Crash – `bestResume` Undefined**: `useJobDetailLogic` returned `resumes[0]` as `bestResume` without checking if the array was empty, causing downstream crashes on `bestResume.blocks` for new users.
+- **Crash – Empty Proxy Response**: `aiCore` assumed `data.text` was always present. An unexpected proxy response (no `text` field) now throws a descriptive error instead of silently passing `undefined` into JSON parsers.
+- **Crash – Feed Cache JSON.parse**: `NavigatorPro` called `JSON.parse(cachedData)` without a try-catch. Corrupted cache now clears itself and falls through to a fresh fetch. Also fixed `parseInt(cachedTimestamp)` which could return `NaN`, breaking cache age logic.
+- **Crash – `useCoachManager` Promise.all**: Missing `.catch()` on `Promise.all([getRoleModels, getTargetJobs])` left the UI stuck in a permanent loading state if either storage call failed.
+- **Reliability – Stale Usage Stats**: `getUsageStats` in `useJobManager` had no mounted flag, causing stale `setState` calls after the user changed or the component unmounted.
+- **Reliability – Feed Cache Not Invalidated**: The job feed cache was never cleared when a job was saved or promoted, so users kept seeing already-processed jobs in the feed until the 24-hour TTL expired.
+- **Reliability – Resume Bullet Stale Closure**: `addBullet` in `ResumeEditor` used a stale `blocks` reference instead of a functional updater, causing rapid clicks to merge bullets instead of appending them.
+- **Reliability – Silent Supabase Mutations**: All four Supabase mutations in `coachStorage` (`insert`, `delete` ×2, `upsert`) swallowed errors silently. Cloud sync failures are now logged.
+- **Data – Onboarding State Lost Across Tabs**: Onboarding progress was stored in `sessionStorage` (per-tab), causing state loss if the user opened a second tab or followed a Stripe redirect in a new tab. Switched to `localStorage` and the key is cleared on completion.
+- **Auth – Unhandled Promise Rejections in UserContext**: `getSession()` and `getDeviceFingerprint()` chains had no `.catch()` handlers, leaving the app in an inconsistent auth state on network failure.
+
 
 ### Added
 - **Interview Session Accessibility**: Increased the monthly interview limit for the Free tier to 1, allowing users to test the Interview Advisor before upgrading.

@@ -109,7 +109,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 }
                             });
                         }
-                    });
+                    }).catch(err => console.warn("Device fingerprint failed:", err));
                 } else if (error) {
                     if (import.meta.env.DEV) {
                         console.error('Error fetching user profile:', error);
@@ -141,7 +141,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } else {
                 processUser(null);
             }
-        });
+        }).catch(() => processUser(null));
 
         // Auth Change Listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {

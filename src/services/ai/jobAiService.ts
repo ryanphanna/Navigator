@@ -153,7 +153,7 @@ export const generateCoverLetter = async (
     const prompt = COVER_LETTER_PROMPTS.COVER_LETTER.GENERATE(template, jobDescription, resumeText, tailoringInstructions, additionalContext, trajectoryContext, bucketStrategy);
 
     return callWithRetry(async (metadata) => {
-        const model = await getModel({ task: 'analysis' });
+        const model = await getModel({ task: 'analysis', feature: 'cover_letter' });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         return { text: sanitizeInput(response.response.text()), promptVersion: forceVariant || "v1" };
@@ -168,7 +168,7 @@ export const critiqueCoverLetter = async (
 ): Promise<{ decision: 'Reject' | 'Weak' | 'Average' | 'Strong' | 'Exceptional'; feedback: string[]; strengths: string[]; hallucinationAlerts: string[] }> => {
     const prompt = COVER_LETTER_PROMPTS.CRITIQUE_COVER_LETTER(jobDescription, coverLetter, resumeContext);
     return callWithRetry(async (metadata) => {
-        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" }, feature: 'cover_letter' });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         return JSON.parse(cleanJsonOutput(response.response.text()));

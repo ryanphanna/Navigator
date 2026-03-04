@@ -37,6 +37,7 @@ export const getModel = async (params: ModelParams) => {
                 if (data.error === 'upgrade_required') throw new Error(`upgrade_required: ${data.message}`);
                 throw new Error(`AI Error: ${data.error}`);
             }
+            if (data?.text == null) throw new Error('AI Error: empty response from proxy');
 
             return {
                 response: {

@@ -45,12 +45,17 @@ export const NavigatorPro: React.FC = () => {
         const cachedTimestamp = localStorage.getItem(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
 
         if (cachedData && cachedTimestamp) {
-            const age = Date.now() - parseInt(cachedTimestamp);
+            const age = Date.now() - (parseInt(cachedTimestamp) || 0);
             if (age < ONE_DAY) {
-                // Use cached data
-                setFeed(JSON.parse(cachedData));
-                setLoading(false);
-                return;
+                try {
+                    setFeed(JSON.parse(cachedData));
+                    setLoading(false);
+                    return;
+                } catch {
+                    // Cache corrupted — fall through to fetch fresh data
+                    localStorage.removeItem(STORAGE_KEYS.FEED_CACHE);
+                    localStorage.removeItem(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
+                }
             }
         }
 
@@ -177,6 +182,9 @@ export const NavigatorPro: React.FC = () => {
 
     const handleAnalyze = async (job: JobFeedItem) => {
         setAnalyzingId(job.id);
+        // Invalidate feed cache so promoted job won't reappear
+        localStorage.removeItem(STORAGE_KEYS.FEED_CACHE);
+        localStorage.removeItem(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
         if (job.source === 'email' && onPromoteFromFeed) {
             await onPromoteFromFeed(job.id);
         } else {
@@ -353,7 +361,12 @@ export const NavigatorPro: React.FC = () => {
 
                                         {job.source === 'email' && onSaveFromFeed && (
                                             <button
-                                                onClick={() => onSaveFromFeed(job.id)}
+                                                onClick={() => {
+                                                    // Invalidate cache so saved job won't reappear on next load
+                                                    localStorage.removeItem(STORAGE_KEYS.FEED_CACHE);
+                                                    localStorage.removeItem(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
+                                                    onSaveFromFeed(job.id);
+                                                }}
                                                 className="p-2.5 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-400 hover:text-indigo-600 rounded-xl transition-colors"
                                                 title="Save to History"
                                             >

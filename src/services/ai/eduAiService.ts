@@ -35,7 +35,8 @@ export const parseRoleModel = async (
     return callWithRetry(async (metadata) => {
         const model = await getModel({
             task: 'extraction',
-            generationConfig: { temperature: AI_TEMPERATURE.STRICT, responseMimeType: "application/json" }
+            generationConfig: { temperature: AI_TEMPERATURE.STRICT, responseMimeType: "application/json" },
+            feature: 'role_model'
         });
         const response = await model.generateContent({
             contents: [{
@@ -64,7 +65,7 @@ export const analyzeGap = async (
     const prompt = CAREER_PROMPTS.GAP_ANALYSIS(roleModelContext, resumeContext, skillContext + transcriptContext);
 
     return callWithRetry(async (metadata) => {
-        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" }, feature: 'gap_analysis' });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         return JSON.parse(cleanJsonOutput(response.response.text()));
@@ -76,7 +77,7 @@ export const generateRoadmap = async (
 ): Promise<RoadmapMilestone[]> => {
     const prompt = CAREER_PROMPTS.GENERATE_ROADMAP(JSON.stringify(gapAnalysis));
     return callWithRetry(async (metadata) => {
-        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" }, feature: 'roadmap' });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         const parsed = JSON.parse(cleanJsonOutput(response.response.text()));
@@ -97,7 +98,7 @@ export const analyzeRoleModelGap = async (
     const analysisPrompt = CAREER_PROMPTS.ROLE_MODEL_GAP_ANALYSIS(roleModelContext, resumeContext + skillsContext);
 
     return callWithRetry(async (metadata) => {
-        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" } });
+        const model = await getModel({ task: 'analysis', generationConfig: { responseMimeType: "application/json" }, feature: 'role_model' });
         const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: analysisPrompt }] }] });
         metadata.token_usage = response.response.usageMetadata;
         return JSON.parse(cleanJsonOutput(response.response.text()));

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { EventService } from '../../services/eventService';
 import { TRACKING_EVENTS } from '../../constants';
+import { useToast } from '../../contexts/ToastContext';
 
 // Refactored Components
 import { CoachHero } from './components/CoachHero';
@@ -33,6 +34,7 @@ export const CoachDashboard: React.FC = () => {
     const { skills: userSkills } = useSkillContext();
     const { resumes } = useResumeContext();
     const { currentView, setView: onViewChange } = useGlobalUI();
+    const { showError } = useToast();
 
     // Cast view safely for the dashboard
     const view = (currentView.startsWith('career') || currentView.startsWith('coach'))
@@ -63,6 +65,8 @@ export const CoachDashboard: React.FC = () => {
                 await onAddRoleModel(files[i]);
                 EventService.trackUsage(TRACKING_EVENTS.COACH);
             }
+        } catch (err) {
+            showError(err instanceof Error ? err.message : 'Failed to add role model.');
         } finally {
             setIsUploading(false);
             setUploadProgress({ current: 0, total: 0 });

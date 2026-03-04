@@ -6,6 +6,8 @@ import { ScraperService } from '../../../services/scraperService';
 import { useToast } from '../../../contexts/ToastContext';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { STORAGE_KEYS } from '../../../constants';
+import { checkRoleModelLimit } from '../../../services/usageLimits';
+import { supabase } from '../../../services/supabase';
 
 export const useCoachManager = () => {
     const { showInfo } = useToast();
@@ -29,18 +31,36 @@ export const useCoachManager = () => {
                 setTargetJobs(loadedTargetJobs);
                 setIsLoading(false);
             }
+        }).catch(err => {
+            console.error("Failed to load coach data:", err);
+            if (mounted) setIsLoading(false);
         });
         return () => { mounted = false; };
     }, []);
 
     const handleAddRoleModel = useCallback(async (file: File) => {
         try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const limitResult = await checkRoleModelLimit(user.id);
+                if (!limitResult.allowed) {
+                    const msg = limitResult.reason === 'free_limit_reached'
+                        ? 'Upgrade to add role models.'
+                        : `Role model limit reached (${limitResult.used}/${limitResult.limit}). Remove one or upgrade your plan.`;
+                    throw new Error(msg);
+                }
+            }
+
             const reader = new FileReader();
             reader.readAsDataURL(file);
             await new Promise<void>((resolve, reject) => {
                 reader.onload = async () => {
                     try {
-                        const base64 = (reader.result as string).split(',')[1];
+                        const result = reader.result as string;
+                        if (!result || !result.includes(',')) {
+                            throw new Error('Failed to read file: unexpected format');
+                        }
+                        const base64 = result.split(',')[1];
                         const parsed = await parseRoleModel(base64, file.type);
                         const updated = await Storage.addRoleModel(parsed);
                         setRoleModels(updated);
@@ -51,6 +71,7 @@ export const useCoachManager = () => {
             });
         } catch (err) {
             console.error("Failed to add role model:", err);
+            throw err;
         }
     }, []);
 

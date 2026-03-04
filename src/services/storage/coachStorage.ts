@@ -35,12 +35,13 @@ export const CoachStorage = {
 
         const userId = await getUserId();
         if (userId) {
-            await supabase.from('role_models').insert({
+            const { error } = await supabase.from('role_models').insert({
                 id: roleModel.id,
                 user_id: userId,
                 name: roleModel.name,
                 content: roleModel
             });
+            if (error) console.error("Failed to sync role model to cloud:", error);
         }
         return updated;
     },
@@ -52,7 +53,8 @@ export const CoachStorage = {
 
         const userId = await getUserId();
         if (userId) {
-            await supabase.from('role_models').delete().eq('id', id);
+            const { error } = await supabase.from('role_models').delete().eq('id', id);
+            if (error) console.error("Failed to delete role model from cloud:", error);
         }
         return updated;
     },
@@ -106,7 +108,7 @@ export const CoachStorage = {
 
         const userId = await getUserId();
         if (userId) {
-            await supabase.from('target_jobs').upsert({
+            const { error } = await supabase.from('target_jobs').upsert({
                 id: targetJob.id,
                 user_id: userId,
                 title: targetJob.title,
@@ -118,6 +120,7 @@ export const CoachStorage = {
                 strict_mode: targetJob.strictMode ?? true,
                 date_added: new Date(targetJob.dateAdded).toISOString()
             });
+            if (error) console.error("Failed to sync target job to cloud:", error);
         }
         return updated;
     },
@@ -129,7 +132,8 @@ export const CoachStorage = {
 
         const userId = await getUserId();
         if (userId) {
-            await supabase.from('target_jobs').delete().eq('id', id);
+            const { error } = await supabase.from('target_jobs').delete().eq('id', id);
+            if (error) console.error("Failed to delete target job from cloud:", error);
         }
         return updated;
     }

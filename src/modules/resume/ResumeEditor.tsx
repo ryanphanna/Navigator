@@ -157,11 +157,11 @@ export const ResumeEditor: React.FC = () => {
     };
 
     const addBullet = (blockId: string, text: string = '') => {
-        setBlocks(blocks.map(b => {
+        setBlocks(prev => prev.map(b => {
             if (b.id !== blockId) return b;
-            // If the last bullet is empty, use that instead of adding new one
+            // If the last bullet is empty and we're inserting non-empty text, fill that slot
             const newBullets = [...b.bullets];
-            if (newBullets.length > 0 && newBullets[newBullets.length - 1] === '') {
+            if (text !== '' && newBullets.length > 0 && newBullets[newBullets.length - 1] === '') {
                 newBullets[newBullets.length - 1] = text;
             } else {
                 newBullets.push(text);

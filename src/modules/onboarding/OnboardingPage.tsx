@@ -98,7 +98,8 @@ export const OnboardingPage: React.FC = () => {
 
             const delay = 2500; // Give a bit more time for the delight snapshot
             const timer = setTimeout(() => {
-                const detected = hasNewResume ? detectStudentStatus(resumes[resumes.length - 1].blocks) : false;
+                const latestResume = resumes[resumes.length - 1];
+                const detected = (hasNewResume && latestResume) ? detectStudentStatus(latestResume.blocks) : false;
                 if (detected || selectedJourneys.includes('student')) {
                     setStep(5.5);
                 } else {
@@ -109,7 +110,7 @@ export const OnboardingPage: React.FC = () => {
         }
     }, [step, isParsingResume, resumeUploaded, resumes, lastKnownResumeCount, selectedJourneys]);
 
-    // Save state to sessionStorage to persist across redirects (e.g. Stripe)
+    // Save state to localStorage to persist across redirects and tabs (e.g. Stripe)
     useEffect(() => {
         if (firstName || lastName || selectedJourneys.length > 0) {
             const state = {
@@ -120,13 +121,13 @@ export const OnboardingPage: React.FC = () => {
                 resumeUploaded,
                 transcriptUploaded
             };
-            sessionStorage.setItem('onboarding_state', JSON.stringify(state));
+            localStorage.setItem('onboarding_state', JSON.stringify(state));
         }
     }, [firstName, lastName, selectedJourneys, step, resumeUploaded, transcriptUploaded]);
 
     // Restore state and handle Stripe success
     useEffect(() => {
-        const savedState = sessionStorage.getItem('onboarding_state');
+        const savedState = localStorage.getItem('onboarding_state');
         if (savedState) {
             try {
                 const parsed = JSON.parse(savedState);
@@ -204,7 +205,8 @@ export const OnboardingPage: React.FC = () => {
             // Ignore auth errors here
         }
 
-        // Navigate to Home
+        // Navigate to Home (clear saved onboarding state so it won't restore on next visit)
+        localStorage.removeItem('onboarding_state');
         navigate(ROUTES.HOME);
     };
 

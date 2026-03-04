@@ -37,6 +37,7 @@ export const useJobDetailLogic = ({
     const analysis = job.analysis;
 
     const bestResume = useMemo(() => {
+        if (!resumes.length) return undefined;
         if (!analysis) return resumes[0];
         return resumes.find(r => r.id === analysis.bestResumeProfileId) || resumes[0];
     }, [analysis, resumes]);

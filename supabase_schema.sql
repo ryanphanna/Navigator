@@ -337,7 +337,7 @@ BEGIN
   ELSIF v_tier = 'pro' THEN
     v_inbound_email_limit := 100;
     v_inbound_job_limit := 500;
-    v_total_job_limit := 500; -- Daily limit (Human-unlimited safety cap)
+    v_total_job_limit := 100; -- Daily limit
   ELSIF v_tier = 'plus' THEN
     v_inbound_email_limit := 10;
     v_inbound_job_limit := 25;

@@ -216,15 +216,15 @@ export const PLAN_LIMITS = {
   },
   [USER_TIERS.PLUS]: {
     DAILY_EMAILS: 5,
-    WEEKLY_ANALYSES: 100,
+    WEEKLY_ANALYSES: 200,
     ANALYSES_PERIOD: 'weekly' as const,
     ROLE_MODELS: 5,
     SKILLS_INTERVIEWS: 2, // Per month (Comprehensive audit)
   },
   [USER_TIERS.PRO]: {
     DAILY_EMAILS: 25,
-    WEEKLY_ANALYSES: 350,
-    ANALYSES_PERIOD: 'weekly' as const,
+    DAILY_ANALYSES: 100,
+    ANALYSES_PERIOD: 'daily' as const,
     ROLE_MODELS: 25,
     SKILLS_INTERVIEWS: 5, // Per month (Comprehensive audit)
   },
@@ -246,8 +246,8 @@ export const PLAN_LIMITS = {
 
 // Alert Thresholds (soft caps — trigger admin notifications)
 export const ALERT_THRESHOLDS = {
-  [USER_TIERS.PLUS]: { WEEKLY_ANALYSES: 100 },
-  [USER_TIERS.PRO]: { DAILY_ANALYSES: 50 },
+  [USER_TIERS.PLUS]: { WEEKLY_ANALYSES: 200 },
+  [USER_TIERS.PRO]: { DAILY_ANALYSES: 100 },
 } as const;
 
 // Job Status Types

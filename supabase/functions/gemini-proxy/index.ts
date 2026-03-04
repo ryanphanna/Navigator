@@ -98,7 +98,7 @@ export const handler = async (req: Request) => {
 
         // 2. PARSE REQUEST & RESOLVE MODEL
         // We no longer trust the client to provide modelName
-        const { payload, task = "analysis", generationConfig } = await req.json()
+        const { payload, task = "analysis", generationConfig, feature } = await req.json()
 
         // Validate task
         const validTasks = ['extraction', 'analysis', 'interview'];
@@ -108,6 +108,63 @@ export const handler = async (req: Request) => {
             return new Response(JSON.stringify({
                 error: "limit_reached",
                 message: "Interviews are a premium feature available on Plus and Pro tiers."
+            }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 403,
+            });
+        }
+
+        // 2b. MONTHLY INTERVIEW LIMIT (Plus: 2/month, Pro: 5/month)
+        if (safeTask === 'interview' && (userTier === 'plus' || userTier === 'pro')) {
+            const firstOfMonth = new Date();
+            firstOfMonth.setDate(1);
+            firstOfMonth.setHours(0, 0, 0, 0);
+
+            const { count: monthlyInterviews, error: countError } = await supabase
+                .from('logs')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', user.id)
+                .in('event_type', ['interview_generation', 'unified_skill_interview_generation', 'skill_interview_generation'])
+                .gte('created_at', firstOfMonth.toISOString());
+
+            if (!countError) {
+                const interviewLimit = userTier === 'plus' ? 2 : 5;
+                if ((monthlyInterviews || 0) >= interviewLimit) {
+                    return new Response(JSON.stringify({
+                        error: "limit_reached",
+                        reason: "monthly_interview_limit",
+                        used: monthlyInterviews,
+                        limit: interviewLimit
+                    }), {
+                        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                        status: 429,
+                    });
+                }
+            } else {
+                console.error("Interview count error:", sanitizeLog(countError));
+            }
+        }
+
+        // 2c. FEATURE-TIER ACCESS CHECK
+        // Plus-only features: cover_letter, resume_tailor
+        // Pro-only features: gap_analysis, roadmap, role_model
+        const PLUS_ONLY_FEATURES = ['cover_letter', 'resume_tailor'];
+        const PRO_ONLY_FEATURES = ['gap_analysis', 'roadmap', 'role_model'];
+
+        if (feature && PLUS_ONLY_FEATURES.includes(feature) && userTier === 'free') {
+            return new Response(JSON.stringify({
+                error: "upgrade_required",
+                message: "This feature requires a Plus or Pro plan."
+            }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 403,
+            });
+        }
+
+        if (feature && PRO_ONLY_FEATURES.includes(feature) && !['pro', 'admin', 'tester'].includes(userTier)) {
+            return new Response(JSON.stringify({
+                error: "upgrade_required",
+                message: "This feature requires a Pro plan."
             }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 403,
@@ -213,6 +270,18 @@ export const handler = async (req: Request) => {
                 p_is_analysis: false // Always false here as we handled it pessimistically
             });
             if (usageError) console.error("Usage tracking error:", sanitizeLog(usageError));
+        }
+
+        // 8. LOG INTERVIEW USAGE (authoritative server-side record for monthly cap)
+        if (safeTask === 'interview') {
+            const { error: logError } = await supabase.from('logs').insert({
+                user_id: user.id,
+                event_type: 'interview_generation',
+                model_name: modelName,
+                status: 'success',
+                metadata: { source: 'proxy', feature: feature || null }
+            });
+            if (logError) console.error("Interview log error:", sanitizeLog(logError));
         }
 
         return new Response(JSON.stringify({ text, usage: data.usageMetadata }), {
