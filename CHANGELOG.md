@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.26.0] - 2026-03-04
+
+### Security
+- **Gemini API Key Rotation**: Successfully rotated the Gemini API key in Google Cloud (Navigator project) to mitigate potential exposure.
+- **API Restriction Enforcement**: Strictly restricted the new API key to the `Generative Language API` only, preventing unauthorized use across other Google Cloud services.
+- **Supabase Secret Synchronization**: Updated the `GEMINI_API_KEY` in Supabase Edge Function secrets to ensure seamless and secure proxying.
+
 ## [2.25.0] - 2026-03-04
 
 ### Fixed
