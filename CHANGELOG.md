@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.24.0] - 2026-03-04
+
 ### Added
 - **Interview Session Accessibility**: Increased the monthly interview limit for the Free tier to 1, allowing users to test the Interview Advisor before upgrading.
 - **Fail-Safe Session Launch**: Added explicit error feedback and toast notifications in the Interview Advisor when attempting to start a tailored mock without a selected job.
