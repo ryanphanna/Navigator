@@ -23,11 +23,6 @@ const envSchema = z.object({
     .string()
     .min(1, 'VITE_SUPABASE_ANON_KEY is required'),
 
-  // Gemini API Key (Optional - users can bring their own)
-  VITE_GEMINI_API_KEY: z
-    .string()
-    .optional(),
-
   // Development/Production Mode
   MODE: z.enum(['development', 'production', 'test']).optional(),
   DEV: z.boolean().optional(),

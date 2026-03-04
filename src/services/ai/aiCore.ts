@@ -1,13 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabase } from "../supabase";
 import { getUserFriendlyError, getRetryMessage } from "../../utils/errorMessages";
 import { API_CONFIG } from "../../constants";
 
 export type RetryProgressCallback = (message: string, attempt: number, maxAttempts: number) => void;
-
-export const getApiKey = async (): Promise<string | null> => {
-    return import.meta.env.VITE_GEMINI_API_KEY || null;
-};
 
 export interface ModelParams {
     task: 'extraction' | 'analysis' | 'interview';
@@ -18,35 +13,30 @@ export interface ModelParams {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         responseSchema?: any;
     };
-    model?: string; // Accepted for legacy/local key compatibility
+    model?: string;
+    /** Feature tag for server-side tier gating (e.g. 'cover_letter', 'resume_tailor', 'gap_analysis', 'roadmap', 'role_model') */
+    feature?: string;
 }
 
 export const getModel = async (params: ModelParams) => {
-    const key = await getApiKey();
-
-    if (key) {
-        // Use local key if provided (User pays for their own usage)
-        const genAI = new GoogleGenerativeAI(key);
-        // If they have a key, we'll use the model they asked for, or default to Flash
-        return genAI.getGenerativeModel({
-            model: params.model || "gemini-2.0-flash",
-            generationConfig: params.generationConfig
-        });
-    }
-
     return {
-        generateContent: async (payload: { contents: { role: string; parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] }[] }) => {
+        generateContent: async (payload: { contents: { role: string; parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] }[]; generationConfig?: Record<string, unknown> }) => {
             console.log(`Using Gemini Proxy (Edge Function) for ${params.task}...`);
+            const { generationConfig: payloadGenerationConfig, ...contentsOnly } = payload;
             const { data, error } = await supabase.functions.invoke('gemini-proxy', {
                 body: {
-                    payload: payload,
+                    payload: contentsOnly,
                     task: params.task,
-                    generationConfig: params.generationConfig
+                    generationConfig: payloadGenerationConfig ?? params.generationConfig,
+                    feature: params.feature
                 }
             });
 
             if (error) throw new Error(`Proxy Error: ${error.message}`);
-            if (data?.error) throw new Error(`AI Error: ${data.error}`);
+            if (data?.error) {
+                if (data.error === 'upgrade_required') throw new Error(`upgrade_required: ${data.message}`);
+                throw new Error(`AI Error: ${data.error}`);
+            }
 
             return {
                 response: {
