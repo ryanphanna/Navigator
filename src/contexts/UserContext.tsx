@@ -134,8 +134,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (session?.user) {
                 processUser(session.user);
-            } else if (typeof window !== 'undefined' && localStorage.getItem('navigator_test_user')) {
-                // Mock user for E2E tests
+            } else if (import.meta.env.DEV && typeof window !== 'undefined' && localStorage.getItem('navigator_test_user')) {
+                // Mock user for E2E tests (development only)
                 processUser({ id: 'test-user', email: 'test@example.com' } as any);
                 setActualTier((localStorage.getItem('navigator_user_tier') as any) || 'free');
             } else {
@@ -147,7 +147,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session?.user) {
                 processUser(session.user);
-            } else if (typeof window !== 'undefined' && localStorage.getItem('navigator_test_user')) {
+            } else if (import.meta.env.DEV && typeof window !== 'undefined' && localStorage.getItem('navigator_test_user')) {
                 processUser({ id: 'test-user', email: 'test@example.com' } as any);
             } else {
                 processUser(null);
