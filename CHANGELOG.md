@@ -24,6 +24,9 @@ All notable changes to this project will be documented in this file.
 - **Job Detail Stability**: Resolved a JSX structural error in the Experience section that was causing layout breakages.
 - **Interview Advisor Dependencies**: Fixed a missing context import (`useToast`) that caused session errors during failure states.
 
+### Security
+- **Gemini API Key Exposure**: Removed `VITE_GEMINI_API_KEY` build-time environment variable that was embedding the Gemini API key into the client-side JavaScript bundle. All AI requests now route exclusively through the server-side Supabase Edge Function proxy, keeping the API key out of the browser entirely.
+
 ## [2.23.0] - 2026-02-28
 
 ### Added
