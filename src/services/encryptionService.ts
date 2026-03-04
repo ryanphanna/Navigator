@@ -7,7 +7,7 @@
 
 const ENCRYPTION_ALGO = 'AES-GCM';
 const KEY_DERIVATION_ALGO = 'PBKDF2';
-const ITERATIONS = 100000;
+const ITERATIONS = 600000;
 const SALT_SIZE = 16;
 const IV_SIZE = 12;
 
