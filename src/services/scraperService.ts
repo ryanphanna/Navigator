@@ -106,12 +106,4 @@ export const ScraperService = {
         }
     },
 
-    scrapeJobText: async (url: string): Promise<string> => {
-        try {
-            return await ScraperService.scrapeJobContent(url);
-        } catch (error) {
-            console.error(`Failed to scrape text for ${url}:`, error);
-            return "";
-        }
-    }
 };
