@@ -20,7 +20,9 @@ export const ScraperService = {
         // Fetch all targets in parallel
         const fetchPromises = targets.map(async (target) => {
             try {
-                console.log(`[${target.name}] Fetching from ${target.url.substring(0, 50)}...`);
+                if (import.meta.env.DEV) {
+                    console.log(`[${target.name}] Fetching from ${target.url.substring(0, 50)}...`);
+                }
 
                 // Direct fetch (TTC allows CORS)
                 const response = await fetch(target.url);
