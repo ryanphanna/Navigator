@@ -20,7 +20,9 @@ export const ScraperService = {
         // Fetch all targets in parallel
         const fetchPromises = targets.map(async (target) => {
             try {
-                console.log(`[${target.name}] Fetching from ${target.url.substring(0, 50)}...`);
+                if (import.meta.env.DEV) {
+                    console.log(`[${target.name}] Fetching from ${target.url.substring(0, 50)}...`);
+                }
 
                 // Direct fetch (TTC allows CORS)
                 const response = await fetch(target.url);
@@ -72,7 +74,9 @@ export const ScraperService = {
 
                 return jobs;
             } catch (error) {
-                console.error(`Error fetching ${target.name}:`, error);
+                if (import.meta.env.DEV) {
+                    console.error(`Error fetching ${target.name}:`, error);
+                }
                 return [];
             }
         });
@@ -91,7 +95,9 @@ export const ScraperService = {
             });
 
             if (error) {
-                console.error("Edge function error:", error);
+                if (import.meta.env.DEV) {
+                    console.error("Edge function error:", error);
+                }
                 throw new Error(`Failed to scrape job content: ${error.message || 'Unknown error'}`);
             }
 
@@ -101,7 +107,9 @@ export const ScraperService = {
 
             return data.text;
         } catch (error) {
-            console.error("Job scraping failed:", error);
+            if (import.meta.env.DEV) {
+                console.error("Job scraping failed:", error);
+            }
             throw error instanceof Error ? error : new Error("Failed to scrape job content");
         }
     },
@@ -110,7 +118,9 @@ export const ScraperService = {
         try {
             return await ScraperService.scrapeJobContent(url);
         } catch (error) {
-            console.error(`Failed to scrape text for ${url}:`, error);
+            if (import.meta.env.DEV) {
+                console.error(`Failed to scrape text for ${url}:`, error);
+            }
             return "";
         }
     }
