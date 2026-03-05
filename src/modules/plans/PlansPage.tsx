@@ -227,8 +227,8 @@ export const PlansPage: React.FC = () => {
                     isLoading={loadingTier === USER_TIERS.PRO}
                     features={getFeaturesForPlan('pro').map(f => ({ name: f.name, desc: f.description.plan, isComingSoon: f.isComingSoon }))}
                     limits={{
-                        analyses: String(PLAN_LIMITS[USER_TIERS.PRO].WEEKLY_ANALYSES),
-                        analysesPeriod: 'week',
+                        analyses: String(PLAN_LIMITS[USER_TIERS.PRO].DAILY_ANALYSES),
+                        analysesPeriod: 'day',
                         emails: PLAN_LIMITS[USER_TIERS.PRO].DAILY_EMAILS,
                         emailPeriod: 'day',
                         mentors: PLAN_LIMITS[USER_TIERS.PRO].ROLE_MODELS,
