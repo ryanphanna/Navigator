@@ -174,7 +174,7 @@ export const handler = async (req: Request) => {
         const tierConfig = TIER_MODELS[userTier] || TIER_MODELS.free;
         const modelName = safeTask === 'extraction' ? tierConfig.extraction : tierConfig.analysis;
 
-        console.log(`User ${sanitizeLog(user.id)} (${sanitizeLog(userTier)}) performing ${sanitizeLog(safeTask)} using ${sanitizeLog(modelName)}`);
+        console.log("User action:", { userId: sanitizeLog(user.id), tier: sanitizeLog(userTier), task: sanitizeLog(safeTask), model: sanitizeLog(modelName) });
 
         // 3. RETRIEVE API KEY
         const apiKey = Deno.env.get('GEMINI_API_KEY')
