@@ -6,14 +6,14 @@ export interface ChatMessage {
     id: string;
     role: 'ai' | 'user';
     content: string;
-    timestamp: number;
+    timestamp?: number;
     metrics?: {
         clarity?: number;
         impact?: number;
         confidence?: number;
     };
     feedback?: string;
-    metadata?: Record<string, unknown>;
+    metadata?: React.ReactNode;
 }
 
 interface InterviewChatProps {
@@ -112,6 +112,9 @@ export const InterviewChat: React.FC<InterviewChatProps> = ({
                                         }`}>
                                         <p className="text-[15px] font-medium leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                                     </div>
+
+                                    {/* Render optional metadata/extra content */}
+                                    {msg.metadata}
 
                                     {/* Feedback for AI messages that contain evaluation */}
                                     {msg.feedback && (
