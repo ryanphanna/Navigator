@@ -184,6 +184,7 @@ export const CoachDashboard: React.FC = () => {
                         onRunGapAnalysis={(id) => onRunGapAnalysis(id, { resumes, skills: userSkills })}
                         onGenerateRoadmap={onGenerateRoadmap}
                         onToggleMilestone={onToggleMilestone}
+                        onViewChange={onViewChange}
                         onCompare={(id) => setComparisonRoleModelId(id)}
                         activeAnalysisIds={activeAnalysisIds}
                     />
