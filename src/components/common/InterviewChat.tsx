@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Send, Sparkles, User, ArrowRight, Loader2 } from 'lucide-react';
+import { Send, Sparkles, User, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface ChatMessage {
@@ -13,6 +13,7 @@ export interface ChatMessage {
         confidence?: number;
     };
     feedback?: string;
+    metadata?: Record<string, unknown>;
 }
 
 interface InterviewChatProps {
@@ -90,7 +91,7 @@ export const InterviewChat: React.FC<InterviewChatProps> = ({
                 )}
 
                 <AnimatePresence initial={false}>
-                    {messages.map((msg, idx) => (
+                    {messages.map((msg) => (
                         <motion.div
                             key={msg.id}
                             initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -99,15 +100,15 @@ export const InterviewChat: React.FC<InterviewChatProps> = ({
                         >
                             <div className={`flex gap-4 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                                 <div className={`w-10 h-10 rounded-xl shrink-0 flex items-center justify-center shadow-md ${msg.role === 'ai'
-                                        ? `bg-gradient-to-br ${accentGradient} text-white`
-                                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400'
+                                    ? `bg-gradient-to-br ${accentGradient} text-white`
+                                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400'
                                     }`}>
                                     {msg.role === 'ai' ? <Sparkles className="w-5 h-5" /> : <User className="w-5 h-5" />}
                                 </div>
                                 <div className="space-y-2">
                                     <div className={`rounded-2xl px-6 py-4 shadow-sm relative overflow-hidden ${msg.role === 'ai'
-                                            ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-tl-none border border-neutral-100 dark:border-neutral-700'
-                                            : `bg-gradient-to-br ${accentGradient} text-white rounded-tr-none shadow-lg shadow-indigo-500/10`
+                                        ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-tl-none border border-neutral-100 dark:border-neutral-700'
+                                        : `bg-gradient-to-br ${accentGradient} text-white rounded-tr-none shadow-lg shadow-indigo-500/10`
                                         }`}>
                                         <p className="text-[15px] font-medium leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                                     </div>

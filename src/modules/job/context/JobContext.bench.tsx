@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { render } from '@testing-library/react';
 
 // Simplified version of the component for testing performance
-const UnmemoizedProvider = ({ value, children }: any) => {
+const UnmemoizedProvider = ({ children }: any) => {
     return (
         <div data-testid="unmemoized">
             {children}
@@ -20,7 +20,7 @@ const MemoizedProvider = ({ value, children }: any) => {
         closeUpgradeModal, dismissNudge
     } = value;
 
-    const contextValue = useMemo(() => ({
+    useMemo(() => ({
         jobs, activeJobId, activeJob, isLoading, usageStats,
         upgradeModalData, nudgeJob, setActiveJobId, handleUpdateJob,
         handleJobCreated, handleDraftApplication, handleDeleteJob,
