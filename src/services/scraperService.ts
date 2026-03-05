@@ -7,10 +7,6 @@ const MOCK_TTC_JOBS: JobFeedItem[] = [];
 
 export const ScraperService = {
     async getFeed(): Promise<JobFeedItem[]> {
-        if (import.meta.env.DEV) {
-            console.log('Fetching live feed...');
-        }
-
         // Define targets to scrape
         const targets = [
             { name: 'TTC', url: 'https://career17.sapsf.com/career?company=TTC', source: 'ttc' as const },
