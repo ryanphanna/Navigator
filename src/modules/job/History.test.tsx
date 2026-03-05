@@ -4,6 +4,8 @@ import { MemoryRouter } from 'react-router-dom';
 import History from './History';
 import type { SavedJob } from '../../types';
 
+import { JobContext } from './context/JobContext';
+
 describe('History', () => {
   const mockJobs: SavedJob[] = [
     {
@@ -63,45 +65,36 @@ describe('History', () => {
   const mockOnSelectJob = vi.fn();
   const mockOnDeleteJob = vi.fn();
 
-  it('should render empty state when no jobs', () => {
-    render(
+  const renderHistory = (jobs: SavedJob[]) => {
+    return render(
       <MemoryRouter>
-        <History
-          jobs={[]}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
-        />
+        <JobContext.Provider value={{
+          jobs,
+          setActiveJobId: mockOnSelectJob,
+          handleDeleteJob: mockOnDeleteJob,
+          // Add dummy values for other required context props to avoid TS errors if they were used
+        } as any}>
+          <History />
+        </JobContext.Provider>
       </MemoryRouter>
     );
+  };
+
+  it('should render empty state when no jobs', () => {
+    renderHistory([]);
 
     expect(screen.getByText('No history yet')).toBeInTheDocument();
   });
 
   it('should render job list', () => {
-    render(
-      <MemoryRouter>
-        <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
-        />
-      </MemoryRouter>
-    );
+    renderHistory(mockJobs);
 
     expect(screen.getByText('Software Engineer')).toBeInTheDocument();
     expect(screen.getByText('Frontend Developer')).toBeInTheDocument();
   });
 
   it('should filter jobs by search query', () => {
-    render(
-      <MemoryRouter>
-        <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
-        />
-      </MemoryRouter>
-    );
+    renderHistory(mockJobs);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
@@ -116,15 +109,7 @@ describe('History', () => {
   });
 
   it('should filter by company name', () => {
-    render(
-      <MemoryRouter>
-        <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
-        />
-      </MemoryRouter>
-    );
+    renderHistory(mockJobs);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
@@ -135,15 +120,7 @@ describe('History', () => {
   });
 
   it('should be case insensitive', () => {
-    render(
-      <MemoryRouter>
-        <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
-        />
-      </MemoryRouter>
-    );
+    renderHistory(mockJobs);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
@@ -153,15 +130,7 @@ describe('History', () => {
   });
 
   it('should show all jobs when search is cleared', () => {
-    render(
-      <MemoryRouter>
-        <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
-        />
-      </MemoryRouter>
-    );
+    renderHistory(mockJobs);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
@@ -178,15 +147,7 @@ describe('History', () => {
   });
 
   it('should call onSelectJob when job is clicked', () => {
-    render(
-      <MemoryRouter>
-        <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
-        />
-      </MemoryRouter>
-    );
+    renderHistory(mockJobs);
 
     const jobCard = screen.getByText('Software Engineer').closest('div');
     if (jobCard) {
@@ -197,15 +158,7 @@ describe('History', () => {
   });
 
   it('should display fit scores', () => {
-    render(
-      <MemoryRouter>
-        <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
-        />
-      </MemoryRouter>
-    );
+    renderHistory(mockJobs);
 
     expect(screen.getByText('85% Match')).toBeInTheDocument();
     expect(screen.getByText('70% Match')).toBeInTheDocument();
@@ -217,15 +170,7 @@ describe('History', () => {
       { id: '4', status: 'error', position: 'Failed Role', company: 'Startup', dateAdded: Date.now(), description: '...', resumeId: 'r1' },
     ];
 
-    render(
-      <MemoryRouter>
-        <History
-          jobs={statusJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
-        />
-      </MemoryRouter>
-    );
+    renderHistory(statusJobs);
 
     // Should be in 'Saved' filter by default (or when selected)
     // Count for 'Saved' and 'All' should be 2
@@ -252,18 +197,7 @@ describe('History', () => {
       progressMessage: 'Extracting skills...'
     };
 
-    const mockOnSelect = vi.fn();
-    const mockOnDelete = vi.fn();
-
-    render(
-      <MemoryRouter>
-        <History
-          jobs={[progressJob]}
-          onSelectJob={mockOnSelect}
-          onDeleteJob={mockOnDelete}
-        />
-      </MemoryRouter>
-    );
+    renderHistory([progressJob]);
 
     expect(screen.getByText('Extracting skills...')).toBeInTheDocument();
     expect(screen.getByText('45%')).toBeInTheDocument();
@@ -281,25 +215,16 @@ describe('History', () => {
       progress: 50
     };
 
-    const mockOnSelect = vi.fn();
-    const mockOnDelete = vi.fn();
+    mockOnSelectJob.mockClear();
 
-    render(
-      <MemoryRouter>
-        <History
-          jobs={[analyzingJob]}
-          onSelectJob={mockOnSelect}
-          onDeleteJob={mockOnDelete}
-        />
-      </MemoryRouter>
-    );
+    renderHistory([analyzingJob]);
 
     // Click card should not select
     const card = screen.getByText('Processing Job...').closest('div');
     if (card) {
       fireEvent.click(card);
     }
-    expect(mockOnSelect).not.toHaveBeenCalled();
+    expect(mockOnSelectJob).not.toHaveBeenCalled();
 
     // View Analysis button should not be present
     expect(screen.queryByText('View Analysis')).not.toBeInTheDocument();
