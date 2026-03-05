@@ -3,6 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import History from './History';
 import type { SavedJob } from '../../types';
+import { useJobContext } from './context/JobContext';
+
+vi.mock('./context/JobContext', () => ({
+    useJobContext: vi.fn(),
+}));
 
 describe('History', () => {
   const mockJobs: SavedJob[] = [
@@ -63,7 +68,22 @@ describe('History', () => {
   const mockOnSelectJob = vi.fn();
   const mockOnDeleteJob = vi.fn();
 
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (useJobContext as any).mockReturnValue({
+      jobs: mockJobs,
+      setActiveJobId: mockOnSelectJob,
+      handleDeleteJob: mockOnDeleteJob,
+    });
+  });
+
   it('should render empty state when no jobs', () => {
+    (useJobContext as any).mockReturnValue({
+      jobs: [],
+      setActiveJobId: mockOnSelectJob,
+      handleDeleteJob: mockOnDeleteJob,
+    });
+
     render(
       <MemoryRouter>
         <History
@@ -81,9 +101,7 @@ describe('History', () => {
     render(
       <MemoryRouter>
         <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
+
         />
       </MemoryRouter>
     );
@@ -96,9 +114,7 @@ describe('History', () => {
     render(
       <MemoryRouter>
         <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
+
         />
       </MemoryRouter>
     );
@@ -119,9 +135,7 @@ describe('History', () => {
     render(
       <MemoryRouter>
         <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
+
         />
       </MemoryRouter>
     );
@@ -138,9 +152,7 @@ describe('History', () => {
     render(
       <MemoryRouter>
         <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
+
         />
       </MemoryRouter>
     );
@@ -156,9 +168,7 @@ describe('History', () => {
     render(
       <MemoryRouter>
         <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
+
         />
       </MemoryRouter>
     );
@@ -181,9 +191,7 @@ describe('History', () => {
     render(
       <MemoryRouter>
         <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
+
         />
       </MemoryRouter>
     );
@@ -200,9 +208,7 @@ describe('History', () => {
     render(
       <MemoryRouter>
         <History
-          jobs={mockJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
+
         />
       </MemoryRouter>
     );
@@ -217,12 +223,16 @@ describe('History', () => {
       { id: '4', status: 'error', position: 'Failed Role', company: 'Startup', dateAdded: Date.now(), description: '...', resumeId: 'r1' },
     ];
 
+    (useJobContext as any).mockReturnValue({
+      jobs: statusJobs,
+      setActiveJobId: mockOnSelectJob,
+      handleDeleteJob: mockOnDeleteJob,
+    });
+
     render(
       <MemoryRouter>
         <History
-          jobs={statusJobs}
-          onSelectJob={mockOnSelectJob}
-          onDeleteJob={mockOnDeleteJob}
+
         />
       </MemoryRouter>
     );
@@ -255,12 +265,15 @@ describe('History', () => {
     const mockOnSelect = vi.fn();
     const mockOnDelete = vi.fn();
 
+    (useJobContext as any).mockReturnValue({
+      jobs: [progressJob],
+      setActiveJobId: mockOnSelect,
+      handleDeleteJob: mockOnDelete,
+    });
+
     render(
       <MemoryRouter>
         <History
-          jobs={[progressJob]}
-          onSelectJob={mockOnSelect}
-          onDeleteJob={mockOnDelete}
         />
       </MemoryRouter>
     );
@@ -284,12 +297,15 @@ describe('History', () => {
     const mockOnSelect = vi.fn();
     const mockOnDelete = vi.fn();
 
+    (useJobContext as any).mockReturnValue({
+      jobs: [analyzingJob],
+      setActiveJobId: mockOnSelect,
+      handleDeleteJob: mockOnDelete,
+    });
+
     render(
       <MemoryRouter>
         <History
-          jobs={[analyzingJob]}
-          onSelectJob={mockOnSelect}
-          onDeleteJob={mockOnDelete}
         />
       </MemoryRouter>
     );

@@ -32,10 +32,28 @@ export const Storage = {
             const { data: cloudJobs } = await supabase.from('jobs').select('id').eq('user_id', userId);
             const cloudIds = new Set(cloudJobs?.map(j => j.id) || []);
 
-            for (const job of localJobs) {
-                if (!cloudIds.has(job.id)) {
-                    await this.addJob(job);
-                }
+            const missingJobs = localJobs.filter(job => !cloudIds.has(job.id));
+            if (missingJobs.length > 0) {
+                // To avoid duplication in Vault during sync loop,
+                // we bypass the normal vault append in addJobs since they are already local.
+                // Alternatively, we just map and insert directly to avoid messing with local order.
+                const payload = missingJobs.map(job => ({
+                    user_id: userId,
+                    id: job.id,
+                    job_title: job.analysis?.distilledJob?.roleTitle || job.position || 'Untitled Role',
+                    company: job.analysis?.distilledJob?.companyName || job.company || 'Unknown Company',
+                    original_text: job.description,
+                    url: job.url,
+                    analysis: job.analysis,
+                    canonical_role: job.analysis?.distilledJob?.canonicalTitle,
+                    status: job.status || 'saved',
+                    resume_id: job.resumeId,
+                    cover_letter: job.coverLetter,
+                    cover_letter_critique: job.coverLetterCritique,
+                    date_added: new Date(job.dateAdded).toISOString()
+                }));
+                const { error } = await supabase.from('jobs').insert(payload);
+                if (error) console.error("Cloud Sync Error (Sync Jobs):", error);
             }
         }
 
@@ -45,10 +63,17 @@ export const Storage = {
             const { data: cloudSkills } = await supabase.from('user_skills').select('name').eq('user_id', userId);
             const cloudNames = new Set(cloudSkills?.map(s => s.name) || []);
 
-            for (const skill of localSkills) {
-                if (!cloudNames.has(skill.name)) {
-                    await this.saveSkill(skill);
-                }
+            const missingSkills = localSkills.filter(skill => !cloudNames.has(skill.name));
+            if (missingSkills.length > 0) {
+                const payload = missingSkills.map(skill => ({
+                    user_id: userId,
+                    name: skill.name,
+                    proficiency: skill.proficiency,
+                    evidence: skill.evidence,
+                    updated_at: new Date().toISOString()
+                }));
+                const { error } = await supabase.from('user_skills').upsert(payload, { onConflict: 'user_id,name' });
+                if (error) console.error("Cloud Sync Error (Sync Skills):", error);
             }
         }
 
@@ -57,10 +82,17 @@ export const Storage = {
         if (localRoleModels.length > 0) {
             const { data: cloudModels } = await supabase.from('role_models').select('id').eq('user_id', userId);
             const cloudIds = new Set(cloudModels?.map(m => m.id) || []);
-            for (const model of localRoleModels) {
-                if (!cloudIds.has(model.id)) {
-                    await this.addRoleModel(model);
-                }
+
+            const missingModels = localRoleModels.filter(model => !cloudIds.has(model.id));
+            if (missingModels.length > 0) {
+                const payload = missingModels.map(model => ({
+                    id: model.id,
+                    user_id: userId,
+                    name: model.name,
+                    content: model
+                }));
+                const { error } = await supabase.from('role_models').insert(payload);
+                if (error) console.error("Cloud Sync Error (Sync Role Models):", error);
             }
         }
 
@@ -68,10 +100,23 @@ export const Storage = {
         if (localTargetJobs.length > 0) {
             const { data: cloudTargets } = await supabase.from('target_jobs').select('id').eq('user_id', userId);
             const cloudIds = new Set(cloudTargets?.map(t => t.id) || []);
-            for (const target of localTargetJobs) {
-                if (!cloudIds.has(target.id)) {
-                    await this.saveTargetJob(target);
-                }
+
+            const missingTargets = localTargetJobs.filter(target => !cloudIds.has(target.id));
+            if (missingTargets.length > 0) {
+                const payload = missingTargets.map(target => ({
+                    id: target.id,
+                    user_id: userId,
+                    title: target.title,
+                    description: target.description,
+                    role_model_id: target.roleModelId,
+                    gap_analysis: target.gapAnalysis,
+                    roadmap: target.roadmap,
+                    type: target.type || 'goal',
+                    strict_mode: target.strictMode ?? true,
+                    date_added: new Date(target.dateAdded).toISOString()
+                }));
+                const { error } = await supabase.from('target_jobs').upsert(payload);
+                if (error) console.error("Cloud Sync Error (Sync Target Jobs):", error);
             }
         }
     },
