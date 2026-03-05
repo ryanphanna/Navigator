@@ -22,6 +22,7 @@ import { Card } from '../../components/ui/Card';
 
 import type { SavedJob } from '../../types';
 import { STORAGE_KEYS, TRACKING_EVENTS } from '../../constants';
+import type { FeatureDefinition } from '../../featureRegistry';
 
 import { useUser } from '../../contexts/UserContext';
 import { useGlobalUI } from '../../contexts/GlobalUIContext';
@@ -49,7 +50,7 @@ const JobMatchInput: React.FC = () => {
         importError
     } = useResumeContext();
 
-    const onShowAuth = (feature?: any) => openModal('AUTH', feature ? { feature } : undefined);
+    const onShowAuth = (feature?: FeatureDefinition) => openModal('AUTH', feature ? { feature } : undefined);
     const mode: 'apply' | 'goal' = 'apply';
     const { showSuccess } = useToast();
     const [url, setUrl] = useState('');
