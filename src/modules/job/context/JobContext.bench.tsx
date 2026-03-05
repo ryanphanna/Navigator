@@ -1,11 +1,11 @@
 import { bench, describe } from 'vitest';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { render } from '@testing-library/react';
 
 // Simplified version of the component for testing performance
 const UnmemoizedProvider = ({ value, children }: any) => {
     return (
-        <div data-testid="unmemoized" value={{ ...value, showUpgradeModal: !!value.upgradeModalData }}>
+        <div data-testid="unmemoized">
             {children}
         </div>
     );
@@ -36,7 +36,7 @@ const MemoizedProvider = ({ value, children }: any) => {
     ]);
 
     return (
-        <div data-testid="memoized" value={contextValue as any}>
+        <div data-testid="memoized">
             {children}
         </div>
     );
@@ -50,16 +50,16 @@ const dummyValue = {
     usageStats: {},
     upgradeModalData: null,
     nudgeJob: null,
-    setActiveJobId: () => {},
-    handleUpdateJob: async () => {},
-    handleJobCreated: async () => {},
-    handleDraftApplication: async () => {},
-    handleDeleteJob: () => {},
+    setActiveJobId: () => { },
+    handleUpdateJob: async () => { },
+    handleJobCreated: async () => { },
+    handleDraftApplication: async () => { },
+    handleDeleteJob: () => { },
     handleAnalyzeJob: async () => ({} as any),
-    handlePromoteFromFeed: async () => {},
-    handleSaveFromFeed: async () => {},
-    closeUpgradeModal: () => {},
-    dismissNudge: () => {},
+    handlePromoteFromFeed: async () => { },
+    handleSaveFromFeed: async () => { },
+    closeUpgradeModal: () => { },
+    dismissNudge: () => { },
 };
 
 describe('JobContext Provider Render Performance', () => {

@@ -22,7 +22,6 @@ import { Card } from '../../components/ui/Card';
 import type { SavedJob } from '../../types';
 import type { FeatureDefinition } from '../../featureRegistry';
 import { STORAGE_KEYS, TRACKING_EVENTS } from '../../constants';
-import type { FeatureDefinition } from '../../featureRegistry';
 
 import { useUser } from '../../contexts/UserContext';
 import { useGlobalUI } from '../../contexts/GlobalUIContext';
