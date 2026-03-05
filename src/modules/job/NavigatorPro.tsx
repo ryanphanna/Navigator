@@ -149,7 +149,13 @@ export const NavigatorPro: React.FC = () => {
     const analyzeAndCacheJob = async (job: JobFeedItem, resume: ResumeRow) => {
         try {
             // 1. Scrape Job Text
-            const jobText = await ScraperService.scrapeJobText(job.url);
+            let jobText = "";
+            try {
+                jobText = await ScraperService.scrapeJobContent(job.url);
+            } catch (error) {
+                console.error(`Failed to scrape text for ${job.url}:`, error);
+            }
+
             if (!jobText) {
                 console.warn(`Skipping analysis for ${job.title} - no text found`);
                 return;
