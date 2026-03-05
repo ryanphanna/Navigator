@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import type { RoleModelProfile, TargetJob } from '../../../types';
+import type { RoleModelProfile, TargetJob, AppState } from '../../../types';
 
 import { useCoachManager } from '../hooks/useCoachManager';
 
@@ -13,7 +13,7 @@ interface CoachContextType {
     // Actions
     handleAddRoleModel: (file: File) => Promise<void>;
     handleDeleteRoleModel: (id: string) => Promise<void>;
-    handleRunGapAnalysis: (targetJobId: string, contextState: { resumes: any, skills: any }) => Promise<void>;
+    handleRunGapAnalysis: (targetJobId: string, contextState: { resumes: AppState['resumes'], skills: AppState['skills'] }) => Promise<void>;
     handleGenerateRoadmap: (targetJobId: string) => Promise<void>;
     handleToggleMilestone: (targetJobId: string, milestoneId: string) => Promise<void>;
     handleTargetJobCreated: (url: string) => Promise<void>;
