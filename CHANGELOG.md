@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.27.0] - 2026-03-05
+
+### Fixed
+- **Job Detail Evaluation Retry**: Resolved an issue where manually editing an incomplete job description and clicking "Evaluate Match" failed to trigger the analysis state transition due to a missing state update (`onUpdateJob`).
+
+### Changed
+- **Honest UI Statuses**: Replaced misleading "Analyzing" and "Processing" status labels across the application (Application History, Job Detail, Feed) with precise terms like "Saving...", or removed them entirely when the system is actually just blocked waiting for user input. This prevents the UI from falsely claiming deep AI work is happening.
+- **Type Safety — `any` Elimination**: Systematically replaced all instances of the `any` type across 20+ files with specific, narrowed types:
+  - `FeatureDefinition.targetView` upgraded from `string` to `ViewId`, propagating type-safe navigation through `FeatureGrid`, `HomePage`, and `JobMatchInput`.
+  - `CoachContext` types (`transcript`, `resumes`, `skills`, `setTranscript`) replaced with proper `Transcript`, `ResumeProfile[]`, `CustomSkill[]` imports.
+  - `StatsCard.icon` in `AdminDashboard` replaced with `React.ElementType`; simulation tier array typed with `UserTier`.
+  - `CoverLetterEditor` — eliminated 5 `as any` casts via a `CoverLetterCritique` type guard.
+  - `InterviewAdvisor.handleBankSuggestion` — cast `suggestion.type` to the correct `'add' | 'update' | 'remove'` union literal.
+  - `SimpleCard` props in `Privacy.tsx` and `Terms.tsx` replaced with typed interfaces.
+  - `ResumeEditor` — `interval` typed as `ReturnType<typeof setInterval>`, `handleApplySuggestion` given `{ id, type, suggestion }` shape.
+  - `SkillExtractor.result.map` callback typed correctly against `CustomSkill[]` return.
+  - `ProgramExplorerPage.onSelect` callback typed with `{ institution: string; name: string }`.
+- **Error Handling Standardization**: Replaced all `catch (err: any)` / `catch (error: any)` clauses with `catch (err: unknown)` + `instanceof Error` narrowing across `useInterview.ts`, `useAcademicLogic.ts`, `MAEligibility.tsx`, `PlansOnboardingStep.tsx`, and `PlansPage.tsx`.
+- **FeatureRegistry Navigation Fix**: Corrected `targetView` for COACH and ROLE_MODELS features from invalid `'career-home'` to the correct `'coach-home'` ViewId.
+
 ## [2.26.0] - 2026-03-04
 
 ### Security

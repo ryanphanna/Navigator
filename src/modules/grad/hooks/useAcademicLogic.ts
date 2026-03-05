@@ -42,8 +42,8 @@ export const useAcademicLogic = () => {
                     const parsed = await parseTranscript(base64, file.type);
                     setTempTranscript(parsed);
                     setShowVerification(true);
-                } catch (err: any) {
-                    setParseError(err.message || 'Failed to parse transcript');
+                } catch (err: unknown) {
+                    setParseError(err instanceof Error ? err.message : 'Failed to parse transcript');
                 } finally {
                     setIsParsing(false);
                 }
@@ -52,8 +52,8 @@ export const useAcademicLogic = () => {
                 setParseError('Failed to read file');
                 setIsParsing(false);
             };
-        } catch (e: any) {
-            setParseError(e.message || 'An unexpected error occurred');
+        } catch (e: unknown) {
+            setParseError(e instanceof Error ? e.message : 'An unexpected error occurred');
             setIsParsing(false);
         }
     }, [setTempTranscript, setShowVerification]);
@@ -144,8 +144,8 @@ export const useAcademicLogic = () => {
             if (result.targetCredits) {
                 setTargetCredits(result.targetCredits);
             }
-        } catch (err: any) {
-            showError(err.message || "Failed to analyze program requirements");
+        } catch (err: unknown) {
+            showError(err instanceof Error ? err.message : "Failed to analyze program requirements");
         } finally {
             setIsAnalyzingRequirements(false);
         }

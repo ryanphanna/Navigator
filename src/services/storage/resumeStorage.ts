@@ -38,7 +38,7 @@ export const ResumeStorage = {
                     // For now, let's just ensure we don't wipe local if cloud is weirdly empty.
 
                     const localHasData = profiles.some(p => p.blocks.length > 0);
-                    const cloudHasData = cloudProfiles.some((p: any) => p.blocks?.length > 0);
+                    const cloudHasData = (cloudProfiles as ResumeProfile[]).some(p => p.blocks?.length > 0);
 
                     if (cloudHasData || !localHasData) {
                         profiles = cloudProfiles;

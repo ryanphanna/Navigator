@@ -4,8 +4,7 @@ import {
     FileText,
     Bookmark,
     Loader2,
-    Plus,
-    ArrowRight,
+    X,
     TrendingUp,
     Sparkles,
 } from 'lucide-react';
@@ -21,6 +20,7 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 
 import type { SavedJob } from '../../types';
+import type { FeatureDefinition } from '../../featureRegistry';
 import { STORAGE_KEYS, TRACKING_EVENTS } from '../../constants';
 import type { FeatureDefinition } from '../../featureRegistry';
 
@@ -138,8 +138,8 @@ const JobMatchInput: React.FC = () => {
 
             const newJob: SavedJob = {
                 id: jobId,
-                company: 'Analyzing...',
-                position: 'New Opportunity',
+                company: '',
+                position: 'New Job',
                 description: input.type === 'text' ? input.content : '',
                 url: sourceUrl,
                 resumeId: resumes[0]?.id || 'master',
@@ -233,7 +233,7 @@ const JobMatchInput: React.FC = () => {
 
     return (
         <SharedPageLayout
-            maxWidth="5xl"
+            maxWidth="7xl"
             className="theme-job"
             spacing="compact"
         >
@@ -310,7 +310,7 @@ const JobMatchInput: React.FC = () => {
                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
                     <div className="relative">
                         <textarea
-                            className={`w-full h-64 p-4 text-sm bg-white border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-50/50 transition-all resize-none text-neutral-900 ${error ? 'border-red-300 focus:border-red-500' : 'border-neutral-200 focus:border-indigo-500'}`}
+                            className={`w-full h-64 p-4 text-sm bg-white dark:bg-neutral-900 border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-50/50 dark:focus:ring-indigo-900/30 transition-all resize-none text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 ${error ? 'border-red-300 focus:border-red-500' : 'border-neutral-200 dark:border-neutral-700 focus:border-indigo-500'}`}
                             placeholder={isTargetMode ? "Where are you headed? Paste your target..." : "Paste the job description here..."}
                             value={manualText}
                             onChange={(e) => setManualText(e.target.value)}
@@ -319,7 +319,7 @@ const JobMatchInput: React.FC = () => {
                         />
                         <div className="absolute bottom-4 right-4 text-xs text-neutral-400">Press Enter to analyze • Shift+Enter for new line</div>
                     </div>
-                    <div className="flex justify-between items-center bg-neutral-50 p-3 rounded-2xl border border-neutral-100">
+                    <div className="flex justify-between items-center bg-neutral-50 dark:bg-neutral-900 p-3 rounded-2xl border border-neutral-100 dark:border-neutral-800">
                         <button onClick={() => { setIsManualMode(false); setError(null); }} className="text-sm text-neutral-500 font-bold px-4 py-2">Back to URL</button>
                         <button onClick={() => manualText.trim() && handleJobSubmission({ type: 'text', content: manualText })} disabled={!manualText.trim()} className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20">
                             <Sparkles className="w-4 h-4" /> Analyze Job
@@ -332,14 +332,9 @@ const JobMatchInput: React.FC = () => {
                 <NotificationBanner
                     icon={Bookmark}
                     theme="sky"
-                    title="Get the browser extension"
-                    description="Save jobs from any website with one click. Extracted instantly and ready for analysis."
+                    title="Browser extension coming soon"
+                    description="Save jobs from any website with one click. We'll notify you when it's available."
                     className="max-w-xl mx-auto mt-8"
-                    action={{
-                        label: 'Get Extension',
-                        icon: Plus,
-                        href: 'https://github.com/ryanphanna/Navigator', // TODO: Update to chrome web store URL
-                    }}
                     onDismiss={() => {
                         setShowExtensionTip(false);
                         localStorage.setItem(STORAGE_KEYS.EXTENSION_TIP_DISMISSED, 'true');
@@ -349,11 +344,11 @@ const JobMatchInput: React.FC = () => {
 
             {showResumePrompt && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-neutral-900/50 backdrop-blur-sm">
-                    <div className="w-full max-w-md bg-white rounded-2xl p-8 text-center relative">
-                        <button onClick={() => { setShowResumePrompt(false); }} className="absolute top-4 right-4 text-neutral-400"><ArrowRight className="w-4 h-4 rotate-45" /></button>
+                    <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-2xl p-8 text-center relative">
+                        <button onClick={() => { setShowResumePrompt(false); }} className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"><X className="w-4 h-4" /></button>
                         <div className="h-16 w-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6"><FileText className="w-8 h-8" /></div>
-                        <h2 className="text-2xl font-bold text-neutral-900 mb-2">One last step!</h2>
-                        <p className="text-neutral-500 mb-8">To tailor your application for this job, we need your resume.</p>
+                        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">One last step!</h2>
+                        <p className="text-neutral-500 dark:text-neutral-400 mb-8">To tailor your application for this job, we need your resume.</p>
                         <DropZone title="Upload Resume" onUpload={async (files) => files[0] && await onImportResume(files[0])} accept=".pdf,.txt" isLoading={isParsing} loadingText="Analyzing Resume..." error={importError} themeColor="indigo" className="w-full" variant="card" />
                     </div>
                 </div>

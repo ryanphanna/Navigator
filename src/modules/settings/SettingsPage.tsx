@@ -237,6 +237,7 @@ export const SettingsPage: React.FC = () => {
                                 <div className="flex items-center gap-2 mb-1">
                                     <span className="text-sm font-bold text-neutral-700 dark:text-neutral-300">Browser Extension</span>
                                 </div>
+                                <p className="text-xs text-neutral-400 leading-relaxed -mt-2 mb-2">Save jobs from any website with one click. Connect the extension using your access token.</p>
 
                                 <Button
                                     variant="ghost"
@@ -261,6 +262,7 @@ export const SettingsPage: React.FC = () => {
                                     </span>
                                 )}
                             </div>
+                            <p className="text-xs text-neutral-400 leading-relaxed -mt-2 mb-2">Forward job alert emails to your personal Navigator address to auto-import opportunities.</p>
 
                             {(usageStats?.inboundEmailToken || isAdmin || isTester) ? (
                                 <Button

@@ -26,7 +26,7 @@ export const GlobalModals: React.FC = () => {
     return (
         <Suspense fallback={null}>
             {activeModal === 'AUTH' && (
-                <AuthModal isOpen={true} onClose={closeModal} featureContext={modalData?.feature} />
+                <AuthModal isOpen={true} onClose={closeModal} featureContext={modalData?.feature} authMode={modalData?.authMode} />
             )}
 
             {(activeModal === 'UPGRADE' || upgradeModalData) && (

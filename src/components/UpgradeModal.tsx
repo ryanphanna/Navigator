@@ -1,6 +1,10 @@
 import React from 'react';
 import type { UsageLimitResult } from '../services/usageLimits';
-import { X, Sparkles, Zap, Check, Shield, Cpu } from 'lucide-react';
+import { X, Sparkles, Zap, Check, Shield, Cpu, Loader2 } from 'lucide-react';
+import { useToast } from '../contexts/ToastContext';
+import { paymentService } from '../services/paymentService';
+import { PLAN_PRICING } from '../constants';
+import { supabase } from '../services/supabase';
 
 interface UpgradeModalProps {
     limitInfo?: UsageLimitResult | null;
@@ -11,11 +15,38 @@ interface UpgradeModalProps {
 
 export const UpgradeModal: React.FC<UpgradeModalProps> = ({ limitInfo, onClose, initialView = 'compare', userTier = 'free' }) => {
     const [view, setView] = React.useState<'upgrade' | 'compare'>(limitInfo ? 'upgrade' : initialView);
+    const [loadingPlan, setLoadingPlan] = React.useState<string | null>(null);
+    const { showError } = useToast();
 
-    const handleUpgrade = (plan: string) => {
-        // TODO: Implement Stripe checkout
-        alert(`${plan} upgrade coming soon! For now, contact support to upgrade.`);
-        onClose();
+    const handleUpgrade = async (plan: string) => {
+        // Check authentication
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            showError('Please sign in first to upgrade.');
+            return;
+        }
+
+        const tierKey = plan.toLowerCase() as keyof typeof PLAN_PRICING;
+        const pricing = PLAN_PRICING[tierKey];
+        if (!pricing) return;
+
+        setLoadingPlan(plan);
+        try {
+            const priceId = pricing.PRICE_ID_MONTHLY;
+            if (!priceId || priceId.includes('placeholder')) {
+                showError('Payment setup is not complete. Please contact support.');
+                return;
+            }
+
+            const { url } = await paymentService.createCheckoutSession(priceId);
+            window.location.href = url;
+        } catch (error: unknown) {
+            const err = error instanceof Error ? error : new Error(String(error));
+            console.error('Checkout error:', err);
+            showError(err.message || 'Something went wrong during checkout. Please try again.');
+        } finally {
+            setLoadingPlan(null);
+        }
     };
 
     const PLAN_FEATURES = [
@@ -165,15 +196,19 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ limitInfo, onClose, 
 
                                         <button
                                             onClick={() => !plan.disabled && handleUpgrade(plan.name)}
-                                            disabled={plan.disabled}
-                                            className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${plan.highlight
+                                            disabled={plan.disabled || loadingPlan === plan.name}
+                                            className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${plan.highlight
                                                 ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white hover:scale-[1.02] active:scale-95 shadow-xl'
                                                 : plan.disabled
                                                     ? 'bg-neutral-200 dark:bg-neutral-800 text-neutral-400 cursor-not-allowed'
                                                     : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:scale-[1.02] active:scale-95 shadow-lg shadow-indigo-500/20'
                                                 }`}
                                         >
-                                            {plan.cta}
+                                            {loadingPlan === plan.name ? (
+                                                <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
+                                            ) : (
+                                                plan.cta
+                                            )}
                                         </button>
                                     </div>
                                 ))}

@@ -15,15 +15,27 @@ interface AuthModalProps {
     isOpen: boolean;
     onClose: () => void;
     featureContext?: FeatureDefinition;
+    authMode?: 'sign-in' | 'sign-up';
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, featureContext }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, featureContext, authMode }) => {
     const [step, setStep] = useState(0); // 0: Email, 1: Password/Invite
     const [isSignUp, setIsSignUp] = useState(false);
+
+    const getHeading = () => {
+        if (successMessage) return 'Success';
+        if (step === 0) {
+            if (authMode === 'sign-in') return 'Sign In';
+            if (authMode === 'sign-up') return 'Create Account';
+            return 'Get Started';
+        }
+        return isSignUp ? 'Create Account' : 'Welcome Back';
+    };
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [resetLoading, setResetLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -41,7 +53,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, featureCo
             setStep(0);
             setEmail('');
             setPassword('');
-
+            setSuccessMessage(null);
             setError(null);
         }
 
@@ -74,8 +86,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, featureCo
             }
 
             setStep(1);
-        } catch (err: any) {
-            setError(getUserFriendlyError(err));
+        } catch (err: unknown) {
+            setError(getUserFriendlyError(err instanceof Error ? err : new Error(String(err))));
         } finally {
             setLoading(false);
         }
@@ -107,10 +119,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, featureCo
                 await import('../services/storageService').then(m => m.Storage.syncLocalToCloud());
                 onClose(); // Close on successful login
             }
-        } catch (err: any) {
-            setError(getUserFriendlyError(err));
+        } catch (err: unknown) {
+            setError(getUserFriendlyError(err instanceof Error ? err : new Error(String(err))));
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleForgotPassword = async () => {
+        if (!email.trim()) {
+            setError('Please go back and enter your email first.');
+            return;
+        }
+        setResetLoading(true);
+        setError(null);
+        setSuccessMessage(null);
+
+        try {
+            const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+                redirectTo: `${window.location.origin}/settings`,
+            });
+            if (resetError) throw resetError;
+            setSuccessMessage('Password reset link sent! Check your inbox.');
+        } catch (err: unknown) {
+            setError(getUserFriendlyError(err instanceof Error ? err : new Error(String(err))));
+        } finally {
+            setResetLoading(false);
         }
     };
 
@@ -236,8 +270,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, featureCo
                         <div className="flex justify-between items-center mb-2 ml-1">
                             <label className="block text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Password</label>
                             {!isSignUp && (
-                                <button type="button" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
-                                    Forgot?
+                                <button
+                                    type="button"
+                                    onClick={handleForgotPassword}
+                                    disabled={resetLoading}
+                                    className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline disabled:opacity-50"
+                                >
+                                    {resetLoading ? 'Sending...' : 'Forgot?'}
                                 </button>
                             )}
                         </div>
@@ -295,7 +334,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, featureCo
                         <div className="flex-1 flex flex-col bg-neutral-50 dark:bg-neutral-900/50">
                             <div className="px-8 py-6 border-b border-neutral-200/50 dark:border-neutral-800/50 flex justify-between items-center bg-gradient-to-r from-indigo-50/50 to-violet-50/50 dark:from-indigo-900/20 dark:to-violet-900/20">
                                 <h3 className="font-bold text-xl text-neutral-900 dark:text-white tracking-tight">
-                                    {successMessage ? 'Success' : step === 0 ? 'Get Started' : isSignUp ? 'Create Account' : 'Welcome Back'}
+                                    {getHeading()}
                                 </h3>
                                 <button
                                     onClick={onClose}

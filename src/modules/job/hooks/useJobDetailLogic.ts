@@ -43,7 +43,7 @@ export const useJobDetailLogic = ({
     }, [analysis, resumes]);
 
     const performAnalysis = useCallback(async () => {
-        setAnalysisProgress("Preparing analysis...");
+        setAnalysisProgress("Preparing evaluation...");
         try {
             if (onAnalyzeJob) {
                 await onAnalyzeJob(job);

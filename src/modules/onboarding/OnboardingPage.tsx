@@ -527,7 +527,7 @@ export const OnboardingPage: React.FC = () => {
                                         {isParsingResume && (
                                             <div className="absolute inset-0 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm flex flex-col items-center justify-center z-10">
                                                 <Loader2 className="w-10 h-10 text-indigo-600 animate-spin mb-4" />
-                                                <p className="font-bold text-neutral-900 dark:text-white">Analyzing profile...</p>
+                                                <p className="font-bold text-neutral-900 dark:text-white">Processing profile...</p>
                                             </div>
                                         )}
                                     </motion.div>
@@ -566,7 +566,7 @@ export const OnboardingPage: React.FC = () => {
                                             <Loader2 className="w-10 h-10 animate-spin" />
                                         </div>
                                         <h1 className="text-4xl font-black text-neutral-900 dark:text-white mb-3">
-                                            Analyzing profile...
+                                            Processing profile...
                                         </h1>
                                         <p className="text-neutral-500 dark:text-neutral-400 text-lg font-medium underline underline-offset-8 decoration-indigo-500/20">
                                             Extracting your brilliance.

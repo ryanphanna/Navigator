@@ -81,7 +81,7 @@ export const ResumeEditor: React.FC = () => {
     ];
 
     useEffect(() => {
-        let interval: any;
+        let interval: ReturnType<typeof setInterval> | undefined;
         if (isParsing) {
             interval = setInterval(() => {
                 setParsingMessageIndex((prev) => (prev + 1) % PARSING_MESSAGES.length);
@@ -189,7 +189,7 @@ export const ResumeEditor: React.FC = () => {
         }));
     };
 
-    const handleApplySuggestion = (suggestion: any) => {
+    const handleApplySuggestion = (suggestion: { id: string; type: string; suggestion: string }) => {
         if (suggestion.type === 'add' || suggestion.type === 'update') {
             // Find summary block or add one
             const summaryBlock = blocks.find(b => b.type === 'summary');
@@ -626,21 +626,21 @@ export const ResumeEditor: React.FC = () => {
                                                                 </div>
 
                                                                 {block.type !== 'summary' && (
-                                                                    <div className="mt-4 flex items-center gap-1 no-print">
+                                                                    <div className="mt-6 flex items-center gap-3 no-print h-9">
                                                                         <button
                                                                             onClick={() => addBullet(block.id)}
-                                                                            className="px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 border border-transparent text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10"
+                                                                            className="px-3 py-1.5 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 hover:border-indigo-200 dark:hover:border-indigo-900/50 text-neutral-500 hover:text-indigo-600 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95 group/add flex items-center gap-1.5"
                                                                         >
-                                                                            <Plus className="w-3.5 h-3.5" />
-                                                                            <span className="text-[10px] font-black tracking-tight">Add</span>
+                                                                            <Plus className="w-3.5 h-3.5 group-hover/add:rotate-90 transition-transform duration-300" />
+                                                                            <span className="text-[10px] font-black tracking-tight">Add Line</span>
                                                                         </button>
 
-                                                                        <div className="flex items-center gap-1 group/move relative">
+                                                                        <div className="flex items-center gap-1 group/move relative h-full">
                                                                             <button
                                                                                 onClick={() => setMovingBlockId(movingBlockId === block.id ? null : block.id)}
-                                                                                className={`px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 border border-transparent relative z-20 ${movingBlockId === block.id
-                                                                                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-lg'
-                                                                                    : 'text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'}`}
+                                                                                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-2 border shadow-lg relative z-20 active:scale-95 ${movingBlockId === block.id
+                                                                                    ? 'bg-neutral-900 border-neutral-900 dark:bg-white dark:border-white text-white dark:text-neutral-900'
+                                                                                    : 'bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800 text-neutral-500 hover:text-indigo-600 hover:border-indigo-100 dark:hover:border-indigo-900/50'}`}
                                                                                 title="Move to Section"
                                                                             >
                                                                                 <ArrowRightLeft className="w-3.5 h-3.5" />
@@ -650,14 +650,17 @@ export const ResumeEditor: React.FC = () => {
                                                                             <AnimatePresence>
                                                                                 {movingBlockId === block.id && (
                                                                                     <motion.div
-                                                                                        initial={{ opacity: 0, x: -20, width: 0 }}
-                                                                                        animate={{ opacity: 1, x: 0, width: 'auto' }}
-                                                                                        exit={{ opacity: 0, x: -20, width: 0 }}
-                                                                                        className="flex items-center gap-1 ml-0 p-1 pl-4 -ml-2 bg-white dark:bg-neutral-900 rounded-r-xl border border-l-0 border-neutral-200 dark:border-neutral-800 shadow-xl overflow-hidden z-10"
+                                                                                        initial={{ opacity: 0, x: -10, scale: 0.95 }}
+                                                                                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                                                                                        exit={{ opacity: 0, x: -10, scale: 0.95 }}
+                                                                                        className="flex items-center gap-1 ml-2 p-1 px-1 bg-white/80 dark:bg-neutral-900/80 rounded-full border border-white/30 dark:border-neutral-800/50 backdrop-blur-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-10 h-full"
                                                                                     >
                                                                                         {SECTIONS.filter(s => s.type !== 'summary').map(s => {
                                                                                             const isSelected = block.type === s.type;
-                                                                                            const typeColor = getTypeColor(s.type);
+                                                                                            const typeColorClasses = getTypeColor(s.type);
+                                                                                            // Extract just the text color for the button
+                                                                                            const textColor = typeColorClasses.split(' ').find(c => c.startsWith('text-')) || 'text-neutral-400';
+
                                                                                             return (
                                                                                                 <button
                                                                                                     key={s.type}
@@ -665,12 +668,19 @@ export const ResumeEditor: React.FC = () => {
                                                                                                         updateBlock(block.id, 'type', s.type);
                                                                                                         setMovingBlockId(null);
                                                                                                     }}
-                                                                                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black tracking-tight transition-all flex items-center gap-2 justify-center active:scale-95 whitespace-nowrap ${isSelected
-                                                                                                        ? `${typeColor} shadow-sm bg-neutral-50 dark:bg-neutral-800`
-                                                                                                        : 'text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                                                                                    className={`relative px-3 py-1 rounded-full text-[10px] font-black tracking-tight transition-all flex items-center gap-2 justify-center active:scale-95 whitespace-nowrap z-10 ${isSelected
+                                                                                                        ? textColor
+                                                                                                        : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
                                                                                                         }`}
                                                                                                 >
-                                                                                                    {s.icon && <span className="w-3.5 h-3.5 flex items-center justify-center opacity-70 group-hover:opacity-100">{s.icon}</span>}
+                                                                                                    {isSelected && (
+                                                                                                        <motion.div
+                                                                                                            layoutId={`active-pill-${block.id}`}
+                                                                                                            className="absolute inset-0 bg-white shadow-sm border border-neutral-100 dark:bg-neutral-800 dark:border-neutral-700 rounded-full -z-10"
+                                                                                                            transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+                                                                                                        />
+                                                                                                    )}
+                                                                                                    {s.icon && <span className={`w-3.5 h-3.5 flex items-center justify-center ${isSelected ? 'opacity-100' : 'opacity-70'}`}>{s.icon}</span>}
                                                                                                     {s.label}
                                                                                                 </button>
                                                                                             );
@@ -682,10 +692,10 @@ export const ResumeEditor: React.FC = () => {
 
                                                                         <button
                                                                             onClick={() => removeBlock(block.id)}
-                                                                            className="p-1.5 text-neutral-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all no-print"
+                                                                            className="p-2 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 hover:border-rose-200 dark:hover:border-rose-900/50 text-neutral-300 hover:text-rose-500 rounded-xl transition-all shadow-sm hover:shadow-md ml-auto active:scale-95"
                                                                             title="Delete Block"
                                                                         >
-                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                            <Trash2 className="w-4 h-4" />
                                                                         </button>
                                                                     </div>
                                                                 )}

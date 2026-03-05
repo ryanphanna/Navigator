@@ -10,7 +10,7 @@ import { checkRoleModelLimit } from '../../../services/usageLimits';
 import { supabase } from '../../../services/supabase';
 
 export const useCoachManager = () => {
-    const { showInfo } = useToast();
+    const { showInfo, showError } = useToast();
 
     const [roleModels, setRoleModels] = useState<RoleModelProfile[]>([]);
     const [targetJobs, setTargetJobs] = useState<TargetJob[]>([]);
@@ -104,6 +104,7 @@ export const useCoachManager = () => {
             setTargetJobs(updatedList);
         } catch (err) {
             console.error("Gap Analysis Failed", err);
+            showError('Gap analysis failed. Please try again.');
         } finally {
             setActiveAnalysisIds(prev => {
                 const next = new Set(prev);
@@ -127,6 +128,7 @@ export const useCoachManager = () => {
             setTargetJobs(updatedList);
         } catch (err) {
             console.error("Roadmap Generation Failed", err);
+            showError('Roadmap generation failed. Please try again.');
         } finally {
             setActiveAnalysisIds(prev => {
                 const next = new Set(prev);

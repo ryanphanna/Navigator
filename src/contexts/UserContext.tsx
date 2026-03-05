@@ -23,7 +23,7 @@ interface UserContextType {
     dismissedNotices: Record<string, number>;
     dismissNotice: (id: string, snoozeDays?: number) => void;
     isEmailVerified: boolean;
-    resendVerificationEmail: () => Promise<{ success: boolean; error?: any }>;
+    resendVerificationEmail: () => Promise<{ success: boolean; error?: unknown }>;
     refreshUser: () => Promise<void>;
 }
 
@@ -90,14 +90,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     // Sync this to localStorage to prevent redundant redirects
                     localStorage.setItem('navigator_privacy_accepted', 'true');
 
-                    if ((data as any).journey) {
-                        setJourney((data as any).journey);
-                        localStorage.setItem('navigator_user_journey', (data as any).journey);
+                    const profileData = data as unknown as { journey?: string; device_id?: string };
+                    if (profileData.journey) {
+                        setJourney(profileData.journey);
+                        localStorage.setItem('navigator_user_journey', profileData.journey);
                     }
 
                     // Abuse Prevention: Sync device fingerprint
                     getDeviceFingerprint().then(fingerprint => {
-                        if (data && (data as any).device_id !== fingerprint) {
+                        if (data && profileData.device_id !== fingerprint) {
                             supabase.from('profiles').update({ device_id: fingerprint }).eq('id', currentUser.id).then(({ error: syncError }) => {
                                 if (syncError) {
                                     // Handle missing column gracefully - don't log as error if it's just a missing column
@@ -136,8 +137,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 processUser(session.user);
             } else if (typeof window !== 'undefined' && localStorage.getItem('navigator_test_user')) {
                 // Mock user for E2E tests
-                processUser({ id: 'test-user', email: 'test@example.com' } as any);
-                setActualTier((localStorage.getItem('navigator_user_tier') as any) || 'free');
+                processUser({ id: 'test-user', email: 'test@example.com' } as unknown as User);
+                setActualTier((localStorage.getItem('navigator_user_tier') as UserTier) || 'free');
             } else {
                 processUser(null);
             }
@@ -148,7 +149,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (session?.user) {
                 processUser(session.user);
             } else if (typeof window !== 'undefined' && localStorage.getItem('navigator_test_user')) {
-                processUser({ id: 'test-user', email: 'test@example.com' } as any);
+                processUser({ id: 'test-user', email: 'test@example.com' } as unknown as User);
             } else {
                 processUser(null);
             }

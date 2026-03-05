@@ -63,7 +63,7 @@ export const ProgramExplorerPage: React.FC = () => {
                             </div>
 
                             <ProgramExplorer
-                                onSelect={(p: any) => {
+                                onSelect={(p: { institution: string; name: string }) => {
                                     setSelectedProgram(`${p.institution} - ${p.name}`);
                                     // Scroll to analyzer
                                     setTimeout(() => {

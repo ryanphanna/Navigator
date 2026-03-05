@@ -75,7 +75,7 @@ export const analyzeJobFit = async (
     const { distilledJob: extractionInfo, cleanedDescription } = await extractJobInfo(jobDescription, onProgress);
     if (resumes.length === 0) return { distilledJob: extractionInfo, cleanedDescription } as JobAnalysis;
 
-    if (onProgress) onProgress("Analyzing your fit (Pro model)...", 2, 2);
+    if (onProgress) onProgress("Evaluating match...", 2, 2);
     const resumeContext = resumes.map(stringifyProfile).join('\n---\n');
     const skillsContext = userSkills.length > 0
         ? `\nADDITIONAL SKILLS:\n${userSkills.map(s => `- ${s.name}: ${s.proficiency}`).join('\n')}`
@@ -119,7 +119,7 @@ export const analyzeJobFit = async (
 
     // Validation: If we have no score and no skills, something went wrong with the AI output
     if (!analysis.compatibilityScore && (!mergedDistilledJob.keySkills.length)) {
-        throw new Error("Analysis failed to generate meaningful insights. Please try again.");
+        throw new Error("NOT_A_JOB: Analysis failed to generate meaningful insights. Please check if the source content is a valid job description.");
     }
 
     return {

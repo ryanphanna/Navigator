@@ -8,6 +8,7 @@
  *   - /education dashboard (tool cards)
  *   - /plans page (plan feature lists)
  */
+import type { ViewId } from './utils/navigation';
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -54,7 +55,7 @@ export interface FeatureDefinition {
     /** Minimum plan tier that includes this feature without limits */
     tier: 'explorer' | 'plus' | 'pro';
     /** View identifier for homepage onNavigate() system */
-    targetView: string;
+    targetView: ViewId;
     /** Route path for react-router navigate() */
     link: string;
     /** Default ordering rank (lower = higher priority) */
@@ -422,7 +423,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         colorKey: 'teal',
         category: 'COACH',
         tier: 'pro',
-        targetView: 'career-home',
+        targetView: 'coach-home',
         link: '/career/growth',
         rank: 7,
         showOnHomepage: true,
@@ -443,7 +444,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         colorKey: 'teal',
         category: 'COACH',
         tier: 'pro',
-        targetView: 'career-home',
+        targetView: 'coach-home',
         link: '/career/models',
         rank: 19,
         planHighlight: true,

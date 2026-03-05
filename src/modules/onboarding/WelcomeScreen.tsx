@@ -457,7 +457,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                                     <Loader2 className="w-8 h-8 animate-spin" />
                                 </div>
                                 <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
-                                    Analyzing your profile...
+                                    Processing your profile...
                                 </h1>
                                 <p className="text-neutral-600 dark:text-neutral-400">
                                     While we work, here is what you can do next.

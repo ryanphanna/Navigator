@@ -4,18 +4,19 @@ import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { FeatureGrid } from './FeatureGrid';
 import { useHeadlines } from '../../hooks/useHeadlines';
 import { PageHeader } from '../../components/ui/PageHeader';
+import type { ViewId } from '../../utils/navigation';
+import type { FeatureDefinition } from '../../featureRegistry';
 
 import { useUser } from '../../contexts/UserContext';
 import { useGlobalUI } from '../../contexts/GlobalUIContext';
 import { useModal } from '../../contexts/ModalContext';
-import type { FeatureDefinition } from '../../featureRegistry';
 
 const HomePage: React.FC = () => {
     const { user, isAdmin, isTester, journey, userTier } = useUser();
     const { setView } = useGlobalUI();
     const { openModal } = useModal();
 
-    const onNavigate = (view: string) => setView(view);
+    const onNavigate = (view: ViewId) => setView(view);
     const onShowAuth = (feature?: FeatureDefinition) => openModal('AUTH', feature ? { feature } : undefined);
 
     const headlineCategory = journey === 'student' ? 'edu' : 'all';
@@ -28,7 +29,7 @@ const HomePage: React.FC = () => {
             spacing="hero"
         >
             {/* Hero Background Elements */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-[600px] pointer-events-none z-0">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none z-0">
                 <div className="absolute top-[-100px] left-1/4 w-[400px] h-[400px] bg-indigo-500/10 dark:bg-indigo-500/5 blur-[120px] rounded-full animate-[pulse_8s_ease-in-out_infinite]" />
                 <div className="absolute top-[100px] right-1/4 w-[400px] h-[400px] bg-emerald-500/10 dark:bg-emerald-500/5 blur-[120px] rounded-full animate-[pulse_10s_ease-in-out_infinite_1s]" />
             </div>
@@ -41,7 +42,7 @@ const HomePage: React.FC = () => {
                 subtitle=""
             />
 
-            <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
                 <FeatureGrid
                     user={user}
                     onNavigate={onNavigate}

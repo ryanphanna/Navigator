@@ -152,15 +152,15 @@ export const JobDetail: React.FC = () => {
                         </div>
 
                         <h3 className="text-3xl font-black text-neutral-900 dark:text-white mb-3 tracking-tighter">
-                            Synthesizing Analysis
+                            Processing Job Details
                         </h3>
                         <p className="text-neutral-500 dark:text-neutral-400 font-bold text-sm mb-12 max-w-[280px] mx-auto leading-relaxed">
-                            Our AI models are cross-referencing your experience with the job's core requirements.
+                            Organizing the job details for comparison.
                         </p>
 
                         <div className="space-y-4">
                             <div className="flex justify-between items-end text-[10px] font-bold text-neutral-400">
-                                <span className="text-accent-primary-hex animate-pulse">{job.progressMessage || analysisProgress || "Initializing engines..."}</span>
+                                <span className="text-accent-primary-hex animate-pulse">{job.progressMessage || analysisProgress || "Scanning content..."}</span>
                                 <span className="text-neutral-900 dark:text-white">{job.progress || 0}%</span>
                             </div>
                             <div className="h-2 w-full bg-neutral-100 dark:bg-neutral-800/50 rounded-full p-1 overflow-hidden border border-neutral-200/50 dark:border-white/5">
@@ -214,11 +214,8 @@ export const JobDetail: React.FC = () => {
                 };
                 await Storage.updateJob(updatedJob);
                 onUpdateJob(updatedJob);
-                if (onAnalyzeJob) {
-                    onAnalyzeJob(updatedJob).catch(e => {
-                        showError(`Background analysis failed: ${(e as Error).message}`);
-                    });
-                }
+                // The useEffect in useJobDetailLogic will trigger onAnalyzeJob 
+                // automatically when it sees the status become 'analyzing'
             } catch (err) {
                 showError(`Failed to update job: ${(err as Error).message}`);
             } finally {
@@ -228,13 +225,7 @@ export const JobDetail: React.FC = () => {
 
         return (
             <div className="theme-job animate-in fade-in slide-in-from-right-4 duration-300 p-6 bg-white dark:bg-neutral-900 h-full overflow-y-auto">
-                <div className="mb-6">
-                    <Button variant="ghost" size="sm" icon={<ArrowLeft className="w-4 h-4" />} onClick={onBack}>
-                        Back to History
-                    </Button>
-                </div>
-
-                <div className="max-w-5xl mx-auto space-y-6">
+                <div className="max-w-5xl mx-auto space-y-6 pt-8">
                     <div className="grid md:grid-cols-2 gap-6">
                         <Card variant="glass" className={`${isAiError ? 'bg-gradient-to-br from-indigo-50/50 to-violet-50/50 dark:from-indigo-950/10 dark:to-violet-950/10 border-indigo-200 dark:border-indigo-800/30' : 'bg-gradient-to-br from-orange-50/50 to-red-50/50 dark:from-orange-950/10 dark:to-red-950/10 border-orange-200 dark:border-orange-800/30'} p-6 flex flex-col justify-center`}>
                             <div className="flex items-center gap-4">
@@ -243,24 +234,34 @@ export const JobDetail: React.FC = () => {
                                 </div>
                                 <div className="flex-1">
                                     <h2 className="text-lg font-black text-neutral-900 dark:text-white mb-1 tracking-tight">
-                                        {isAiError ? 'AI Service Delay' : 'Manual Input Required'}
+                                        {isAiError ? 'Service Interruption' : 'Incomplete Job Details'}
                                     </h2>
                                     <p className="text-neutral-700 dark:text-neutral-300 text-sm font-medium leading-relaxed">
-                                        {job.progressMessage || (isExtractionError ? "The website blocked extraction. Please paste the job description below." : "Something went wrong. Please try again or paste details manually.")}
+                                        {job.progressMessage && !job.progressMessage.toLowerCase().includes('wrong') && job.progressMessage.length < 200 ? job.progressMessage : (isExtractionError ? "The website blocked extraction. Please paste the job description below." : "This content doesn't look like a valid job description. Please paste the full details manually.")}
                                     </p>
                                 </div>
                             </div>
                         </Card>
 
                         <Card variant="glass" className="p-6 flex flex-col justify-center">
-                            <h3 className="text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-3">Job Posting URL</h3>
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-sm font-bold text-neutral-700 dark:text-neutral-300">Job Posting URL</h3>
+                                {editUrl && (
+                                    <button
+                                        onClick={() => window.open(editUrl, '_blank')}
+                                        className="text-[10px] font-black tracking-widest text-indigo-500 hover:text-indigo-600 transition-colors flex items-center gap-1.5 group/link"
+                                    >
+                                        Visit Original <ExternalLink className="w-3 h-3 transition-transform group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" />
+                                    </button>
+                                )}
+                            </div>
                             <div className="relative">
                                 <input
                                     type="text"
                                     value={editUrl}
                                     onChange={(e) => setEditUrl(e.target.value)}
                                     placeholder="Paste URL here..."
-                                    className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-4 focus:ring-accent-primary/10 focus:border-accent-primary-hex transition-all text-neutral-900 dark:text-white"
+                                    className="w-full pl-4 pr-12 py-3 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-4 focus:ring-accent-primary/10 focus:border-accent-primary-hex transition-all text-neutral-900 dark:text-white"
                                 />
                                 <LinkIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                             </div>
@@ -287,7 +288,7 @@ export const JobDetail: React.FC = () => {
                                     disabled={!manualText.trim() || manualText.length < 100 || retrying}
                                     icon={retrying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                                 >
-                                    {retrying ? 'Analyzing...' : 'Analyze Job Match'}
+                                    {retrying ? 'Processing...' : 'Evaluate Match'}
                                 </Button>
                             </div>
                         </div>
@@ -358,12 +359,12 @@ export const JobDetail: React.FC = () => {
             ) : (
                 <>
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xs font-bold text-neutral-400">Match Analysis</h3>
+                        <h3 className="text-xs font-bold text-neutral-400">Match Evaluation</h3>
                         <div className={`px-4 py-1.5 rounded-full text-[10px] font-black border shadow-sm ${(analysis?.compatibilityScore ?? -1) >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 shadow-emerald-500/5' :
                             (analysis?.compatibilityScore ?? -1) >= 60 ? 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 shadow-amber-500/5' :
                                 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 shadow-rose-500/5'
                             }`}>
-                            {analysisProgress ? 'Analyzing...' : getScoreLabel(analysis?.compatibilityScore)}
+                            {analysisProgress ? 'Processing...' : getScoreLabel(analysis?.compatibilityScore)}
                         </div>
                     </div>
 
@@ -597,7 +598,7 @@ export const JobDetail: React.FC = () => {
                                             <div className="space-y-3">
                                                 {analysis?.weaknesses?.map((w, i) => (
                                                     <div key={i} className="flex gap-3 text-xs font-bold text-neutral-700 dark:text-neutral-300">
-                                                        <div className="w-1 h-1 rounded-full bg-rose-50 mt-1.5 shrink-0" />
+                                                        <div className="w-1 h-1 rounded-full bg-rose-500 mt-1.5 shrink-0" />
                                                         {w}
                                                     </div>
                                                 ))}

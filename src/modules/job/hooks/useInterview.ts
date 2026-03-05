@@ -27,8 +27,8 @@ export const useInterview = () => {
             setQuestions(result);
             setCurrentQuestionIndex(0);
             setResponses({});
-        } catch (err: any) {
-            setError(err.message || "Failed to load questions");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Failed to load questions");
         } finally {
             setIsLoading(false);
         }
@@ -42,8 +42,8 @@ export const useInterview = () => {
             setQuestions(result);
             setCurrentQuestionIndex(0);
             setResponses({});
-        } catch (err: any) {
-            setError(err.message || "Failed to generate tailored questions");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Failed to generate tailored questions");
         } finally {
             setIsLoading(false);
         }
@@ -106,7 +106,7 @@ export const useInterview = () => {
                 });
             }
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Failed to analyze response:", err);
         } finally {
             setIsLoading(false);

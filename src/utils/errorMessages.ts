@@ -30,8 +30,8 @@ export const ERROR_MESSAGES = {
   AUTH_INVALID_INVITE: "Invalid or expired invite code. If you're having trouble, please contact support.",
 
   // Generic errors
-  UNKNOWN_ERROR: "Something went wrong. Please try again.",
-  SERVER_ERROR: "Server error. Our team has been notified. Please try again later.",
+  UNKNOWN_ERROR: "Unable to complete request. Please refresh or try again.",
+  SERVER_ERROR: "The system is currently busy. Please try again in a few moments.",
   NOT_A_JOB: "This content doesn't look like a valid job description. Please check your source and try again.",
 } as const;
 

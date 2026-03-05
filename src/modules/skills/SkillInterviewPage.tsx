@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { CustomSkill } from '../../types';
 import { generateUnifiedQuestions, analyzeUnifiedResponse } from '../../services/ai/interviewAiService';
@@ -8,11 +8,13 @@ import { checkInterviewLimit, getUsageStats } from '../../services/usageLimits';
 import { supabase } from '../../services/supabase';
 import {
     CheckCircle2, X,
-    Send, Sparkles, AlertCircle,
+    Sparkles, AlertCircle,
     Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ROUTES } from '../../constants';
+import { InterviewChat } from '../../components/common/InterviewChat';
+import type { ChatMessage } from '../../components/common/InterviewChat';
 
 type InterviewStep = 'intro' | 'interview' | 'summary';
 
@@ -55,8 +57,6 @@ export const SkillInterviewPage: React.FC = () => {
     // Track which skills have been demonstrated across all answers
     const [skillScores, setSkillScores] = useState<Record<string, { demonstrated: number; total: number }>>({});
 
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-
     const { setFocusedMode } = useGlobalUI();
 
     useEffect(() => {
@@ -85,9 +85,7 @@ export const SkillInterviewPage: React.FC = () => {
         }
     }, [skills.length, navigate]);
 
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isAnalyzing]);
+
 
     const handleStart = async () => {
         setIsLoading(true);
@@ -126,7 +124,7 @@ export const SkillInterviewPage: React.FC = () => {
             }, 800);
         } catch (error) {
             console.error('Failed to generate questions:', error);
-            setMessages([{ role: 'ai', content: "Something went wrong generating questions. Please try again." }]);
+            setMessages([{ role: 'ai', content: "Unable to generate questions at this time. Please refresh and try again." }]);
         } finally {
             setIsLoading(false);
         }
@@ -216,12 +214,6 @@ export const SkillInterviewPage: React.FC = () => {
         }
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSubmitAnswer();
-        }
-    };
 
     const getVerifiedSkills = () => {
         return Object.entries(skillScores)
@@ -356,77 +348,54 @@ export const SkillInterviewPage: React.FC = () => {
                             </motion.div>
                         )}
 
-                        {/* INTERVIEW CHAT */}
                         {step === 'interview' && (
                             <motion.div
                                 key="interview"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="flex-1 flex flex-col pb-32"
+                                className="flex-1 flex flex-col"
                             >
-                                <div className="flex-1 space-y-8">
-                                    {messages.map((msg, idx) => (
-                                        <motion.div
-                                            key={idx}
-                                            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            transition={{ duration: 0.3 }}
-                                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                        >
-                                            <div className={`max-w-[85%] rounded-[2rem] p-8 shadow-sm ${msg.role === 'user'
-                                                ? 'bg-gradient-to-br from-neutral-900 to-neutral-800 dark:from-white dark:to-neutral-200 text-white dark:text-black rounded-br-none'
-                                                : 'bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 rounded-bl-none'
-                                                }`}>
-                                                <div className="text-base leading-relaxed font-medium">
-                                                    {msg.content}
+                                <InterviewChat
+                                    messages={messages.map((msg, idx): ChatMessage => ({
+                                        id: `msg-${idx}`,
+                                        role: msg.role,
+                                        content: msg.content,
+                                        metadata: msg.role === 'ai' && msg.skillResults ? (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
+                                                className="mt-5 pt-4 border-t border-neutral-100 dark:border-neutral-800"
+                                            >
+                                                <div className="flex flex-wrap gap-2">
+                                                    {msg.skillResults.map(r => (
+                                                        <span
+                                                            key={r.skill}
+                                                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${r.demonstrated
+                                                                ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                                                                : 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                                                                }`}
+                                                            title={r.note}
+                                                        >
+                                                            {r.demonstrated
+                                                                ? <CheckCircle2 className="w-3 h-3" />
+                                                                : <AlertCircle className="w-3 h-3" />
+                                                            }
+                                                            {r.skill}
+                                                        </span>
+                                                    ))}
                                                 </div>
-
-                                                {/* Skill results feedback */}
-                                                {msg.role === 'ai' && msg.skillResults && (
-                                                    <motion.div
-                                                        initial={{ opacity: 0, height: 0 }}
-                                                        animate={{ opacity: 1, height: 'auto' }}
-                                                        className="mt-5 pt-4 border-t border-neutral-100 dark:border-neutral-800"
-                                                    >
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {msg.skillResults.map(r => (
-                                                                <span
-                                                                    key={r.skill}
-                                                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${r.demonstrated
-                                                                        ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
-                                                                        : 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
-                                                                        }`}
-                                                                    title={r.note}
-                                                                >
-                                                                    {r.demonstrated
-                                                                        ? <CheckCircle2 className="w-3 h-3" />
-                                                                        : <AlertCircle className="w-3 h-3" />
-                                                                    }
-                                                                    {r.skill}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    ))}
-
-                                    {isAnalyzing && (
-                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-                                            <div className="bg-white dark:bg-neutral-900 px-6 py-5 rounded-[2rem] rounded-bl-none border border-neutral-100 dark:border-neutral-800 flex items-center gap-3 shadow-sm">
-                                                <div className="flex gap-1.5">
-                                                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                                                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                                                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" />
-                                                </div>
-                                                <span className="text-sm font-medium text-neutral-400">Analyzing...</span>
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                    <div ref={messagesEndRef} />
-                                </div>
+                                            </motion.div>
+                                        ) : undefined,
+                                    }))}
+                                    inputValue={userAnswer}
+                                    onInputChange={setUserAnswer}
+                                    onSubmit={handleSubmitAnswer}
+                                    isThinking={isAnalyzing}
+                                    placeholder="Type your answer here..."
+                                    accentGradient="from-emerald-500 to-teal-500"
+                                    inputDisabled={isAnalyzing}
+                                />
                             </motion.div>
                         )}
 
@@ -515,39 +484,6 @@ export const SkillInterviewPage: React.FC = () => {
                     </AnimatePresence>
                 </div>
             </div>
-
-            {/* Floating Input */}
-            {
-                step === 'interview' && (
-                    <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white to-transparent dark:from-[#0a0a0a] dark:via-[#0a0a0a] dark:to-transparent pt-24 z-40">
-                        <div className="max-w-3xl mx-auto">
-                            <div className="relative group">
-                                <div className={`absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl opacity-20 group-focus-within:opacity-100 transition duration-500 blur ${isAnalyzing ? 'opacity-0' : ''}`} />
-                                <div className="relative flex items-center bg-white dark:bg-neutral-900 rounded-xl shadow-2xl">
-                                    <textarea
-                                        value={userAnswer}
-                                        onChange={(e) => setUserAnswer(e.target.value)}
-                                        onKeyDown={handleKeyDown}
-                                        placeholder="Type your answer here..."
-                                        disabled={isAnalyzing}
-                                        className="w-full bg-transparent border-none p-6 text-base focus:ring-0 resize-none disabled:opacity-50 min-h-[4rem] max-h-48 text-neutral-900 dark:text-white placeholder:text-neutral-400 font-medium"
-                                        rows={1}
-                                    />
-                                    <div className="pr-4">
-                                        <button
-                                            onClick={handleSubmitAnswer}
-                                            disabled={!userAnswer.trim() || isAnalyzing}
-                                            className="p-4 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl disabled:opacity-50 hover:scale-105 active:scale-95 transition-all shadow-lg"
-                                        >
-                                            <Send className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-        </div >
+        </div>
     );
 };

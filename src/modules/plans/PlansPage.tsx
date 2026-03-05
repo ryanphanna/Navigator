@@ -10,6 +10,7 @@ import { useModal } from '../../contexts/ModalContext';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { paymentService } from '../../services/paymentService';
 import { PlanCard } from '../../components/ui/PlanCard';
+import { useToast } from '../../contexts/ToastContext';
 
 export const PlansPage: React.FC = () => {
 
@@ -20,6 +21,7 @@ export const PlansPage: React.FC = () => {
     const [searchParams] = useSearchParams();
     const [isAnnual, setIsAnnual] = useState(false);
     const [loadingTier, setLoadingTier] = useState<string | null>(null);
+    const { showError } = useToast();
 
     // Cycle headline on each visit
     const headline = useMemo(() => {
@@ -65,21 +67,21 @@ export const PlansPage: React.FC = () => {
             }
 
             if (!priceId || priceId.includes('placeholder')) {
-                alert('Stripe configuration missing. Please check .env or constants.');
+                showError('Payment setup is not complete. Please contact support.');
                 return;
             }
 
             const { url } = await paymentService.createCheckoutSession(priceId);
             window.location.href = url;
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error creating checkout session:', error);
-            const errorMsg = error.message || 'Unknown error';
+            const errorMsg = error instanceof Error ? error.message : 'Unknown error';
 
             if (errorMsg === 'User not authenticated') {
                 openModal('AUTH');
             } else {
-                alert(`Checkout Error: ${errorMsg}`);
+                showError('Something went wrong during checkout. Please try again.');
             }
         } finally {
             setLoadingTier(null);

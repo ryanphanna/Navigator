@@ -187,8 +187,8 @@ export const useJobManager = () => {
         const jobId = crypto.randomUUID();
         const newJob: SavedJob = {
             id: jobId,
-            company: 'Analyzing...',
-            position: 'Drafting Application...',
+            company: '',
+            position: 'New Job',
             description: '',
             url,
             resumeId: 'master',

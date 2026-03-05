@@ -23,7 +23,7 @@ export const NavigatorPro: React.FC = () => {
     } = useJobContext();
     const [feed, setFeed] = useState<JobFeedItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [analyzingId, setAnalyzingId] = useState<string | null>(null);
+    const [processingId, setProcessingId] = useState<string | null>(null);
     const [filterHighMatch, setFilterHighMatch] = useState(false);
     const [filterClosingSoon, setFilterClosingSoon] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -127,23 +127,26 @@ export const NavigatorPro: React.FC = () => {
             .select('url, analysis')
             .in('url', jobUrls);
 
-
-
-        // Analyze jobs that don't have cached analysis
+        // Separate cached vs uncached jobs
+        const jobsToAnalyze: JobFeedItem[] = [];
         for (const job of jobs) {
             const existing = existingJobs?.find(j => j.url === job.url);
-
             if (existing?.analysis?.matchScore) {
-                // Use cached match score
+                // Use cached match score immediately
                 setFeed(prevFeed => prevFeed.map(f =>
                     f.id === job.id ? { ...f, matchScore: existing.analysis.matchScore } : f
                 ));
             } else {
-                // Analyze new job
-                await analyzeAndCacheJob(job, resume);
+                jobsToAnalyze.push(job);
             }
         }
 
+        // Analyze uncached jobs in parallel batches (3 at a time to avoid rate limits)
+        const CONCURRENCY = 3;
+        for (let i = 0; i < jobsToAnalyze.length; i += CONCURRENCY) {
+            const batch = jobsToAnalyze.slice(i, i + CONCURRENCY);
+            await Promise.all(batch.map(job => analyzeAndCacheJob(job, resume)));
+        }
     };
 
     const analyzeAndCacheJob = async (job: JobFeedItem, resume: ResumeRow) => {
@@ -186,8 +189,8 @@ export const NavigatorPro: React.FC = () => {
         }
     };
 
-    const handleAnalyze = async (job: JobFeedItem) => {
-        setAnalyzingId(job.id);
+    const handleAction = async (job: JobFeedItem) => {
+        setProcessingId(job.id);
         // Invalidate feed cache so promoted job won't reappear
         localStorage.removeItem(STORAGE_KEYS.FEED_CACHE);
         localStorage.removeItem(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
@@ -302,8 +305,16 @@ export const NavigatorPro: React.FC = () => {
             ) : (
                 <div className="space-y-4">
                     {displayFeed.length === 0 && (
-                        <div className="text-center py-12 text-neutral-500">
-                            No jobs found matching your filter.
+                        <div className="text-center py-20 space-y-4">
+                            <div className="w-16 h-16 bg-neutral-100 dark:bg-neutral-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <Sparkles className="w-7 h-7 text-neutral-300 dark:text-neutral-600" />
+                            </div>
+                            <h3 className="text-lg font-bold text-neutral-700 dark:text-neutral-300">No matches yet</h3>
+                            <p className="text-sm text-neutral-400 max-w-sm mx-auto">
+                                {searchTerm || filterHighMatch || filterClosingSoon
+                                    ? 'No jobs match your current filters. Try adjusting your criteria.'
+                                    : 'Your personalized feed will populate as new opportunities are discovered.'}
+                            </p>
                         </div>
                     )}
                     {displayFeed.map((job) => (
@@ -348,14 +359,14 @@ export const NavigatorPro: React.FC = () => {
 
                                     <div className="mt-6 flex items-center gap-3">
                                         <button
-                                            onClick={() => handleAnalyze(job)}
-                                            disabled={analyzingId === job.id}
+                                            onClick={() => handleAction(job)}
+                                            disabled={processingId === job.id}
                                             className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait"
                                         >
-                                            {analyzingId === job.id ? (
+                                            {processingId === job.id ? (
                                                 <>
                                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                                    Analyzing...
+                                                    Processing...
                                                 </>
                                             ) : (
                                                 <>

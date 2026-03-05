@@ -10,8 +10,7 @@ export interface ModelParams {
         temperature?: number;
         maxOutputTokens?: number;
         responseMimeType?: string;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        responseSchema?: any;
+        responseSchema?: Record<string, unknown>;
     };
     model?: string;
     /** Feature tag for server-side tier gating (e.g. 'cover_letter', 'resume_tailor', 'gap_analysis', 'roadmap', 'role_model') */

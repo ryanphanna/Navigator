@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { FEATURE_REGISTRY, FEATURE_RANKINGS, getFeatureColor, shouldShowNewBadge, type FeatureDefinition } from '../../featureRegistry';
 import { getPreviewComponent } from '../../components/common/FeaturePreviews';
+import type { ViewId } from '../../utils/navigation';
 import { Mail, TrendingUp, PenTool, Sparkles, FileText, GraduationCap, Bookmark, Zap, RefreshCw, Shield, Users, Globe, Search, Calculator, MessageSquare, Rss, Activity, type LucideIcon } from 'lucide-react';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { EventService } from '../../services/eventService';
@@ -31,7 +32,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
 
 interface FeatureGridProps {
     user: SupabaseUser | null;
-    onNavigate?: (view: string) => void;
+    onNavigate?: (view: ViewId) => void;
     onShowAuth?: (feature?: FeatureDefinition) => void;
     isAdmin?: boolean;
     isTester?: boolean;
@@ -151,7 +152,7 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
 
     return (
         <div className={`mb-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 w-full ${className}`}>
-            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 max-w-6xl mx-auto px-4`}>
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 max-w-7xl mx-auto px-4`}>
                 {cardKeys.map((key) => {
                     const config = FEATURE_REGISTRY[key];
                     if (!config) return null;

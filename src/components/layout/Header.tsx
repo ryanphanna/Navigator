@@ -173,7 +173,7 @@ export const Header: React.FC = () => {
                                                                 key={item.id}
                                                                 onClick={() => onViewChange(item.id as any)}
                                                                 className={`relative px-2 py-1.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap tracking-wide overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 cursor-pointer ${currentView === item.id
-                                                                    ? (group.id === 'career' ? 'text-emerald-600' : group.id === 'edu' ? 'text-amber-600' : group.id === 'indigo-600')
+                                                                    ? (group.id === 'career' ? 'text-emerald-600' : group.id === 'edu' ? 'text-amber-600' : 'text-indigo-600')
                                                                     : 'text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
                                                                     }`}
                                                             >
@@ -196,13 +196,13 @@ export const Header: React.FC = () => {
                     {!isLoading && !user ? (
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => openModal('AUTH')}
+                                onClick={() => openModal('AUTH', { authMode: 'sign-in' })}
                                 className="px-4 py-2 text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100 transition-all active:scale-95 cursor-pointer"
                             >
                                 Sign In
                             </button>
                             <button
-                                onClick={() => openModal('AUTH')}
+                                onClick={() => openModal('AUTH', { authMode: 'sign-up' })}
                                 className="px-4 py-2 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95 cursor-pointer"
                             >
                                 Sign Up
