@@ -249,7 +249,7 @@ export const useJobManager = () => {
         handleAnalyzeJob,
         handlePromoteFromFeed,
         handleSaveFromFeed,
-        closeUpgradeModal: () => setUpgradeModalData(null),
+        closeUpgradeModal: useCallback(() => setUpgradeModalData(null), []),
         dismissNudge
     };
 };
