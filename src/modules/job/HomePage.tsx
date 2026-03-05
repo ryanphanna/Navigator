@@ -8,14 +8,15 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { useUser } from '../../contexts/UserContext';
 import { useGlobalUI } from '../../contexts/GlobalUIContext';
 import { useModal } from '../../contexts/ModalContext';
+import { type FeatureDefinition } from '../../featureRegistry';
 
 const HomePage: React.FC = () => {
     const { user, isAdmin, isTester, journey, userTier } = useUser();
     const { setView } = useGlobalUI();
     const { openModal } = useModal();
 
-    const onNavigate = (view: any) => setView(view);
-    const onShowAuth = (feature?: any) => openModal('AUTH', feature ? { feature } : undefined);
+    const onNavigate = (view: string) => setView(view);
+    const onShowAuth = (feature?: FeatureDefinition) => openModal('AUTH', feature ? { feature } : undefined);
 
     const headlineCategory = journey === 'student' ? 'edu' : 'all';
     const activeHeadline = useHeadlines(headlineCategory);

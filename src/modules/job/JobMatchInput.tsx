@@ -28,6 +28,7 @@ import { useGlobalUI } from '../../contexts/GlobalUIContext';
 import { useModal } from '../../contexts/ModalContext';
 import { useJobContext } from './context/JobContext';
 import { useResumeContext } from '../resume/context/ResumeContext';
+import { type FeatureDefinition } from '../../featureRegistry';
 import { useCoachContext } from '../career/context/CoachContext';
 
 const JobMatchInput: React.FC = () => {
@@ -49,7 +50,7 @@ const JobMatchInput: React.FC = () => {
         importError
     } = useResumeContext();
 
-    const onShowAuth = (feature?: any) => openModal('AUTH', feature ? { feature } : undefined);
+    const onShowAuth = (feature?: FeatureDefinition) => openModal('AUTH', feature ? { feature } : undefined);
     const mode: 'apply' | 'goal' = 'apply';
     const { showSuccess } = useToast();
     const [url, setUrl] = useState('');
