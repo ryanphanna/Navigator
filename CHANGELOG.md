@@ -2,12 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
-
 ## [2.30.1] - 2026-03-06
 
+### Refactored
+- **Cover Letter Editor Modularization**: Decoupled state and logic into a dedicated `useCoverLetterEditor` hook and extracted UI into modular sub-components (`CoverLetterHeader`, `ReviewCard`, etc.), significantly improving maintainability.
+- **Job Detail Decoupling**: Fully refactored `JobDetail.tsx` to remove monolithic logic, replaced with specialized hooks (`useJobAnalysis`, `useResumeTailoring`, `useSummaryGeneration`).
+
 ### Fixed
-- **React Hook Purity**: Resolved a `react-hooks/purity` violation in the `JobProcessingState` skeleton loader by replacing dynamic random widths with a stable, deterministic set.
+- **Lint & Purity Fixes**: Resolved various `react-hooks/set-state-in-effect` and `react-hooks/purity` violations across several components.
 - **Hook Execution Integrity**: Fixed a "Rules of Hooks" violation in `JobDetail.tsx` caused by an early return before hook definitions.
 - **Cascading Render Prevention**: Decoupled state updates from effect bodies in `useJobAnalysis` and `CourseEditModal` using microtask delays to satisfy `react-hooks/set-state-in-effect`.
 - **Regex Logic Cleanup**: Removed redundant escape characters in the `salaryParser` utility.
