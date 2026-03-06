@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [2.30.1] - 2026-03-06
+
+### Fixed
+- **React Hook Purity**: Resolved a `react-hooks/purity` violation in the `JobProcessingState` skeleton loader by replacing dynamic random widths with a stable, deterministic set.
+- **Hook Execution Integrity**: Fixed a "Rules of Hooks" violation in `JobDetail.tsx` caused by an early return before hook definitions.
+- **Cascading Render Prevention**: Decoupled state updates from effect bodies in `useJobAnalysis` and `CourseEditModal` using microtask delays to satisfy `react-hooks/set-state-in-effect`.
+- **Regex Logic Cleanup**: Removed redundant escape characters in the `salaryParser` utility.
+- **Static Analysis Fixes**: Resolved variable re-assignment warnings in `useAcademicLogic` and purged the remaining traces of the unused `WelcomeScreen` component.
+
 ## [2.30.0] - 2026-03-06
 
 ### Changed
