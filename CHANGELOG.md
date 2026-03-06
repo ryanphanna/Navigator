@@ -4,20 +4,28 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Direct Manual Entry**: Added a "Paste manually" toggle to the `JobMatchInput` screen, allowing users to move straight to text input and bypass initial URL scraper attempts.
+
+### Changed
+- **Humanized Growth Tone**: Refactored the error reporting tone to be more personal; system errors and extraction failures now use "We" (e.g., "We're having trouble reading this page") instead of technical "AI service" phrasing.
+- **Streamlined Progress UX**: Replaced multi-word progress labels with intuitive, single-word statuses — **Accessing**, **Preparing**, **Cleaning**, **Matching** — and introduced **Thinking** as a smart fallback label.
+- **Automated Job Cleaning**: Implemented a robust pre-cleaning engine in `jobAiService` that automatically strips common website navigation and boilerplate (e.g., "Ontario.ca homepage", "Français", "Accessibility") from pasted job descriptions to eliminate manual work for the user.
+- **Robust Input Truncation**: Increased the safety threshold and refined how large job descriptions are truncated before AI extraction to prevent "Proxy Error" timeouts on large clippings.
+- **Lenient AI Analysis**: Refined the `gemini-proxy` system instructions to be significantly more tolerant of website boilerplate (navigation, headers). The AI now scans the entire text for role-related content before triggering a "not a job" rejection.
+
 ### Fixed
 - **Job Analysis Crash**: Resolved a `TypeError` in the `useJobAnalysis` hook that caused the "Something Went Wrong" screen when a job was briefly undefined during navigation or API errors.
 - **Application History Navigation**: Fixed a bug where deleting a job from history redirected the user to the homepage instead of back to the history list (incorrect routing to `/history` vs `/jobs/history`).
+- **User-Friendly Error Mapping**: Mapped technical "Proxy Error" and "non-2xx" status codes to actionable advice, suggesting users shorten messy text or refresh.
+- **Static Analysis Fixes**: Resolved a missing variable error (`isCodeCrash`) in `errorMessages.ts` and purged the unused `CONTENT_VALIDATION` import in `jobAiService.ts`.
 - **Improved Data Persistence**:
   - Fixed a missing `url` field in the `JobStorage.updateJob` cloud sync operation.
   - Added an auto-sync effect to the manual retry UI to ensure late-arriving job descriptions and URLs are correctly populated for editing.
   - Prevented the job input field from clearing prematurely if an analysis error occurs, preserving the user's pasted text.
 - **UX & Error Reporting**:
   - Doubled the visibility duration of toast notifications (from 3s to 6s) to ensure complex error messages are readable.
-  - Added user-friendly translations for technical "Proxy Error: non-2xx" messages, mapping them to actionable advice like "Session expired" or "Service busy."
 - **Schema Alignment**: Full synchronization of the `location` field between the `SavedJob` interface and the Supabase `jobs` table.
-
-### Changed
-- **Lenient AI Analysis**: Refined the `gemini-proxy` system instructions to be significantly more tolerant of website boilerplate (navigation, headers). The AI now scans the entire text for role-related content before triggering a "not a job" rejection.
 
 ## [2.30.2] - 2026-03-06
 

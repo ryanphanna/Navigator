@@ -42,7 +42,7 @@ export const JobErrorState: React.FC<JobErrorStateProps> = ({
                                     {isAiError ? 'Service Interruption' : 'Incomplete Job Details'}
                                 </h2>
                                 <p className="text-neutral-700 dark:text-neutral-300 text-sm font-medium leading-relaxed">
-                                    {job.progressMessage && !job.progressMessage.toLowerCase().includes('wrong') && job.progressMessage.length < 200 ? job.progressMessage : (isExtractionError ? "The website blocked extraction. Please paste the job description below." : "This content doesn't look like a valid job description. Please paste the full details manually.")}
+                                    {job.progressMessage && !job.progressMessage.toLowerCase().includes('wrong') && job.progressMessage.length < 200 ? job.progressMessage : (isExtractionError ? "We couldn't read the job details from that URL. Please paste the description manually below." : "This content doesn't look like a valid job description. Please paste the full details manually.")}
                                 </p>
                             </div>
                         </div>

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Link as LinkIcon,
     FileText,
@@ -15,6 +16,7 @@ import { useHeadlines } from '../../hooks/useHeadlines';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
+import { Storage } from '../../services/storageService';
 
 import type { SavedJob } from '../../types';
 import type { FeatureDefinition } from '../../featureRegistry';
@@ -31,13 +33,13 @@ const JobMatchInput: React.FC = () => {
     const { user, isAdmin } = useUser();
     const { setView: onNavigate } = useGlobalUI();
     const { openModal } = useModal();
+    const navigate = useNavigate();
     const {
         handleJobCreated: onJobCreated,
         usageStats
     } = useJobContext();
     const {
         resumes,
-        clearImportError: onClearError,
     } = useResumeContext();
 
     const onShowAuth = (feature?: FeatureDefinition) => openModal('AUTH', feature ? { feature } : undefined);
@@ -50,7 +52,7 @@ const JobMatchInput: React.FC = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     const activeHeadline = useHeadlines('apply');
-    const lastUrlRef = React.useRef<string>('');
+    const lastUrlRef = useRef<string>('');
 
     const [showExtensionTip, setShowExtensionTip] = useState(() => {
         return !LocalStorage.get(STORAGE_KEYS.EXTENSION_TIP_DISMISSED);
@@ -58,63 +60,41 @@ const JobMatchInput: React.FC = () => {
 
     const [initialJobUrl, setInitialJobUrl] = useState<string | null>(null);
 
-    // 1. Initial URL param capture - Only once on mount
+    // 1. Initial URL param capture
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const jobUrl = (params.get('job') || params.get('url'))?.trim();
 
         if (jobUrl) {
-            // Clean up the URL (remove params once read)
             const newUrl = window.location.pathname;
             window.history.replaceState({}, '', newUrl);
-
             setUrl(jobUrl);
             setInitialJobUrl(jobUrl);
         }
     }, []);
 
-    // 2. Handle auto-scraping once authenticated
-    useEffect(() => {
-        if (!user || !initialJobUrl || isScrapingUrl || isAnalyzing) return;
+    const handleJobSubmission = useCallback(async (input: { type: 'url' | 'text', content: string }) => {
+        const hasAcceptedPrivacy = LocalStorage.get(STORAGE_KEYS.PRIVACY_ACCEPTED);
+        const isExistingUser = !!user || resumes.length > 0;
 
-        // Clear the initial URL state so we only do this once
-        const jobUrl = initialJobUrl;
-        setInitialJobUrl(null);
-
-        // trigger internal scrape logic
-        const trimmedUrl = jobUrl.trim();
-        if (trimmedUrl) {
-            lastUrlRef.current = trimmedUrl;
-            setIsScrapingUrl(true);
-            import('../../services/scraperService').then(({ ScraperService }) => {
-                return ScraperService.scrapeJobContent(trimmedUrl);
-            }).then(text => {
-                handleJobSubmission({ type: 'text', content: text });
-            }).catch(err => {
-                const msg = err instanceof Error ? err.message : String(err);
-                setError(msg.includes("403") ? "This site blocks automated access. Please paste the job description below:" : "Error reaching URL. Please paste content below:");
-            }).finally(() => {
-                setIsScrapingUrl(false);
-            });
+        if (!hasAcceptedPrivacy && !isExistingUser) {
+            onNavigate?.('welcome');
+            return;
         }
-    }, [user, initialJobUrl, isScrapingUrl, isAnalyzing]);
 
-    // 3. Cleanup on unmount
-    useEffect(() => {
-        return () => {
-            if (onClearError) onClearError();
-        };
-    }, [onClearError]);
+        setIsAnalyzing(true);
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-    const processJobInBackground = async (input: { type: 'url' | 'text', content: string }) => {
         const jobId = crypto.randomUUID();
 
         let potentialUrl = input.type === 'url' ? input.content : (lastUrlRef.current || url.trim());
-        if (potentialUrl && !potentialUrl.startsWith('http') && potentialUrl.includes('.') && !potentialUrl.includes(' ')) {
+        if (potentialUrl && !potentialUrl.startsWith('http') && potentialUrl.includes('.')) {
             potentialUrl = `https://${potentialUrl}`;
         }
 
-        const sourceUrl = (potentialUrl && (potentialUrl.startsWith('http') || potentialUrl.includes('.')))
+        const sourceUrl = (potentialUrl &&
+            potentialUrl.length < 500 &&
+            (potentialUrl.startsWith('http') || (potentialUrl.includes('.') && !potentialUrl.includes(' '))))
             ? potentialUrl
             : undefined;
 
@@ -129,43 +109,23 @@ const JobMatchInput: React.FC = () => {
             status: 'analyzing',
         };
 
-        setIsAnalyzing(true);
-        EventService.trackUsage(TRACKING_EVENTS.JOB_FIT);
-        onJobCreated(newJob);
-
-        // Wait a bit before clearing to ensure smooth transition
-        setTimeout(() => {
+        try {
+            await Storage.addJob(newJob);
+            EventService.trackUsage(TRACKING_EVENTS.JOB_FIT);
+            onJobCreated(newJob);
+            navigate(`/jobs/match/${jobId}`);
+            showSuccess("Matching started");
             setIsAnalyzing(false);
-            // ONLY clear if we've successfully moved past the input phase
-            if (!error) {
-                setIsManualMode(false);
-                setUrl('');
-                setManualText('');
-            }
-        }, 2000);
-
-        setError(null);
-        if (isManualMode && input.type === 'text') {
-            setIsManualMode(false);
+        } catch (err) {
+            setError("Failed to start analysis. Please try again.");
+            setIsAnalyzing(false);
         }
-    };
+    }, [user, resumes, navigate, onJobCreated, onNavigate, showSuccess, url, error]);
 
-    const handleJobSubmission = (input: { type: 'url' | 'text', content: string }) => {
-        const hasAcceptedPrivacy = LocalStorage.get(STORAGE_KEYS.PRIVACY_ACCEPTED);
-        const isExistingUser = !!user || resumes.length > 0;
-
-        if (!hasAcceptedPrivacy && !isExistingUser) {
-            onNavigate?.('welcome');
-            return;
-        }
-
-        processJobInBackground(input);
-    };
-
-    const handleUrlSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleUrlSubmit = async (e?: React.FormEvent) => {
+        e?.preventDefault();
         if (!user) {
-            onShowAuth?.();
+            onShowAuth();
             return;
         }
 
@@ -187,36 +147,38 @@ const JobMatchInput: React.FC = () => {
             const { ScraperService } = await import('../../services/scraperService');
             const text = await ScraperService.scrapeJobContent(trimmedUrl);
             handleJobSubmission({ type: 'text', content: text });
-        } catch (err: unknown) {
+        } catch (err: any) {
             const msg = err instanceof Error ? err.message : String(err);
-            setUrl('');
             if (msg.includes("403") || msg.includes("Forbidden")) {
-                setError("This site blocks automated access. Please paste the job description below to continue:");
+                setError("This site blocks automated access. Please paste the job description below:");
             } else if (msg.includes("timeout")) {
-                setError("The connection timed out. Please paste the job description below to continue:");
+                setError("The connection timed out. Please paste the job description below:");
             } else {
-                setError("We couldn't reach that URL. Please paste the job description below to continue:");
+                setError("We couldn't reach that URL. Please paste the job description below:");
             }
         } finally {
             setIsScrapingUrl(false);
         }
     };
 
+    // Handle auto-scraping once authenticated
+    useEffect(() => {
+        if (!user || !initialJobUrl || isScrapingUrl || isAnalyzing) return;
+        const jobUrl = initialJobUrl;
+        setInitialJobUrl(null);
+        handleUrlSubmit();
+    }, [user, initialJobUrl, isScrapingUrl, isAnalyzing]);
+
     const handleManualKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             if (!manualText.trim()) return;
             handleJobSubmission({ type: 'text', content: manualText });
-            showSuccess("Job analysis started");
         }
     };
 
     return (
-        <SharedPageLayout
-            className="theme-job"
-            maxWidth="6xl"
-            spacing="hero"
-        >
+        <SharedPageLayout className="theme-job" maxWidth="6xl" spacing="hero">
             <PageHeader
                 variant="hero"
                 title={activeHeadline.text}
@@ -234,7 +196,7 @@ const JobMatchInput: React.FC = () => {
                                     {isScrapingUrl ? (
                                         <Loader2 className="h-8 w-8 animate-spin" />
                                     ) : (
-                                        error ? <FileText className="h-8 w-8 text-orange-500" /> : <LinkIcon className="h-8 w-8 transition-colors" />
+                                        (error || isManualMode) ? <FileText className="h-8 w-8 text-orange-500" /> : <LinkIcon className="h-8 w-8 transition-colors" />
                                     )}
                                 </div>
 
@@ -258,7 +220,7 @@ const JobMatchInput: React.FC = () => {
                                             type="text"
                                             value={url}
                                             onChange={(e) => { setUrl(e.target.value); setError(null); }}
-                                            placeholder={isScrapingUrl ? "Accessing job post..." : isAnalyzing ? "Analyzing job fit..." : "Ready to find your match? Paste job URL..."}
+                                            placeholder={isScrapingUrl ? "Accessing" : isAnalyzing ? "Matching" : "Ready to find your match? Paste job URL..."}
                                             className="w-full bg-transparent border-none rounded-xl text-lg font-medium text-neutral-600 dark:text-neutral-300 placeholder:text-neutral-400 focus:ring-0 focus:outline-none"
                                             autoFocus
                                             disabled={isScrapingUrl}
@@ -275,11 +237,21 @@ const JobMatchInput: React.FC = () => {
                                     icon={<Sparkles className="w-5 h-5" />}
                                     className="w-full md:w-auto"
                                 >
-                                    {isScrapingUrl ? 'Accessing...' : isAnalyzing ? 'Analyzing...' : 'View Match'}
+                                    {isScrapingUrl ? 'Accessing' : isAnalyzing ? 'Matching' : 'View Match'}
                                 </Button>
                             </div>
                         </Card>
                     </form>
+
+                    <div className="mt-4 flex justify-center">
+                        <button
+                            onClick={() => setIsManualMode(true)}
+                            className="text-xs font-bold text-neutral-400 hover:text-accent-primary-hex transition-colors flex items-center gap-2"
+                        >
+                            <FileText className="w-3.5 h-3.5" />
+                            Or paste job description manually
+                        </button>
+                    </div>
 
                     {user && !isAdmin && <UsageIndicator usageStats={usageStats} />}
                 </div>
@@ -318,7 +290,6 @@ const JobMatchInput: React.FC = () => {
                     }}
                 />
             )}
-
         </SharedPageLayout>
     );
 };

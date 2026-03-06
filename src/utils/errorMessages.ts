@@ -114,6 +114,11 @@ export function getUserFriendlyError(error: Error | string): string {
   // If no match, return the original message if it doesn't look like a code crash
   const isCodeCrash = message.includes('at ') || message.includes('node_modules') || (message.includes('error:') && message.length > 150);
 
+  // Generic errors
+  if (message.includes('proxy error') || message.includes('edge function') || message.includes('status code')) {
+    return "We're having trouble reading this page format. Try copying just the core job details or refreshing.";
+  }
+
   if (isCodeCrash || message.length > 300) {
     return ERROR_MESSAGES.UNKNOWN_ERROR;
   }

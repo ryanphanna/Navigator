@@ -54,15 +54,15 @@ export const JobProcessingState: React.FC<JobProcessingStateProps> = ({
                     </div>
 
                     <h3 className="text-3xl font-black text-neutral-900 dark:text-white mb-3 tracking-tighter">
-                        Processing Job Details
+                        Matching
                     </h3>
                     <p className="text-neutral-500 dark:text-neutral-400 font-bold text-sm mb-12 max-w-[280px] mx-auto leading-relaxed">
-                        Organizing the job details for comparison.
+                        Comparing the job requirements to your career profile.
                     </p>
 
                     <div className="space-y-4">
                         <div className="flex justify-between items-end text-[10px] font-bold text-neutral-400">
-                            <span className="text-accent-primary-hex animate-pulse">{job.progressMessage || analysisProgress || "Scanning content..."}</span>
+                            <span className="text-accent-primary-hex animate-pulse">{job.progressMessage || analysisProgress || "Thinking"}</span>
                             <span className="text-neutral-900 dark:text-white">{job.progress || 0}%</span>
                         </div>
                         <div className="h-2 w-full bg-neutral-100 dark:bg-neutral-800/50 rounded-full p-1 overflow-hidden border border-neutral-200/50 dark:border-white/5">

@@ -10,7 +10,7 @@ import type {
     Semester,
     Course
 } from "../../types";
-import { AI_MODELS, AI_TEMPERATURE, AGENT_LOOP, USER_TIERS, CONTENT_VALIDATION } from "../../constants";
+import { AI_MODELS, AI_TEMPERATURE, AGENT_LOOP, USER_TIERS } from "../../constants";
 import { JOB_ANALYSIS_PROMPTS, COVER_LETTER_PROMPTS } from "../../prompts/index";
 import { BucketStorage } from "../storage/bucketStorage";
 
@@ -28,12 +28,46 @@ const sanitizeInput = (text: string): string => {
         .replace(/\(BLOCK_ID:\s*[a-zA-Z0-9-]+\)/g, '');
 };
 
+const preCleanJobText = (text: string): string => {
+    // Remove common website navigation/boilerplate labels that often get caught in clippings
+    const junkPatterns = [
+        /^ontario\.ca homepage/i,
+        /^fran\u00e7ais/i,
+        /^search job openings/i,
+        /^menu$/i,
+        /^\u2190 back to search/i,
+        /^back to search results/i,
+        /^home$/i,
+        /^accessibility$/i,
+        /^privacy$/i,
+        /^terms of use$/i,
+        /^contact us$/i,
+        /^site map$/i,
+        /^top$/i,
+        /^skip to main content/i
+    ];
+
+    return text
+        .split('\n')
+        .filter(line => {
+            const trimmed = line.trim();
+            if (trimmed.length < 2) return false;
+            return !junkPatterns.some(pattern => pattern.test(trimmed));
+        })
+        .join('\n')
+        .substring(0, 10000); // 10k characters is a safe upper bound for core details
+};
+
 const extractJobInfo = async (
     rawJobText: string,
     onProgress?: RetryProgressCallback
 ): Promise<{ distilledJob: DistilledJob; cleanedDescription: string }> => {
+    // Basic cleanup to prevent AI confusion on junk website headers
+    const cleanedText = preCleanJobText(rawJobText);
+
     const extractionPrompt = `
-    Extract key info from this job posting: ${rawJobText.substring(0, CONTENT_VALIDATION.MAX_JOB_DESCRIPTION_LENGTH)}...
+    Analyze this job posting: 
+    ${cleanedText}
     
     1. ROLE: What is the official role title?
     2. COMPANY: What is the company name?
@@ -71,11 +105,11 @@ export const analyzeJobFit = async (
     jobId?: string,
     transcript?: Transcript | null
 ): Promise<JobAnalysis> => {
-    if (onProgress) onProgress("Extracting job details...", 1, 2);
+    if (onProgress) onProgress("Cleaning", 1, 2);
     const { distilledJob: extractionInfo, cleanedDescription } = await extractJobInfo(jobDescription, onProgress);
     if (resumes.length === 0) return { distilledJob: extractionInfo, cleanedDescription } as JobAnalysis;
 
-    if (onProgress) onProgress("Evaluating match...", 2, 2);
+    if (onProgress) onProgress("Matching", 2, 2);
     const resumeContext = resumes.map(stringifyProfile).join('\n---\n');
     const skillsContext = userSkills.length > 0
         ? `\nADDITIONAL SKILLS:\n${userSkills.map(s => `- ${s.name}: ${s.proficiency}`).join('\n')}`

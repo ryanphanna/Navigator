@@ -21,7 +21,7 @@ export const useJobAnalysis = (
 
     const performAnalysis = useCallback(async () => {
         if (!job) return;
-        setAnalysisProgress("Preparing evaluation...");
+        setAnalysisProgress("Preparing");
         try {
             if (onAnalyzeJob) {
                 await onAnalyzeJob(job);
