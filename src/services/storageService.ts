@@ -54,7 +54,7 @@ export const Storage = {
         if (localJobs?.length > 0) {
             const cloudJobIds = new Set(cloudJobs?.map(j => j.id) || []);
             for (const job of localJobs) {
-                if (!cloudJobIds.has(job.id)) syncTasks.push(this.addJob(job));
+                if (!cloudJobIds.has(job.id) && !(job as any)._synced) syncTasks.push(this.addJob(job));
             }
         }
 

@@ -64,12 +64,15 @@ export const JobStorage = {
                             }
                         }
 
+                        // Mark as synced so we don't resurrect it if it gets deleted on another device
+                        (finalJob as any)._synced = true;
+
                         return finalJob;
                     });
 
-                    // 2. Keep local jobs that haven't synced to cloud yet
+                    // 2. Keep local jobs that haven't synced to cloud yet (ignore previously synced ones that are now missing, i.e., deleted elsewhere)
                     const cloudIds = new Set(cloudJobs.map(j => j.id));
-                    const unsyncedLocalJobs = localJobs.filter(l => !cloudIds.has(l.id));
+                    const unsyncedLocalJobs = localJobs.filter(l => !cloudIds.has(l.id) && !(l as any)._synced);
 
                     jobs = [...processedCloudJobs, ...unsyncedLocalJobs].sort((a, b) => b.dateAdded - a.dateAdded);
 
