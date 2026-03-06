@@ -265,7 +265,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
         <div className="space-y-6">
             {/* Header / Controls */}
             <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
-                <div className="px-6 py-6 border-b border-neutral-100 dark:border-white/5 flex justify-between items-center bg-white dark:bg-neutral-900/50">
+                <div className="p-8 border-b border-neutral-100 dark:border-white/5 flex justify-between items-center bg-white dark:bg-neutral-900/50">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl">
                             <PenTool className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />

@@ -133,18 +133,40 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
         firstOfMonth.setHours(0, 0, 0, 0);
 
         const [
-            { data: profile },
-            { count: todayCount },
-            { count: weekCount },
-            { count: monthInterviewCount },
-            { count: roleModelCount },
-            { count: todayEmailCount },
-        ] = await Promise.all([
-            supabase
-                .from('profiles')
-                .select('subscription_tier, is_admin, is_tester, job_analyses_count, total_ai_calls, inbound_email_token')
-                .eq('id', userId)
-                .single(),
+            profileResult,
+            todayCountResult,
+            weekCountResult,
+            monthInterviewCountResult,
+            roleModelCountResult,
+            todayEmailCountResult,
+        ] = await Promise.allSettled([
+            // Attempt to fetch all profile columns, but handle potential missing columns gracefully
+            (async () => {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('subscription_tier, is_admin, is_tester, job_analyses_count, total_ai_calls, inbound_email_token')
+                    .eq('id', userId)
+                    .single();
+
+                if (error && error.code === 'PGRST204') { // PGRST204 can indicate no row found, or sometimes schema mismatch if single() fails
+                    console.warn(`Profile query failed for user ${userId} with code PGRST204. Attempting basic profile fetch.`);
+                    // Fallback to a more basic query if the initial one fails, e.g., due to missing columns
+                    const { data: basicData, error: basicError } = await supabase
+                        .from('profiles')
+                        .select('subscription_tier, is_admin, is_tester')
+                        .eq('id', userId)
+                        .single();
+                    if (basicError) {
+                        console.error(`Basic profile query also failed for user ${userId}:`, basicError);
+                        throw basicError; // Re-throw if even basic fails
+                    }
+                    return { data: basicData, error: null };
+                } else if (error) {
+                    console.error(`Error fetching full profile for user ${userId}:`, error);
+                    throw error; // Re-throw other errors
+                }
+                return { data, error };
+            })(),
             supabase
                 .from('jobs')
                 .select('*', { count: 'exact', head: true })
@@ -173,6 +195,17 @@ export const getUsageStats = async (userId: string): Promise<UsageStats> => {
                 .eq('source_type', 'email')
                 .gte('date_added', today),
         ]);
+
+        // Helper to extract data from settled promise
+        const getData = (result: any) => result.status === 'fulfilled' ? result.value.data : null;
+        const getCount = (result: any) => result.status === 'fulfilled' ? result.value.count : 0;
+
+        const profile = getData(profileResult);
+        const todayCount = getCount(todayCountResult);
+        const weekCount = getCount(weekCountResult);
+        const monthInterviewCount = getCount(monthInterviewCountResult);
+        const roleModelCount = getCount(roleModelCountResult);
+        const todayEmailCount = getCount(todayEmailCountResult);
 
         let tier = profile?.subscription_tier || 'free';
         if (profile?.is_admin) tier = 'admin';

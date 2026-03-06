@@ -99,7 +99,7 @@ export const PlansPage: React.FC = () => {
             <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] -z-10 animate-pulse" />
             <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] -z-10 animate-pulse-slow" />
 
-            <div className="max-w-7xl mx-auto relative z-10 px-4 sm:px-6">
+            <div className="max-w-6xl mx-auto relative z-10 px-4 sm:px-6">
                 <PageHeader
                     variant="hero"
                     title={headline.text}
@@ -171,7 +171,7 @@ export const PlansPage: React.FC = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24 max-w-7xl mx-auto px-4 sm:px-6 items-stretch">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24 max-w-6xl mx-auto px-4 sm:px-6 items-stretch">
                 {/* Explorer Plan */}
                 <PlanCard
                     title="Explorer"
@@ -257,7 +257,7 @@ export const PlansPage: React.FC = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                className="mt-24 pt-12 border-t border-neutral-100 dark:border-neutral-800 grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto px-4 sm:px-6"
+                className="mt-24 pt-12 border-t border-neutral-100 dark:border-neutral-800 grid grid-cols-1 md:grid-cols-3 gap-12 max-w-6xl mx-auto px-4 sm:px-6"
             >
                 <div className="flex gap-4 items-start text-left">
                     <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center shrink-0">

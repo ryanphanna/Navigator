@@ -94,7 +94,7 @@ export const Header: React.FC = () => {
             : 'bg-transparent border-transparent'
             }`}>
             {/* Background Background blur/border (Conditional on scroll if needed, but keeping it elegant) */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between relative pointer-events-auto">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between relative pointer-events-auto">
                 <div className="flex items-center gap-4">
                     <div
                         className="group flex items-center gap-2.5 cursor-pointer"

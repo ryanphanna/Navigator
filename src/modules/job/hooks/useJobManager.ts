@@ -46,10 +46,20 @@ export const useJobManager = () => {
 
         const jobsPromise = Storage.getJobs();
         const statsPromise = user ? getUsageStats(user.id).catch(console.error) : Promise.resolve(undefined);
+        const syncPromise = user ? Storage.syncLocalToCloud().catch(err => console.error("Initial sync failed:", err)) : Promise.resolve();
 
-        Promise.all([jobsPromise, statsPromise]).then(([loadedJobs, stats]) => {
+        Promise.all([jobsPromise, statsPromise, syncPromise]).then(([loadedJobs, stats]) => {
             if (!mounted) return;
-            setJobs(loadedJobs);
+
+            // Re-fetch jobs if sync might have added new ones or healed them
+            if (user) {
+                Storage.getJobs().then(finalJobs => {
+                    if (mounted) setJobs(finalJobs);
+                });
+            } else {
+                setJobs(loadedJobs);
+            }
+
             if (stats) setUsageStats(stats);
             setIsLoading(false);
         });

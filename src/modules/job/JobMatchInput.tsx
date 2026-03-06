@@ -209,9 +209,9 @@ const JobMatchInput: React.FC = () => {
 
     return (
         <SharedPageLayout
-            maxWidth="7xl"
             className="theme-job"
-            spacing="compact"
+            maxWidth="6xl"
+            spacing="hero"
         >
             <PageHeader
                 variant="hero"

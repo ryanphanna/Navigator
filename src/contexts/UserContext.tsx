@@ -84,58 +84,69 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsEmailVerified(!!currentUser?.email_confirmed_at);
         if (currentUser) {
             try {
+                // Fetch profile with resiliency. If one column fails, try fetching basic info.
                 const { data, error } = await supabase
                     .from('profiles')
-                    .select('subscription_tier, is_admin, is_tester')
+                    .select('subscription_tier, is_admin, is_tester, journey, device_id, last_archetype_update, accepted_tos_version')
                     .eq('id', currentUser.id)
                     .single();
 
-                if (data && !error) {
-                    const tier = data.subscription_tier as UserTier;
-                    setActualTier(data.is_admin ? 'admin' : tier);
-                    setIsAdmin(data.is_admin || false);
-                    setIsTester(data.is_tester || false);
+                let profileData: any = data;
+
+                if (error && error.code === 'PGRST204') {
+                    // Fallback to absolute basics if schema mismatch
+                    const basic = await supabase
+                        .from('profiles')
+                        .select('subscription_tier, is_admin, is_tester')
+                        .eq('id', currentUser.id)
+                        .single();
+                    profileData = basic.data;
+                }
+
+                if (profileData) {
+                    const tier = profileData.subscription_tier as UserTier;
+                    setActualTier(profileData.is_admin ? 'admin' : tier);
+                    setIsAdmin(profileData.is_admin || false);
+                    setIsTester(profileData.is_tester || false);
 
                     // If they have an account, they've implicitly accepted privacy/terms
-                    // Sync this to localStorage to prevent redundant redirects
                     LocalStorage.set(STORAGE_KEYS.PRIVACY_ACCEPTED, 'true');
 
-                    const profileData = data as unknown as { journey?: string; device_id?: string };
-                    if (profileData.journey) {
-                        setJourney(profileData.journey);
-                        LocalStorage.set(STORAGE_KEYS.USER_JOURNEY, profileData.journey);
+                    const meta = profileData as any;
+                    if (meta.journey) {
+                        setJourney(meta.journey);
+                        LocalStorage.set(STORAGE_KEYS.USER_JOURNEY, meta.journey);
+                    }
+                    if (meta.last_archetype_update) {
+                        setLastArchetypeUpdate(meta.last_archetype_update);
+                        LocalStorage.set(STORAGE_KEYS.LAST_ARCHETYPE_UPDATE, meta.last_archetype_update.toString());
+                    }
+                    if (meta.accepted_tos_version) {
+                        setAcceptedTosVersion(meta.accepted_tos_version);
+                        LocalStorage.set(STORAGE_KEYS.ACCEPTED_TOS_VERSION, meta.accepted_tos_version.toString());
                     }
 
                     // Abuse Prevention: Sync device fingerprint
                     getDeviceFingerprint().then(fingerprint => {
-                        if (data && profileData.device_id !== fingerprint) {
+                        if (profileData && (profileData as any).device_id !== fingerprint) {
                             supabase.from('profiles').update({ device_id: fingerprint }).eq('id', currentUser.id).then(({ error: syncError }) => {
                                 if (syncError) {
-                                    // Handle missing column gracefully - don't log as error if it's just a missing column
                                     if (syncError.code === 'PGRST204' || syncError.message?.includes('device_id')) {
-                                        console.warn("Device fingerprinting skipped: 'device_id' column not found in profiles Table.");
-                                    } else {
-                                        console.error("Failed to sync device fingerprint", syncError);
+                                        console.warn("Device fingerprinting skipped: column missing.");
                                     }
                                 }
                             });
                         }
                     }).catch(err => console.warn("Device fingerprint failed:", err));
-                } else if (error) {
-                    if (import.meta.env.DEV) {
-                        console.error('Error fetching user profile:', error);
-                    }
                 }
             } catch (err) {
-                if (import.meta.env.DEV) {
-                    console.error('Error fetching user profile:', err);
-                }
+                console.error('Error fetching user profile:', err);
             }
         } else {
             setActualTier('free');
             setIsTester(false);
             setIsAdmin(false);
-            setSimulatedTier(null); // Clear simulation on logout
+            setSimulatedTier(null);
         }
         setIsLoading(false);
     };

@@ -116,7 +116,7 @@ export const CoachDashboard: React.FC = () => {
 
     return (
         <SharedPageLayout maxWidth="full" animate={false} className="relative theme-coach" spacing="hero">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
                 <input
                     type="file"
                     ref={fileInputRef}

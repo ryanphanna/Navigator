@@ -157,6 +157,7 @@ export const ROUTES = {
   CAREER_MODELS: '/career/models',
   COACH_ROLE_MODELS: '/career/models',
   COACH_GAP: '/career/gap',
+  CAREER_ORGS: '/career/orgs',
 
   // Education Section
   EDUCATION_HOME: '/education',

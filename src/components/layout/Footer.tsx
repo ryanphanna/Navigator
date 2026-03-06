@@ -58,7 +58,7 @@ export const Footer: React.FC = () => {
             {/* Subtle Gradient Glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent" />
 
-            <div className="max-w-7xl mx-auto pt-16">
+            <div className="max-w-6xl mx-auto pt-16">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-12 mb-16">
                     {/* Brand Column */}
                     <div className="col-span-2 space-y-4">
