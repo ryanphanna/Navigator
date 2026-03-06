@@ -92,7 +92,7 @@ export const useAcademicLogic = () => {
         const { semIndex: sourceSemIndex, courseIndex } = editingCourse;
         const targetIndex = targetSemIndex !== undefined ? targetSemIndex : sourceSemIndex;
 
-        let newSemesters = [...transcript.semesters];
+        const newSemesters = [...transcript.semesters];
 
         if (sourceSemIndex === targetIndex) {
             // Simple update within the same semester
