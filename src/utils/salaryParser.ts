@@ -24,7 +24,7 @@ export function parseSalary(raw: string): ParsedSalary | null {
     };
 
     // Try to find two numbers separated by a range delimiter
-    const rangePattern = /([\$]?[\d,]+\.?\d*k?)\s*(?:[-–—]|to)\s*([\$]?[\d,]+\.?\d*k?)/i;
+    const rangePattern = /([$]?[\d,]+\.?\d*k?)\s*(?:[-–—]|to)\s*([$]?[\d,]+\.?\d*k?)/i;
     const rangeMatch = s.match(rangePattern);
     if (rangeMatch) {
         const min = extractNum(rangeMatch[1]);
