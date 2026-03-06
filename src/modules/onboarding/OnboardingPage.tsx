@@ -6,7 +6,8 @@ import { useResumeContext } from '../resume/context/ResumeContext';
 import { TranscriptUpload } from '../grad/TranscriptUpload';
 import { PlansOnboardingStep } from './PlansOnboardingStep';
 import type { ExperienceBlock } from '../resume/types';
-import { ROUTES } from '../../constants';
+import { ROUTES, STORAGE_KEYS } from '../../constants';
+import { LocalStorage } from '../../utils/localStorage';
 
 type JourneyStage = 'student' | 'job-hunter' | 'employed' | 'career-changer' | 'exploring';
 
@@ -121,13 +122,13 @@ export const OnboardingPage: React.FC = () => {
                 resumeUploaded,
                 transcriptUploaded
             };
-            localStorage.setItem('onboarding_state', JSON.stringify(state));
+            LocalStorage.set(STORAGE_KEYS.ONBOARDING_STATE, JSON.stringify(state));
         }
     }, [firstName, lastName, selectedJourneys, step, resumeUploaded, transcriptUploaded]);
 
     // Restore state and handle Stripe success
     useEffect(() => {
-        const savedState = localStorage.getItem('onboarding_state');
+        const savedState = LocalStorage.get(STORAGE_KEYS.ONBOARDING_STATE);
         if (savedState) {
             try {
                 const parsed = JSON.parse(savedState);
@@ -186,8 +187,8 @@ export const OnboardingPage: React.FC = () => {
         const userData = { firstName, lastName, journey: primaryJourney, intent };
 
         // Store in localStorage/Session
-        localStorage.setItem('navigator_privacy_accepted', 'true');
-        localStorage.setItem('navigator_user_journey', primaryJourney);
+        LocalStorage.set(STORAGE_KEYS.PRIVACY_ACCEPTED, 'true');
+        LocalStorage.set(STORAGE_KEYS.USER_JOURNEY, primaryJourney);
         sessionStorage.setItem('pending_user_meta', JSON.stringify(userData));
 
         // Try to update Supabase if user exists (though they likely don't yet)
@@ -206,7 +207,7 @@ export const OnboardingPage: React.FC = () => {
         }
 
         // Navigate to Home (clear saved onboarding state so it won't restore on next visit)
-        localStorage.removeItem('onboarding_state');
+        LocalStorage.remove(STORAGE_KEYS.ONBOARDING_STATE);
         navigate(ROUTES.HOME);
     };
 
@@ -648,7 +649,7 @@ export const OnboardingPage: React.FC = () => {
                                     <div className="flex-1 flex flex-col items-center justify-center mb-10">
                                         <TranscriptUpload
                                             onUploadComplete={(parsed) => {
-                                                localStorage.setItem('NAVIGATOR_TRANSCRIPT_CACHE', JSON.stringify(parsed));
+                                                LocalStorage.set(STORAGE_KEYS.TRANSCRIPT_CACHE, JSON.stringify(parsed));
                                                 setTranscriptUploaded(true);
                                                 setStep(6);
                                             }}

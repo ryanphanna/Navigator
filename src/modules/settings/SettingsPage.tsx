@@ -171,14 +171,14 @@ export const SettingsPage: React.FC = () => {
                                             </span>
                                         </div>
                                         <span className="text-sm font-bold text-neutral-900 dark:text-white">
-                                            {(usageStats?.analysisPeriod === 'weekly' ? usageStats?.weekAnalyses : usageStats?.todayAnalyses) || 0} <span className="text-neutral-300 dark:text-neutral-600 font-normal">/ {usageStats?.analysisLimit === Infinity || ((isAdmin || isTester) && !simulatedTier) ? '∞' : usageStats?.analysisLimit || 0}</span>
+                                            {(usageStats?.analysisPeriod === 'weekly' ? usageStats?.weekAnalyses : usageStats?.analysisPeriod === 'lifetime' ? usageStats?.lifetimeAnalyses : usageStats?.todayAnalyses) || 0} <span className="text-neutral-300 dark:text-neutral-600 font-normal">/ {usageStats?.analysisLimit === Infinity || ((isAdmin || isTester) && !simulatedTier) ? '∞' : usageStats?.analysisLimit || 0}</span>
                                         </span>
                                     </div>
 
                                     <div className="h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                                         <div
                                             className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-1000"
-                                            style={{ width: `${(isAdmin || isTester) && !simulatedTier ? 0 : Math.min(100, ((usageStats?.analysisPeriod === 'weekly' ? usageStats?.weekAnalyses : usageStats?.todayAnalyses) || 0) / (usageStats?.analysisLimit || 1) * 100)}%` }}
+                                            style={{ width: `${(isAdmin || isTester) && !simulatedTier ? 0 : Math.min(100, ((usageStats?.analysisPeriod === 'weekly' ? usageStats?.weekAnalyses : usageStats?.analysisPeriod === 'lifetime' ? usageStats?.lifetimeAnalyses : usageStats?.todayAnalyses) || 0) / (usageStats?.analysisLimit || 1) * 100)}%` }}
                                         />
                                     </div>
                                 </div>

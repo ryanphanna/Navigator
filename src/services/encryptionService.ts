@@ -87,8 +87,8 @@ class EncryptionService {
         const [ivBase64, contentBase64] = vaultData.split(':');
         if (!ivBase64 || !contentBase64) throw new Error("Invalid vault data format");
 
-        const iv = new Uint8Array(atob(ivBase64).split('').map(c => c.charCodeAt(0)));
-        const ciphertext = new Uint8Array(atob(contentBase64).split('').map(c => c.charCodeAt(0)));
+        const iv = Uint8Array.from(atob(ivBase64), c => c.charCodeAt(0));
+        const ciphertext = Uint8Array.from(atob(contentBase64), c => c.charCodeAt(0));
 
         try {
             const decryptedContent = await window.crypto.subtle.decrypt(

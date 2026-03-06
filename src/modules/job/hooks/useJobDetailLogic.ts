@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { analyzeJobFit, tailorExperienceBlock, generateTailoredSummary } from '../../../services/geminiService';
 import { Storage } from '../../../services/storageService';
 import { RESUME_TAILORING, STORAGE_KEYS } from '../../../constants';
+import { LocalStorage } from '../../../utils/localStorage';
 import type { SavedJob } from '../types';
 import type { ExperienceBlock, ResumeProfile } from '../../resume/types';
 import type { CustomSkill } from '../../skills/types';
@@ -50,7 +51,7 @@ export const useJobDetailLogic = ({
             } else {
                 // Fetch transcript if exists
                 let transcript: Transcript | null = null;
-                const savedTranscript = localStorage.getItem(STORAGE_KEYS.TRANSCRIPT_CACHE);
+                const savedTranscript = LocalStorage.get(STORAGE_KEYS.TRANSCRIPT_CACHE);
                 if (savedTranscript) {
                     try {
                         transcript = JSON.parse(savedTranscript);

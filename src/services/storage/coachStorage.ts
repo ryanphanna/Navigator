@@ -31,31 +31,39 @@ export const CoachStorage = {
     async addRoleModel(roleModel: RoleModelProfile) {
         const existing: RoleModelProfile[] = await Vault.getSecure(STORAGE_KEYS.ROLE_MODELS) || [];
         const updated = [roleModel, ...existing];
-        await Vault.setSecure(STORAGE_KEYS.ROLE_MODELS, updated);
 
-        const userId = await getUserId();
-        if (userId) {
-            const { error } = await supabase.from('role_models').insert({
-                id: roleModel.id,
-                user_id: userId,
-                name: roleModel.name,
-                content: roleModel
-            });
-            if (error) console.error("Failed to sync role model to cloud:", error);
-        }
+        await Promise.all([
+            Vault.setSecure(STORAGE_KEYS.ROLE_MODELS, updated),
+            getUserId().then(userId => {
+                if (!userId) return;
+                return supabase.from('role_models').insert({
+                    id: roleModel.id,
+                    user_id: userId,
+                    name: roleModel.name,
+                    content: roleModel
+                }).then(({ error }) => {
+                    if (error) console.error("Failed to sync role model to cloud:", error);
+                });
+            })
+        ]);
+
         return updated;
     },
 
     async deleteRoleModel(id: string) {
         const existing: RoleModelProfile[] = await Vault.getSecure(STORAGE_KEYS.ROLE_MODELS) || [];
         const updated = existing.filter(rm => rm.id !== id);
-        await Vault.setSecure(STORAGE_KEYS.ROLE_MODELS, updated);
 
-        const userId = await getUserId();
-        if (userId) {
-            const { error } = await supabase.from('role_models').delete().eq('id', id);
-            if (error) console.error("Failed to delete role model from cloud:", error);
-        }
+        await Promise.all([
+            Vault.setSecure(STORAGE_KEYS.ROLE_MODELS, updated),
+            getUserId().then(userId => {
+                if (!userId) return;
+                return supabase.from('role_models').delete().eq('id', id).then(({ error }) => {
+                    if (error) console.error("Failed to delete role model from cloud:", error);
+                });
+            })
+        ]);
+
         return updated;
     },
 
@@ -104,37 +112,45 @@ export const CoachStorage = {
         } else {
             updated = [targetJob, ...existing];
         }
-        await Vault.setSecure(STORAGE_KEYS.TARGET_JOBS, updated);
 
-        const userId = await getUserId();
-        if (userId) {
-            const { error } = await supabase.from('target_jobs').upsert({
-                id: targetJob.id,
-                user_id: userId,
-                title: targetJob.title,
-                description: targetJob.description,
-                role_model_id: targetJob.roleModelId,
-                gap_analysis: targetJob.gapAnalysis,
-                roadmap: targetJob.roadmap,
-                type: targetJob.type || 'goal',
-                strict_mode: targetJob.strictMode ?? true,
-                date_added: new Date(targetJob.dateAdded).toISOString()
-            });
-            if (error) console.error("Failed to sync target job to cloud:", error);
-        }
+        await Promise.all([
+            Vault.setSecure(STORAGE_KEYS.TARGET_JOBS, updated),
+            getUserId().then(userId => {
+                if (!userId) return;
+                return supabase.from('target_jobs').upsert({
+                    id: targetJob.id,
+                    user_id: userId,
+                    title: targetJob.title,
+                    description: targetJob.description,
+                    role_model_id: targetJob.roleModelId,
+                    gap_analysis: targetJob.gapAnalysis,
+                    roadmap: targetJob.roadmap,
+                    type: targetJob.type || 'goal',
+                    strict_mode: targetJob.strictMode ?? true,
+                    date_added: new Date(targetJob.dateAdded).toISOString()
+                }).then(({ error }) => {
+                    if (error) console.error("Failed to sync target job to cloud:", error);
+                });
+            })
+        ]);
+
         return updated;
     },
 
     async deleteTargetJob(id: string) {
         const existing: TargetJob[] = await Vault.getSecure(STORAGE_KEYS.TARGET_JOBS) || [];
         const updated = existing.filter(tj => tj.id !== id);
-        await Vault.setSecure(STORAGE_KEYS.TARGET_JOBS, updated);
 
-        const userId = await getUserId();
-        if (userId) {
-            const { error } = await supabase.from('target_jobs').delete().eq('id', id);
-            if (error) console.error("Failed to delete target job from cloud:", error);
-        }
+        await Promise.all([
+            Vault.setSecure(STORAGE_KEYS.TARGET_JOBS, updated),
+            getUserId().then(userId => {
+                if (!userId) return;
+                return supabase.from('target_jobs').delete().eq('id', id).then(({ error }) => {
+                    if (error) console.error("Failed to delete target job from cloud:", error);
+                });
+            })
+        ]);
+
         return updated;
     }
 };

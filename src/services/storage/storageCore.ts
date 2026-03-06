@@ -1,11 +1,21 @@
 import { supabase } from '../supabase';
 import { encryptionService } from '../encryptionService';
+import { Logger } from '../../utils/logger';
 
-// Helper: Get User ID if logged in
-export const getUserId = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.user?.id;
+// Helper: Get User ID if logged in — cached for 30s to avoid repeated session reads
+let cachedUserIdPromise: Promise<string | undefined> | null = null;
+
+export const getUserId = async (): Promise<string | undefined> => {
+    if (!cachedUserIdPromise) {
+        cachedUserIdPromise = supabase.auth.getSession()
+            .then(({ data: { session } }) => session?.user?.id);
+        setTimeout(() => { cachedUserIdPromise = null; }, 30_000);
+    }
+    return cachedUserIdPromise;
 };
+
+// Call this on auth state changes to immediately invalidate the cache
+export const invalidateUserIdCache = () => { cachedUserIdPromise = null; };
 
 // --- Private Vault (Encryption) Logic ---
 
@@ -20,12 +30,16 @@ const getVaultSeed = () => {
 
 export const Vault = {
     initialized: false,
+    initPromise: null as Promise<void> | null,
 
     async ensureInit() {
         if (this.initialized) return;
-        const seed = getVaultSeed();
-        await encryptionService.init(seed);
-        this.initialized = true;
+        if (!this.initPromise) {
+            this.initPromise = encryptionService.init(getVaultSeed()).then(() => {
+                this.initialized = true;
+            });
+        }
+        await this.initPromise;
     },
 
     async getSecure<T = unknown>(key: string): Promise<T | null> {
@@ -35,7 +49,7 @@ export const Vault = {
 
         // Migration/Compatibility check
         if (raw.startsWith('{') || raw.startsWith('[')) {
-            console.log(`[Vault] Migrating legacy content for key: ${key}`);
+            Logger.log(`[Vault] Migrating legacy content for key: ${key}`);
             try {
                 const data = JSON.parse(raw);
                 await this.setSecure(key, data);

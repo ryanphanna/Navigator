@@ -73,63 +73,73 @@ export const JobStorage = {
     async addJob(job: SavedJob) {
         const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS_HISTORY) || [];
         const updated = [job, ...localJobs];
-        await Vault.setSecure(STORAGE_KEYS.JOBS_HISTORY, updated);
 
-        const userId = await getUserId();
-        if (userId) {
-            const { error } = await supabase.from('jobs').insert({
-                user_id: userId,
-                id: job.id,
-                job_title: job.analysis?.distilledJob?.roleTitle || job.position || 'Untitled Role',
-                company: job.analysis?.distilledJob?.companyName || job.company || 'Unknown Company',
-                original_text: job.description,
-                url: job.url,
-                analysis: job.analysis,
-                canonical_role: job.analysis?.distilledJob?.canonicalTitle,
-                status: job.status || 'saved',
-                resume_id: job.resumeId,
-                cover_letter: job.coverLetter,
-                cover_letter_critique: job.coverLetterCritique,
-                date_added: new Date(job.dateAdded).toISOString()
-            });
-            if (error) console.error("Cloud Sync Error (Add Job):", error);
-        }
+        await Promise.all([
+            Vault.setSecure(STORAGE_KEYS.JOBS_HISTORY, updated),
+            getUserId().then(userId => {
+                if (!userId) return;
+                return supabase.from('jobs').insert({
+                    user_id: userId,
+                    id: job.id,
+                    job_title: job.analysis?.distilledJob?.roleTitle || job.position || 'Untitled Role',
+                    company: job.analysis?.distilledJob?.companyName || job.company || 'Unknown Company',
+                    original_text: job.description,
+                    url: job.url,
+                    analysis: job.analysis,
+                    canonical_role: job.analysis?.distilledJob?.canonicalTitle,
+                    status: job.status || 'saved',
+                    resume_id: job.resumeId,
+                    cover_letter: job.coverLetter,
+                    cover_letter_critique: job.coverLetterCritique,
+                    date_added: new Date(job.dateAdded).toISOString()
+                }).then(({ error }) => {
+                    if (error) console.error("Cloud Sync Error (Add Job):", error);
+                });
+            })
+        ]);
+
         return updated;
     },
 
     async updateJob(updatedJob: SavedJob) {
         const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS_HISTORY) || [];
         const updated = localJobs.map(j => j.id === updatedJob.id ? updatedJob : j);
-        await Vault.setSecure(STORAGE_KEYS.JOBS_HISTORY, updated);
 
-        const userId = await getUserId();
-        if (userId) {
-            const { error } = await supabase.from('jobs').update({
-                job_title: updatedJob.analysis?.distilledJob?.roleTitle || updatedJob.position,
-                company: updatedJob.analysis?.distilledJob?.companyName || updatedJob.company,
-                original_text: updatedJob.description,
-                status: updatedJob.status || 'saved',
-                analysis: updatedJob.analysis,
-                canonical_role: updatedJob.analysis?.distilledJob?.canonicalTitle,
-                resume_id: updatedJob.resumeId,
-                cover_letter: updatedJob.coverLetter,
-                cover_letter_critique: updatedJob.coverLetterCritique,
-                fit_score: updatedJob.analysis?.compatibilityScore
-            }).eq('id', updatedJob.id);
-            if (error) console.error("Cloud Sync Error (Update Job):", error);
-        }
+        await Promise.all([
+            Vault.setSecure(STORAGE_KEYS.JOBS_HISTORY, updated),
+            getUserId().then(userId => {
+                if (!userId) return;
+                return supabase.from('jobs').update({
+                    job_title: updatedJob.analysis?.distilledJob?.roleTitle || updatedJob.position,
+                    company: updatedJob.analysis?.distilledJob?.companyName || updatedJob.company,
+                    original_text: updatedJob.description,
+                    status: updatedJob.status || 'saved',
+                    analysis: updatedJob.analysis,
+                    canonical_role: updatedJob.analysis?.distilledJob?.canonicalTitle,
+                    resume_id: updatedJob.resumeId,
+                    cover_letter: updatedJob.coverLetter,
+                    cover_letter_critique: updatedJob.coverLetterCritique,
+                    fit_score: updatedJob.analysis?.compatibilityScore
+                }).eq('id', updatedJob.id).then(({ error }) => {
+                    if (error) console.error("Cloud Sync Error (Update Job):", error);
+                });
+            })
+        ]);
+
         return updated;
     },
 
     async deleteJob(id: string) {
         const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS_HISTORY) || [];
         const updated = localJobs.filter(j => j.id !== id);
-        await Vault.setSecure(STORAGE_KEYS.JOBS_HISTORY, updated);
 
-        const userId = await getUserId();
-        if (userId) {
-            await supabase.from('jobs').delete().eq('id', id);
-        }
+        await Promise.all([
+            Vault.setSecure(STORAGE_KEYS.JOBS_HISTORY, updated),
+            getUserId().then(userId => {
+                if (userId) return supabase.from('jobs').delete().eq('id', id);
+            })
+        ]);
+
         return updated;
     }
 };

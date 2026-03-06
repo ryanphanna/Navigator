@@ -175,13 +175,13 @@ describe('History', () => {
     // Should be in 'Saved' filter by default (or when selected)
     // Count for 'Saved' and 'All' should be 2
     expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText('Processing Job...')).toBeInTheDocument();
-    expect(screen.getByText('Incomplete Analysis')).toBeInTheDocument();
+    expect(screen.getByText('Analyzing Role')).toBeInTheDocument();
+    expect(screen.getByText('Analysis could not be completed')).toBeInTheDocument();
 
     // Check for status labels
     expect(screen.getByText('Finding your fit...')).toBeInTheDocument();
     expect(screen.getByText('0%')).toBeInTheDocument();
-    expect(screen.getByText('Failed')).toBeInTheDocument();
+    expect(screen.getByText('Failed Role')).toBeInTheDocument();
   });
 
   it('should display progress bar with custom message', () => {
@@ -220,7 +220,7 @@ describe('History', () => {
     renderHistory([analyzingJob]);
 
     // Click card should not select
-    const card = screen.getByText('Processing Job...').closest('div');
+    const card = screen.getByText('Processing Role').closest('div');
     if (card) {
       fireEvent.click(card);
     }

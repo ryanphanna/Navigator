@@ -20,7 +20,6 @@ export interface ModelParams {
 export const getModel = async (params: ModelParams) => {
     return {
         generateContent: async (payload: { contents: { role: string; parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] }[]; generationConfig?: Record<string, unknown> }) => {
-            console.log(`Using Gemini Proxy (Edge Function) for ${params.task}...`);
             const { generationConfig: payloadGenerationConfig, ...contentsOnly } = payload;
             const { data, error } = await supabase.functions.invoke('gemini-proxy', {
                 body: {
@@ -149,7 +148,7 @@ export const callWithRetry = async <T>(
                 const retryMsg = getRetryMessage(i + 1, retries, delaySeconds);
                 if (onProgress) onProgress(retryMsg, i + 1, retries);
                 await new Promise(resolve => setTimeout(resolve, currentDelay));
-                currentDelay = currentDelay * 2;
+                currentDelay = currentDelay * API_CONFIG.RETRY_BACKOFF_MULTIPLIER;
             } else {
                 logToSupabase({
                     event_type: context.event_type,

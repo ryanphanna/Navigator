@@ -85,10 +85,9 @@ export const analyzeJobFit = async (
         ? `\nACADEMIC BACKGROUND (Transcript):\nProgram: ${transcript.program} at ${transcript.university}\nCourses:\n${transcript.semesters.flatMap((s: Semester) => s.courses).map((c: Course) => `- ${c.title} (${c.code}): ${c.grade}`).join('\n')}`
         : '';
 
-    // Fetch Bucket Guidelines (Role Farming)
+    // Fetch Bucket Guidelines (Role Farming) — upsert + select in one round trip, cached in memory
     const canonicalTitle = extractionInfo.canonicalTitle || extractionInfo.roleTitle || 'General';
-    await BucketStorage.ensureBucket(canonicalTitle);
-    const bucket = await BucketStorage.getBucket(canonicalTitle);
+    const bucket = await BucketStorage.ensureAndGetBucket(canonicalTitle);
     const bucketAdvice = bucket?.guidelines?.promptAdvice;
 
     // Use the consolidated Strategic Professional prompt

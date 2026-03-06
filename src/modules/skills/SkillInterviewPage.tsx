@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { CustomSkill } from '../../types';
-import { generateUnifiedQuestions, analyzeUnifiedResponse } from '../../services/ai/interviewAiService';
+import { generateUnifiedQuestions, analyzeUnifiedResponse } from '../../services/geminiService';
 import { useSkillContext } from './context/SkillContext';
 import { useGlobalUI } from '../../contexts/GlobalUIContext';
 import { checkInterviewLimit, getUsageStats } from '../../services/usageLimits';

@@ -31,6 +31,7 @@ import { useUser } from '../../contexts/UserContext';
 import { useSkillContext } from '../skills/context/SkillContext';
 import { useResumeContext } from '../resume/context/ResumeContext';
 import { useGlobalUI } from '../../contexts/GlobalUIContext';
+import { useModal } from '../../contexts/ModalContext';
 
 export const JobDetail: React.FC = () => {
     const { activeJob: job, handleUpdateJob: onUpdateJob, handleAnalyzeJob } = useJobContext();
@@ -38,6 +39,7 @@ export const JobDetail: React.FC = () => {
     const { skills: userSkills } = useSkillContext();
     const { resumes } = useResumeContext();
     const { setView } = useGlobalUI();
+    const { openModal } = useModal();
 
     const onBack = () => setView('history');
     const onAnalyzeJob = (j: SavedJob) => handleAnalyzeJob(j, { resumes, skills: userSkills });
@@ -387,6 +389,27 @@ export const JobDetail: React.FC = () => {
                             {toSentenceCase(analysis?.reasoning || "Analysis needed")}
                         </div>
                     </div>
+
+                    {userTier === 'free' && analysis?.compatibilityScore != null && (
+                        <div className="mt-6 pt-6 border-t border-neutral-100 dark:border-neutral-800/50">
+                            <button
+                                onClick={() => openModal('UPGRADE', { initialView: 'compare' })}
+                                className="w-full group flex items-center justify-between gap-3 px-5 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-500/10 dark:to-purple-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-2xl hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-500/20 dark:hover:to-purple-500/20 transition-all"
+                            >
+                                <div className="text-left">
+                                    <div className="text-xs font-black text-indigo-600 dark:text-indigo-400">
+                                        {analysis.compatibilityScore >= 75
+                                            ? "Strong match — tailor your resume to close it."
+                                            : analysis.compatibilityScore >= 50
+                                            ? "You're close. See exactly what's holding you back."
+                                            : "There's a gap. Find out precisely what to close."}
+                                    </div>
+                                    <div className="text-[10px] font-bold text-indigo-400 dark:text-indigo-500 mt-0.5 uppercase tracking-widest">Unlock with Plus</div>
+                                </div>
+                                <Sparkles className="w-4 h-4 text-indigo-400 shrink-0 group-hover:scale-110 transition-transform" />
+                            </button>
+                        </div>
+                    )}
                 </>
             )}
         </Card>
@@ -595,14 +618,42 @@ export const JobDetail: React.FC = () => {
                                             <h4 className="text-[10px] font-black tracking-widest text-rose-600 dark:text-rose-400 mb-4 flex items-center gap-2">
                                                 <AlertCircle className="w-3.5 h-3.5" /> Identified Gaps
                                             </h4>
-                                            <div className="space-y-3">
-                                                {analysis?.weaknesses?.map((w, i) => (
-                                                    <div key={i} className="flex gap-3 text-xs font-bold text-neutral-700 dark:text-neutral-300">
-                                                        <div className="w-1 h-1 rounded-full bg-rose-500 mt-1.5 shrink-0" />
-                                                        {w}
+                                            {(() => {
+                                                const weaknesses = analysis?.weaknesses ?? [];
+                                                const isGated = userTier === 'free' && weaknesses.length > 1;
+                                                const visible = isGated ? weaknesses.slice(0, 1) : weaknesses;
+                                                const hidden = isGated ? weaknesses.slice(1) : [];
+                                                return (
+                                                    <div className="space-y-3">
+                                                        {visible.map((w, i) => (
+                                                            <div key={i} className="flex gap-3 text-xs font-bold text-neutral-700 dark:text-neutral-300">
+                                                                <div className="w-1 h-1 rounded-full bg-rose-500 mt-1.5 shrink-0" />
+                                                                {w}
+                                                            </div>
+                                                        ))}
+                                                        {hidden.length > 0 && (
+                                                            <div className="relative mt-1">
+                                                                <div className="space-y-3 blur-sm select-none pointer-events-none" aria-hidden>
+                                                                    {hidden.map((w, i) => (
+                                                                        <div key={i} className="flex gap-3 text-xs font-bold text-neutral-700 dark:text-neutral-300">
+                                                                            <div className="w-1 h-1 rounded-full bg-rose-500 mt-1.5 shrink-0" />
+                                                                            {w}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                                    <button
+                                                                        onClick={() => openModal('UPGRADE', { initialView: 'compare' })}
+                                                                        className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black uppercase tracking-widest rounded-full transition-all shadow-lg shadow-rose-500/20 active:scale-95"
+                                                                    >
+                                                                        +{hidden.length} more — Unlock
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                ))}
-                                            </div>
+                                                );
+                                            })()}
                                         </Card>
                                     </div>
                                 ) : null}
@@ -694,6 +745,22 @@ export const JobDetail: React.FC = () => {
 
                         {activeTab === 'resume' && (
                             <div className="space-y-12 py-10 px-6 md:px-12 bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-100 dark:border-neutral-800 shadow-sm">
+                                {userTier === 'free' && (
+                                    <div className="flex items-center justify-between gap-4 px-6 py-4 rounded-2xl border border-indigo-200 dark:border-indigo-500/20 bg-indigo-50/70 dark:bg-indigo-950/20">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <Wand2 className="w-4 h-4 text-indigo-500 shrink-0" />
+                                            <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                                Upgrade to rewrite every bullet for this specific role — this is what the trial was building toward.
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => openModal('UPGRADE', { initialView: 'upgrade' })}
+                                            className="shrink-0 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md shadow-indigo-500/20 active:scale-95"
+                                        >
+                                            Upgrade
+                                        </button>
+                                    </div>
+                                )}
                                 {userTier !== 'free' && (
                                     <section>
                                         <div className="flex justify-between items-center mb-6 border-b border-neutral-100 dark:border-neutral-800/50 pb-4">

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { SavedJob, ResumeProfile, JobAnalysis, TargetJob, CoverLetterCritique } from '../../types';
+import { Logger } from '../../utils/logger';
 import { Storage } from '../../services/storageService';
 import type { UserTier } from '../../types/app';
 import { generateCoverLetter, generateCoverLetterWithQuality, critiqueCoverLetter } from '../../services/geminiService';
@@ -152,7 +153,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
                 onJobUpdate(updated);
                 EventService.trackUsage(TRACKING_EVENTS.COVER_LETTERS);
 
-                console.log(`[Pro] Cover letter generated with decision: ${result.decision} (${result.attempts} attempts)`);
+                Logger.log(`[Pro] Cover letter generated with decision: ${result.decision} (${result.attempts} attempts)`);
             } else {
                 const { text: letter, promptVersion } = await generateCoverLetter(
                     textToUse,

@@ -2,6 +2,75 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+## [2.29.0] - 2026-03-06
+
+### Added
+- **Salary Insights (Admin Preview)**: New `career-salary` view under the Career module. Groups a user's analyzed jobs by normalized canonical title and renders a salary range bar (low → average → high) for each role. The average marker is a weighted midpoint across all salary data points seen for that title. Range bars unlock at 10+ salary data points; roles below that threshold show the observed range and a count toward the threshold. Includes a filter/search bar to narrow roles. Gated to admin users while in development.
+- **`salaryParser` Utility**: New `src/utils/salaryParser.ts` parses raw salary strings in any common format (`$80K–$120K`, `$80,000 - $120,000`, `$40/hour`, `Up to $90K`, etc.) into structured `{ min, max, midpoint }` numbers. Hourly rates are annualized at 2,080 hours/year. Includes a `formatSalary` helper that produces compact `$NNK` labels.
+- **Roles Stat in Coach Home (Admin)**: Added a Roles counter to the CoachHero stats row showing the count of unique canonical titles across the user's job history. Visible to admins only. Clicking navigates to the Salary Insights view.
+- **`LocalStorage` Utility**: New `src/utils/localStorage.ts` centralizes all non-Vault `localStorage` access behind a single typed `get`/`set`/`remove` interface. This is the single observation point for future encryption migration and cross-tab sync.
+- **`Logger` Utility**: New `src/utils/logger.ts` provides a production-safe console wrapper. `Logger.log` and `Logger.debug` are no-ops in production builds; `Logger.warn` and `Logger.error` always pass through.
+- **`STORAGE_KEYS` — New Keys**: Added `DEVICE_ID` (`nav_device_id`) and `ONBOARDING_STATE` (`onboarding_state`) to `STORAGE_KEYS`. Fixed a duplicate `PRIVACY_ACCEPTED` entry.
+
+### Security
+- **`check_analysis_limit` — Undeclared variable fix**: Added missing `v_email_verified BOOLEAN` declaration to the `DECLARE` block in `check_analysis_limit`. The variable was selected into but never declared, causing the function to fail at runtime. Because the client-side caller fails open on DB errors, this meant quota limits were not being enforced. ⚠️ *Requires Supabase SQL migration to take effect.*
+- **`protect_sensitive_profile_fields` — Correct role check**: Replaced `current_setting('role')` with `current_user` in the trigger that guards `subscription_tier`, `is_admin`, and `is_tester` from user self-modification. `current_setting('role')` reads a GUC config parameter and does not reliably return the active session role; `current_user` is the correct PostgreSQL function. The previous check was effectively always false, meaning the Stripe webhook (service role) could not update subscription tiers. ⚠️ *Requires Supabase SQL migration to take effect.*
+- **`redeem_invite_code` — Duplicate `LANGUAGE` clause removed**: Removed a duplicate `language plpgsql` declaration that caused a SQL syntax error, which could break schema migrations depending on the PostgreSQL version. ⚠️ *Requires Supabase SQL migration to take effect.*
+
+### Performance
+- **Bucket Round Trip Eliminated**: Replaced the sequential `ensureBucket` + `getBucket` calls in `analyzeJobFit` with a single `ensureAndGetBucket` that upserts and returns in one Supabase round trip. Saves ~200ms between the extraction and analysis AI steps on every job analysis.
+- **Bucket In-Memory Cache**: Role guidelines (from `canonical_roles`) are now cached in a session-level `Map` in `bucketStorage.ts`. Repeat analyses of the same canonical role (e.g. multiple "Software Engineer" jobs) skip Supabase entirely.
+- **`getUserId` Cache**: `getUserId()` is called by every storage operation. It now caches the session result for 30 seconds, eliminating repeated `supabase.auth.getSession()` reads. Cache is immediately invalidated on auth state changes (login/logout).
+- **Parallel Mount Load**: Jobs and usage stats in `useJobManager` previously loaded in separate `useEffect`s. They now fire together in a single `Promise.all` on mount, cutting initial load time roughly in half.
+- **Stripe + Recharts Chunked**: Added `vendor-charts` (recharts) and `vendor-stripe` (@stripe/react-stripe-js, @stripe/stripe-js) to Vite's `manualChunks`. These libraries (~400KB combined) now only download when the admin dashboard or plans page is visited, rather than on every initial load.
+- **Inline Style Moved to CSS**: The `@keyframes theme-pulse`, `.animate-theme-pulse`, and `prefers-reduced-motion` rules were inline JSX strings in `AppLayout`, re-processed by React on every render. Moved to `index.css` where they are parsed once at load time.
+- **Parallel Storage Writes**: All write operations across `jobStorage`, `coachStorage`, and `resumeStorage` now fire local (Vault/IndexedDB) and cloud (Supabase) writes simultaneously instead of sequentially. Cuts write latency roughly in half for logged-in users.
+- **Parallel `getUsageStats` Queries**: The six sequential Supabase queries in `getUsageStats` now run as a single `Promise.all`. Reduces dashboard load time by ~5× on that call.
+- **Parallel `syncLocalToCloud`**: All five sync sections (resumes, jobs, skills, role models, target jobs) now fetch cloud state and local data in one `Promise.all` and push changes concurrently.
+- **Compact AI Prompt JSON**: `resumeAiService.stringifyProfile` no longer pretty-prints JSON with 2-space indentation when building prompts, reducing wasted tokens on every resume AI call.
+- **Reduced Callback Re-creation**: `handleSaveFromFeed`, `handlePromoteFromFeed`, and `handleDeleteJob` in `useJobManager` no longer depend on the full `jobs` array. Introduced a `jobsRef` to read current jobs without triggering re-creation on every job state change.
+
+### Changed
+- **Gated Gaps List (`JobDetail`)**: Free-tier users now see only the first identified gap in full; remaining gaps are blurred with a "+N more — Unlock" button overlaid on top, opening the plans comparison. Paid users see the full list unchanged. Only activates when there are 2+ gaps — if there's just one, it's shown in full regardless of tier.
+- **Score-Aware Upgrade Nudge (`JobDetail`)**: Added a contextual conversion prompt inside the match sidebar for free-tier users, shown after analysis completes. The message adapts to their score — strong matches (≥75%) are nudged toward resume tailoring, mid-range (50–74%) toward gap analysis, and low matches (<50%) toward skills gap closure. Tapping opens the plans comparison view. Does not render during analysis or for paid users.
+- **Trial Counter (`UsageIndicator`)**: Rewrote the free-tier usage indicator on the job input page. Fixed a bug where it displayed `weekAnalyses` against a lifetime limit — now correctly uses `lifetimeAnalyses`. Copy updated from "N/3 weekly analyses used" to "Trial: N of 3 analyses used". At 2 of 3 used, the pill shifts to amber and copy flips to countdown framing: "1 trial analysis remaining."
+- **Paywall Screen (`UpgradeModal`)**: Redesigned the upgrade view shown when the free trial limit is hit. "Limit Reached" replaced with "Trial Complete" to frame the moment as a milestone rather than a wall. Added a personalized stats card showing jobs analyzed and average match score, computed from the user's actual analyses and only shown when score data is available. Replaced the amber warning box with calm forward-facing copy. Average score is computed in `GlobalModals` from the `jobs` array and passed in via a new `averageScore` prop.
+- **`interviewAiService` Added to AI Barrel**: Added `export * from './ai/interviewAiService'` to `geminiService.ts`. Updated `SkillInterviewPage.tsx` and `useInterview.ts` to import from `geminiService` instead of the direct path, consistent with all other AI services.
+- **StorageService Migration**: Migrated all 25+ direct `localStorage.getItem/setItem/removeItem` calls in consumer files to go through `LocalStorage`. Affected files: `UserContext`, `GlobalUIContext`, `NavigatorPro`, `JobMatchInput`, `OnboardingPage`, `eventService`, `fingerprint`, `skillQuestionsService`, `useJobDetailLogic`, `storageService`.
+- **Log Sanitation**: Removed the bare `console.log` in `aiCore.ts` (proxy debug noise). Replaced `console.log` in `storageCore.ts` (Vault migration trace), `resumeStorage.ts` (cloud sync debug), and `CoverLetterEditor.tsx` (AI decision trace) with `Logger.log` — dev-only, silent in production.
+- **Removed Redundant Suspense**: `AppRoutes` had an outer `<Suspense>` wrapping all routes that was never triggered, since each individual route has its own `<Suspense>`. Removed the unused wrapper.
+- **Storage Key Constants**: Added `USER_JOURNEY`, `LAST_ARCHETYPE_UPDATE`, `ACCEPTED_TOS_VERSION`, `DISMISSED_NOTICES`, and `PRIVACY_ACCEPTED` to `STORAGE_KEYS` in `constants.ts`. `UserContext` now references these instead of raw strings.
+- **Nudge Threshold Constant**: Extracted `7 * 24 * 60 * 60 * 1000` magic number in nudge logic to `TIME_PERIODS.APPLIED_NUDGE_THRESHOLD_MS`.
+- **`PlanLimitValues` Type**: Replaced `(limits as any).WEEKLY_ANALYSES` casts in `usageLimits.ts` with a proper `PlanLimitValues` intersection type. `||` fallbacks for nullish limit values replaced with `??`.
+- **`encryptionService.decrypt`**: Replaced `split('').map(c => c.charCodeAt(0))` with `Uint8Array.from()` for consistency with the `encrypt` method.
+- **`handleImportResume` Deps**: Removed unused `showSuccess` from the `useCallback` dependency array in `ResumeContext`.
+
+### Fixed
+- **`JobMatchInput` input type**: Changed `type="url"` to `type="text"` on the primary job input. The field accepts both URLs and raw pasted job descriptions, making `url` incorrect and causing browser validation errors on plain-text input.
+- **Vault Init Race Condition**: Concurrent `Vault.getSecure` calls on mount could each independently call `encryptionService.init()` before the first completed. Initialization is now guarded by a shared promise so concurrent callers await the same work.
+- **`submitFeedback` Fire-and-Forget**: `supabase.from('feedback').insert()` was not awaited, silently swallowing errors. Now properly awaited.
+- **`callWithRetry` Backoff Ignored Constant**: Retry delay multiplier was hardcoded as `* 2` instead of using `API_CONFIG.RETRY_BACKOFF_MULTIPLIER`. Now consistent with the constant.
+
+### Removed
+- **BENTO Compat Layer**: Removed the deprecated `BENTO_CARDS_COMPAT`, `BENTO_CATEGORIES_COMPAT`, and `BENTO_RANKINGS_COMPAT` exports from `featureRegistry.ts`, and their corresponding re-exports (`BENTO_CARDS`, `BENTO_CATEGORIES`, `BENTO_RANKINGS`, `BentoCardConfig`) from `constants.ts`. Migration to `FEATURE_REGISTRY` is complete; no active code consumed these aliases. Removed the now-dead `BENTO_CATEGORIES` test from `constants.test.ts`.
+- **Duplicate `adminService.ts`**: Deleted `src/modules/admin/services/adminService.ts`, which was byte-for-byte identical to `src/services/adminService.ts` and was never imported anywhere. Its empty parent directory was also removed.
+- **`isTargetMode` removed from `JobMatchInput`**: Target/dream job mode belonged to the Career section, not the Job section. The job input page is for applying to jobs. Removed the mode state, all conditional logic branching on it, the `useCoachContext` import, the `TrendingUp` icon, and the hardcoded `mode` constant. The Career Coach section manages target jobs independently.
+- **`showResumePrompt` dead code**: Removed unreachable resume upload modal from `JobMatchInput`. The state and JSX block existed but `setShowResumePrompt(true)` was never called anywhere. Also cleaned up the imports (`X`, `DropZone`) and destructured context values (`onImportResume`, `isParsing`, `importError`) that were only used by this modal.
+- **`WelcomeScreen` component**: Deleted unused modal-based onboarding flow (`WelcomeScreen.tsx`). This was the original overlay version of onboarding and has been superseded by the route-based `OnboardingPage`. It was not imported anywhere in the codebase.
+
+## [2.28.0] - 2026-03-05
+
+### Added
+- **Professional Organizations Tracker**: New `career-orgs` view under the Career module. Track professional associations, networks, and communities you belong to. Pre-populated suggestions for planning, transit, engineering, and business orgs (CIP, OPPI, YPT, ITE, CUTA, ULI, etc.). Supports search/filter, custom entries via keyboard, and persists to localStorage.
+- **Orgs Stat in Coach Home**: Added an Organizations counter to the CoachHero stats row alongside Profiles, Goals, and Skills. Clicking navigates to the new orgs view.
+- **Feature Registry — ORGS**: Registered `ORGS` in `featureRegistry.ts` (category: COACH, tier: explorer, `isComingSoon: true`).
+
+### Changed
+- **Feed Source Types**: Removed TTC/Toronto-specific hardcoding from `JobFeedItem.source`. Changed from `'ttc' | 'toronto' | 'other' | 'email'` to `'scraped' | 'other' | 'email'`. Updated `ScraperService.getFeed()` to return `[]` (removing the hardcoded TTC scraper) and fixed `NavigatorPro` feed card to derive the logo letter from company name instead of hardcoding 'T'.
+- **Navigation**: Added `career-orgs` to `ViewId` and `VIEW_TO_PATH` in `navigation.ts`.
+
 ## [2.27.0] - 2026-03-05
 
 ### Fixed

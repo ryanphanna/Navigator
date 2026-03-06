@@ -4,7 +4,7 @@ import {
     generateGeneralBehavioralQuestions,
     analyzeInterviewResponse,
     generateFollowUp
-} from '../../../services/ai/interviewAiService';
+} from '../../../services/geminiService';
 import type {
     InterviewQuestion,
     InterviewResponseAnalysis,

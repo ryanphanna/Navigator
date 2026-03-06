@@ -93,7 +93,7 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         } finally {
             setIsParsingResume(false);
         }
-    }, [showSuccess, showError]);
+    }, [showError]);
 
     const handleUpdateResume = useCallback(async (updatedResume: ResumeProfile) => {
         try {

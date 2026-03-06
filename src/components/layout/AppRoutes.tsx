@@ -66,9 +66,7 @@ export const AppRoutes: React.FC = () => {
 
     return (
         <ErrorBoundary>
-            <Suspense fallback={<LoadingState message="Synchronizing Navigator..." />}>
-                <Routes>
-                    {/* ... existing routes ... */}
+            <Routes>
                     {/* Home / Analyze */}
                     <Route path="/" element={
                         <Suspense fallback={<LoadingState message="Loading Home..." />}>
@@ -259,7 +257,6 @@ export const AppRoutes: React.FC = () => {
 
                     <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
                 </Routes>
-            </Suspense>
         </ErrorBoundary>
     );
 };

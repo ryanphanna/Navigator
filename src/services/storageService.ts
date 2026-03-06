@@ -5,6 +5,7 @@ import { ResumeStorage } from './storage/resumeStorage';
 import { SkillStorage } from './storage/skillStorage';
 import { CoachStorage } from './storage/coachStorage';
 import { STORAGE_KEYS } from '../constants';
+import { LocalStorage } from '../utils/localStorage';
 import type { ResumeProfile, SavedJob } from '../types';
 
 export const Storage = {
@@ -17,63 +18,71 @@ export const Storage = {
         const userId = await getUserId();
         if (!userId) return;
 
+        // Fetch local data and cloud state in parallel
+        const [
+            { data: cloudResume },
+            { data: cloudJobs },
+            { data: cloudSkills },
+            { data: cloudModels },
+            { data: cloudTargets },
+            localResumes,
+            localJobs,
+            localSkills,
+            localRoleModels,
+            localTargetJobs,
+        ] = await Promise.all([
+            supabase.from('resumes').select('id').eq('user_id', userId).limit(1).maybeSingle(),
+            supabase.from('jobs').select('id').eq('user_id', userId),
+            supabase.from('user_skills').select('name').eq('user_id', userId),
+            supabase.from('role_models').select('id').eq('user_id', userId),
+            supabase.from('target_jobs').select('id').eq('user_id', userId),
+            Vault.getSecure(STORAGE_KEYS.RESUMES) as Promise<ResumeProfile[]>,
+            Vault.getSecure(STORAGE_KEYS.JOBS_HISTORY) as Promise<SavedJob[]>,
+            Vault.getSecure<any[]>(STORAGE_KEYS.SKILLS),
+            Vault.getSecure<any[]>(STORAGE_KEYS.ROLE_MODELS),
+            Vault.getSecure<any[]>(STORAGE_KEYS.TARGET_JOBS),
+        ]);
+
+        const syncTasks: Promise<unknown>[] = [];
+
         // 1. Sync Resumes if Cloud is Empty
-        const { data: cloudResume } = await supabase.from('resumes').select('id').eq('user_id', userId).limit(1).maybeSingle();
-        if (!cloudResume) {
-            const resumes = await Vault.getSecure(STORAGE_KEYS.RESUMES) as ResumeProfile[];
-            if (resumes && resumes.length > 0) {
-                await this.saveResumes(resumes);
-            }
+        if (!cloudResume && localResumes?.length > 0) {
+            syncTasks.push(this.saveResumes(localResumes));
         }
 
         // 2. Sync Jobs (Push missing ones)
-        const localJobs: SavedJob[] = await Vault.getSecure(STORAGE_KEYS.JOBS_HISTORY) || [];
-        if (localJobs.length > 0) {
-            const { data: cloudJobs } = await supabase.from('jobs').select('id').eq('user_id', userId);
-            const cloudIds = new Set(cloudJobs?.map(j => j.id) || []);
-
+        if (localJobs?.length > 0) {
+            const cloudJobIds = new Set(cloudJobs?.map(j => j.id) || []);
             for (const job of localJobs) {
-                if (!cloudIds.has(job.id)) {
-                    await this.addJob(job);
-                }
+                if (!cloudJobIds.has(job.id)) syncTasks.push(this.addJob(job));
             }
         }
 
         // 3. Sync Skills
-        const localSkills = await Vault.getSecure<any[]>(STORAGE_KEYS.SKILLS) || [];
-        if (localSkills.length > 0) {
-            const { data: cloudSkills } = await supabase.from('user_skills').select('name').eq('user_id', userId);
-            const cloudNames = new Set(cloudSkills?.map(s => s.name) || []);
-
+        if (localSkills && localSkills.length > 0) {
+            const cloudSkillNames = new Set(cloudSkills?.map(s => s.name) || []);
             for (const skill of localSkills) {
-                if (!cloudNames.has(skill.name)) {
-                    await this.saveSkill(skill);
-                }
+                if (!cloudSkillNames.has(skill.name)) syncTasks.push(this.saveSkill(skill));
             }
         }
 
-        // 4. Sync Coach Data (Role Models & Target Jobs)
-        const localRoleModels = await Vault.getSecure<any[]>(STORAGE_KEYS.ROLE_MODELS) || [];
-        if (localRoleModels.length > 0) {
-            const { data: cloudModels } = await supabase.from('role_models').select('id').eq('user_id', userId);
-            const cloudIds = new Set(cloudModels?.map(m => m.id) || []);
+        // 4. Sync Role Models
+        if (localRoleModels && localRoleModels.length > 0) {
+            const cloudModelIds = new Set(cloudModels?.map(m => m.id) || []);
             for (const model of localRoleModels) {
-                if (!cloudIds.has(model.id)) {
-                    await this.addRoleModel(model);
-                }
+                if (!cloudModelIds.has(model.id)) syncTasks.push(this.addRoleModel(model));
             }
         }
 
-        const localTargetJobs = await Vault.getSecure<any[]>(STORAGE_KEYS.TARGET_JOBS) || [];
-        if (localTargetJobs.length > 0) {
-            const { data: cloudTargets } = await supabase.from('target_jobs').select('id').eq('user_id', userId);
-            const cloudIds = new Set(cloudTargets?.map(t => t.id) || []);
+        // 5. Sync Target Jobs
+        if (localTargetJobs && localTargetJobs.length > 0) {
+            const cloudTargetIds = new Set(cloudTargets?.map(t => t.id) || []);
             for (const target of localTargetJobs) {
-                if (!cloudIds.has(target.id)) {
-                    await this.saveTargetJob(target);
-                }
+                if (!cloudTargetIds.has(target.id)) syncTasks.push(this.saveTargetJob(target));
             }
         }
+
+        await Promise.all(syncTasks);
     },
 
     async signOut() {
@@ -92,14 +101,14 @@ export const Storage = {
             'jobfit_vault_seed' // Also clear the encryption seed
         ];
 
-        userKeys.forEach(key => localStorage.removeItem(key));
+        userKeys.forEach(key => LocalStorage.remove(key));
     },
 
     // Legacy support for feedback and optimization logging if needed
     async submitFeedback(jobId: string, rating: 1 | -1, context: string) {
         const userId = await getUserId();
         if (userId) {
-            supabase.from('feedback').insert({ user_id: userId, job_id: jobId, rating, context });
+            await supabase.from('feedback').insert({ user_id: userId, job_id: jobId, rating, context });
         }
     }
 };

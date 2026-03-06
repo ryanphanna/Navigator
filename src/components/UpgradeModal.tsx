@@ -11,9 +11,10 @@ interface UpgradeModalProps {
     onClose: () => void;
     initialView?: 'upgrade' | 'compare';
     userTier?: string;
+    averageScore?: number;
 }
 
-export const UpgradeModal: React.FC<UpgradeModalProps> = ({ limitInfo, onClose, initialView = 'compare', userTier = 'free' }) => {
+export const UpgradeModal: React.FC<UpgradeModalProps> = ({ limitInfo, onClose, initialView = 'compare', userTier = 'free', averageScore }) => {
     const [view, setView] = React.useState<'upgrade' | 'compare'>(limitInfo ? 'upgrade' : initialView);
     const [loadingPlan, setLoadingPlan] = React.useState<string | null>(null);
     const { showError } = useToast();
@@ -120,19 +121,30 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ limitInfo, onClose, 
                                 <Sparkles className="w-10 h-10 text-white" />
                             </div>
 
-                            <h2 className="text-3xl font-black text-neutral-900 dark:text-white mb-4 tracking-tight">
-                                Limit Reached
+                            <h2 className="text-3xl font-black text-neutral-900 dark:text-white mb-2 tracking-tight">
+                                Trial Complete
                             </h2>
+                            <p className="text-neutral-500 dark:text-neutral-400 text-sm font-medium mb-8">
+                                You've seen what Navigator can do. Here's where you landed.
+                            </p>
 
-                            <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 rounded-2xl p-4 mb-8">
-                                <p className="text-sm text-amber-800 dark:text-amber-400 font-medium leading-relaxed">
-                                    {limitInfo?.reason === 'free_limit_reached' ? (
-                                        <>You've used all <strong>{limitInfo.limit} free analyses</strong>. Upgrade to unlock more analyses and premium features.</>
-                                    ) : (
-                                        <>You've hit your analysis limit for this period. Upgrade for higher limits and the best AI models.</>
-                                    )}
-                                </p>
-                            </div>
+                            {averageScore != null && (
+                                <div className="flex items-center justify-center gap-6 bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl px-8 py-5 mb-8">
+                                    <div className="text-center">
+                                        <div className="text-3xl font-black text-neutral-900 dark:text-white tracking-tight">{limitInfo?.used ?? 3}</div>
+                                        <div className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest mt-1">Jobs Analyzed</div>
+                                    </div>
+                                    <div className="w-px h-10 bg-neutral-200 dark:bg-neutral-700" />
+                                    <div className="text-center">
+                                        <div className="text-3xl font-black text-indigo-500 tracking-tight">{averageScore}%</div>
+                                        <div className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest mt-1">Avg Match Score</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed mb-8">
+                                Keep the momentum going. Upgrade to run unlimited analyses, close your skills gaps, and generate cover letters built from your actual experience.
+                            </p>
 
                             <div className="grid grid-cols-1 gap-4 mb-10">
                                 <button

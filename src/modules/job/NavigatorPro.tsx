@@ -10,6 +10,7 @@ import type { JobFeedItem, ResumeRow } from '../../types';
 import { SharedPageLayout } from '../../components/common/SharedPageLayout';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { STORAGE_KEYS } from '../../constants';
+import { LocalStorage } from '../../utils/localStorage';
 import { StandardSearchBar } from '../../components/common/StandardSearchBar';
 import { StandardFilterGroup } from '../../components/common/StandardFilterGroup';
 
@@ -41,8 +42,8 @@ export const NavigatorPro: React.FC = () => {
         const ONE_DAY = 24 * 60 * 60 * 1000;
 
         // Check if we have cached data
-        const cachedData = localStorage.getItem(STORAGE_KEYS.FEED_CACHE);
-        const cachedTimestamp = localStorage.getItem(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
+        const cachedData = LocalStorage.get(STORAGE_KEYS.FEED_CACHE);
+        const cachedTimestamp = LocalStorage.get(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
 
         if (cachedData && cachedTimestamp) {
             const age = Date.now() - (parseInt(cachedTimestamp) || 0);
@@ -53,8 +54,8 @@ export const NavigatorPro: React.FC = () => {
                     return;
                 } catch {
                     // Cache corrupted — fall through to fetch fresh data
-                    localStorage.removeItem(STORAGE_KEYS.FEED_CACHE);
-                    localStorage.removeItem(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
+                    LocalStorage.remove(STORAGE_KEYS.FEED_CACHE);
+                    LocalStorage.remove(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
                 }
             }
         }
@@ -94,8 +95,8 @@ export const NavigatorPro: React.FC = () => {
             setFeed(combinedFeed);
 
             // Cache the raw feed data
-            localStorage.setItem(STORAGE_KEYS.FEED_CACHE, JSON.stringify(combinedFeed));
-            localStorage.setItem(STORAGE_KEYS.FEED_CACHE_TIMESTAMP, Date.now().toString());
+            LocalStorage.set(STORAGE_KEYS.FEED_CACHE, JSON.stringify(combinedFeed));
+            LocalStorage.set(STORAGE_KEYS.FEED_CACHE_TIMESTAMP, Date.now().toString());
 
             // Trigger background analysis only for scraped jobs that don't have it
             setTimeout(() => analyzeJobsInBackground(scraperData), 100);
@@ -192,8 +193,8 @@ export const NavigatorPro: React.FC = () => {
     const handleAction = async (job: JobFeedItem) => {
         setProcessingId(job.id);
         // Invalidate feed cache so promoted job won't reappear
-        localStorage.removeItem(STORAGE_KEYS.FEED_CACHE);
-        localStorage.removeItem(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
+        LocalStorage.remove(STORAGE_KEYS.FEED_CACHE);
+        LocalStorage.remove(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
         if (job.source === 'email' && onPromoteFromFeed) {
             await onPromoteFromFeed(job.id);
         } else {
@@ -328,11 +329,10 @@ export const NavigatorPro: React.FC = () => {
                             <div className="flex gap-4">
                                 {/* Logo Placeholder */}
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 font-bold text-xl
-                                    ${job.source === 'ttc' ? 'bg-red-50 text-red-600 dark:bg-red-900/20' :
-                                        job.source === 'email' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20' :
-                                            'bg-blue-50 text-blue-600 dark:bg-blue-900/20'}
+                                    ${job.source === 'email' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20' :
+                                        'bg-blue-50 text-blue-600 dark:bg-blue-900/20'}
                                 `}>
-                                    {job.source === 'ttc' ? 'T' : job.source === 'email' ? 'E' : 'C'}
+                                    {job.company.charAt(0).toUpperCase()}
                                 </div>
 
                                 <div className="flex-1 min-w-0">
@@ -380,8 +380,8 @@ export const NavigatorPro: React.FC = () => {
                                             <button
                                                 onClick={() => {
                                                     // Invalidate cache so saved job won't reappear on next load
-                                                    localStorage.removeItem(STORAGE_KEYS.FEED_CACHE);
-                                                    localStorage.removeItem(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
+                                                    LocalStorage.remove(STORAGE_KEYS.FEED_CACHE);
+                                                    LocalStorage.remove(STORAGE_KEYS.FEED_CACHE_TIMESTAMP);
                                                     onSaveFromFeed(job.id);
                                                 }}
                                                 className="p-2.5 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-400 hover:text-indigo-600 rounded-xl transition-colors"

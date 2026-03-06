@@ -1,6 +1,7 @@
 import { supabase } from '../supabase';
 import { Vault, getUserId, areBlocksEqual } from './storageCore';
 import { STORAGE_KEYS } from '../../constants';
+import { Logger } from '../../utils/logger';
 import type { ResumeProfile } from '../../types';
 
 export const ResumeStorage = {
@@ -45,7 +46,7 @@ export const ResumeStorage = {
                         await Vault.setSecure(STORAGE_KEYS.RESUMES, profiles);
                     } else {
                         // Keep local data, it's more complete
-                        console.log("[ResumeStorage] Cloud resumes seem empty or less complete than local. Keeping local for sync.");
+                        Logger.log("[ResumeStorage] Cloud resumes seem empty or less complete than local. Keeping local for sync.");
                     }
                 }
             }
@@ -54,29 +55,29 @@ export const ResumeStorage = {
     },
 
     async saveResumes(resumes: ResumeProfile[]) {
-        await Vault.setSecure(STORAGE_KEYS.RESUMES, resumes);
-
-        const userId = await getUserId();
-        if (userId) {
-            const { data, error: selectError } = await supabase
-                .from('resumes')
-                .select('id')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-            if (selectError && selectError.code !== 'PGRST116') {
-                console.error("Supabase select error in saveResumes:", selectError);
-            }
-
-            if (data) {
-                const { error: updateError } = await supabase.from('resumes').update({ content: resumes, name: 'Default Profile' }).eq('id', data.id);
-                if (updateError) console.error("Supabase update error:", updateError);
-            } else {
-                const { error: insertError } = await supabase.from('resumes').insert({ user_id: userId, name: 'Default Profile', content: resumes });
-                if (insertError) console.error("Supabase insert error:", insertError);
-            }
-        }
+        await Promise.all([
+            Vault.setSecure(STORAGE_KEYS.RESUMES, resumes),
+            getUserId().then(async userId => {
+                if (!userId) return;
+                const { data, error: selectError } = await supabase
+                    .from('resumes')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                if (selectError && selectError.code !== 'PGRST116') {
+                    console.error("Supabase select error in saveResumes:", selectError);
+                }
+                if (data) {
+                    const { error: updateError } = await supabase.from('resumes').update({ content: resumes, name: 'Default Profile' }).eq('id', data.id);
+                    if (updateError) console.error("Supabase update error:", updateError);
+                } else {
+                    const { error: insertError } = await supabase.from('resumes').insert({ user_id: userId, name: 'Default Profile', content: resumes });
+                    if (insertError) console.error("Supabase insert error:", insertError);
+                }
+            })
+        ]);
     },
 
     async addResume(profile: ResumeProfile) {
@@ -108,28 +109,29 @@ export const ResumeStorage = {
             updated = [{ ...master, blocks: newBlocks }, ...existing.slice(1)];
         }
 
-        await Vault.setSecure(STORAGE_KEYS.RESUMES, updated);
-        const userId = await getUserId();
-        if (userId) {
-            const { data: existingRow, error: selectError } = await supabase
-                .from('resumes')
-                .select('id')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-            if (selectError && selectError.code !== 'PGRST116') {
-                console.error("Supabase select error in addResume:", selectError);
-            }
-
-            if (existingRow) {
-                const { error: updateError } = await supabase.from('resumes').update({ content: updated }).eq('user_id', userId);
-                if (updateError) console.error("Supabase update error:", updateError);
-            } else {
-                const { error: insertError } = await supabase.from('resumes').insert({ user_id: userId, name: 'Default Profile', content: updated });
-                if (insertError) console.error("Supabase insert error:", insertError);
-            }
-        }
+        await Promise.all([
+            Vault.setSecure(STORAGE_KEYS.RESUMES, updated),
+            getUserId().then(async userId => {
+                if (!userId) return;
+                const { data: existingRow, error: selectError } = await supabase
+                    .from('resumes')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                if (selectError && selectError.code !== 'PGRST116') {
+                    console.error("Supabase select error in addResume:", selectError);
+                }
+                if (existingRow) {
+                    const { error: updateError } = await supabase.from('resumes').update({ content: updated }).eq('user_id', userId);
+                    if (updateError) console.error("Supabase update error:", updateError);
+                } else {
+                    const { error: insertError } = await supabase.from('resumes').insert({ user_id: userId, name: 'Default Profile', content: updated });
+                    if (insertError) console.error("Supabase insert error:", insertError);
+                }
+            })
+        ]);
         return updated;
     }
 };

@@ -88,7 +88,7 @@ export interface JobFeedItem {
     url: string;
     postedDate: string; // ISO string
     matchScore?: number;
-    source: 'ttc' | 'toronto' | 'other' | 'email';
+    source: 'scraped' | 'other' | 'email';
     sourceType?: 'scraper' | 'email';
     triageReasoning?: string;
     isNew?: boolean;

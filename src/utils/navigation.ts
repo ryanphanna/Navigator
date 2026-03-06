@@ -28,7 +28,9 @@ export type ViewId =
     | 'features'
     | 'welcome'
     | 'settings'
-    | 'skills-interview';
+    | 'skills-interview'
+    | 'career-orgs'
+    | 'career-salary';
 
 const PATH_TO_VIEW: Record<string, ViewId> = {
     [ROUTES.HOME]: 'home',
@@ -89,6 +91,8 @@ const VIEW_TO_PATH: Record<ViewId, string> = {
     'welcome': ROUTES.WELCOME,
     'settings': ROUTES.SETTINGS,
     'skills-interview': '/career/skills/interview',
+    'career-orgs': ROUTES.CAREER_HOME,
+    'career-salary': ROUTES.CAREER_HOME,
 };
 
 export const getViewIdFromPath = (path: string): ViewId => {

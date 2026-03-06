@@ -3,8 +3,18 @@ import type { User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 import { Storage } from '../services/storageService';
 import { getDeviceFingerprint } from '../utils/fingerprint';
+import { STORAGE_KEYS } from '../constants';
+import { LocalStorage } from '../utils/localStorage';
+import { invalidateUserIdCache } from '../services/storage/storageCore';
 
 import type { UserTier } from '../types';
+
+const getTestUser = (): User | null => {
+    if (typeof window !== 'undefined' && LocalStorage.get('navigator_test_user')) {
+        return { id: 'test-user', email: 'test@example.com' } as unknown as User;
+    }
+    return null;
+};
 
 interface UserContextType {
     user: User | null;
@@ -37,26 +47,26 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isAdmin, setIsAdmin] = useState(false);
     const [journey, setJourney] = useState<string>(() => {
         if (typeof window !== 'undefined') {
-            return localStorage.getItem('navigator_user_journey') || 'job-hunter';
+            return LocalStorage.get(STORAGE_KEYS.USER_JOURNEY) || 'job-hunter';
         }
         return 'job-hunter';
     });
     const [lastArchetypeUpdate, setLastArchetypeUpdate] = useState<number>(() => {
         if (typeof window !== 'undefined') {
-            return parseInt(localStorage.getItem('navigator_last_archetype_update') || '0');
+            return parseInt(LocalStorage.get(STORAGE_KEYS.LAST_ARCHETYPE_UPDATE) || '0');
         }
         return 0;
     });
     const [acceptedTosVersion, setAcceptedTosVersion] = useState<number>(() => {
         if (typeof window !== 'undefined') {
-            return parseInt(localStorage.getItem('navigator_accepted_tos_version') || '0');
+            return parseInt(LocalStorage.get(STORAGE_KEYS.ACCEPTED_TOS_VERSION) || '0');
         }
         return 0;
     });
     const [dismissedNotices, setDismissedNotices] = useState<Record<string, number>>(() => {
         if (typeof window !== 'undefined') {
             try {
-                return JSON.parse(localStorage.getItem('navigator_dismissed_notices') || '{}');
+                return JSON.parse(LocalStorage.get(STORAGE_KEYS.DISMISSED_NOTICES) || '{}');
             } catch {
                 return {};
             }
@@ -88,12 +98,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                     // If they have an account, they've implicitly accepted privacy/terms
                     // Sync this to localStorage to prevent redundant redirects
-                    localStorage.setItem('navigator_privacy_accepted', 'true');
+                    LocalStorage.set(STORAGE_KEYS.PRIVACY_ACCEPTED, 'true');
 
                     const profileData = data as unknown as { journey?: string; device_id?: string };
                     if (profileData.journey) {
                         setJourney(profileData.journey);
-                        localStorage.setItem('navigator_user_journey', profileData.journey);
+                        LocalStorage.set(STORAGE_KEYS.USER_JOURNEY, profileData.journey);
                     }
 
                     // Abuse Prevention: Sync device fingerprint
@@ -133,26 +143,17 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         // Initial Session Check
         supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session?.user) {
-                processUser(session.user);
-            } else if (typeof window !== 'undefined' && localStorage.getItem('navigator_test_user')) {
-                // Mock user for E2E tests
-                processUser({ id: 'test-user', email: 'test@example.com' } as unknown as User);
-                setActualTier((localStorage.getItem('navigator_user_tier') as UserTier) || 'free');
-            } else {
-                processUser(null);
+            const testUser = getTestUser();
+            if (!session?.user && testUser) {
+                setActualTier((LocalStorage.get('navigator_user_tier') as UserTier) || 'free');
             }
+            processUser(session?.user ?? testUser);
         }).catch(() => processUser(null));
 
         // Auth Change Listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (session?.user) {
-                processUser(session.user);
-            } else if (typeof window !== 'undefined' && localStorage.getItem('navigator_test_user')) {
-                processUser({ id: 'test-user', email: 'test@example.com' } as unknown as User);
-            } else {
-                processUser(null);
-            }
+            invalidateUserIdCache();
+            processUser(session?.user ?? getTestUser());
         });
 
         return () => subscription.unsubscribe();
@@ -174,41 +175,41 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // If not logged in, just update local state/storage
             if (updates.journey) {
                 setJourney(updates.journey);
-                localStorage.setItem('navigator_user_journey', updates.journey);
+                LocalStorage.set(STORAGE_KEYS.USER_JOURNEY, updates.journey);
             }
             if (updates.last_archetype_update) {
                 setLastArchetypeUpdate(updates.last_archetype_update);
-                localStorage.setItem('navigator_last_archetype_update', updates.last_archetype_update.toString());
+                LocalStorage.set(STORAGE_KEYS.LAST_ARCHETYPE_UPDATE, updates.last_archetype_update.toString());
             }
             if (updates.accepted_tos_version) {
                 setAcceptedTosVersion(updates.accepted_tos_version);
-                localStorage.setItem('navigator_accepted_tos_version', updates.accepted_tos_version.toString());
+                LocalStorage.set(STORAGE_KEYS.ACCEPTED_TOS_VERSION, updates.accepted_tos_version.toString());
             }
             return;
         }
 
         const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
 
-        // Optimistically update local state for better UX, even if DB update fails 
+        // Optimistically update local state for better UX, even if DB update fails
         // (common if schema is out of sync in local dev)
         if (updates.journey) {
             setJourney(updates.journey);
-            localStorage.setItem('navigator_user_journey', updates.journey);
+            LocalStorage.set(STORAGE_KEYS.USER_JOURNEY, updates.journey);
 
             // Auto-update archetype timestamp when journey is changed
             const now = Date.now();
             setLastArchetypeUpdate(now);
-            localStorage.setItem('navigator_last_archetype_update', now.toString());
+            LocalStorage.set(STORAGE_KEYS.LAST_ARCHETYPE_UPDATE, now.toString());
         }
 
         if (updates.last_archetype_update) {
             setLastArchetypeUpdate(updates.last_archetype_update);
-            localStorage.setItem('navigator_last_archetype_update', updates.last_archetype_update.toString());
+            LocalStorage.set(STORAGE_KEYS.LAST_ARCHETYPE_UPDATE, updates.last_archetype_update.toString());
         }
 
         if (updates.accepted_tos_version) {
             setAcceptedTosVersion(updates.accepted_tos_version);
-            localStorage.setItem('navigator_accepted_tos_version', updates.accepted_tos_version.toString());
+            LocalStorage.set(STORAGE_KEYS.ACCEPTED_TOS_VERSION, updates.accepted_tos_version.toString());
         }
 
         if (error) {
@@ -225,7 +226,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const expiration = snoozeDays > 0 ? Date.now() + snoozeDays * 24 * 60 * 60 * 1000 : Infinity;
         const updated = { ...dismissedNotices, [id]: expiration };
         setDismissedNotices(updated);
-        localStorage.setItem('navigator_dismissed_notices', JSON.stringify(updated));
+        LocalStorage.set(STORAGE_KEYS.DISMISSED_NOTICES, JSON.stringify(updated));
     };
 
     const resendVerificationEmail = async () => {

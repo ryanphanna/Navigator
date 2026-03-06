@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     Users,
     Plus,
@@ -8,12 +8,16 @@ import {
     Link as LinkIcon,
     Sparkles,
     ArrowRight,
-    Map
+    Map,
+    Building2,
+    TrendingUp
 } from 'lucide-react';
 import type { CustomSkill, RoleModelProfile, TargetJob } from '../../../types';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import type { CoachViewType } from '../types';
+import { useJobContext } from '../../job/context/JobContext';
+import { useUser } from '../../../contexts/UserContext';
 
 interface CoachHeroProps {
     isUploading: boolean;
@@ -28,6 +32,7 @@ interface CoachHeroProps {
     roleModels: RoleModelProfile[];
     targetJobs: TargetJob[];
     userSkills: CustomSkill[];
+    orgCount: number;
     onViewChange: (view: CoachViewType) => void;
 }
 
@@ -44,9 +49,20 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
     roleModels,
     targetJobs,
     userSkills,
+    orgCount,
     onViewChange
 }) => {
     const isTargetMode = false;
+    const { isAdmin } = useUser();
+    const { jobs } = useJobContext();
+    const canonicalRoleCount = useMemo(() => {
+        const titles = new Set(
+            jobs
+                .filter(j => j.status !== 'feed' && j.analysis?.distilledJob?.canonicalTitle)
+                .map(j => j.analysis!.distilledJob!.canonicalTitle!)
+        );
+        return titles.size;
+    }, [jobs]);
 
     return (
         <>
@@ -171,6 +187,40 @@ export const CoachHero: React.FC<CoachHeroProps> = ({
                             <div className="text-[10px] tracking-widest font-bold text-neutral-400 group-hover:text-accent-primary-hex transition-colors">Skills</div>
                         </div>
                     </div>
+
+                    <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-800" />
+
+                    <div
+                        onClick={() => onViewChange('career-orgs')}
+                        className="flex items-center gap-3 cursor-pointer group transition-all hover:scale-105"
+                    >
+                        <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm group-hover:border-accent-primary/50 group-hover:text-accent-primary-hex transition-colors">
+                            <Building2 className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <div className="text-lg font-black text-neutral-900 dark:text-white leading-none">{orgCount}</div>
+                            <div className="text-[10px] tracking-widest font-bold text-neutral-400 group-hover:text-accent-primary-hex transition-colors">Orgs</div>
+                        </div>
+                    </div>
+
+                    {isAdmin && (
+                        <>
+                            <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-800" />
+
+                            <div
+                                onClick={() => onViewChange('career-salary')}
+                                className="flex items-center gap-3 cursor-pointer group transition-all hover:scale-105"
+                            >
+                                <div className="w-10 h-10 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 shadow-sm group-hover:border-accent-primary/50 group-hover:text-accent-primary-hex transition-colors">
+                                    <TrendingUp className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <div className="text-lg font-black text-neutral-900 dark:text-white leading-none">{canonicalRoleCount}</div>
+                                    <div className="text-[10px] tracking-widest font-bold text-neutral-400 group-hover:text-accent-primary-hex transition-colors">Roles</div>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Quick-Start Guide (only when empty) */}

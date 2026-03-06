@@ -254,7 +254,6 @@ create trigger on_auth_user_created
 create or replace function redeem_invite_code(code_input text)
 returns boolean
 language plpgsql
-language plpgsql
 security definer
 set search_path = public
 as $$
@@ -317,7 +316,8 @@ DECLARE
   v_today_email_count INT;
   v_is_admin BOOLEAN;
   v_is_tester BOOLEAN;
-  
+  v_email_verified BOOLEAN;
+
   -- Limits
   v_inbound_email_limit INT;
   v_inbound_job_limit INT;
@@ -578,7 +578,7 @@ RETURNS TRIGGER AS $$
 BEGIN
   -- If the requester is not a superuser/service_role
   -- we prevent changes to these specific columns
-  IF (current_setting('role') <> 'service_role') THEN
+  IF (current_user <> 'service_role') THEN
     NEW.subscription_tier = OLD.subscription_tier;
     NEW.is_admin = OLD.is_admin;
     NEW.is_tester = OLD.is_tester;

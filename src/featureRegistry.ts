@@ -548,6 +548,26 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         link: '/education/gpa',
         rank: 12,
     },
+    ORGS: {
+        id: 'orgs',
+        key: 'ORGS',
+        name: 'Professional Organizations',
+        shortName: 'Organizations',
+        description: {
+            short: 'Track your professional memberships.',
+            full: 'Keep track of the professional associations, networks, and communities you belong to — all in one place.',
+            plan: 'Professional organization membership tracking',
+        },
+        action: { short: 'View', full: 'Manage' },
+        iconName: 'Building2',
+        colorKey: 'teal',
+        category: 'COACH',
+        tier: 'explorer',
+        targetView: 'career-orgs',
+        link: '/career',
+        rank: 21,
+        isComingSoon: true,
+    },
     // ─── System Notices (Pseudo-features) ──────────────────────────────
     _NOTICE_ARCHETYPE: {
         id: '_notice_archetype',
@@ -676,30 +696,3 @@ export const shouldShowNewBadge = (feature: FeatureDefinition): boolean => {
     }
 };
 
-// ─── Backward Compatibility ────────────────────────────────────────────
-// These re-exports allow gradual migration from the old BENTO_CARDS API.
-// Consumers can switch to FEATURE_REGISTRY at their own pace.
-
-/** @deprecated Use FEATURE_REGISTRY instead */
-export const BENTO_CARDS_COMPAT = Object.fromEntries(
-    Object.entries(FEATURE_REGISTRY).map(([key, feature]) => [
-        key,
-        {
-            id: feature.id,
-            rank: feature.rank,
-            category: feature.category,
-            iconName: feature.iconName,
-            targetView: feature.targetView,
-            title: { marketing: feature.shortName, action: feature.shortName },
-            description: { marketing: feature.description.short, action: feature.description.full },
-            action: { marketing: feature.action.full, action: feature.action.short },
-            colors: getFeatureColor(feature),
-        },
-    ])
-);
-
-/** @deprecated Use FEATURE_CATEGORIES instead */
-export const BENTO_CATEGORIES_COMPAT = FEATURE_CATEGORIES;
-
-/** @deprecated Use FEATURE_RANKINGS instead */
-export const BENTO_RANKINGS_COMPAT = FEATURE_RANKINGS;
