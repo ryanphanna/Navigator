@@ -59,7 +59,7 @@ export const useJobAnalysis = (
 
         if ((job.status === 'analyzing' || isHollow) && !hasStartedAnalysis.current) {
             hasStartedAnalysis.current = true;
-            performAnalysis();
+            setTimeout(() => performAnalysis(), 0);
         }
     }, [job.status, job.analysis, performAnalysis]);
 
