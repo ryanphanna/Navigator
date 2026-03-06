@@ -4,11 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- **Header Navigation Refinement**: Significantly tightened the header aesthetic by reducing padding, gaps, and icon sizes across the center navigation island and right-side action buttons. This provides a more compact, refined look that improves vertical space efficiency.
+- **Job Match Input Stability**: Refactored `JobMatchInput` to prevent unwanted state resets. The input field no longer clears when the browser tab loses focus or when the user identity session refreshes.
+- **Enhanced URL Auto-Scraping**: Improved the logic for handling job URLs passed via parameters. The application now captures the URL on mount and waits for authentication before triggering the scrape, ensuring a seamless "one-click" experience even if the user needs to log in first.
+
 ### Fixed
 - **Job Deletion Resurrection**: Jobs deleted on one device were reappearing on other devices. Jobs confirmed in the cloud are now marked with a `_synced` flag, excluding them from re-upload if they're absent from Supabase (i.e., deleted elsewhere).
-
-### Changed
-- **Type Safety**: Fixed `any` type for `view` prop in `GapAnalysisSectionProps` — now typed as `CoachViewType`. Propagated through `CoachDashboard.tsx` and `HomePage.tsx`.
 
 ## [2.30.2] - 2026-03-06
 

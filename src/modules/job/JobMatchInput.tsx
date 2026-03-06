@@ -56,17 +56,12 @@ const JobMatchInput: React.FC = () => {
         return !LocalStorage.get(STORAGE_KEYS.EXTENSION_TIP_DISMISSED);
     });
 
-    useEffect(() => {
-        setError(null);
-        setIsManualMode(false);
-        setUrl('');
-        setManualText('');
-        setIsScrapingUrl(false);
-        setIsAnalyzing(false);
+    const [initialJobUrl, setInitialJobUrl] = useState<string | null>(null);
 
-        // Handle extension or external job URL params
+    // 1. Initial URL param capture - Only once on mount
+    useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        const jobUrl = params.get('job') || params.get('url');
+        const jobUrl = (params.get('job') || params.get('url'))?.trim();
 
         if (jobUrl) {
             // Clean up the URL (remove params once read)
@@ -74,37 +69,42 @@ const JobMatchInput: React.FC = () => {
             window.history.replaceState({}, '', newUrl);
 
             setUrl(jobUrl);
-
-            // If user is logged in, start scraping automatically
-            if (user) {
-                // Short delay to allow UI to settle
-                setTimeout(() => {
-                    const event = new Event('submit', { cancelable: true, bubbles: true });
-                    document.querySelector('form')?.dispatchEvent(event);
-                    // trigger internal handleUrlSubmit logic directly
-                    const trimmedUrl = jobUrl.trim();
-                    if (trimmedUrl) {
-                        lastUrlRef.current = trimmedUrl;
-                        setIsScrapingUrl(true);
-                        import('../../services/scraperService').then(({ ScraperService }) => {
-                            return ScraperService.scrapeJobContent(trimmedUrl);
-                        }).then(text => {
-                            handleJobSubmission({ type: 'text', content: text });
-                        }).catch(err => {
-                            const msg = err instanceof Error ? err.message : String(err);
-                            setError(msg.includes("403") ? "This site blocks automated access. Please paste the job description below:" : "Error reaching URL. Please paste content below:");
-                        }).finally(() => {
-                            setIsScrapingUrl(false);
-                        });
-                    }
-                }, 500);
-            }
+            setInitialJobUrl(jobUrl);
         }
+    }, []);
 
+    // 2. Handle auto-scraping once authenticated
+    useEffect(() => {
+        if (!user || !initialJobUrl || isScrapingUrl || isAnalyzing) return;
+
+        // Clear the initial URL state so we only do this once
+        const jobUrl = initialJobUrl;
+        setInitialJobUrl(null);
+
+        // trigger internal scrape logic
+        const trimmedUrl = jobUrl.trim();
+        if (trimmedUrl) {
+            lastUrlRef.current = trimmedUrl;
+            setIsScrapingUrl(true);
+            import('../../services/scraperService').then(({ ScraperService }) => {
+                return ScraperService.scrapeJobContent(trimmedUrl);
+            }).then(text => {
+                handleJobSubmission({ type: 'text', content: text });
+            }).catch(err => {
+                const msg = err instanceof Error ? err.message : String(err);
+                setError(msg.includes("403") ? "This site blocks automated access. Please paste the job description below:" : "Error reaching URL. Please paste content below:");
+            }).finally(() => {
+                setIsScrapingUrl(false);
+            });
+        }
+    }, [user, initialJobUrl, isScrapingUrl, isAnalyzing]);
+
+    // 3. Cleanup on unmount
+    useEffect(() => {
         return () => {
             if (onClearError) onClearError();
         };
-    }, [onClearError, user]);
+    }, [onClearError]);
 
     const processJobInBackground = async (input: { type: 'url' | 'text', content: string }) => {
         const jobId = crypto.randomUUID();
