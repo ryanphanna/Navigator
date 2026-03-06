@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- **Job Deletion Resurrection**: Jobs deleted on one device were reappearing on other devices. Jobs confirmed in the cloud are now marked with a `_synced` flag, excluding them from re-upload if they're absent from Supabase (i.e., deleted elsewhere).
+
+### Changed
+- **Type Safety**: Fixed `any` type for `view` prop in `GapAnalysisSectionProps` — now typed as `CoachViewType`. Propagated through `CoachDashboard.tsx` and `HomePage.tsx`.
+
 ## [2.30.2] - 2026-03-06
 
 ### Fixed
