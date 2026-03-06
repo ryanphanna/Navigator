@@ -100,10 +100,13 @@ export const JobStorage = {
                     url: job.url,
                     analysis: job.analysis,
                     canonical_role: job.analysis?.distilledJob?.canonicalTitle,
-                    status: job.status || 'saved',
+                    // 'analyzing' is a transient client-side state; store as 'saved' so the row
+                    // lands in Supabase and gets updated when analysis completes via updateJob.
+                    status: (job.status === 'analyzing' || !job.status) ? 'saved' : job.status,
                     resume_id: job.resumeId,
                     cover_letter: job.coverLetter,
                     cover_letter_critique: job.coverLetterCritique,
+                    fit_score: job.analysis?.compatibilityScore,
                     date_added: new Date(job.dateAdded).toISOString()
                 }).then(({ error }) => {
                     if (error) console.error("Cloud Sync Error (Add Job):", error);
@@ -180,7 +183,7 @@ export const JobStorage = {
                         url: job.url,
                         analysis: job.analysis,
                         canonical_role: job.analysis?.distilledJob?.canonicalTitle,
-                        status: job.status || 'saved',
+                        status: (job.status === 'analyzing' || !job.status) ? 'saved' : job.status,
                         resume_id: job.resumeId,
                         cover_letter: job.coverLetter,
                         cover_letter_critique: job.coverLetterCritique,

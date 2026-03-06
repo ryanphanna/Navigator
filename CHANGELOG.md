@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.30.2] - 2026-03-06
+
+### Fixed
+- **Critical: Cross-Browser Job Sync**: Jobs were silently failing to save to Supabase, making them invisible when logging in from a different browser. Two root causes: (1) the `jobs` table was missing `resume_id`, `cover_letter`, `cover_letter_critique`, `fit_score`, and `location` columns, causing every INSERT to fail; (2) jobs created mid-analysis carried `status: 'analyzing'`, which violated the DB check constraint. Added a migration to add the missing columns and expand the constraint, and fixed `addJob`/`syncLocalToCloud` to map `'analyzing'` → `'saved'` on insert (corrected to the real status by `updateJob` when analysis completes).
+
 ## [2.30.1] - 2026-03-06
 
 ### Refactored
