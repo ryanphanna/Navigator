@@ -29,8 +29,8 @@ export const JobProcessingState: React.FC<JobProcessingStateProps> = ({
                     <div className="relative mx-auto w-32 h-40 mb-10 group">
                         {/* Document Icon Placeholder */}
                         <div className="absolute inset-0 border-2 border-neutral-200 dark:border-neutral-800 rounded-lg bg-neutral-50/50 dark:bg-neutral-900/50 flex flex-col gap-2 p-3 overflow-hidden">
-                            {[...Array(6)].map((_, i) => (
-                                <div key={i} className="h-1.5 w-full bg-neutral-200 dark:border-neutral-800 rounded-full" style={{ width: `${Math.random() * 40 + 60}%` }} />
+                            {[85, 72, 91, 65, 88, 77].map((w, i) => (
+                                <div key={i} className="h-1.5 w-full bg-neutral-200 dark:border-neutral-800 rounded-full" style={{ width: `${w}%` }} />
                             ))}
                         </div>
 
