@@ -212,7 +212,7 @@ export const handler = async (req: Request) => {
                     // Inject a safety rule for all analysis tasks
                     systemInstruction: safeTask === 'analysis' ? {
                         role: 'system',
-                        parts: [{ text: "CRITICAL: First validate if the provided content is a job description or job-related. If it is NOT a job, your entire response must be: {\"error\": \"not_a_job\"}. Otherwise, proceed with the requested analysis." }]
+                        parts: [{ text: "CRITICAL: First validate if the provided content is a job description or related job metadata. Ignore website navigation, headers, and boilerplate. As long as there is mention of a role, responsibilities, or requirements anywhere in the text, proceed with the requested analysis. If it is purely non-job related content (e.g. a recipe or a weather report), return: {\"error\": \"not_a_job\"}." }]
                     } : undefined
                 })
             });

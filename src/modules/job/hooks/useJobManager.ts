@@ -216,7 +216,7 @@ export const useJobManager = () => {
         Storage.deleteJob(id);
         setJobs(prev => prev.filter(j => j.id !== id));
         setActiveJobId(prev => prev === id ? null : prev);
-        navigate('/history');
+        navigate(ROUTES.HISTORY);
     }, [navigate]);
 
     const [nudgeDismissed, setNudgeDismissed] = useState(false);

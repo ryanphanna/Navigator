@@ -53,13 +53,19 @@ export const JobDetail: React.FC = () => {
     const [targetJobs, setTargetJobs] = useState<TargetJob[]>([]);
     const [activeTab, setActiveTab] = useState<'analysis' | 'resume' | 'cover-letter' | 'interview' | 'job-post'>('analysis');
     const [generating, setGenerating] = useState(false);
-    const [manualText, setManualText] = useState(job?.description || '');
-    const [editUrl, setEditUrl] = useState(job?.url || '');
     const [retrying, setRetrying] = useState(false);
+    const [editUrl, setEditUrl] = useState(job?.url || '');
+    const [manualText, setManualText] = useState(job?.description || '');
 
     useEffect(() => {
         Storage.getTargetJobs().then(setTargetJobs);
     }, []);
+
+    // Keep state in sync if job was missing on initial render
+    useEffect(() => {
+        if (!manualText && job?.description) setManualText(job.description);
+        if (!editUrl && job?.url) setEditUrl(job.url);
+    }, [job?.description, job?.url, manualText, editUrl]);
 
     const { analysisProgress } = useJobAnalysis(
         job!,

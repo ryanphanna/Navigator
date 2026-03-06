@@ -133,12 +133,16 @@ const JobMatchInput: React.FC = () => {
         EventService.trackUsage(TRACKING_EVENTS.JOB_FIT);
         onJobCreated(newJob);
 
+        // Wait a bit before clearing to ensure smooth transition
         setTimeout(() => {
             setIsAnalyzing(false);
-            setIsManualMode(false);
-            setUrl('');
-            setManualText('');
-        }, 3000);
+            // ONLY clear if we've successfully moved past the input phase
+            if (!error) {
+                setIsManualMode(false);
+                setUrl('');
+                setManualText('');
+            }
+        }, 2000);
 
         setError(null);
         if (isManualMode && input.type === 'text') {

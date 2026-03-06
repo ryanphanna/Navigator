@@ -171,7 +171,7 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
                             color={color}
                             actionLabel={config.action[actionKey]}
                             badge={config.badge || (shouldShowNewBadge(config) ? 'New' : undefined)}
-                            isComingSoon={config.isComingSoon}
+                            isComingSoon={config.stage === 'beta'}
                             previewContent={getPreviewComponent(config.id, color)}
                             onAction={() => handleAction(config)}
                             onDismiss={isSystemNotice ? () => {

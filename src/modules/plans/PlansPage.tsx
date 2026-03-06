@@ -184,7 +184,7 @@ export const PlansPage: React.FC = () => {
                                     'Trial Plan'
                     }
                     onSelect={() => handleSelectPlan(USER_TIERS.FREE)}
-                    features={getFeaturesForPlan('explorer').map(f => ({ name: f.name, desc: f.description.plan, isComingSoon: f.isComingSoon }))}
+                    features={getFeaturesForPlan('explorer').map(f => ({ name: f.name, desc: f.description.plan, isComingSoon: f.stage === 'beta' }))}
                     limits={{
                         analyses: String(PLAN_LIMITS[USER_TIERS.FREE].TOTAL_ANALYSES),
                         analysesPeriod: 'lifetime',
@@ -205,7 +205,7 @@ export const PlansPage: React.FC = () => {
                     buttonText={userTier === USER_TIERS.PLUS ? 'Current Plan' : 'Upgrade to Plus'}
                     onSelect={() => handleSelectPlan(USER_TIERS.PLUS)}
                     isLoading={loadingTier === USER_TIERS.PLUS}
-                    features={getFeaturesForPlan('plus').map(f => ({ name: f.name, desc: f.description.plan, isComingSoon: f.isComingSoon }))}
+                    features={getFeaturesForPlan('plus').map(f => ({ name: f.name, desc: f.description.plan, isComingSoon: f.stage === 'beta' }))}
                     limits={{
                         analyses: String(PLAN_LIMITS[USER_TIERS.PLUS].WEEKLY_ANALYSES),
                         analysesPeriod: 'week',
@@ -227,7 +227,7 @@ export const PlansPage: React.FC = () => {
                     buttonText={userTier === USER_TIERS.PRO ? 'Current Plan' : 'Upgrade to Pro'}
                     onSelect={() => handleSelectPlan(USER_TIERS.PRO)}
                     isLoading={loadingTier === USER_TIERS.PRO}
-                    features={getFeaturesForPlan('pro').map(f => ({ name: f.name, desc: f.description.plan, isComingSoon: f.isComingSoon }))}
+                    features={getFeaturesForPlan('pro').map(f => ({ name: f.name, desc: f.description.plan, isComingSoon: f.stage === 'beta' }))}
                     limits={{
                         analyses: String(PLAN_LIMITS[USER_TIERS.PRO].DAILY_ANALYSES),
                         analysesPeriod: 'day',

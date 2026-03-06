@@ -8,7 +8,10 @@ import { PARSING_PROMPTS, JOB_ANALYSIS_PROMPTS, CAREER_PROMPTS } from "../../pro
 import { AI_MODELS } from "../../constants";
 
 const stringifyProfile = (profile: ResumeProfile): string => {
-    return JSON.stringify(profile);
+    const blocks = profile.blocks
+        .filter(b => b.isVisible)
+        .map(({ type, title, organization, dateRange, bullets }) => ({ type, title, organization, dateRange, bullets }));
+    return JSON.stringify(blocks);
 };
 
 export const extractPdfText = async (base64: string): Promise<string> => {

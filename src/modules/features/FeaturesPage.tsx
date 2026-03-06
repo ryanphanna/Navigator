@@ -61,7 +61,7 @@ export const FeaturesPage: React.FC = () => {
     const allFeatures = useMemo(() => {
         return getAllFeatures()
             .filter(f => !f.id.startsWith('_notice_')) // Filter system notices
-            .filter(f => !f.requiresAdmin || f.isComingSoon)
+            .filter(f => f.stage !== 'admin')
             .sort((a, b) => a.rank - b.rank);
     }, []);
 
@@ -183,12 +183,12 @@ export const FeaturesPage: React.FC = () => {
                                         title={feature.name}
                                         description={feature.description.full}
                                         color={color}
-                                        actionLabel={feature.isComingSoon ? "Coming Soon" : actionLabel}
-                                        isComingSoon={feature.isComingSoon}
+                                        actionLabel={feature.stage === 'beta' ? "Coming Soon" : actionLabel}
+                                        isComingSoon={feature.stage === 'beta'}
                                         badge={feature.badge}
                                         previewContent={getPreviewComponent(feature.id, color)}
                                         onAction={() => {
-                                            if (feature.isComingSoon && !isAdmin) {
+                                            if (feature.stage === 'beta' && !isAdmin) {
                                                 // Log interest or show toast
                                                 return;
                                             }

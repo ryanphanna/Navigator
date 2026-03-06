@@ -4,13 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Changed
-- **Header Navigation Refinement**: Significantly tightened the header aesthetic by reducing padding, gaps, and icon sizes across the center navigation island and right-side action buttons. This provides a more compact, refined look that improves vertical space efficiency.
-- **Job Match Input Stability**: Refactored `JobMatchInput` to prevent unwanted state resets. The input field no longer clears when the browser tab loses focus or when the user identity session refreshes.
-- **Enhanced URL Auto-Scraping**: Improved the logic for handling job URLs passed via parameters. The application now captures the URL on mount and waits for authentication before triggering the scrape, ensuring a seamless "one-click" experience even if the user needs to log in first.
-
 ### Fixed
-- **Job Deletion Resurrection**: Jobs deleted on one device were reappearing on other devices. Jobs confirmed in the cloud are now marked with a `_synced` flag, excluding them from re-upload if they're absent from Supabase (i.e., deleted elsewhere).
+- **Job Analysis Crash**: Resolved a `TypeError` in the `useJobAnalysis` hook that caused the "Something Went Wrong" screen when a job was briefly undefined during navigation or API errors.
+- **Application History Navigation**: Fixed a bug where deleting a job from history redirected the user to the homepage instead of back to the history list (incorrect routing to `/history` vs `/jobs/history`).
+- **Improved Data Persistence**:
+  - Fixed a missing `url` field in the `JobStorage.updateJob` cloud sync operation.
+  - Added an auto-sync effect to the manual retry UI to ensure late-arriving job descriptions and URLs are correctly populated for editing.
+  - Prevented the job input field from clearing prematurely if an analysis error occurs, preserving the user's pasted text.
+- **UX & Error Reporting**:
+  - Doubled the visibility duration of toast notifications (from 3s to 6s) to ensure complex error messages are readable.
+  - Added user-friendly translations for technical "Proxy Error: non-2xx" messages, mapping them to actionable advice like "Session expired" or "Service busy."
+- **Schema Alignment**: Full synchronization of the `location` field between the `SavedJob` interface and the Supabase `jobs` table.
+
+### Changed
+- **Lenient AI Analysis**: Refined the `gemini-proxy` system instructions to be significantly more tolerant of website boilerplate (navigation, headers). The AI now scans the entire text for role-related content before triggering a "not a job" rejection.
 
 ## [2.30.2] - 2026-03-06
 

@@ -60,14 +60,17 @@ export interface FeatureDefinition {
     link: string;
     /** Default ordering rank (lower = higher priority) */
     rank: number;
-    /** Only visible to admin/tester users */
-    requiresAdmin?: boolean;
+    /**
+     * Visibility stage of the feature.
+     * - 'admin'  — so unready it should not exist publicly; hidden from all public-facing surfaces
+     * - 'beta'   — committed to shipping; shown publicly as "Coming Soon"
+     * - 'public' — fully live (default when omitted)
+     */
+    stage?: 'admin' | 'beta' | 'public';
     /** Eligible for display in homepage spotlight grid */
     showOnHomepage?: boolean;
     /** Hand-picked to appear on plan cards */
     planHighlight?: boolean;
-    /** Feature is currently in development and restricted */
-    isComingSoon?: boolean;
     /** Optional badge text (manually overridden if present) */
     badge?: string;
     /** ISO date string for feature release (e.g. '2024-01-15') */
@@ -367,7 +370,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         link: '/jobs/feed',
         rank: 9,
         showOnHomepage: true,
-        isComingSoon: true,
+        stage: 'beta',
     },
     SKILLS_INTERVIEW: {
         id: 'skills-verify',
@@ -406,7 +409,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         targetView: 'interviews',
         link: '/jobs/interviews',
         rank: 18,
-        isComingSoon: true,
+        stage: 'beta',
     },
     COACH: {
         id: 'coach',
@@ -507,7 +510,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         targetView: 'edu-programs',
         link: '/education/programs',
         rank: 11,
-        isComingSoon: true,
+        stage: 'beta',
     },
     EDU_TRANSCRIPT: {
         id: 'edu-transcript',
@@ -566,7 +569,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         targetView: 'career-orgs',
         link: '/career',
         rank: 21,
-        isComingSoon: true,
+        stage: 'beta',
     },
     // ─── System Notices (Pseudo-features) ──────────────────────────────
     _NOTICE_ARCHETYPE: {

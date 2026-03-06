@@ -100,6 +100,7 @@ export const JobStorage = {
                     job_title: job.analysis?.distilledJob?.roleTitle || job.position || 'Untitled Role',
                     company: job.analysis?.distilledJob?.companyName || job.company || 'Unknown Company',
                     original_text: job.description,
+                    location: job.analysis?.distilledJob?.location || job.location,
                     url: job.url,
                     analysis: job.analysis,
                     canonical_role: job.analysis?.distilledJob?.canonicalTitle,
@@ -132,6 +133,8 @@ export const JobStorage = {
                     job_title: updatedJob.analysis?.distilledJob?.roleTitle || updatedJob.position,
                     company: updatedJob.analysis?.distilledJob?.companyName || updatedJob.company,
                     original_text: updatedJob.description,
+                    location: updatedJob.analysis?.distilledJob?.location || updatedJob.location,
+                    url: updatedJob.url,
                     status: updatedJob.status || 'saved',
                     analysis: updatedJob.analysis,
                     canonical_role: updatedJob.analysis?.distilledJob?.canonicalTitle,
@@ -139,9 +142,11 @@ export const JobStorage = {
                     cover_letter: updatedJob.coverLetter,
                     cover_letter_critique: updatedJob.coverLetterCritique,
                     fit_score: updatedJob.analysis?.compatibilityScore
-                }).eq('id', updatedJob.id).then(({ error }) => {
-                    if (error) console.error("Cloud Sync Error (Update Job):", error);
-                });
+                }).eq('id', updatedJob.id)
+                    .eq('user_id', userId)
+                    .then(({ error }) => {
+                        if (error) console.error("Cloud Sync Error (Update Job):", error);
+                    });
             })
         ]);
 
@@ -183,6 +188,7 @@ export const JobStorage = {
                         job_title: job.analysis?.distilledJob?.roleTitle || job.position || 'Untitled Role',
                         company: job.analysis?.distilledJob?.companyName || job.company || 'Unknown Company',
                         original_text: job.description,
+                        location: job.analysis?.distilledJob?.location || job.location,
                         url: job.url,
                         analysis: job.analysis,
                         canonical_role: job.analysis?.distilledJob?.canonicalTitle,

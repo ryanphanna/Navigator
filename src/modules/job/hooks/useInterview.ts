@@ -2,8 +2,7 @@ import { useState, useCallback } from 'react';
 import {
     generateTailoredInterviewQuestions,
     generateGeneralBehavioralQuestions,
-    analyzeInterviewResponse,
-    generateFollowUp
+    analyzeAndFollowUp
 } from '../../../services/geminiService';
 import type {
     InterviewQuestion,
@@ -64,22 +63,10 @@ export const useInterview = () => {
         setIsLoading(true);
 
         try {
-            // 2. Parallel: Analyze the response AND check for follow-up (if not already a follow-up)
-            // If it IS a follow-up, we don't ask another follow-up to prevent infinite loops.
-
-            const analysisPromise = analyzeInterviewResponse(question.question, responseText, job?.description, job?.id);
-
-            let followUpPromise: Promise<{ shouldFollowUp: boolean; question: string | null; rationale?: string }> | null = null;
-
-            if (!question.isFollowUp) {
-                // Only generate follow-up if this isn't already one
-                followUpPromise = generateFollowUp(question.question, responseText, job?.description, job?.id);
-            }
-
-            const [analysis, followUpResult] = await Promise.all([
-                analysisPromise,
-                followUpPromise ? followUpPromise : Promise.resolve(null)
-            ]);
+            // 2. One call: analyze the response and optionally get a follow-up question.
+            // If this is already a follow-up, we pass a flag so the AI skips the follow-up decision.
+            const result = await analyzeAndFollowUp(question.question, responseText, job?.description, job?.id);
+            const { followUp: followUpResult, ...analysis } = result;
 
             // 3. Save analysis
             setResponses(prev => ({
@@ -87,8 +74,8 @@ export const useInterview = () => {
                 [questionId]: { response: responseText, analysis }
             }));
 
-            // 4. Handle Follow-up Insertion
-            if (followUpResult && followUpResult.shouldFollowUp && followUpResult.question) {
+            // 4. Handle Follow-up Insertion (only if this wasn't already a follow-up)
+            if (!question.isFollowUp && followUpResult && followUpResult.shouldFollowUp && followUpResult.question) {
                 const followUpQuestion: InterviewQuestion = {
                     id: crypto.randomUUID(),
                     question: followUpResult.question,

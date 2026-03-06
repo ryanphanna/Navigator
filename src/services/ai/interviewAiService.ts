@@ -85,6 +85,22 @@ export const analyzeInterviewResponse = async (
     }, { event_type: 'interview_analysis', prompt, model: 'dynamic', job_id: jobId });
 };
 
+export const analyzeAndFollowUp = async (
+    question: string,
+    userResponse: string,
+    jobDescription?: string,
+    jobId?: string
+): Promise<InterviewResponseAnalysis & { followUp: { shouldFollowUp: boolean; question: string | null; rationale?: string } }> => {
+    const prompt = INTERVIEW_PROMPTS.ANALYZE_AND_FOLLOW_UP(question, userResponse, jobDescription);
+
+    return callWithRetry(async (metadata) => {
+        const model = await getModel({ task: 'interview', generationConfig: { responseMimeType: "application/json" } });
+        const response = await model.generateContent({ contents: [{ role: "user", parts: [{ text: prompt }] }] });
+        metadata.token_usage = response.response.usageMetadata;
+        return JSON.parse(cleanJsonOutput(response.response.text()));
+    }, { event_type: 'interview_analysis_with_followup', prompt, model: 'dynamic', job_id: jobId });
+};
+
 export const generateFollowUp = async (
     question: string,
     userResponse: string,

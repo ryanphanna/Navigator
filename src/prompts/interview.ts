@@ -161,6 +161,46 @@ export const INTERVIEW_PROMPTS = {
     }
     `,
 
+  ANALYZE_AND_FOLLOW_UP: (question: string, userResponse: string, jobContext?: string) => `
+    You are a strict technical interviewer. Analyze the candidate's response, then decide if a follow-up is warranted.
+
+    QUESTION: "${question}"
+    RESPONSE: "${userResponse}"
+    ${jobContext ? `CONTEXT: ${jobContext}` : ''}
+
+    TASK:
+    1. GRADE: Does this answer demonstrate the required competence?
+    2. DECISION: "Reject" | "Weak" | "Average" | "Strong" | "Exceptional"
+    3. FEEDBACK: Explain *why* you made this decision.
+    4. RESUME SUGGESTIONS: If the candidate mentioned a strong achievement or gap not well-represented on a resume, provide specific bullet suggestions.
+    5. FOLLOW-UP: Decide if a follow-up question would deepen understanding. Criteria:
+       - VAGUENESS: Did they use buzzwords without details? Ask for an example.
+       - DEPTH: Did they mention a complex topic without explaining it?
+       - INTERESTING: Did they mention a metric worth probing?
+       - NO FOLLOW-UP: If the answer is complete and clear, do not force one.
+
+    Return ONLY JSON:
+    {
+      "decision": "Reject" | "Weak" | "Average" | "Strong" | "Exceptional",
+      "feedback": "Direct feedback addressed to the candidate using 'you'.",
+      "strengths": ["string"],
+      "improvements": ["string"],
+      "betterVersion": "A more senior/correct version of the answer.",
+      "resumeSuggestions": [
+        {
+          "type": "add" | "update" | "remove",
+          "suggestion": "The proposed resume bullet or action.",
+          "impact": "Why this change helps."
+        }
+      ],
+      "followUp": {
+        "shouldFollowUp": boolean,
+        "question": "The follow-up question text, or null if shouldFollowUp is false.",
+        "rationale": "Why you are asking this (or why not)."
+      }
+    }
+    `,
+
   FOLLOW_UP: (question: string, userResponse: string, jobContext?: string) => `
     You are an expert interviewer. The candidate has just answered a question. decide if you should ask a follow-up question to dig deeper, clarify a point, or challenge an assumption.
     

@@ -9,7 +9,7 @@ import type { CustomSkill } from '../../skills/types';
 import type { Transcript } from '../../grad/types';
 
 export const useJobAnalysis = (
-    job: SavedJob,
+    job: SavedJob | undefined,
     resumes: ResumeProfile[],
     userSkills: CustomSkill[],
     onUpdateJob: (job: SavedJob) => void,
@@ -20,6 +20,7 @@ export const useJobAnalysis = (
     const hasStartedAnalysis = useRef(false);
 
     const performAnalysis = useCallback(async () => {
+        if (!job) return;
         setAnalysisProgress("Preparing evaluation...");
         try {
             if (onAnalyzeJob) {
@@ -51,6 +52,8 @@ export const useJobAnalysis = (
     }, [job, onAnalyzeJob, resumes, userSkills, onUpdateJob, showError]);
 
     useEffect(() => {
+        if (!job) return;
+
         const isHollow = job.status === 'saved' && (!job.analysis || !job.analysis.compatibilityScore);
         if (job.status !== 'analyzing' && !isHollow) {
             hasStartedAnalysis.current = false;
@@ -61,7 +64,7 @@ export const useJobAnalysis = (
             hasStartedAnalysis.current = true;
             setTimeout(() => performAnalysis(), 0);
         }
-    }, [job.status, job.analysis, performAnalysis]);
+    }, [job?.status, job?.analysis, performAnalysis]);
 
     return {
         analysisProgress,
