@@ -49,13 +49,12 @@ export const JobDetail: React.FC = () => {
 
     const onBack = () => setView('history');
 
-    if (!job) return null;
     const { showSuccess, showError } = useToast();
     const [targetJobs, setTargetJobs] = useState<TargetJob[]>([]);
     const [activeTab, setActiveTab] = useState<'analysis' | 'resume' | 'cover-letter' | 'interview' | 'job-post'>('analysis');
     const [generating, setGenerating] = useState(false);
-    const [manualText, setManualText] = useState(job.description || '');
-    const [editUrl, setEditUrl] = useState(job.url || '');
+    const [manualText, setManualText] = useState(job?.description || '');
+    const [editUrl, setEditUrl] = useState(job?.url || '');
     const [retrying, setRetrying] = useState(false);
 
     useEffect(() => {
@@ -63,13 +62,15 @@ export const JobDetail: React.FC = () => {
     }, []);
 
     const { analysisProgress } = useJobAnalysis(
-        job,
+        job!,
         resumes,
         userSkills,
         onUpdateJob,
         showError,
         (j) => handleAnalyzeJob(j, { resumes, skills: userSkills })
     );
+
+    if (!job) return null;
 
     const bestResume = getBestResume(resumes, job.analysis);
 
