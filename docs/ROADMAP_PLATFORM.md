@@ -1,18 +1,19 @@
-# Navigator Platform Roadmap
+# Platform Roadmap
 
-## 📈 Platform Strategy (Strategic)
-*Moving from a "Tool" to an "Intelligence Layer".*
+Evolution from a career utility into an intelligence layer for professional growth.
 
-- [ ] **Universal Professional Bio**: A centralized, encrypted digital identity that serves as the "Source of Truth" for all AI features.
-- [ ] **Org Intelligence**: Tracking company-specific hiring patterns over time to predict "Ideal Candidate" profiles.
-- [ ] **Credential Mapping**: Automated suggestions for career-specific certifications based on identified skills gaps.
-- [ ] **Localization (i18n)**: Preparing the core platform for multi-language support (ES, FR, DE).
-- [ ] **Networking Graph**: Tracking alumni or internal contacts at target companies during the application phase.
+## Professional Intelligence
+
+- [ ] **Universal Professional Bio**: Centralized, encrypted digital identity for all AI features.
+- [ ] **Org Intelligence**: Tracking company-specific hiring patterns to predict candidate profiles.
+- [ ] **Credential Mapping**: Automated certification suggestions based on skill gaps.
+
+## Ecosystem
+
+- [ ] **Localization**: multi-language support (ES, FR, DE) for the core platform.
+- [ ] **Networking Graph**: Tracking alumni and internal contacts during application phases.
+- [ ] **Job Alert Inbox**: Deep integration with the standalone triage service.
 
 ---
 
-## 🚀 Related Initiatives
-### 📬 Job Alert Inbox (Standalone Service)
-*The Intelligent Job Inbox is being developed as a standalone service to handle massive-scale email parsing and automated triage.*
-- [ ] Cross-service sync: Pull triaged matches into the Navigator core feed.
-- [ ] Shared auth state across the Navigator ecosystem.
+[Back to Roadmap](../ROADMAP.md)

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.31.3] - 2026-03-07
+
+### Security
+- **Critical SQL Fixes (Supabase)**: Manually applied three essential security and integrity patches to the production database:
+  - **Quota System Recovery**: Fixed a missing variable declaration (`v_email_verified`) in the `check_analysis_limit` function that caused silent runtime failures and blocked quota enforcement.
+  - **Stripe Webhook Integrity**: Corrected the session role check in `protect_sensitive_profile_fields` (switching to `current_user`) to ensure the Stripe `service_role` can successfully update user subscription tiers.
+  - **SQL Syntax Resolution**: Removed a duplicate `LANGUAGE` clause in the `redeem_invite_code` function that caused intermittent migration failures.
+
 ## [2.31.2] - 2026-03-06
 
 ### Changed

@@ -1,26 +1,21 @@
-# Navigator Product Roadmap
+# Product Roadmap
 
-## 🔥 Critical Priority (Now)
-*Immediate focus to expand active workflow tools and solidify the platform.*
+Immediate focus on expanding active workflow tools and solidifying platform trust.
 
-### 🌐 Browser Extension (Phase 2)
-**Goal**: Move Navigator into the user's active workflow on LinkedIn, Indeed, and Greenhouse.
-- [ ] **Select-and-Clip**: Save custom job snippets directly from any webpage.
-- [ ] **Live Analysis Overlay**: Instant match quality visualizer directly on job boards.
+## Critical Priority
+
+- [ ] **Match Feedback Loop**: Simple thumbs-up/down on every analysis to refine AI personalization.
+- [ ] **Mobile Responsive Pass**: Ensure the dashboard and history are fully functional on mobile browsers.
+- [ ] **Proactive Nudges**: Chrome notifications (Opt-In) for high-priority job matches detected by the alert inbox.
+
+## Ecosystem
+
+- [ ] **Localization**: multi-language support (ES, FR, DE) for the core platform.
+- [ ] **Networking Graph**: Tracking alumni and internal contacts during application phases.
+- [ ] **Job Alert Inbox**: Deep integration with the standalone triage service.
+- [ ] **Data Portability**: Export application history and analyzed job data to CSV/JSON.
+- [ ] **Accessibility**: Complete WCAG 2.1 pass for keyboard and screen reader support.
 
 ---
 
-## ⚡️ High Priority (Next)
-*Deepening user value and professional trust.*
-
-### 🔒 Trust & Verification
-- [ ] **Account Integrity**: Implementation of Magic Link / Code-based email verification.
-- [ ] **Growth Infrastructure**: Stripe Customer Portal for self-service subscription management.
-
-### 🎨 Design System Audit
-**Goal**: Resolve remaining `red-*` vs `rose-*` color inconsistencies and standardize premium "Glassmorphism" UI components.
-
-### 🔄 Data & Feedback
-- [ ] **AI Feedback Loop**: Allow users to rate match quality (👍/👎) to refine backend prompt engineering.
-- [ ] **Data Portability**: Export application history and analyzed job data to CSV/JSON for personal records.
-- [ ] **A11y Standards**: Complete WCAG 2.1 accessibility pass for keyboard navigation and screen reader support.
+[Back to Roadmap](../ROADMAP.md)
