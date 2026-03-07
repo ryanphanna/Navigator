@@ -114,17 +114,12 @@ export function getUserFriendlyError(error: Error | string): string {
   // If no match, return the original message if it doesn't look like a code crash
   const isCodeCrash = message.includes('at ') || message.includes('node_modules') || (message.includes('error:') && message.length > 150);
 
-  // Generic errors
-  if (message.includes('proxy error') || message.includes('edge function') || message.includes('status code')) {
-    return "We're having trouble reading this page format. Try copying just the core job details or refreshing.";
-  }
-
   if (isCodeCrash || message.length > 300) {
     return ERROR_MESSAGES.UNKNOWN_ERROR;
   }
 
   // Edge Function / Proxy issues
-  if (message.includes('non-2xx') || message.includes('proxy error')) {
+  if (message.includes('non-2xx') || message.includes('proxy error') || message.includes('edge function') || message.includes('status code')) {
     if (message.includes('401')) return "Session expired. Please log out and back in.";
     if (message.includes('429')) return ERROR_MESSAGES.RATE_LIMIT_EXCEEDED;
     return "Analysis timed out or service busy. Try again in 10 seconds.";

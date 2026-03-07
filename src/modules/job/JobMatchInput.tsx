@@ -164,7 +164,6 @@ const JobMatchInput: React.FC = () => {
     // Handle auto-scraping once authenticated
     useEffect(() => {
         if (!user || !initialJobUrl || isScrapingUrl || isAnalyzing) return;
-        const jobUrl = initialJobUrl;
         setInitialJobUrl(null);
         handleUrlSubmit();
     }, [user, initialJobUrl, isScrapingUrl, isAnalyzing]);

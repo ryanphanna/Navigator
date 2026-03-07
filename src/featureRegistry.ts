@@ -204,6 +204,7 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         tier: 'plus',
         targetView: 'job-home',
         link: '/jobs',
+        releaseDate: '2024-11-15',
         rank: 15,
     },
     RESUME_TAILORING: {
@@ -349,7 +350,6 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
         rank: 4,
         showOnHomepage: true,
         planHighlight: true,
-        releaseDate: '2025-02-15',
     },
     MAIL_IN: {
         id: 'mail-in',

@@ -2,30 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.31.0] - 2026-03-06
 
 ### Added
-- **Direct Manual Entry**: Added a "Paste manually" toggle to the `JobMatchInput` screen, allowing users to move straight to text input and bypass initial URL scraper attempts.
+- **Direct Manual Entry**: Introduced a "Paste manually" toggle on the job input screen, letting users bypass URL scraping and instantly paste descriptions.
 
 ### Changed
-- **Humanized Growth Tone**: Refactored the error reporting tone to be more personal; system errors and extraction failures now use "We" (e.g., "We're having trouble reading this page") instead of technical "AI service" phrasing.
-- **Streamlined Progress UX**: Replaced multi-word progress labels with intuitive, single-word statuses — **Accessing**, **Preparing**, **Cleaning**, **Matching** — and introduced **Thinking** as a smart fallback label.
-- **Automated Job Cleaning**: Implemented a robust pre-cleaning engine in `jobAiService` that automatically strips common website navigation and boilerplate (e.g., "Ontario.ca homepage", "Français", "Accessibility") from pasted job descriptions to eliminate manual work for the user.
-- **Robust Input Truncation**: Increased the safety threshold and refined how large job descriptions are truncated before AI extraction to prevent "Proxy Error" timeouts on large clippings.
-- **Lenient AI Analysis**: Refined the `gemini-proxy` system instructions to be significantly more tolerant of website boilerplate (navigation, headers). The AI now scans the entire text for role-related content before triggering a "not a job" rejection.
+- **Automated Pre-cleaning & Resilience**: Upgraded the AI proxy to automatically strip website boilerplate ("navigation", "terms", etc.) from pasted text, drastically reducing "Not a job" extraction failures and timeout errors.
+- **Streamlined Progress UX**: Refined loading labels into crisp single-word statuses (e.g., *Accessing*, *Cleaning*, *Matching*, *Thinking*).
+- **Humanized Error Tone**: System errors now use personal language ("We're having trouble...") instead of technical phrasing.
 
 ### Fixed
-- **Job Analysis Crash**: Resolved a `TypeError` in the `useJobAnalysis` hook that caused the "Something Went Wrong" screen when a job was briefly undefined during navigation or API errors.
-- **Application History Navigation**: Fixed a bug where deleting a job from history redirected the user to the homepage instead of back to the history list (incorrect routing to `/history` vs `/jobs/history`).
-- **User-Friendly Error Mapping**: Mapped technical "Proxy Error" and "non-2xx" status codes to actionable advice, suggesting users shorten messy text or refresh.
-- **Static Analysis Fixes**: Resolved a missing variable error (`isCodeCrash`) in `errorMessages.ts` and purged the unused `CONTENT_VALIDATION` import in `jobAiService.ts`.
-- **Improved Data Persistence**:
-  - Fixed a missing `url` field in the `JobStorage.updateJob` cloud sync operation.
-  - Added an auto-sync effect to the manual retry UI to ensure late-arriving job descriptions and URLs are correctly populated for editing.
-  - Prevented the job input field from clearing prematurely if an analysis error occurs, preserving the user's pasted text.
-- **UX & Error Reporting**:
-  - Doubled the visibility duration of toast notifications (from 3s to 6s) to ensure complex error messages are readable.
-- **Schema Alignment**: Full synchronization of the `location` field between the `SavedJob` interface and the Supabase `jobs` table.
+- **Build & Static Analysis Failures**: Resolved unused variable `tsc` errors in `GapAnalysisSection` and `JobMatchInput` that were blocking deployments.
+- **Misleading Timed-Out Errors**: Corrected an error routing bug where temporary AI service timeouts ("Proxy Error") were incorrectly displaying as "unreadable page format" scraping failures.
+- **Data Persistence & Sync**: Squashed bugs involving missing Cloud sync URLs, auto-sync during manual retries, and schema alignment for the `location` field in the Supabase `jobs` table.
+- **UI Flow Breaks**: Fixed a job analysis crash (`TypeError: undefined job`), prevented premature text clearing on failed analyses, raised toast visibility length to 6s, and fixed a history deletion bug that wrongly redirected users to the homepage path.
 
 ## [2.30.2] - 2026-03-06
 
