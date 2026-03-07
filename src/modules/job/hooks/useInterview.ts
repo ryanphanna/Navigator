@@ -11,6 +11,14 @@ import type {
 } from '../types';
 import type { ResumeProfile } from '../../resume/types';
 
+const stringifyForInterview = (resumes: ResumeProfile[]): string => {
+    if (!resumes.length) return '';
+    return resumes[0].blocks
+        .filter(b => b.isVisible && (b.type === 'work' || b.type === 'volunteer' || b.type === 'project' || b.type === 'education'))
+        .map(b => `${b.title} at ${b.organization} (${b.dateRange}):\n${b.bullets.map(bull => `- ${bull}`).join('\n')}`)
+        .join('\n\n');
+};
+
 export const useInterview = () => {
     const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -18,11 +26,12 @@ export const useInterview = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const loadGeneralQuestions = useCallback(async () => {
+    const loadGeneralQuestions = useCallback(async (resumes: ResumeProfile[] = []) => {
         setIsLoading(true);
         setError(null);
         try {
-            const result = await generateGeneralBehavioralQuestions();
+            const resumeContext = stringifyForInterview(resumes);
+            const result = await generateGeneralBehavioralQuestions(resumeContext);
             setQuestions(result);
             setCurrentQuestionIndex(0);
             setResponses({});

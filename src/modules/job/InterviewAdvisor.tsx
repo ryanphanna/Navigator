@@ -78,12 +78,14 @@ export const InterviewAdvisor: React.FC = () => {
     const computeSnippets = () => {
         if (!resumes || resumes.length === 0) return [];
         const primaryResume = resumes[0];
-        const experienceBlocks = primaryResume.blocks?.filter(b => b.type === 'work' || b.type === 'volunteer' || b.type === 'project') || [];
-        const allBullets = experienceBlocks.flatMap(b => b.bullets.map(bullet => ({
-            text: bullet,
-            source: b.organization || b.title
-        })));
-        return [...allBullets].sort(() => 0.5 - Math.random()).slice(0, 3);
+        const experienceBlocks = primaryResume.blocks?.filter(b => b.isVisible && (b.type === 'work' || b.type === 'volunteer' || b.type === 'project')) || [];
+        return [...experienceBlocks]
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 2)
+            .map(b => ({
+                text: b.organization || b.title,
+                source: b.title !== b.organization ? b.title : b.dateRange
+            }));
     };
 
     // Build flat ChatMessage[] from questions + responses for InterviewChat
@@ -114,7 +116,7 @@ export const InterviewAdvisor: React.FC = () => {
                             >
                                 <div className="w-full text-[10px] font-black text-neutral-400 mb-1 flex items-center gap-1.5">
                                     <Target className="w-3 h-3" />
-                                    Evidence from your Profile
+                                    You might want to think about...
                                 </div>
                                 {resumeSnippets.map((snippet, sIdx) => (
                                     <div
@@ -255,7 +257,7 @@ export const InterviewAdvisor: React.FC = () => {
         }
 
         setResumeSnippets(computeSnippets());
-        loadGeneralQuestions();
+        loadGeneralQuestions(resumes);
         setMode('session');
     };
 

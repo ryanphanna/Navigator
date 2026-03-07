@@ -111,22 +111,36 @@ export const INTERVIEW_PROMPTS = {
     }
     `,
 
-  GENERAL_BEHAVIORAL: `
-    You are a professional HR manager. Generate a list of the 10 most common behavioral interview questions used across all industries.
-    
-    Include questions about:
-    - Overcoming challenges
-    - Working in a team
-    - Dealing with failure
-    - Handling conflict
-    - Career goals
-    
+  GENERAL_BEHAVIORAL: (resumeContext: string) => `
+    You are an experienced HR manager conducting a general behavioral interview.
+    Use the candidate's background below to make questions feel personal and relevant — reference their actual roles, organizations, and experiences where natural.
+
+    CANDIDATE BACKGROUND:
+    ${resumeContext}
+
+    TASK:
+    Generate 10 behavioral interview questions that cover:
+    - Overcoming a challenge or setback
+    - Working in or leading a team
+    - Handling conflict or a difficult person
+    - Dealing with failure or a mistake
+    - Adapting to change or ambiguity
+    - Prioritization under pressure
+    - A proud achievement
+    - Career goals and motivation
+
+    RULES:
+    - Questions must sound like a real interviewer — natural, open-ended, not candidate-specific. Do NOT reference the candidate's employers, roles, or experiences in the question text.
+    - Use the candidate's background to calibrate which questions to ask and at what level. For example: if they have management experience, include a leadership question; if they are early-career, focus on learning and teamwork; match the seniority and industry context.
+    - Tips should be general coaching advice (STAR method, what a strong answer includes) — not references to their specific background, since the UI already surfaces that separately.
+    - Keep each question under 2 sentences.
+
     Return ONLY a JSON array of objects:
     [
       {
         "question": "The question text.",
         "category": "behavioral",
-        "tips": "Brief advice on the STAR method or similar for this specific question."
+        "tips": "Brief advice on how to answer this specific question well (STAR method or similar)."
       }
     ]
     `,

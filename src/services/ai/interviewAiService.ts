@@ -57,8 +57,8 @@ export const analyzeUnifiedResponse = async (
     }, { event_type: 'unified_skill_interview_analysis', prompt, model: 'dynamic' });
 };
 
-export const generateGeneralBehavioralQuestions = async (): Promise<InterviewQuestion[]> => {
-    const prompt = INTERVIEW_PROMPTS.GENERAL_BEHAVIORAL;
+export const generateGeneralBehavioralQuestions = async (resumeContext: string): Promise<InterviewQuestion[]> => {
+    const prompt = INTERVIEW_PROMPTS.GENERAL_BEHAVIORAL(resumeContext);
 
     return callWithRetry(async (metadata) => {
         const model = await getModel({ task: 'interview', generationConfig: { responseMimeType: "application/json" } });
